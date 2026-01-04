@@ -8,7 +8,8 @@ import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { SideBarHeader } from "../../SideBar";
-import { WorkspaceList, WorkspaceListSkeleton } from "./WorkspaceList";
+import { WorkspaceList } from "./WorkspaceList";
+import { WorkspaceListSkeleton } from "./WorkspaceListSkeleton";
 
 function createWorkspaceCreateTab(): Tab {
   return {

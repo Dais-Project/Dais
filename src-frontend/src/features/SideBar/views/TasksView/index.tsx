@@ -22,9 +22,9 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { TaskType } from "@/types/task";
 import { SideBarHeader } from "../../SideBar";
-import { TaskIcon } from "./components/TaskIcon";
-import { TaskList } from "./components/TaskList";
-import { TaskListSkeleton } from "./components/TaskListSkeleton";
+import { TaskIcon } from "./TaskIcon";
+import { TaskList } from "./TaskList";
+import { TaskListSkeleton } from "./TaskListSkeleton";
 
 export function TasksView() {
   const { addTab } = useTabsStore();

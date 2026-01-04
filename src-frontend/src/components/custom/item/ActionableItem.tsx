@@ -12,6 +12,7 @@ import {
   ItemActions,
   ItemContent,
   ItemDescription,
+  ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,8 @@ export function ActionableItem({ children }: ActionableItemProps) {
     </ContextMenu>
   );
 }
+
+export const ActionableItemIcon = ItemMedia;
 
 type ActionableItemTriggerProps = {
   children: React.ReactNode;

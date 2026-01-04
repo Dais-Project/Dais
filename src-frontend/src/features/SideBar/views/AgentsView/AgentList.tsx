@@ -95,7 +95,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
           <span>编辑 Agent</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem
-          className="text-destructive"
+          className="text-destructive hover:text-destructive!"
           onClick={() => onDelete(agent)}
         >
           <TrashIcon className="mr-2 size-4 text-destructive" />

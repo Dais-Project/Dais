@@ -1,6 +1,7 @@
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { AirVentIcon, PencilIcon, TrashIcon } from "lucide-react";
 import {
   ActionableItem,
+  ActionableItemIcon,
   ActionableItemInfo,
   ActionableItemMenu,
   ActionableItemMenuItem,
@@ -12,7 +13,9 @@ export function AgentItemExample({ agent }) {
     <ActionableItem>
       {/* 1. 触发区域：包含 Avatar、文字信息和自动生成的更多按钮 */}
       <ActionableItemTrigger onClick={() => console.log("Row Clicked")}>
-        <div className="size-5 rounded-full bg-blue-500" /> {/* 模拟 Avatar */}
+        <ActionableItemIcon>
+          <AirVentIcon className="size-4" />
+        </ActionableItemIcon>
         <ActionableItemInfo title={agent.name} description={agent.modelName} />
       </ActionableItemTrigger>
 
