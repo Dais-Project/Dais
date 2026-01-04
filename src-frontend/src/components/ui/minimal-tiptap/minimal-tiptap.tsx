@@ -24,7 +24,7 @@ export interface MinimalTiptapProps
 }
 
 const Toolbar = ({ editor }: { editor: Editor }) => (
-  <div className="flex h-12 shrink-0 overflow-x-auto border-border border-b p-2">
+  <div className="flex h-12 shrink-0 overflow-hidden border-border border-b p-2">
     <div className="flex w-max items-center gap-px">
       <SectionOne editor={editor} activeLevels={[1, 2, 3, 4, 5, 6]} />
 
@@ -113,6 +113,9 @@ export const MainMinimalTiptapEditor = ({
     <MeasuredContainer
       as="div"
       name="editor"
+      style={{
+        contain: "layout paint style",
+      }}
       className={cn(
         "bg-transparent transition-[color,box-shadow] placeholder:text-muted-foreground dark:bg-input/30",
         "flex h-auto w-full flex-col rounded-md border border-input shadow-xs min-data-[orientation=vertical]:h-72",

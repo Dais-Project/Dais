@@ -5,6 +5,7 @@ import {
   useGroupRef,
   usePanelRef,
 } from "react-resizable-panels";
+import { useDebouncedCallback } from "use-debounce";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -29,17 +30,17 @@ function Layout() {
   const groupRef = useGroupRef();
   const sideBarPanelRef = usePanelRef();
 
-  const handleSideBarResize = (
-    panelSize: PanelSize,
-    _: string | number | undefined
-  ) => {
-    if (panelSize.asPercentage === 0) {
-      closeSidebar();
-    } else {
-      openSidebar();
-      recentPanelSizePx.current = panelSize.inPixels;
-    }
-  };
+  const handleSideBarResize = useDebouncedCallback(
+    (panelSize: PanelSize, _: string | number | undefined) => {
+      if (panelSize.asPercentage === 0) {
+        closeSidebar();
+      } else {
+        openSidebar();
+        recentPanelSizePx.current = panelSize.inPixels;
+      }
+    },
+    300
+  );
 
   useEffect(() => {
     if (groupRef.current === null || sideBarPanelRef.current === null) {
@@ -76,7 +77,7 @@ function Layout() {
           <SideBar />
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel minSize={20}>
+        <ResizablePanel minSize={300}>
           <Tabs />
         </ResizablePanel>
       </ResizablePanelGroup>
