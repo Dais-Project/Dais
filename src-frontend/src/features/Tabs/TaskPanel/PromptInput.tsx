@@ -92,6 +92,34 @@ const stateMapping = {
   running: "streaming",
 } satisfies Record<TaskState, ChatStatus>;
 
+function ContectUsage({ usage }: { usage: TaskUsage }) {
+  if (usage.max_tokens === 0) {
+    return null;
+  }
+  return (
+    <Context
+      maxTokens={usage.max_tokens}
+      usage={{
+        inputTokens: usage.input_tokens,
+        outputTokens: usage.output_tokens,
+        totalTokens: usage.total_tokens,
+      }}
+      usedTokens={usage.total_tokens}
+    >
+      <ContextTrigger />
+      <ContextContent>
+        <ContextContentHeader />
+        <ContextContentBody>
+          <ContextInputUsage />
+          <ContextOutputUsage />
+          <ContextReasoningUsage />
+          <ContextCacheUsage />
+        </ContextContentBody>
+      </ContextContent>
+    </Context>
+  );
+}
+
 export function PromptInput({
   taskType,
   taskData,
@@ -151,28 +179,7 @@ export function PromptInput({
               </Button>
             </Activity>
           )}
-          {taskUsage.max_tokens && (
-            <Context
-              maxTokens={taskUsage.max_tokens}
-              usage={{
-                inputTokens: taskUsage.input_tokens,
-                outputTokens: taskUsage.output_tokens,
-                totalTokens: taskUsage.total_tokens,
-              }}
-              usedTokens={taskUsage.total_tokens}
-            >
-              <ContextTrigger />
-              <ContextContent>
-                <ContextContentHeader />
-                <ContextContentBody>
-                  <ContextInputUsage />
-                  <ContextOutputUsage />
-                  <ContextReasoningUsage />
-                  <ContextCacheUsage />
-                </ContextContentBody>
-              </ContextContent>
-            </Context>
-          )}
+          <ContectUsage usage={taskUsage} />
         </PromptInputTools>
         <PromptInputSubmit
           status={stateMapping[taskState]}

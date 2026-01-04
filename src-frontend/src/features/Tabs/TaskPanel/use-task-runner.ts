@@ -171,6 +171,16 @@ export function useTaskRunner(
   const continue_ = (taskId: number, messages: UserMessage | null) => {
     setState("waiting");
     abortController.current?.abort();
+
+    setTaskData((draft) => {
+      if (!draft) {
+        return;
+      }
+      if (messages) {
+        draft.messages.push(messages);
+      }
+    });
+
     abortController.current = continueTask(
       taskId,
       messages,

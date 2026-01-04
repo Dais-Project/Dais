@@ -26,7 +26,7 @@ export function TaskConversation({
 }: TaskConversationProps) {
   return (
     <Conversation id="conversation" className="conversation-container">
-      <ConversationContent>
+      <ConversationContent className="gap-y-4">
         <Activity mode={isLoading ? "visible" : "hidden"}>
           <ConversationEmptyState />
         </Activity>

@@ -13,7 +13,10 @@ class AgentContext:
         self._system_instruction = BASE_INSTRUCTION.format(
             os_platform=platform.system(),
             user_language="zh-CN", # TODO: Get from system settings
-            user_custom_instruction=self.agent.system_prompt
+            workspace_name=self.workspace.name,
+            workspace_directory=self.workspace.directory,
+            workspace_instruction=self.workspace.workspace_background,
+            agent_instruction=self.agent.system_prompt
         )
 
     @property

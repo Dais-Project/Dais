@@ -20,7 +20,7 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
   const updateTabMetadata = useTabsStore((state) => state.updateTabMetadata);
   const [taskData, setTaskData] = useImmer<TaskRead | null>(null);
   const [showContinueTask, setShowContinueTask] = useState(false);
-  const taskRunner = useTaskRunner(setTaskData, (_err) => {
+  const taskRunner = useTaskRunner(setTaskData, (_) => {
     setShowContinueTask(true);
   });
 
@@ -91,6 +91,7 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
       });
       taskRunner.continue(newTask.id, null);
     } else {
+      setShowContinueTask(false);
       taskRunner.continue(metadata.id, userMessage);
     }
   };
@@ -109,6 +110,7 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
     if (metadata.isDraft) {
       return;
     }
+    setShowContinueTask(false);
     taskRunner.handleCustomToolAction(...args);
     const [toolMessageId, _, data] = args;
     taskRunner.answerTool(metadata.id, toolMessageId, data);
