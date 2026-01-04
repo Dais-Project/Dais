@@ -3,52 +3,36 @@ import { PlusIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { FailedToLoad } from "@/components/FailedToLoad";
-import { Button } from "@/components/ui/button";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { Tab } from "@/types/tab";
-import { SideBarHeader } from "../../SideBar";
+import {
+  SideBarHeader,
+  SideBarHeaderAction,
+} from "../../components/SideBarHeader";
 import { WorkspaceList } from "./WorkspaceList";
 import { WorkspaceListSkeleton } from "./WorkspaceListSkeleton";
 
-function createWorkspaceCreateTab(): Tab {
-  return {
+function openWorkspaceCreateTab() {
+  const addTab = useTabsStore.getState().addTab;
+  addTab({
     id: tabIdFactory(),
     type: "workspace",
     title: "创建工作区",
     icon: "folder-plus",
     metadata: { mode: "create" },
-  };
+  });
 }
 
 export function WorkspacesView() {
-  const { addTab } = useTabsStore();
-
-  const handleCreateWorkspace = () => {
-    const newTab = createWorkspaceCreateTab();
-    addTab(newTab);
-  };
-
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader
-        title="Workspaces"
-        actions={[
-          {
-            button: (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                onClick={handleCreateWorkspace}
-              >
-                <PlusIcon className="size-4" />
-              </Button>
-            ),
-            tooltip: "Create new workspace",
-          },
-        ]}
-      />
+      <SideBarHeader title="工作区">
+        <SideBarHeaderAction
+          Icon={PlusIcon}
+          tooltip="Create new workspace"
+          onClick={openWorkspaceCreateTab}
+        />
+      </SideBarHeader>
       <div className="flex-1">
         <QueryErrorResetBoundary>
           {({ reset }) => (

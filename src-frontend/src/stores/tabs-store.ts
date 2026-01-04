@@ -1,6 +1,6 @@
-import { produce } from "immer";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import type { Tab, TabBase } from "@/types/tab";
 
 type TabsState = {
@@ -21,21 +21,19 @@ type TabsStore = TabsState & TabsActions;
 
 export const useTabsStore = create<TabsStore>()(
   persist(
-    (set, get) => ({
+    immer((set, get) => ({
       tabs: [],
       activeTabId: null,
       addTab(tab) {
-        set(
-          produce((state: TabsState) => {
-            const exists = state.tabs.some((t) => t.id === tab.id);
-            if (exists) {
-              state.activeTabId = tab.id;
-              return;
-            }
-            state.tabs.push(tab);
+        set((state: TabsState) => {
+          const exists = state.tabs.some((t) => t.id === tab.id);
+          if (exists) {
             state.activeTabId = tab.id;
-          })
-        );
+            return;
+          }
+          state.tabs.push(tab);
+          state.activeTabId = tab.id;
+        });
       },
       setTabs(tabs) {
         const currentActive = get().activeTabId;
@@ -57,51 +55,45 @@ export const useTabsStore = create<TabsStore>()(
         });
       },
       updateTab(tabId, tabData) {
-        set(
-          produce((state: TabsState) => {
-            const tab = state.tabs.find((t) => t.id === tabId);
-            if (!tab) {
-              return;
-            }
-            Object.assign(tab, tabData);
-          })
-        );
+        set((state: TabsState) => {
+          const tab = state.tabs.find((t) => t.id === tabId);
+          if (!tab) {
+            return;
+          }
+          Object.assign(tab, tabData);
+        });
       },
       updateTabMetadata(tabId, metadata) {
-        set(
-          produce((state: TabsState) => {
-            const tab = state.tabs.find((t) => t.id === tabId);
-            if (!tab) {
-              return;
-            }
-            tab.metadata = metadata;
-          })
-        );
+        set((state: TabsState) => {
+          const tab = state.tabs.find((t) => t.id === tabId);
+          if (!tab) {
+            return;
+          }
+          tab.metadata = metadata;
+        });
       },
       removeTab(tabId) {
-        set(
-          produce((state: TabsState) => {
-            const idx = state.tabs.findIndex((t) => t.id === tabId);
-            if (idx === -1) {
-              // passed in tabId does not exist
-              return;
-            }
-            state.tabs.splice(idx, 1);
-            if (state.activeTabId !== tabId) {
-              return;
-            }
-            if (state.tabs.length === 0) {
-              state.activeTabId = null;
-              return;
-            }
-            const hasTabOnRight = idx < state.tabs.length;
-            state.activeTabId = hasTabOnRight
-              ? state.tabs[idx].id
-              : state.tabs[idx - 1].id;
-          })
-        );
+        set((state: TabsState) => {
+          const idx = state.tabs.findIndex((t) => t.id === tabId);
+          if (idx === -1) {
+            // passed in tabId does not exist
+            return;
+          }
+          state.tabs.splice(idx, 1);
+          if (state.activeTabId !== tabId) {
+            return;
+          }
+          if (state.tabs.length === 0) {
+            state.activeTabId = null;
+            return;
+          }
+          const hasTabOnRight = idx < state.tabs.length;
+          state.activeTabId = hasTabOnRight
+            ? state.tabs[idx].id
+            : state.tabs[idx - 1].id;
+        });
       },
-    }),
+    })),
     { name: "tabs" }
   )
 );

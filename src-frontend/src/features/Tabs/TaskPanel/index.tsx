@@ -16,8 +16,8 @@ import { type TaskRunner, useTaskRunner } from "./use-task-runner";
 export const DEFAULT_TAB_TITLE = "New task";
 
 export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
-  const { currentWorkspace } = useWorkspaceStore();
-  const { updateTabMetadata } = useTabsStore();
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const updateTabMetadata = useTabsStore((state) => state.updateTabMetadata);
   const [taskData, setTaskData] = useImmer<TaskRead | null>(null);
   const [showContinueTask, setShowContinueTask] = useState(false);
   const taskRunner = useTaskRunner(setTaskData, (_err) => {

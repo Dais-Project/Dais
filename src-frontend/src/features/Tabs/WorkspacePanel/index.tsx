@@ -10,7 +10,7 @@ import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../TabPanelFrame";
 
 function WorkspaceCreatePanel({ tabId }: { tabId: string }) {
-  const { removeTab } = useTabsStore();
+  const removeTab = useTabsStore((state) => state.removeTab);
 
   const handleComplete = () => {
     removeTab(tabId);
@@ -28,7 +28,7 @@ function WorkspaceEditPanel({
   tabId: string;
   workspaceId: number;
 }) {
-  const { removeTab } = useTabsStore();
+  const removeTab = useTabsStore((state) => state.removeTab);
 
   const { data: workspace } = useSuspenseQuery({
     queryKey: ["workspace", workspaceId],

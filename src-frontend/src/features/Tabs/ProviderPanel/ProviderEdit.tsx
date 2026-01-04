@@ -19,13 +19,13 @@ import {
   PROVIDER_DEFAULT_URLS,
   PROVIDER_TYPE_LABELS,
 } from "@/constants/provider";
-import { ModelList } from "@/features/Tabs/ProviderPanel/ModelList";
 import type {
   LlmProviders,
   ProviderCreate,
   ProviderRead,
   ProviderUpdate,
 } from "@/types/provider";
+import { ModelList } from "./ModelList";
 
 const URL_REGEX = /^(https?:\/\/)([^\s/$.?#].[^\s]*)$/;
 

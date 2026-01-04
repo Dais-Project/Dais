@@ -28,6 +28,13 @@ import { useTabsStore } from "@/stores/tabs-store";
 import type { LlmProviders, ProviderRead } from "@/types/provider";
 import type { ProviderTabMetadata, Tab } from "@/types/tab";
 
+const PROVIDER_TYPE_COLORS: Record<LlmProviders, string> = {
+  openai: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  anthropic: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  gemini:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+};
+
 function createProviderEditTab(providerId: number, providerName: string): Tab {
   return {
     id: tabIdFactory(),
@@ -38,21 +45,8 @@ function createProviderEditTab(providerId: number, providerName: string): Tab {
   };
 }
 
-type OpenProviderEditTabParams = {
-  tabs: Tab[];
-  providerId: number;
-  providerName: string;
-  addTab: (tab: Tab) => void;
-  setActiveTab: (tabId: string) => void;
-};
-
-function openProviderEditTab({
-  tabs,
-  providerId,
-  providerName,
-  addTab,
-  setActiveTab,
-}: OpenProviderEditTabParams) {
+function openProviderEditTab(providerId: number, providerName: string) {
+  const { tabs, addTab, setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "provider" &&
@@ -68,47 +62,37 @@ function openProviderEditTab({
   }
 }
 
+function removeProviderTab(providerId: number) {
+  const { tabs, removeTab } = useTabsStore.getState();
+  const tabsToRemove = tabs.filter(
+    (tab) =>
+      tab.type === "provider" &&
+      tab.metadata.mode === "edit" &&
+      tab.metadata.id === providerId
+  );
+
+  for (const tab of tabsToRemove) {
+    removeTab(tab.id);
+  }
+}
+
 type ProviderItemProps = {
   provider: ProviderRead;
 };
 
 function ProviderItem({ provider }: ProviderItemProps) {
   const queryClient = useQueryClient();
-  const { tabs, addTab, setActiveTab, removeTab } = useTabsStore();
-
-  const PROVIDER_TYPE_COLORS: Record<LlmProviders, string> = {
-    openai: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    anthropic: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    gemini:
-      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  };
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    openProviderEditTab({
-      tabs,
-      providerId: provider.id,
-      providerName: provider.name,
-      addTab,
-      setActiveTab,
-    });
+    openProviderEditTab(provider.id, provider.name);
   };
 
   const deleteProviderMutation = useMutation({
     mutationFn: deleteProvider,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["providers"] });
-
-      const tabsToRemove = tabs.filter(
-        (tab) =>
-          tab.type === "provider" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === provider.id
-      );
-
-      for (const tab of tabsToRemove) {
-        removeTab(tab.id);
-      }
+      removeProviderTab(provider.id);
 
       toast.success("删除成功", {
         description: "已成功删除服务提供商。",

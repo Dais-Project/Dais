@@ -3,6 +3,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
@@ -29,21 +30,55 @@ import { useTabsStore } from "@/stores/tabs-store";
 import type { TaskRead } from "@/types/task";
 import { TaskIcon } from "./TaskIcon";
 
+function openTaskTab(task: TaskRead) {
+  const { tabs, addTab, setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find(
+    (t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id
+  );
+
+  if (existingTab) {
+    setActiveTab(existingTab.id);
+  } else {
+    addTab({
+      id: tabIdFactory(),
+      title: task.title,
+      type: "task",
+      metadata: {
+        isDraft: false,
+        id: task.id,
+        type: task.type,
+      },
+    });
+  }
+}
+
+function removeTaskTab(taskId: number) {
+  const { tabs, removeTab } = useTabsStore.getState();
+  const tabsToRemove = tabs.filter(
+    (tab) =>
+      tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId
+  );
+
+  for (const tab of tabsToRemove) {
+    removeTab(tab.id);
+  }
+}
+
 type TaskItemProps = {
   task: TaskRead;
-  onClick: (taskId: number) => void;
-  onRename: (task: TaskRead) => void;
   onDelete: (task: TaskRead) => void;
 };
 
-function TaskItem({ task, onClick, onRename, onDelete }: TaskItemProps) {
+function TaskItem({ task, onDelete }: TaskItemProps) {
   const handleClick = () => {
-    onClick(task.id);
+    openTaskTab(task);
   };
 
   const handleRename = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onRename(task);
+    toast.info("重命名功能", {
+      description: "重命名功能待实现",
+    });
   };
 
   return (
@@ -52,7 +87,12 @@ function TaskItem({ task, onClick, onRename, onDelete }: TaskItemProps) {
         <ActionableItemIcon variant="icon">
           <TaskIcon taskType={task.type} className="size-4" />
         </ActionableItemIcon>
-        <ActionableItemInfo title={task.title} />
+        <ActionableItemInfo
+          title={task.title}
+          description={formatDistanceToNow(new Date(task.last_run_at * 1000), {
+            addSuffix: true,
+          })}
+        />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
@@ -74,7 +114,10 @@ function TaskItem({ task, onClick, onRename, onDelete }: TaskItemProps) {
 
 const MemoizedTaskItem = React.memo(
   TaskItem,
-  (prevProps, nextProps) => prevProps.task.id === nextProps.task.id
+  (prev, next) =>
+    prev.task.id === next.task.id &&
+    prev.task.title === next.task.title &&
+    prev.task.last_run_at === next.task.last_run_at
 );
 
 type TaskListProps = {
@@ -83,24 +126,12 @@ type TaskListProps = {
 
 export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
-  const { addTab, tabs, setActiveTab, removeTab } = useTabsStore();
 
   const asyncConfirm = useAsyncConfirm<TaskRead>({
     onConfirm: async (task) => {
       await deleteTaskMutation.mutateAsync(task.id);
       queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
-
-      const tabsToRemove = tabs.filter(
-        (tab) =>
-          tab.type === "task" &&
-          !tab.metadata.isDraft &&
-          tab.metadata.id === task.id
-      );
-
-      for (const tab of tabsToRemove) {
-        removeTab(tab.id);
-      }
-
+      removeTaskTab(task.id);
       toast.success("删除成功", {
         description: "已成功删除任务。",
       });
@@ -118,40 +149,6 @@ export function TaskList({ workspaceId }: TaskListProps) {
   });
 
   const deleteTaskMutation = useMutation({ mutationFn: deleteTask });
-
-  const handleOpenTask = (taskId: number) => {
-    const task = data.items.find((t) => t.id === taskId);
-    if (!task) {
-      return;
-    }
-
-    const existingTab = tabs.find(
-      (t) =>
-        t.type === "task" && !t.metadata.isDraft && t.metadata.id === taskId
-    );
-
-    if (existingTab) {
-      setActiveTab(existingTab.id);
-    } else {
-      addTab({
-        id: tabIdFactory(),
-        title: task.title,
-        type: "task",
-        metadata: {
-          isDraft: false,
-          id: task.id,
-          type: task.type,
-        },
-      });
-    }
-  };
-
-  const handleRenameTask = (_task: TaskRead) => {
-    // TODO: 实现重命名功能
-    toast.info("重命名功能", {
-      description: "重命名功能待实现",
-    });
-  };
 
   if (data.items.length === 0) {
     return (
@@ -171,8 +168,6 @@ export function TaskList({ workspaceId }: TaskListProps) {
           <MemoizedTaskItem
             key={task.id}
             task={task}
-            onClick={handleOpenTask}
-            onRename={handleRenameTask}
             onDelete={asyncConfirm.trigger}
           />
         ))}

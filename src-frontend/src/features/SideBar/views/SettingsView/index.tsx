@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { SideBarHeader } from "../../SideBar";
+import { SideBarHeader } from "../../components/SideBarHeader";
 import { GeneralSettings } from "./GeneralSettings";
 import { ProviderSettings } from "./ProviderSettings";
 
@@ -26,7 +26,7 @@ export function SettingsView() {
   );
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader title="设置" actions={[]} />
+      <SideBarHeader title="设置" />
       <Tabs
         defaultValue={settingItems[0].id}
         className="flex min-h-0 w-full flex-1 flex-row gap-0"

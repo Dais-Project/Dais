@@ -10,7 +10,7 @@ import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../TabPanelFrame";
 
 function AgentCreatePanel({ tabId }: { tabId: string }) {
-  const { removeTab } = useTabsStore();
+  const removeTab = useTabsStore((state) => state.removeTab);
 
   const handleComplete = () => {
     removeTab(tabId);
@@ -26,7 +26,7 @@ function AgentEditPanel({
   tabId: string;
   agentId: number;
 }) {
-  const { removeTab } = useTabsStore();
+  const removeTab = useTabsStore((state) => state.removeTab);
 
   const { data: agent } = useSuspenseQuery({
     queryKey: ["agent", agentId],

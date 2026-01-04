@@ -35,11 +35,14 @@ type AgentSelectDialogProps = {
 };
 
 function AgentSelectDialog({ value, onValueChange }: AgentSelectDialogProps) {
-  const { currentWorkspace, isLoading } = useWorkspaceStore();
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const isCurrentWorkspaceLoading = useWorkspaceStore(
+    (state) => state.isLoading
+  );
   const agents = currentWorkspace?.usable_agents ?? [];
 
   let buttonText = "Select agent";
-  if (isLoading) {
+  if (isCurrentWorkspaceLoading) {
     buttonText = "Loading...";
   } else if (value) {
     buttonText = value.name;
@@ -59,10 +62,10 @@ function AgentSelectDialog({ value, onValueChange }: AgentSelectDialogProps) {
         variant="outline"
         role="combobox"
         className="justify-between"
-        disabled={isLoading}
+        disabled={isCurrentWorkspaceLoading}
       >
         {buttonText}
-        {isLoading ? (
+        {isCurrentWorkspaceLoading ? (
           <Loader2Icon className="ml-2 size-4 shrink-0 animate-spin" />
         ) : (
           <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
@@ -148,7 +151,7 @@ export function PromptInput({
               </Button>
             </Activity>
           )}
-          <Activity mode={taskUsage.max_tokens ? "visible" : "hidden"}>
+          {taskUsage.max_tokens && (
             <Context
               maxTokens={taskUsage.max_tokens}
               usage={{
@@ -169,7 +172,7 @@ export function PromptInput({
                 </ContextContentBody>
               </ContextContent>
             </Context>
-          </Activity>
+          )}
         </PromptInputTools>
         <PromptInputSubmit
           status={stateMapping[taskState]}

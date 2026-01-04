@@ -108,7 +108,11 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 
 const MemoizedAgentItem = React.memo(
   AgentItem,
-  (a, b) => a.agent.id === b.agent.id
+  (prev, next) =>
+    prev.agent.id === next.agent.id &&
+    prev.agent.name === next.agent.name &&
+    prev.agent.icon_name === next.agent.icon_name &&
+    prev.agent.model?.name === next.agent.model?.name
 );
 
 export function AgentList() {
@@ -143,7 +147,7 @@ export function AgentList() {
 
   const { data } = useSuspenseQuery({
     queryKey: ["agents"],
-    queryFn: async () => await fetchAgents(1, 20),
+    queryFn: async () => fetchAgents(),
   });
 
   const deleteAgentMutation = useMutation({ mutationFn: deleteAgent });

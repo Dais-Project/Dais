@@ -3,13 +3,6 @@ import { PlusIcon } from "lucide-react";
 import { Activity, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { FailedToLoad } from "@/components/FailedToLoad";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Empty,
   EmptyContent,
@@ -21,14 +14,18 @@ import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { TaskType } from "@/types/task";
-import { SideBarHeader } from "../../SideBar";
+import {
+  SideBarHeader,
+  SideBarHeaderDropdownAction,
+  SideBarHeaderDropdownItem,
+} from "../../components/SideBarHeader";
 import { TaskIcon } from "./TaskIcon";
 import { TaskList } from "./TaskList";
 import { TaskListSkeleton } from "./TaskListSkeleton";
 
 export function TasksView() {
-  const { addTab } = useTabsStore();
-  const { currentWorkspace } = useWorkspaceStore();
+  const addTab = useTabsStore((state) => state.addTab);
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
 
   const handleNewTask = (taskType: TaskType) => {
     addTab({
@@ -44,43 +41,20 @@ export function TasksView() {
 
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader
-        title="Tasks"
-        actions={[
-          {
-            button: (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    disabled={!currentWorkspace}
-                  >
-                    <PlusIcon className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleNewTask("agent")}>
-                    <TaskIcon taskType="agent" className="mr-2 size-4" />
-                    Agent 模式
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleNewTask("orchestration")}
-                  >
-                    <TaskIcon
-                      taskType="orchestration"
-                      className="mr-2 size-4"
-                    />
-                    Orchestrator 模式
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ),
-            tooltip: "Create new task",
-          },
-        ]}
-      />
+      <SideBarHeader title="Tasks">
+        <SideBarHeaderDropdownAction Icon={PlusIcon} tooltip="Create new task">
+          <SideBarHeaderDropdownItem onClick={() => handleNewTask("agent")}>
+            <TaskIcon taskType="agent" className="mr-2 size-4" />
+            Agent 模式
+          </SideBarHeaderDropdownItem>
+          <SideBarHeaderDropdownItem
+            onClick={() => handleNewTask("orchestration")}
+          >
+            <TaskIcon taskType="orchestration" className="mr-2 size-4" />
+            Orchestrator 模式
+          </SideBarHeaderDropdownItem>
+        </SideBarHeaderDropdownAction>
+      </SideBarHeader>
       <div className="h-full min-h-0 flex-1">
         <Activity mode={currentWorkspace ? "visible" : "hidden"}>
           <QueryErrorResetBoundary>

@@ -68,7 +68,9 @@ function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
     transition,
     isDragging,
   } = useSortable({ id: tab.id });
-  const { activeTabId, removeTab, setActiveTab } = useTabsStore();
+  const activeTabId = useTabsStore((state) => state.activeTabId);
+  const removeTab = useTabsStore((state) => state.removeTab);
+  const setActiveTab = useTabsStore((state) => state.setActiveTab);
 
   const style = {
     transform: CSS.Translate.toString(transform),

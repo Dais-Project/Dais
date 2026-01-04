@@ -60,7 +60,12 @@ type FormValues = WorkspaceCreate;
 export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
   const isEditMode = "id" in workspace;
   const queryClient = useQueryClient();
-  const { currentWorkspace, syncCurrentWorkspace } = useWorkspaceStore();
+
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const syncCurrentWorkspace = useWorkspaceStore(
+    (state) => state.syncCurrentWorkspace
+  );
+
   const [usableAgents, setUsableAgents] = useState<AgentBrief[]>(
     isEditMode ? workspace.usable_agents : []
   );
@@ -101,6 +106,9 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
       updateWorkspace(id, data),
     onSuccess: async (updatedWorkspace) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      queryClient.invalidateQueries({
+        queryKey: ["workspace", updatedWorkspace.id],
+      });
       toast.success("更新成功", {
         description: `已成功更新工作区 "${updatedWorkspace.name}"。`,
       });

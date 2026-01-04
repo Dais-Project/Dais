@@ -75,7 +75,7 @@ function ActivityBarItem({ id, icon, ...props }: ActivityBarItemProps) {
 }
 
 export function ActivityBar() {
-  const { isOpen } = useSidebarStore();
+  const isOpen = useSidebarStore((state) => state.isOpen);
   return (
     <div
       className={cn(

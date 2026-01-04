@@ -14,7 +14,7 @@ import type { ProviderTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 
 function ProviderCreatePanel({ tabId }: { tabId: string }) {
-  const { removeTab } = useTabsStore();
+  const removeTab = useTabsStore((state) => state.removeTab);
 
   const handleComplete = () => {
     removeTab(tabId);
@@ -32,7 +32,7 @@ function ProviderEditPanel({
   tabId: string;
   providerId: number;
 }) {
-  const { removeTab } = useTabsStore();
+  const removeTab = useTabsStore((state) => state.removeTab);
 
   const { data: provider } = useSuspenseQuery({
     queryKey: ["provider", providerId],

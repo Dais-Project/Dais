@@ -61,9 +61,6 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
       queryClient.invalidateQueries({
         queryKey: ["agent", updatedAgent.id],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["llm_models", updatedAgent.model?.id],
-      });
       toast.success("更新成功", {
         description: `已成功更新 ${updatedAgent.name} Agent。`,
       });

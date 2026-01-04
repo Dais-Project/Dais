@@ -4,6 +4,7 @@ export const ORCHESTRATOR_ID = 1;
 
 export const DEFAULT_AGENT = {
   name: "",
+  icon_name: "bot",
   system_prompt: "",
   model_id: null,
-} satisfies Partial<AgentCreate>;
+} satisfies AgentCreate;

@@ -19,6 +19,7 @@ export type TaskBase = {
 
 export type TaskRead = TaskBase & {
   id: number;
+  last_run_at: number;
   agent_id: number | null;
   workspace_id: number;
 };

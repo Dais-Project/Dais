@@ -3,52 +3,36 @@ import { PlusIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { FailedToLoad } from "@/components/FailedToLoad";
-import { Button } from "@/components/ui/button";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { Tab } from "@/types/tab";
-import { SideBarHeader } from "../../SideBar";
+import {
+  SideBarHeader,
+  SideBarHeaderAction,
+} from "../../components/SideBarHeader";
 import { AgentList } from "./AgentList";
 import { AgentListSkeleton } from "./AgentListSkeleton";
 
-function createAgentCreateTab(): Tab {
-  return {
+function openAgentCreateTab() {
+  const addTab = useTabsStore.getState().addTab;
+  addTab({
     id: tabIdFactory(),
     type: "agent",
     title: "创建 Agent",
     icon: "bot",
     metadata: { mode: "create" },
-  };
+  });
 }
 
 export function AgentsView() {
-  const { addTab } = useTabsStore();
-
-  const handleCreateAgent = () => {
-    const newTab = createAgentCreateTab();
-    addTab(newTab);
-  };
-
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader
-        title="Agents"
-        actions={[
-          {
-            button: (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                onClick={handleCreateAgent}
-              >
-                <PlusIcon className="size-4" />
-              </Button>
-            ),
-            tooltip: "Create new agent",
-          },
-        ]}
-      />
+      <SideBarHeader title="Agents">
+        <SideBarHeaderAction
+          Icon={PlusIcon}
+          tooltip="Create new agent"
+          onClick={openAgentCreateTab}
+        />
+      </SideBarHeader>
       <div className="flex-1">
         <QueryErrorResetBoundary>
           {({ reset }) => (

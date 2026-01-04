@@ -152,10 +152,10 @@ function WorkspaceItem({
 
 const MemoizedWorkspaceItem = React.memo(
   WorkspaceItem,
-  (prevProps, nextProps) =>
-    prevProps.workspace.id === nextProps.workspace.id &&
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.disabled === nextProps.disabled
+  (prev, next) =>
+    prev.workspace.id === next.workspace.id &&
+    prev.workspace.name === next.workspace.name &&
+    prev.workspace.directory === next.workspace.directory
 );
 
 export function WorkspaceList() {
@@ -164,7 +164,7 @@ export function WorkspaceList() {
   const {
     currentWorkspace,
     setCurrentWorkspace,
-    isLoading: isCurrentWorkspaceSetting,
+    isLoading: isCurrentWorkspaceLoading,
   } = useWorkspaceStore();
 
   const asyncConfirm = useAsyncConfirm<WorkspaceRead>({
@@ -224,7 +224,7 @@ export function WorkspaceList() {
           <MemoizedWorkspaceItem
             key={workspace.id}
             workspace={workspace}
-            disabled={isCurrentWorkspaceSetting}
+            disabled={isCurrentWorkspaceLoading}
             isSelected={workspace.id === currentWorkspace?.id}
             onSelect={setCurrentWorkspace}
             onDelete={asyncConfirm.trigger}
