@@ -4,24 +4,19 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
 import { deleteAgent, fetchAgents } from "@/api/agent";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { Button } from "@/components/ui/button";
 import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@/components/ui/item";
+  ActionableItem,
+  ActionableItemInfo,
+  ActionableItemMenu,
+  ActionableItemMenuItem,
+  ActionableItemTrigger,
+} from "@/components/custom/item/ActionableItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentRead } from "@/types/agent";
@@ -70,12 +65,11 @@ function openAgentEditTab({
 
 type AgentItemProps = {
   agent: AgentRead;
+  onDelete: (agent: AgentRead) => void;
 };
 
-function AgentItem({ agent }: AgentItemProps) {
-  const queryClient = useQueryClient();
-  const { tabs, addTab, setActiveTab, removeTab } = useTabsStore();
-
+function AgentItem({ agent, onDelete }: AgentItemProps) {
+  const { tabs, addTab, setActiveTab } = useTabsStore();
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openAgentEditTab({
@@ -86,10 +80,43 @@ function AgentItem({ agent }: AgentItemProps) {
       setActiveTab,
     });
   };
+  return (
+    <ActionableItem>
+      <ActionableItemTrigger>
+        <AgentAvatar name={agent.name} iconName={agent.icon_name} size={18} />
+        <ActionableItemInfo
+          title={agent.name}
+          description={agent.model ? agent.model.name : "未关联模型"}
+        />
+      </ActionableItemTrigger>
+      <ActionableItemMenu>
+        <ActionableItemMenuItem onClick={handleEdit}>
+          <PencilIcon className="mr-2 size-4" />
+          <span>编辑 Agent</span>
+        </ActionableItemMenuItem>
+        <ActionableItemMenuItem
+          className="text-destructive"
+          onClick={() => onDelete(agent)}
+        >
+          <TrashIcon className="mr-2 size-4 text-destructive" />
+          <span>删除 Agent</span>
+        </ActionableItemMenuItem>
+      </ActionableItemMenu>
+    </ActionableItem>
+  );
+}
 
-  const deleteAgentMutation = useMutation({
-    mutationFn: deleteAgent,
-    onSuccess: () => {
+const MemoizedAgentItem = React.memo(
+  AgentItem,
+  (a, b) => a.agent.id === b.agent.id
+);
+
+export function AgentList() {
+  const queryClient = useQueryClient();
+  const { tabs, removeTab } = useTabsStore();
+  const asyncConfirm = useAsyncConfirm<AgentRead>({
+    onConfirm: async (agent) => {
+      await deleteAgentMutation.mutateAsync(agent.id);
       queryClient.invalidateQueries({ queryKey: ["agents"] });
 
       const tabsToRemove = tabs.filter(
@@ -114,77 +141,31 @@ function AgentItem({ agent }: AgentItemProps) {
     },
   });
 
-  const handleDeleteConfirm = () => {
-    deleteAgentMutation.mutate(agent.id);
-  };
-
-  return (
-    <Item
-      variant="outline"
-      size="sm"
-      className="flex cursor-default flex-nowrap rounded-none border-t-0 border-r-0 border-l-0 hover:bg-accent/30"
-    >
-      <AgentAvatar name={agent.name} iconName={agent.icon_name} size={18} />
-
-      <ItemContent>
-        <ItemTitle>{agent.name}</ItemTitle>
-        <ItemDescription>
-          {agent.model ? agent.model.name : "未关联模型"}
-        </ItemDescription>
-      </ItemContent>
-      <ItemActions>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8"
-          onClick={handleEdit}
-          title="编辑 Agent"
-        >
-          <PencilIcon className="size-4" />
-        </Button>
-        <ConfirmDeleteDialog
-          description={`确定要删除 Agent "${agent.name}" 吗？此操作无法撤销。`}
-          onConfirm={handleDeleteConfirm}
-          isDeleting={deleteAgentMutation.isPending}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            title="删除 Agent"
-            disabled={deleteAgentMutation.isPending}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <TrashIcon className="size-4" />
-          </Button>
-        </ConfirmDeleteDialog>
-      </ItemActions>
-    </Item>
-  );
-}
-
-export function AgentList() {
   const { data } = useSuspenseQuery({
     queryKey: ["agents"],
     queryFn: async () => await fetchAgents(1, 20),
   });
 
-  if (data?.items === undefined || data.items.length === 0) {
-    return (
-      <Empty>
-        <EmptyContent>
-          <EmptyTitle>暂无 Agent</EmptyTitle>
-          <EmptyDescription>您还没有创建任何 Agent。</EmptyDescription>
-        </EmptyContent>
-      </Empty>
-    );
-  }
+  const deleteAgentMutation = useMutation({ mutationFn: deleteAgent });
 
   return (
-    <ScrollArea className="flex-1">
-      {data?.items.map((agent) => (
-        <AgentItem key={agent.id} agent={agent} />
-      ))}
-    </ScrollArea>
+    <>
+      <ScrollArea className="flex-1">
+        {data?.items.map((agent) => (
+          <MemoizedAgentItem
+            key={agent.id}
+            agent={agent}
+            onDelete={asyncConfirm.trigger}
+          />
+        ))}
+      </ScrollArea>
+      <ConfirmDeleteDialog
+        open={asyncConfirm.isOpen}
+        description={`确定要删除 Agent "${asyncConfirm.pendingData?.name}" 吗？此操作无法撤销。`}
+        onConfirm={asyncConfirm.confirm}
+        onCancel={asyncConfirm.cancel}
+        isDeleting={asyncConfirm.isPending}
+      />
+    </>
   );
 }

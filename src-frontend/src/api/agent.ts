@@ -52,7 +52,7 @@ export async function updateAgent(
 }
 
 export async function deleteAgent(agentId: number): Promise<void> {
-  await fetch(`${API_BASE}/agents/${agentId}`, {
+  await fetchApi(`${API_BASE}/agents/${agentId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

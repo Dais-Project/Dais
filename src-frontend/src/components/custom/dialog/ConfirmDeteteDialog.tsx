@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type ConfirmDeleteDialogProps = {
-  children: React.ReactNode;
+  open?: boolean;
+  children?: React.ReactNode;
   description: string;
   isDeleting?: boolean;
+  onOpen?: () => void;
   onConfirm?: () => void;
   onCancel?: () => void;
 };
@@ -21,13 +23,22 @@ type ConfirmDeleteDialogProps = {
 export function ConfirmDeleteDialog({
   children,
   description,
+  open,
+  isDeleting = false,
+  onOpen,
   onConfirm,
   onCancel,
-  isDeleting = false,
 }: ConfirmDeleteDialogProps) {
+  const handleOpenChange = (open_: boolean) => {
+    if (open_) {
+      onOpen?.();
+    } else if (!isDeleting) {
+      onCancel?.();
+    }
+  };
   return (
-    <AlertDialog onOpenChange={isDeleting ? undefined : onCancel}>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      {children && <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>确认删除</AlertDialogTitle>
