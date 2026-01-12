@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import enum
 import time
-from typing import Annotated
+from typing import Annotated, TYPE_CHECKING
 from liteai_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
 from pydantic import Discriminator, TypeAdapter
 from sqlalchemy import ForeignKey
@@ -30,6 +32,6 @@ class Task(Base):
     messages: Mapped[list[TaskMessage]] = mapped_column(PydanticJSON(messages_adapter), default=list)
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
     agent_id: Mapped[int] = mapped_column(ForeignKey(Agent.id, ondelete="SET NULL"), nullable=True)
-    agent = relationship("Agent", back_populates="tasks")
+    agent: Mapped["Agent"] = relationship("Agent", back_populates="tasks")
     workspace_id: Mapped[int] = mapped_column(ForeignKey(Workspace.id))
-    workspace = relationship("Workspace", back_populates="tasks")
+    workspace: Mapped["Workspace"] = relationship("Workspace", back_populates="tasks")

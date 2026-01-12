@@ -1,8 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship, sessionmaker
 from . import Base
 from .provider import LlmModel
 from .relationships import workspace_agent_association_table
+
+if TYPE_CHECKING:
+    from .workspace import Workspace
+    from .task import Task
 
 class Agent(Base):
     __tablename__ = "agents"
@@ -13,13 +19,13 @@ class Agent(Base):
     system_prompt: Mapped[str]
     model_id: Mapped[int] = mapped_column(
         ForeignKey(LlmModel.id, ondelete="SET NULL"), nullable=True)
-    model = relationship("LlmModel", back_populates="agents")
-    workspaces = relationship(
+    model: Mapped["LlmModel"] = relationship("LlmModel", back_populates="agents")
+    workspaces: Mapped[list["Workspace"]] = relationship(
         "Workspace",
         secondary=workspace_agent_association_table,
         back_populates="usable_agents"
     )
-    tasks = relationship("Task", back_populates="agent")
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="agent")
 
 def init(session: Session):
     orchestration_agent = Agent(

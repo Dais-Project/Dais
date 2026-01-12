@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import dataclasses
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
 from liteai_sdk import LlmProviders
 from . import Base
 from .utils import DataClassJSON
+
+if TYPE_CHECKING:
+    from .agent import Agent
 
 @dataclasses.dataclass
 class LlmModelCapability:
@@ -18,8 +24,8 @@ class LlmModel(Base):
     context_size: Mapped[int]
     capability: Mapped[LlmModelCapability] = mapped_column(DataClassJSON(LlmModelCapability))
     provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"))
-    provider = relationship("Provider", back_populates="models")
-    agents = relationship("Agent", back_populates="model")
+    provider: Mapped["Provider"] = relationship("Provider", back_populates="models")
+    agents: Mapped[list["Agent"]] = relationship("Agent", back_populates="model")
 
 class Provider(Base):
     __tablename__ = "providers"
@@ -28,7 +34,7 @@ class Provider(Base):
     type: Mapped[LlmProviders]
     base_url: Mapped[str]
     api_key: Mapped[str]
-    models = relationship("LlmModel", back_populates="provider", cascade="all, delete-orphan")
+    models: Mapped[list[LlmModel]] = relationship("LlmModel", back_populates="provider", cascade="all, delete-orphan")
 
 def init(session: Session):
     default_provider = Provider(
@@ -38,8 +44,8 @@ def init(session: Session):
         api_key="sk-",
         models=[
             LlmModel(
-                name="gpt-4",
-                context_size=8192,
+                name="gpt-5",
+                context_size=128_000,
                 capability=LlmModelCapability())])
 
     stmt = select(Provider)
