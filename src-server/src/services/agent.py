@@ -6,7 +6,9 @@ from .ServiceBase import ServiceBase
 from ..db.models import agent as agent_models
 from ..db.models import workspace as workspace_models
 
-class AgentNotFoundError(HTTPException): pass
+class AgentNotFoundError(HTTPException):
+    code = 404
+    description = "Agent not found"
 
 class AgentBrief(NamedTuple):
     id: int

@@ -4,7 +4,9 @@ from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from ..db.models import provider as provider_models
 
-class ProviderNotFoundError(HTTPException): pass
+class ProviderNotFoundError(HTTPException):
+    code = 404
+    description = "Provider not found"
 
 class ProviderService(ServiceBase):
     def get_providers(self) -> list[provider_models.Provider]:

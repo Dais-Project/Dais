@@ -8,7 +8,7 @@ from loguru import logger
 from liteai_sdk import LLM, AssistantMessage, LlmRequestParams, MessageChunk,\
                        SystemMessage, ToolMessage, UserMessage, execute_tool_sync
 from .context import AgentContext
-from .tools import finish_task, ask_user, FileSystemTool
+from .tools import finish_task, ask_user, FileSystemToolset
 from .types import (
     AgentEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
@@ -46,7 +46,7 @@ class AgentTask:
         self.persist()
 
     def _init_builtin_tools(self):
-        self._file_system_tool = FileSystemTool(self._ctx.workspace.directory)
+        self._file_system_tool = FileSystemToolset(self._ctx.workspace.directory)
 
     def _request_param_factory(self) -> LlmRequestParams:
         return LlmRequestParams(

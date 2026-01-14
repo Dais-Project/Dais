@@ -5,6 +5,9 @@ class DTOBase(BaseModel):
 
 from .workspace import WorkspaceRead
 from .agent import AgentRead
+from .toolset import ToolsetRead, ToolRead
 
 WorkspaceRead.model_rebuild()
 AgentRead.model_rebuild()
+ToolsetRead.model_rebuild()
+ToolRead.model_rebuild()

@@ -5,7 +5,9 @@ from .ServiceBase import ServiceBase
 from ..db.models import workspace as workspace_models
 from ..db.models import agent as agent_models
 
-class WorkspaceNotFoundError(HTTPException): pass
+class WorkspaceNotFoundError(HTTPException):
+    code = 404
+    description = "Workspace not found"
 
 class WorkspaceService(ServiceBase):
     def get_workspaces(self, page: int = 1, per_page: int = 10) -> dict:

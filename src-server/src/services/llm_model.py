@@ -3,7 +3,9 @@ from sqlalchemy.orm import joinedload
 from .ServiceBase import ServiceBase
 from ..db.models import provider as provider_models
 
-class ModelNotFoundError(HTTPException): pass
+class ModelNotFoundError(HTTPException):
+    code = 404
+    description = "Model not found"
 
 class LlmModelService(ServiceBase):
     def get_model_by_id(self, model_id: int) -> provider_models.LlmModel | None:

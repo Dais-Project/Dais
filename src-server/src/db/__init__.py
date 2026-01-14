@@ -2,7 +2,13 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from platformdirs import user_data_dir
-from .models import provider as provider_models, agent as agent_models, workspace as workspace_models
+from .models import (
+    provider as provider_models,
+    agent as agent_models,
+    workspace as workspace_models,
+    toolset as toolset_models
+)
+# this unused import is necessary to alembic
 from . import models
 
 APP_NAME = "org.dais.desktop"
@@ -18,6 +24,7 @@ def init_initial_data():
         provider_models.init(session)
         agent_models.init(session)
         workspace_models.init(session)
+        toolset_models.init(session)
 
 def migrate_db():
     from alembic.config import Config

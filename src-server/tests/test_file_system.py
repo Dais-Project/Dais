@@ -1,20 +1,20 @@
 import pytest
 from pathlib import Path
-from src.agent.tools.file_system import FileSystemTool
+from src.agent.tools.file_system import FileSystemToolset
 
 
 class TestFileSystemToolInit:
     def test_init_with_absolute_path(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         assert tool.cwd == temp_workspace
         assert hasattr(tool, "md")
 
     def test_init_with_tilde(self):
-        tool = FileSystemTool("~")
+        tool = FileSystemToolset("~")
         assert tool.cwd == str(Path.home())
 
     def test_markitdown_instance(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         assert tool.md is not None
 
 
@@ -33,20 +33,20 @@ class TestIsMarkitdownConvertableBinary:
         ("test.md", False),
     ])
     def test_format_detection(self, temp_workspace, filename, expected):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         assert tool._is_markitdown_convertable_binary(filename) == expected
 
 
 class TestReadFile:
     def test_read_text_file_without_line_numbers(self, temp_workspace, sample_text_file):
         filename, expected_content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file(filename, enable_line_numbers=False)
         assert result == expected_content
 
     def test_read_text_file_with_line_numbers(self, temp_workspace, sample_text_file):
         filename, content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file(filename, enable_line_numbers=True)
 
         lines = result.split("\n")
@@ -66,7 +66,7 @@ class TestReadFile:
         mock_md = mocker.MagicMock()
         mock_md.convert.return_value = mock_result
 
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         tool.md = mock_md
 
         result = tool.read_file("test.pdf")
@@ -75,13 +75,13 @@ class TestReadFile:
         mock_md.convert.assert_called_once()
 
     def test_read_nonexistent_file(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.read_file("nonexistent.txt")
         assert "File not found at nonexistent.txt" in str(exc_info.value)
 
     def test_read_empty_file(self, temp_workspace, empty_file):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file(empty_file)
         assert result == ""
 
@@ -91,7 +91,7 @@ class TestReadFile:
         file_path = subdir / "test.txt"
         file_path.write_text("Test content", encoding="utf-8")
 
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file("subdir/test.txt")
         assert result == "Test content"
 
@@ -99,7 +99,7 @@ class TestReadFile:
 class TestReadFileBatch:
     def test_read_single_file(self, temp_workspace, sample_text_file):
         filename, content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file_batch([filename])
 
         assert f'<file_content path="{filename}">' in result
@@ -107,7 +107,7 @@ class TestReadFileBatch:
         assert '</file_content>' in result
 
     def test_read_multiple_files(self, temp_workspace, multiple_files):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filenames = list(multiple_files.keys())
         result = tool.read_file_batch(filenames)
 
@@ -117,7 +117,7 @@ class TestReadFileBatch:
 
     def test_read_batch_with_nonexistent_file(self, temp_workspace, sample_text_file):
         filename, content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file_batch([filename, "nonexistent.txt"])
 
         # Existing file should be read normally
@@ -127,7 +127,7 @@ class TestReadFileBatch:
         assert "nonexistent.txt" in result
 
     def test_read_batch_with_line_numbers(self, temp_workspace, multiple_files):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filenames = list(multiple_files.keys())
         result = tool.read_file_batch(filenames, enable_line_numbers=True)
 
@@ -137,7 +137,7 @@ class TestReadFileBatch:
 
 class TestListDirectory:
     def test_list_directory_non_recursive(self, temp_workspace, nested_directory):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.list_directory(".")
 
         assert "Directory: ." in result
@@ -149,13 +149,13 @@ class TestListDirectory:
         assert "file3.txt" not in result
 
     def test_list_empty_directory(self, temp_workspace, empty_directory):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.list_directory(empty_directory)
 
         assert "(empty directory)" in result
 
     def test_list_directory_recursive_unlimited(self, temp_workspace, nested_directory):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.list_directory(".", recursive=True)
 
         assert "1 [dir] dir1" in result
@@ -163,7 +163,7 @@ class TestListDirectory:
         assert "file4.txt" in result  # Deep level file
 
     def test_list_directory_recursive_with_depth_limit(self, temp_workspace, nested_directory):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.list_directory(".", recursive=True, max_depth=2)
 
         # Should include first two levels
@@ -173,23 +173,23 @@ class TestListDirectory:
         assert "file4.txt" not in result
 
     def test_list_nonexistent_directory(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         with pytest.raises(FileNotFoundError):
             tool.list_directory("nonexistent")
 
     def test_list_file_as_directory(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         with pytest.raises(NotADirectoryError):
             tool.list_directory(filename)
 
     def test_list_directory_invalid_max_depth(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         with pytest.raises(ValueError):
             tool.list_directory(".", recursive=True, max_depth=0)
 
     def test_list_directory_with_permission_error(self, temp_workspace, mocker):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Use mocker.patch instead of unittest.mock.patch
         mock_iterdir = mocker.patch("pathlib.Path.iterdir")
@@ -206,7 +206,7 @@ class TestEdgeCases:
         content = "Unicode content: 你好世界"
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file(filename)
         assert result == content
 
@@ -216,7 +216,7 @@ class TestEdgeCases:
         file_path = Path(temp_workspace) / filename
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.read_file(filename)
         assert "<>&\"'" in result
 
@@ -229,7 +229,7 @@ class TestEdgeCases:
         (base / "zoo_dir").mkdir()
         (base / "alpha_dir").mkdir()
 
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         result = tool.list_directory(".")
 
         lines = result.split("\n")
@@ -248,7 +248,7 @@ class TestEdgeCases:
 
 class TestWriteFile:
     def test_write_new_file(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         content = "Hello World!\nThis is a test file."
 
         result = tool.write_file("new_file.txt", content)
@@ -259,7 +259,7 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == content
 
     def test_write_file_with_unicode_content(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         content = "你好世界！\nこんにちは\n🎉🎊"
 
         result = tool.write_file("unicode.txt", content)
@@ -269,7 +269,7 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == content
 
     def test_write_file_creates_parent_directories(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         content = "Nested file content"
 
         result = tool.write_file("parent/child/nested.txt", content)
@@ -281,7 +281,7 @@ class TestWriteFile:
 
     def test_write_file_overwrite_read_file(self, temp_workspace, sample_text_file):
         filename, original_content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Read file first
         tool.read_file(filename)
@@ -296,7 +296,7 @@ class TestWriteFile:
 
     def test_write_file_overwrite_unread_file_raises_error(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Try to overwrite without reading
         with pytest.raises(PermissionError) as exc_info:
@@ -306,7 +306,7 @@ class TestWriteFile:
         assert filename in str(exc_info.value)
 
     def test_write_empty_file(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.write_file("empty_new.txt", "")
 
@@ -316,7 +316,7 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == ""
 
     def test_write_large_file(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         # Create 1MB content
         content = "A" * (1024 * 1024)
 
@@ -328,7 +328,7 @@ class TestWriteFile:
         assert len(file_path.read_text(encoding="utf-8")) == len(content)
 
     def test_write_file_with_special_characters_in_name(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         content = "Content with special filename"
 
         result = tool.write_file("file with spaces.txt", content)
@@ -341,7 +341,7 @@ class TestWriteFile:
 class TestEditFile:
     def test_edit_file_single_line(self, temp_workspace, file_with_content):
         filename, original_content = file_with_content
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.edit_file(filename, "Second line", "Modified second line")
 
@@ -360,7 +360,7 @@ class TestEditFile:
     
     def test_edit_file_multiple_lines(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         old_content = "Second line\nThird line"
         new_content = "New second line\nNew third line"
@@ -378,7 +378,7 @@ class TestEditFile:
     
     def test_edit_file_returns_valid_diff(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.edit_file(filename, "Original content", "Updated content")
 
@@ -389,7 +389,7 @@ class TestEditFile:
         assert any(line.startswith("@@") for line in lines)
     
     def test_edit_file_with_unicode(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filename = "unicode_edit.txt"
         original = "原始内容\n第二行"
 
@@ -405,7 +405,7 @@ class TestEditFile:
         assert "原始内容" not in new_content
     
     def test_edit_nonexistent_file(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.edit_file("nonexistent.txt", "old", "new")
@@ -414,7 +414,7 @@ class TestEditFile:
     
     def test_edit_file_content_not_found(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         with pytest.raises(ValueError) as exc_info:
             tool.edit_file(filename, "This content does not exist", "new content")
@@ -423,7 +423,7 @@ class TestEditFile:
     
     def test_edit_file_content_found_multiple_times(self, temp_workspace, file_with_duplicate_content):
         filename, _ = file_with_duplicate_content
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         with pytest.raises(ValueError) as exc_info:
             tool.edit_file(filename, "Duplicate line", "new content")
@@ -431,7 +431,7 @@ class TestEditFile:
         assert "Content found multiple times in file" in str(exc_info.value)
     
     def test_edit_file_with_whitespace_sensitivity(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filename = "whitespace.txt"
         content = "Line with spaces\n  Indented line\nNormal line"
 
@@ -450,7 +450,7 @@ class TestEditFile:
 class TestDelete:
     def test_delete_file(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.delete(filename)
 
@@ -460,7 +460,7 @@ class TestDelete:
 
     def test_delete_empty_directory(self, temp_workspace, empty_directory):
         dirname = empty_directory
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.delete(dirname)
 
@@ -470,7 +470,7 @@ class TestDelete:
 
     def test_delete_directory_with_contents(self, temp_workspace, directory_with_files):
         dirname = directory_with_files
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.delete(dirname)
 
@@ -480,7 +480,7 @@ class TestDelete:
 
     def test_delete_file_removes_from_read_set(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Read file (add to read_set)
         tool.read_file(filename)
@@ -494,7 +494,7 @@ class TestDelete:
         assert abs_path not in tool._read_file_set
 
     def test_delete_unread_file_does_not_affect_read_set(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filename = "unread.txt"
 
         # Create file but don't read
@@ -508,7 +508,7 @@ class TestDelete:
         assert not file_path.exists()
 
     def test_delete_nonexistent_path(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.delete("nonexistent_path")
@@ -517,7 +517,7 @@ class TestDelete:
 
     def test_delete_nested_directory(self, temp_workspace, nested_structure):
         dirname = nested_structure
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.delete(dirname)
 
@@ -529,7 +529,7 @@ class TestDelete:
 class TestCopy:
     def test_copy_file_to_new_path(self, temp_workspace, sample_text_file):
         filename, content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.copy(filename, "copied_file.txt")
 
@@ -546,7 +546,7 @@ class TestCopy:
     def test_copy_file_into_directory(self, temp_workspace, sample_text_file, empty_directory):
         filename, content = sample_text_file
         dirname = empty_directory
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.copy(filename, dirname)
 
@@ -558,7 +558,7 @@ class TestCopy:
         assert dest_path.read_text(encoding="utf-8") == content
 
     def test_copy_file_preserves_content(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filename = "source.txt"
         content = "Line 1\nLine 2\nSpecial chars: !@#$%^&*()\n你好世界"
 
@@ -574,7 +574,7 @@ class TestCopy:
 
     def test_copy_directory_to_new_path(self, temp_workspace, directory_with_files):
         dirname = directory_with_files
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.copy(dirname, "copied_dir")
 
@@ -589,7 +589,7 @@ class TestCopy:
 
     def test_copy_directory_into_directory(self, temp_workspace, directory_with_files):
         dirname = directory_with_files
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Create target directory
         target_dir = Path(temp_workspace) / "target"
@@ -606,7 +606,7 @@ class TestCopy:
 
     def test_copy_nested_directory(self, temp_workspace, nested_structure):
         dirname = nested_structure
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.copy(dirname, "copied_nested")
 
@@ -621,7 +621,7 @@ class TestCopy:
         assert (dest_path / "level1" / "level2" / "level3" / "l3.txt").exists()
 
     def test_copy_nonexistent_source(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.copy("nonexistent.txt", "dest.txt")
@@ -630,7 +630,7 @@ class TestCopy:
 
     def test_copy_file_to_existing_file(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Create destination file
         dest_path = Path(temp_workspace) / "existing.txt"
@@ -644,7 +644,7 @@ class TestCopy:
 
     def test_copy_directory_to_existing_directory_with_same_name(self, temp_workspace, directory_with_files):
         dirname = directory_with_files
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Create target directory with same-name subdirectory
         target_dir = Path(temp_workspace) / "target"
@@ -658,7 +658,7 @@ class TestCopy:
 
     def test_copy_empty_file(self, temp_workspace, empty_file):
         filename = empty_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.copy(filename, "copied_empty.txt")
 
@@ -669,7 +669,7 @@ class TestCopy:
 
     def test_copy_empty_directory(self, temp_workspace, empty_directory):
         dirname = empty_directory
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         result = tool.copy(dirname, "copied_empty_dir")
 
@@ -681,7 +681,7 @@ class TestCopy:
 
 class TestIntegration:
     def test_write_edit_workflow(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
         filename = "workflow_test.txt"
 
         # Write file
@@ -700,7 +700,7 @@ class TestIntegration:
 
     def test_copy_edit_workflow(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Copy file
         tool.copy(filename, "copied_for_edit.txt")
@@ -721,7 +721,7 @@ class TestIntegration:
 
     def test_read_write_edit_delete_workflow(self, temp_workspace, sample_text_file):
         filename, original_content = sample_text_file
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Read file
         read_content = tool.read_file(filename)
@@ -744,7 +744,7 @@ class TestIntegration:
         assert not file_path.exists()
 
     def test_read_file_set_consistency_across_operations(self, temp_workspace):
-        tool = FileSystemTool(temp_workspace)
+        tool = FileSystemToolset(temp_workspace)
 
         # Create and read file
         filename1 = "file1.txt"
