@@ -3,15 +3,18 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload, load_only
 from .ServiceBase import ServiceBase
 from ..db.models import task as task_models
+from ..db.schemas import task as task_schemas
 
-class TaskNotFoundError(HTTPException): 
-    pass
+class TaskNotFoundError(HTTPException):
+    code = 404
+    description = "Task not found"
 
 class TaskService(ServiceBase):
-    def create_task(self, data: dict) -> task_models.Task:
-        messages_raw = data.pop("messages")
-        messages = task_models.messages_adapter.validate_python(messages_raw)
-        new_task = task_models.Task(messages=messages, **data)
+    def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
+        new_task = task_models.Task(
+            messages=data.messages,
+            **data.model_dump(exclude={"messages"})
+        )
 
         try:
             self._db_session.add(new_task)
@@ -23,11 +26,11 @@ class TaskService(ServiceBase):
         return new_task
 
     def get_tasks(self, workspace_id: int, page: int = 1, per_page: int = 10) -> dict:
+        # TODO: return task brief instead of full task
         if page < 1: page = 1
         if per_page < 5 or per_page > 100: per_page = 10
 
         base_query = select(task_models.Task).where(task_models.Task.workspace_id == workspace_id)
-
         count_stmt = select(func.count()).select_from(base_query.subquery())
         total = self._db_session.execute(count_stmt).scalar() or 0
 
@@ -35,7 +38,6 @@ class TaskService(ServiceBase):
         total_pages = (total + per_page - 1) // per_page if total > 0 else 0
 
         stmt = base_query.order_by(task_models.Task.id.desc()).limit(per_page).offset(offset)
-
         tasks = self._db_session.execute(stmt).scalars().all()
 
         return {
@@ -56,20 +58,20 @@ class TaskService(ServiceBase):
             ]
         )
 
-    def update_task(self, id: int, data: dict) -> task_models.Task:
+    def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:
         stmt = select(task_models.Task).where(task_models.Task.id == id)
         task = self._db_session.execute(stmt).scalar_one_or_none()
 
         if not task:
             raise TaskNotFoundError(f"Task {id} not found")
 
-        if "messages" in data:
-            messages_raw = data.pop("messages")
-            messages = task_models.messages_adapter.validate_python(messages_raw)
-            task.messages = messages
+        update_data = data.model_dump(exclude_unset=True)
 
-        for key, value in data.items():
-            if hasattr(task, key):
+        if data.messages is not None:
+            task.messages = data.messages
+
+        for key, value in update_data.items():
+            if key != "messages" and hasattr(task, key):
                 setattr(task, key, value)
 
         try:

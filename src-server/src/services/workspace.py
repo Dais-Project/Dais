@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from ..db.models import workspace as workspace_models
 from ..db.models import agent as agent_models
+from ..db.schemas import workspace as workspace_schemas
 
 class WorkspaceNotFoundError(HTTPException):
     code = 404
@@ -39,9 +40,9 @@ class WorkspaceService(ServiceBase):
             id,
             options=[selectinload(workspace_models.Workspace.usable_agents)])
 
-    def create_workspace(self, data: dict) -> workspace_models.Workspace:
-        usable_agent_ids = data.pop("usable_agent_ids", None)
-        new_workspace = workspace_models.Workspace(**data)
+    def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
+        usable_agent_ids = data.usable_agent_ids
+        new_workspace = workspace_models.Workspace(**data.model_dump(exclude={"usable_agent_ids"}))
 
         if usable_agent_ids is not None:
             stmt = select(agent_models.Agent).where(
@@ -58,16 +59,16 @@ class WorkspaceService(ServiceBase):
             raise e
         return new_workspace
 
-    def update_workspace(self, id: int, data: dict) -> workspace_models.Workspace:
+    def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
         stmt = select(workspace_models.Workspace).where(
             workspace_models.Workspace.id == id)
         workspace = self._db_session.execute(stmt).scalar_one_or_none()
         if not workspace:
             raise WorkspaceNotFoundError(f"Workspace {id} not found")
 
-        usable_agent_ids = data.pop("usable_agent_ids", None)
+        usable_agent_ids = data.usable_agent_ids
 
-        for key, value in data.items():
+        for key, value in data.model_dump(exclude_unset=True, exclude={"usable_agent_ids"}).items():
             if value is not None:
                 setattr(workspace, key, value)
 

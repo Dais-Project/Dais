@@ -54,7 +54,7 @@ def get_agent(agent_id: int) -> FlaskResponse:
 @validate()
 def create_agent(body: agent_schemas.AgentCreate) -> FlaskResponse:
     with AgentService() as service:
-        new_agent = service.create_agent(body.model_dump())
+        new_agent = service.create_agent(body)
         return jsonify(agent_schemas.AgentRead
                                    .model_validate(new_agent)
                                    .model_dump(mode="json")), 201
@@ -63,7 +63,7 @@ def create_agent(body: agent_schemas.AgentCreate) -> FlaskResponse:
 @validate()
 def update_agent(agent_id: int, body: agent_schemas.AgentUpdate) -> FlaskResponse:
     with AgentService() as service:
-        updated_agent = service.update_agent(agent_id, body.model_dump(exclude_unset=True))
+        updated_agent = service.update_agent(agent_id, body)
         return jsonify(agent_schemas.AgentRead
                                     .model_validate(updated_agent)
                                     .model_dump(mode="json"))

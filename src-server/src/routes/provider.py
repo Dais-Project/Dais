@@ -30,7 +30,7 @@ def get_provider(provider_id: int) -> FlaskResponse:
 @validate()
 def create_provider(body: provider_schemas.ProviderCreate) -> FlaskResponse:
     with ProviderService() as service:
-        new_provider = service.create_provider(body.model_dump())
+        new_provider = service.create_provider(body)
         return jsonify(provider_schemas.ProviderRead
                                        .model_validate(new_provider)
                                        .model_dump(mode="json")), 201
@@ -39,7 +39,7 @@ def create_provider(body: provider_schemas.ProviderCreate) -> FlaskResponse:
 @validate()
 def update_provider(provider_id: int, body: provider_schemas.ProviderUpdate) -> FlaskResponse:
     with ProviderService() as service:
-        updated_provider = service.update_provider(provider_id, body.model_dump(exclude_unset=True))
+        updated_provider = service.update_provider(provider_id, body)
         return jsonify(provider_schemas.ProviderRead
                                        .model_validate(updated_provider)
                                        .model_dump(mode="json"))

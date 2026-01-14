@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from ..db.models import provider as provider_models
+from ..db.schemas import provider as provider_schemas
 
 class ProviderNotFoundError(HTTPException):
     code = 404
@@ -21,16 +22,21 @@ class ProviderService(ServiceBase):
             provider_id,
             options=[selectinload(provider_models.Provider.models)])
 
-    def create_provider(self, data: dict) -> provider_models.Provider:
-        models_data = data.pop("models", None)
-        new_provider = provider_models.Provider(**data)
-        if models_data is not None:
+    def create_provider(self, data: provider_schemas.ProviderCreate) -> provider_models.Provider:
+        new_provider = provider_models.Provider(
+            name=data.name,
+            type=data.type,
+            base_url=data.base_url,
+            api_key=data.api_key
+        )
+        if data.models is not None:
             new_models = []
-            for model_data in models_data:
-                capability_data = model_data.pop("capability", {})
+            for model_data in data.models:
                 new_models.append(provider_models.LlmModel(
-                    capability=provider_models.LlmModelCapability(**capability_data),
-                    **model_data))
+                    capability=model_data.capability,
+                    name=model_data.name,
+                    context_size=model_data.context_size
+                ))
             new_provider.models = new_models
         try:
             self._db_session.add(new_provider)
@@ -41,28 +47,39 @@ class ProviderService(ServiceBase):
             raise e
         return new_provider
 
-    def update_provider(self, id: int, data: dict) -> provider_models.Provider:
+    def update_provider(self, id: int, data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
         def merge_models(
                 existing_models: list[provider_models.LlmModel],
-                updated_models_data: list[dict]
+                updated_models_data: list[provider_schemas.LlmModelUpdate | provider_schemas.LlmModelCreate]
             ) -> list[provider_models.LlmModel]:
             existing_model_map: dict[str, provider_models.LlmModel] =\
                     {model.name: model for model in existing_models}
 
-            updated_models = []
+            # Separate new models from updates to avoid type issues
+            new_models: list[provider_schemas.LlmModelCreate] = []
+            update_models: list[provider_schemas.LlmModelUpdate] = []
+            
             for model_data in updated_models_data:
-                model_id = model_data.get("id")
-                model_name = model_data.get("name")
-                capability_data = model_data.pop("capability", {})
-                capability = provider_models.LlmModelCapability(**capability_data)
+                if isinstance(model_data, provider_schemas.LlmModelUpdate):
+                    update_models.append(model_data)
+                else:
+                    new_models.append(model_data)
 
-                # if id is None, it's a new model
-                if model_id is None:
-                    new_model = provider_models.LlmModel(
-                        capability=capability,
-                        **model_data)
-                    updated_models.append(new_model)
-                    continue
+            updated_models = []
+
+            # Process new models first
+            for model_data in new_models:
+                new_model = provider_models.LlmModel(
+                    capability=model_data.capability,
+                    name=model_data.name,
+                    context_size=model_data.context_size
+                )
+                updated_models.append(new_model)
+
+            # Process updates to existing models
+            for model_data in update_models:
+                model_id = model_data.id
+                model_name = model_data.name
 
                 # For existing models, check if the name and id match
                 if model_name not in existing_model_map:
@@ -75,11 +92,11 @@ class ProviderService(ServiceBase):
                         f"expected id {existing_model.id} but got {model_id}"
                     )
 
-                # Update existing model
-                for key, value in model_data.items():
-                    if key not in ("id", "capability") and value is not None:
-                        setattr(existing_model, key, value)
-                existing_model.capability = capability
+                # Update existing model fields
+                if model_data.context_size is not None:
+                    existing_model.context_size = model_data.context_size
+                if model_data.capability is not None:
+                    existing_model.capability = model_data.capability
                 updated_models.append(existing_model)
 
             return updated_models
@@ -90,11 +107,12 @@ class ProviderService(ServiceBase):
         if not provider:
             raise ProviderNotFoundError(f"Provider {id} not found")
 
-        updated_models_data = data.pop("models", None)
-        if updated_models_data is not None:
-            provider.models = merge_models(provider.models, updated_models_data)
+        if data.models is not None:
+            provider.models = merge_models(provider.models, data.models)
 
-        for key, value in data.items():
+        update_data = data.model_dump(exclude_unset=True)
+        update_data.pop("models", None)
+        for key, value in update_data.items():
             if value is not None:
                 setattr(provider, key, value)
 

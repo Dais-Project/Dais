@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from ..db.models import toolset as toolset_models
+from ..db.schemas import toolset as toolset_schemas
 
 class ToolsetNotFoundError(HTTPException):
     code = 404
@@ -38,8 +39,8 @@ class ToolsetService(ServiceBase):
             id,
             options=[selectinload(toolset_models.Toolset.tools)])
 
-    def create_toolset(self, data: dict) -> toolset_models.Toolset:
-        new_toolset = toolset_models.Toolset(**data)
+    def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
+        new_toolset = toolset_models.Toolset(**data.model_dump())
 
         try:
             self._db_session.add(new_toolset)
@@ -50,17 +51,16 @@ class ToolsetService(ServiceBase):
             raise e
         return new_toolset
 
-    def update_toolset(self, id: int, data: dict) -> toolset_models.Toolset:
+    def update_toolset(self, id: int, data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
         stmt = select(toolset_models.Toolset).where(
             toolset_models.Toolset.id == id)
         toolset = self._db_session.execute(stmt).scalar_one_or_none()
         if not toolset:
             raise ToolsetNotFoundError(f"Toolset {id} not found")
 
-        # 忽略 tools 相关的逻辑
-        data.pop("tools", None)
+        # 忽略 tools 相关的逻辑（ToolsetUpdate schema 中没有 tools 字段，所以这里只是保留原注释）
 
-        for key, value in data.items():
+        for key, value in data.model_dump(exclude_unset=True).items():
             if value is not None:
                 setattr(toolset, key, value)
 

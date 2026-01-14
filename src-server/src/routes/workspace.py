@@ -46,7 +46,7 @@ def get_workspace(workspace_id: int) -> FlaskResponse:
 @validate()
 def create_workspace(body: workspace_schemas.WorkspaceCreate) -> FlaskResponse:
     with WorkspaceService() as service:
-        new_workspace = service.create_workspace(body.model_dump())
+        new_workspace = service.create_workspace(body)
         return jsonify(workspace_schemas.WorkspaceRead
                                        .model_validate(new_workspace)
                                        .model_dump(mode="json")), 201
@@ -55,7 +55,7 @@ def create_workspace(body: workspace_schemas.WorkspaceCreate) -> FlaskResponse:
 @validate()
 def update_workspace(workspace_id: int, body: workspace_schemas.WorkspaceUpdate) -> FlaskResponse:
     with WorkspaceService() as service:
-        updated_workspace = service.update_workspace(workspace_id, body.model_dump(exclude_unset=True))
+        updated_workspace = service.update_workspace(workspace_id, body)
         return jsonify(workspace_schemas.WorkspaceRead
                                         .model_validate(updated_workspace)
                                         .model_dump(mode="json"))

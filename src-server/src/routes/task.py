@@ -60,7 +60,7 @@ def get_task(task_id: int) -> FlaskResponse:
 @validate()
 def new_task(body: task_schemas.TaskCreate) -> FlaskResponse:
     with TaskService() as service:
-        new_task = service.create_task(body.model_dump())
+        new_task = service.create_task(body)
         return jsonify(task_schemas.TaskRead
                                    .model_validate(new_task)
                                    .model_dump(mode="json")), 201
