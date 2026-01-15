@@ -8,9 +8,11 @@ from pydantic import Discriminator, TypeAdapter
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from . import Base
-from .agent import Agent
-from .workspace import Workspace
 from .utils import PydanticJSON
+
+if TYPE_CHECKING:
+    from .agent import Agent
+    from .workspace import Workspace
 
 TaskMessage = Annotated[
     UserMessage | AssistantMessage | SystemMessage | ToolMessage,
@@ -31,7 +33,12 @@ class Task(Base):
     title: Mapped[str]
     messages: Mapped[list[TaskMessage]] = mapped_column(PydanticJSON(messages_adapter), default=list)
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
-    agent_id: Mapped[int] = mapped_column(ForeignKey(Agent.id, ondelete="SET NULL"), nullable=True)
-    agent: Mapped["Agent"] = relationship("Agent", back_populates="tasks")
-    workspace_id: Mapped[int] = mapped_column(ForeignKey(Workspace.id))
-    workspace: Mapped["Workspace"] = relationship("Workspace", back_populates="tasks")
+    agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id", ondelete="SET NULL"))
+    workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
+
+    agent: Mapped["Agent"] = relationship("Agent",
+                                          back_populates="tasks",
+                                          viewonly=True)
+    workspace: Mapped["Workspace"] = relationship("Workspace",
+                                                  back_populates="tasks",
+                                                  viewonly=True)

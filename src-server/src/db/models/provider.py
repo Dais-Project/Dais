@@ -4,6 +4,7 @@ import dataclasses
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from liteai_sdk import LlmProviders
 from . import Base
 from .utils import DataClassJSON
@@ -23,9 +24,17 @@ class LlmModel(Base):
     name: Mapped[str]
     context_size: Mapped[int]
     capability: Mapped[LlmModelCapability] = mapped_column(DataClassJSON(LlmModelCapability))
-    provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"))
-    provider: Mapped["Provider"] = relationship("Provider", back_populates="models")
-    agents: Mapped[list["Agent"]] = relationship("Agent", back_populates="model")
+
+    _provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"))
+    @hybrid_property
+    def provider_id(self) -> int:
+        return self._provider_id
+    provider: Mapped["Provider"] = relationship("Provider",
+                                                back_populates="models",
+                                                viewonly=True)
+    agents: Mapped[list["Agent"]] = relationship("Agent",
+                                                 back_populates="model",
+                                                 viewonly=True)
 
 class Provider(Base):
     __tablename__ = "providers"
@@ -34,7 +43,9 @@ class Provider(Base):
     type: Mapped[LlmProviders]
     base_url: Mapped[str]
     api_key: Mapped[str]
-    models: Mapped[list[LlmModel]] = relationship("LlmModel", back_populates="provider", cascade="all, delete-orphan")
+    models: Mapped[list[LlmModel]] = relationship("LlmModel",
+                                                  back_populates="provider",
+                                                  cascade="all, delete-orphan")
 
 def init(session: Session):
     default_provider = Provider(

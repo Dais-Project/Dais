@@ -1,6 +1,7 @@
 from enum import Enum
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from pydantic import TypeAdapter
 from liteai_sdk import LocalServerParams, RemoteServerParams
 from . import Base
@@ -23,8 +24,14 @@ class Tool(Base):
     internal_key: Mapped[str] = mapped_column(unique=True)
     is_enabled: Mapped[bool] = mapped_column(default=True)
     auto_approve: Mapped[bool] = mapped_column(default=False)
-    toolset: Mapped["Toolset"] = relationship("Toolset", back_populates="tools")
-    toolset_id: Mapped[int] = mapped_column(ForeignKey("toolsets.id"))
+
+    _toolset_id: Mapped[int] = mapped_column(ForeignKey("toolsets.id"))
+    @hybrid_property
+    def toolset_id(self) -> int:
+        return self._toolset_id
+    toolset: Mapped["Toolset"] = relationship("Toolset",
+                                              back_populates="tools",
+                                              viewonly=True)
 
 class Toolset(Base):
     __tablename__ = "toolsets"

@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship, sessionmaker
 from . import Base
-from .provider import LlmModel
 from .relationships import workspace_agent_association_table
 
 if TYPE_CHECKING:
+    from .provider import LlmModel
     from .workspace import Workspace
     from .task import Task
 
@@ -17,15 +17,18 @@ class Agent(Base):
     # name of lucide icon, default is "bot"
     icon_name: Mapped[str] = mapped_column(default="bot")
     system_prompt: Mapped[str]
-    model_id: Mapped[int] = mapped_column(
-        ForeignKey(LlmModel.id, ondelete="SET NULL"), nullable=True)
-    model: Mapped["LlmModel"] = relationship("LlmModel", back_populates="agents")
-    workspaces: Mapped[list["Workspace"]] = relationship(
-        "Workspace",
-        secondary=workspace_agent_association_table,
-        back_populates="usable_agents"
-    )
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="agent")
+    model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
+
+    model: Mapped["LlmModel"] = relationship("LlmModel",
+                                             back_populates="agents",
+                                             viewonly=True)
+    workspaces: Mapped[list["Workspace"]] = relationship("Workspace",
+                                                        secondary=workspace_agent_association_table,
+                                                        back_populates="usable_agents",
+                                                        viewonly=True)
+    tasks: Mapped[list["Task"]] = relationship("Task",
+                                               back_populates="agent",
+                                               viewonly=True)
 
 def init(session: Session):
     orchestration_agent = Agent(

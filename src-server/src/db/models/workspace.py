@@ -15,12 +15,14 @@ class Workspace(Base):
     name: Mapped[str]
     directory: Mapped[str]
     workspace_background: Mapped[str]
-    usable_agents: Mapped[list["Agent"]] = relationship(
-        "Agent",
-        secondary=workspace_agent_association_table,
-        back_populates="workspaces"
-    )
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="workspace", cascade="all, delete-orphan",)
+    usable_agents: Mapped[list["Agent"]] = relationship("Agent",
+                                                        secondary=workspace_agent_association_table,
+                                                        back_populates="workspaces")
+
+    tasks: Mapped[list["Task"]] = relationship("Task",
+                                               back_populates="workspace",
+                                               cascade="all, delete-orphan",
+                                               viewonly=True)
 
 def init(session: Session):
     user_directory_workspace = Workspace(

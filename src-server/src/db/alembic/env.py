@@ -19,17 +19,27 @@ if config.config_file_name is not None:
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
+naming_convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+
+
 from db.models import Base
 from db.models import *
+
 target_metadata = Base.metadata
+Base.metadata.naming_convention = naming_convention
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-
-from db.models.utils import DataClassJSON, DataclassListJSON
+from db.models.utils import DataClassJSON, DataclassListJSON, PydanticJSON
 
 def render_item(type_, obj, autogen_context):
     # --- 为 DataClassJSON 类型提供渲染规则 ---
@@ -51,7 +61,6 @@ def render_item(type_, obj, autogen_context):
 
     # --- 为 DataclassListJSON 类型提供渲染规则 ---
     if type_ == 'type' and isinstance(obj, DataclassListJSON):
-        # 同样地，获取关联的 dataclass
         dataclass_type = obj.dataclass_type
 
         # 添加自定义类型本身的 import
@@ -64,6 +73,10 @@ def render_item(type_, obj, autogen_context):
 
         # 返回正确的构造函数调用
         return f"DataclassListJSON({dataclass_type.__name__})"
+
+    if type_ == 'type' and isinstance(obj, PydanticJSON):
+        autogen_context.imports.add("from db.models.utils import PydanticJSON")
+        return f"PydanticJSON(None)"
 
     # 对于所有其他情况，返回 False 让 Alembic 使用默认的渲染逻辑
     return False
