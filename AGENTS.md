@@ -59,6 +59,8 @@ ORM：SQLAlchemy + Alembic
 
 #### 后端代码风格
 
+- **语法**:
+  - 对于一行拆分为多行的语句，应该遵循 PEP 8 规范，使用 `()` 进行包裹，而不是使用 `\` 进行拆分。
 - **类型定义**:
   - 不应该使用 `Option[T]`, `Union[A, B]`, `List[T]`, `Dict[T]` 等过时的类型标注写法
   - 应该使用 `T | None`, `A | B`, `list[T]`, `dict[T]` 等更现代的写法
@@ -66,7 +68,7 @@ ORM：SQLAlchemy + Alembic
   - 导入顺序：标准库 -> 第三方库 -> 本地应用/库导入
   - 对于每个包的导入应该独占一行（使用 `\` 符号换行除外）
   - 应该避免使用通配符导入（from module import *）
-  - 如果在一个 Python 模块中使用了一个包的多个导出，应使用“from ... import ...”；如果仅使用一个包的一个引用，则使用 "import ..."
+  - 如果在一个 Python 模块中使用了一个包的多个导出，应使用“from ... import ...”；如果仅使用一个包的一个导出，则使用 "import ..."
 - **错误处理**:
   - 禁止使用 bool 值或 None 来表示出错
   - 在需要时定义自定义错误类型来明确错误原因
@@ -74,7 +76,7 @@ ORM：SQLAlchemy + Alembic
   - 在直接忽略错误时，必须给出解释说明
   - 错误日志应该仅出现在 except 块中，即实际处理错误的块中，raise 语句处禁止打错误日志
 - **参数校验**:
-  - 应该一律使用 `flask-pydantic` 提供的 `@validate` 装饰器来做请求的 body 和 query 的校验
+  - 应该一律使用 `flask-pydantic` 提供的 `@validate` 装饰器来做请求的 body 和 query 的校验以及返回的 schema 的校验，如非必要禁止手动编写请求 body 和 query 的提取以及将返回的 schema 手动转换为 json
 
 ### 注意事项
 

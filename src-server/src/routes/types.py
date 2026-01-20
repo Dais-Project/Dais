@@ -1,7 +1,8 @@
-from typing import TypeVar, TypedDict, Generic
+from typing import TypeVar, TypedDict, Generic, Any
 from flask import Response
 
-FlaskResponse = Response | tuple[Response, int]
+Res = TypeVar("Res")
+FlaskResponse = Response | tuple[Res, int] | tuple[Res, int, dict[str, Any]] | Res
 
 Element = TypeVar("Element")
 class PaginatedResponse(TypedDict, Generic[Element]):

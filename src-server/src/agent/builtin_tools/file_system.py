@@ -2,9 +2,9 @@ import difflib
 import shutil
 from pathlib import Path
 from markitdown import MarkItDown
-from liteai_sdk import PythonToolset, python_tool
+from ..toolset_manager.builtin_toolset_manager import built_in_tool, BuiltInToolset
 
-class FileSystemToolset(PythonToolset):
+class FileSystemToolset(BuiltInToolset):
     def __init__(self, cwd: str):
         if cwd == "~":
             cwd = str(Path.home())
@@ -17,7 +17,7 @@ class FileSystemToolset(PythonToolset):
     def _is_markitdown_convertable_binary(self, path: str) -> bool:
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
-    @python_tool
+    @built_in_tool
     def read_file(self, path: str, enable_line_numbers: bool = False) -> str:
         """
         Request to read the contents of a file at the specified path.
@@ -55,7 +55,7 @@ class FileSystemToolset(PythonToolset):
         else:
             return "\n".join(lines)
 
-    @python_tool
+    @built_in_tool
     def read_file_batch(self, paths: list[str], enable_line_numbers: bool = False) -> str:
         """
         Request to read the contents of multiple files at the specified paths.
@@ -116,7 +116,7 @@ class FileSystemToolset(PythonToolset):
 """
         return result
 
-    @python_tool
+    @built_in_tool
     def list_directory(self, path: str = ".", recursive: bool = False, max_depth: int | None = None) -> str:
         """
         Request to list files and directories within the specified directory.
@@ -287,7 +287,7 @@ class FileSystemToolset(PythonToolset):
 
         return "\n".join(result_lines)
 
-    @python_tool
+    @built_in_tool
     def write_file(self, path: str, content: str) -> str:
         """
         Request to write content to a file at the specified path.
@@ -314,7 +314,7 @@ class FileSystemToolset(PythonToolset):
         abs_path.write_text(content, encoding="utf-8")
         return "File written successfully."
 
-    @python_tool
+    @built_in_tool
     def edit_file(self, path: str, old_content: str, new_content: str) -> str:
         """
         Request to edit the content of a file at the specified path.
@@ -358,7 +358,7 @@ class FileSystemToolset(PythonToolset):
         abs_path.write_text(new_file_content, encoding="utf-8")
         return generate_diff(old_file_content, new_file_content, path)
 
-    @python_tool
+    @built_in_tool
     def delete(self, path: str) -> str:
         """
         Request to delete a file or directory at the specified path.
@@ -382,7 +382,7 @@ class FileSystemToolset(PythonToolset):
             abs_path.unlink()
         return f"'{path}' deleted successfully."
 
-    @python_tool
+    @built_in_tool
     def copy(self, src: str, dest: str) -> str:
         """
         Request to copy a file or directory from source to destination.

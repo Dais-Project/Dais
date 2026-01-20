@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from src.agent.tools.file_system import FileSystemToolset
+from src.agent.builtin_tools.file_system import FileSystemToolset
 
 
 class TestFileSystemToolInit:

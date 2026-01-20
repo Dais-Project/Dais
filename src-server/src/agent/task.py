@@ -3,12 +3,12 @@ import queue
 import threading
 from collections.abc import Generator
 import time
-from typing import Any, Literal, cast
+from typing import Literal, cast
 from loguru import logger
 from liteai_sdk import LLM, AssistantMessage, LlmRequestParams, MessageChunk,\
                        SystemMessage, ToolMessage, UserMessage, execute_tool_sync
 from .context import AgentContext
-from .tools import finish_task, ask_user, FileSystemToolset
+from .builtin_tools import finish_task, ask_user, FileSystemToolset
 from .types import (
     AgentEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
@@ -19,6 +19,7 @@ from .types import (
 )
 from ..services.task import TaskService
 from ..db.models import task as task_models
+from ..db.schemas import task as task_schemas
 from ..utils import use_async_task_pool, TaskNotFoundError as AsyncTaskNotFoundError
 
 class ToolCallNotFoundError(Exception):
@@ -29,7 +30,8 @@ class AgentTask:
 
     def __init__(self, task: task_models.Task):
         self._lock = threading.Lock()
-        ctx = self._ctx = AgentContext(task.workspace_id, task.agent_id)
+        assert task.agent_id is not None
+        ctx = self._ctx = AgentContext(task)
         self.llm = LLM(
             provider=ctx.provider.type,
             base_url=ctx.provider.base_url,
@@ -39,14 +41,10 @@ class AgentTask:
         self._is_running = True
         self._current_task_id = None
         self._messages = task.messages
-        self._init_builtin_tools()
 
     def __del__(self):
         self.stop()
         self.persist()
-
-    def _init_builtin_tools(self):
-        self._file_system_tool = FileSystemToolset(self._ctx.workspace.directory)
 
     def _request_param_factory(self) -> LlmRequestParams:
         return LlmRequestParams(
@@ -55,12 +53,8 @@ class AgentTask:
                 SystemMessage(content=self._ctx.system_instruction),
                 *self._messages,
             ],
-            tools=[
-                ask_user,
-                finish_task,
-                self._file_system_tool.read_file,
-                self._file_system_tool.list_directory,
-            ],
+            tools=[ask_user, finish_task],
+            toolsets=self._ctx.toolsets,
             tool_choice="required",
         )
 
@@ -91,7 +85,7 @@ class AgentTask:
             chunk_queue.put_nowait(TaskInterruptedEvent())
             raise
         except Exception as e:
-            self._logger.exception(f"Failed to create llm call: {e}")
+            self._logger.exception(f"Failed to create llm call.")
             chunk_queue.put_nowait(ErrorEvent(error=e))
 
         if assistant_message is None:
@@ -222,10 +216,10 @@ class AgentTask:
 
     def persist(self):
         with TaskService() as task_service:
-            task_service.update_task(self.task_id, {
-                "messages": self._messages,
-                "last_run_at": int(time.time())
-            })
+            task_service.update_task(self.task_id, task_schemas.TaskUpdate(
+                messages=self._messages,
+                last_run_at=int(time.time())
+            ))
 
     def stop(self):
         with self._lock:

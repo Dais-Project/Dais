@@ -1,16 +1,29 @@
 import platform
+from liteai_sdk import Toolset
+from .toolset_manager import use_mcp_toolset_manager, BuiltinToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
 from ..db.models import agent as agent_models,\
                         provider as provider_models,\
-                        workspace as workspace_models
-from ..services.agent import AgentService
-from ..services.workspace import WorkspaceService
-from ..services.llm_model import LlmModelService
+                        workspace as workspace_models,\
+                        task as task_models
 
 class AgentContext:
-    def __init__(self, workspace_id: int, agent_id: int):
-        self._retrieve(workspace_id, agent_id)
-        self._system_instruction = BASE_INSTRUCTION.format(
+    def __init__(self, task: task_models.Task):
+        assert task.agent_id is not None
+        assert task.agent is not None
+        self._workspace = task.workspace
+        self._agent = task.agent
+        self._model = self._agent.model
+        if self._model is None:
+            raise ValueError(f"Agent {self._agent.id} has no model")
+        self._provider = self._model.provider
+
+        self._builtin_toolset_manager = BuiltinToolsetManager(self._workspace.directory)
+        self._mcp_toolset_manager = use_mcp_toolset_manager()
+
+    @property
+    def system_instruction(self) -> str:
+        return BASE_INSTRUCTION.format(
             os_platform=platform.system(),
             user_language="zh-CN", # TODO: Get from system settings
             workspace_name=self.workspace.name,
@@ -20,29 +33,9 @@ class AgentContext:
         )
 
     @property
-    def system_instruction(self) -> str:
-        return self._system_instruction
-
-    def _retrieve(self, workspace_id: int, agent_id: int):
-        with WorkspaceService() as workspace_service:
-            workspace = workspace_service.get_workspace_by_id(workspace_id)
-        if not workspace:
-            raise ValueError(f"Workspace {workspace_id} not found")
-        self._workspace = workspace
-
-        with AgentService() as agent_service:
-            agent = agent_service.get_agent_by_id(agent_id)
-        if not agent:
-            raise ValueError(f"Agent {agent_id} not found")
-        self._agent = agent
-
-        with LlmModelService() as llm_model_service:
-            model = llm_model_service.get_model_by_id(agent.model_id)
-        if not model:
-            raise ValueError(f"Model {agent.model_id} not found")
-
-        self._model = model
-        self._provider = self._model.provider
+    def toolsets(self) -> list[Toolset]:
+        return [*self._builtin_toolset_manager.toolsets,
+                *self._mcp_toolset_manager.toolsets]
 
     @property
     def workspace(self) -> workspace_models.Workspace:

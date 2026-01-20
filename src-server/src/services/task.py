@@ -26,7 +26,6 @@ class TaskService(ServiceBase):
         return new_task
 
     def get_tasks(self, workspace_id: int, page: int = 1, per_page: int = 10) -> dict:
-        # TODO: return task brief instead of full task
         if page < 1: page = 1
         if per_page < 5 or per_page > 100: per_page = 10
 

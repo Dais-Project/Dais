@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import TypedDict
 from werkzeug.exceptions import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -11,7 +11,7 @@ class AgentNotFoundError(HTTPException):
     code = 404
     description = "Agent not found"
 
-class AgentBrief(NamedTuple):
+class AgentBrief(TypedDict):
     id: int
     name: str
     icon_name: str
@@ -44,7 +44,7 @@ class AgentService(ServiceBase):
             agent_models.Agent.name,
             agent_models.Agent.icon_name)
         agents = self._db_session.execute(stmt).all()
-        return [AgentBrief(id, name, icon_name) for id, name, icon_name in agents]
+        return [AgentBrief(id=id, name=name, icon_name=icon_name) for id, name, icon_name in agents]
 
     def get_agent_by_id(self, id: int) -> agent_models.Agent | None:
         return self._db_session.get(

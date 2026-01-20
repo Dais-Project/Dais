@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import Session, Mapped, mapped_column, relationship, sessionmaker
+from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from . import Base
 from .relationships import workspace_agent_association_table
 
@@ -19,9 +20,11 @@ class Agent(Base):
     system_prompt: Mapped[str]
     model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
 
-    model: Mapped["LlmModel"] = relationship("LlmModel",
-                                             back_populates="agents",
-                                             viewonly=True)
+    _model: Mapped["LlmModel | None"] = relationship("LlmModel",
+                                                    back_populates="agents",
+                                                    passive_deletes=True)
+    @hybrid_property
+    def model(self) -> LlmModel | None: return self._model
     workspaces: Mapped[list["Workspace"]] = relationship("Workspace",
                                                         secondary=workspace_agent_association_table,
                                                         back_populates="usable_agents",

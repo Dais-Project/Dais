@@ -15,6 +15,8 @@ def get_providers() -> FlaskResponse:
                                         .model_dump(mode="json")
                         for provider in providers])
 
+# TODO: provider brief API
+
 @providers_bp.route("/<int:provider_id>", methods=["GET"])
 def get_provider(provider_id: int) -> FlaskResponse:
     with ProviderService() as service:

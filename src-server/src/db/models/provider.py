@@ -27,8 +27,7 @@ class LlmModel(Base):
 
     _provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"))
     @hybrid_property
-    def provider_id(self) -> int:
-        return self._provider_id
+    def provider_id(self) -> int: return self._provider_id
     provider: Mapped["Provider"] = relationship("Provider",
                                                 back_populates="models",
                                                 viewonly=True)

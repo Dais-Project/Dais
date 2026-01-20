@@ -18,5 +18,6 @@ class TaskCreate(TaskBase):
 
 class TaskUpdate(DTOBase):
     title: str | None = None
-    messages: list[TaskMessage] | None = None
+    last_run_at: int
     agent_id: int | None = None
+    messages: list[TaskMessage] | None = None

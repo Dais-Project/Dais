@@ -31,6 +31,8 @@ def get_workspaces(query: WorkspacesQueryModel) -> FlaskResponse:
             total_pages=result["total_pages"]
         ))
 
+# TODO: workspace brief API
+
 @workspaces_bp.route("/<int:workspace_id>", methods=["GET"])
 def get_workspace(workspace_id: int) -> FlaskResponse:
     with WorkspaceService() as service:
