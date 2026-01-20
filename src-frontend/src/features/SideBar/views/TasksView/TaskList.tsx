@@ -84,7 +84,7 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
   return (
     <ActionableItem>
       <ActionableItemTrigger onClick={handleClick}>
-        <ActionableItemIcon variant="icon">
+        <ActionableItemIcon>
           <TaskIcon taskType={task.type} className="size-4" />
         </ActionableItemIcon>
         <ActionableItemInfo

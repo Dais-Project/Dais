@@ -21,6 +21,7 @@ import {
   FolderCogIcon,
   type LucideIcon,
   PlugIcon,
+  ToolCaseIcon,
   XIcon,
 } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
@@ -52,6 +53,7 @@ const tabIconMap: Record<Tab["type"], LucideIcon> = {
   workspace: FolderCogIcon,
   agent: BotIcon,
   provider: PlugIcon,
+  toolset: ToolCaseIcon,
 };
 
 export type TabPanelProps<Metadata> = {
@@ -247,13 +249,14 @@ export function Tabs() {
             items={tabs.map((tab) => tab.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <ReactTabList className="shink-0 flex bg-muted/40">
+            <ReactTabList className="shink-0 flex bg-muted/40 dark:bg-muted/75">
               {tabs.map((tab) => (
                 // @ts-expect-error
                 // The props defined in the SortableTab will be passed automatically
                 // by the react-tabs library
                 <SortableTab key={tab.id} tab={tab} />
               ))}
+              <div className="flex-1 border-b" />
             </ReactTabList>
           </SortableContext>
           <ScrollBar className="h-1.5" orientation="horizontal" />

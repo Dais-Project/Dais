@@ -1,3 +1,4 @@
+import { useThrottleFn } from "ahooks";
 import { useEffect, useRef } from "react";
 import {
   type PanelSize,
@@ -5,7 +6,6 @@ import {
   useGroupRef,
   usePanelRef,
 } from "react-resizable-panels";
-import { useDebouncedCallback } from "use-debounce";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -30,16 +30,17 @@ function Layout() {
   const groupRef = useGroupRef();
   const sideBarPanelRef = usePanelRef();
 
-  const handleSideBarResize = useDebouncedCallback(
+  const { run: handleSideBarResize } = useThrottleFn(
     (panelSize: PanelSize, _: string | number | undefined) => {
-      if (panelSize.asPercentage === 0) {
+      const isClosed = panelSize.asPercentage === 0;
+      if (isClosed && isOpen) {
         closeSidebar();
-      } else {
+      } else if (!(isClosed || isOpen)) {
         openSidebar();
         recentPanelSizePx.current = panelSize.inPixels;
       }
     },
-    300
+    { wait: 100 }
   );
 
   useEffect(() => {

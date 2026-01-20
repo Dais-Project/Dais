@@ -1,9 +1,9 @@
 import {
   BotMessageSquareIcon,
   FoldersIcon,
-  HammerIcon,
   LayoutListIcon,
   SettingsIcon,
+  ToolCaseIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,7 @@ const topViews: { id: View; title: string; icon: React.ReactNode }[] = [
   {
     id: "toolsets",
     title: "ToolSets",
-    icon: <HammerIcon />,
+    icon: <ToolCaseIcon />,
   },
   // {
   //   id: "plugins",

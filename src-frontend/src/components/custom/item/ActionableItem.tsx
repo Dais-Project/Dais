@@ -54,7 +54,11 @@ export function ActionableItem({ children }: ActionableItemProps) {
   );
 }
 
-export const ActionableItemIcon = ItemMedia;
+export function ActionableItemIcon(
+  props: Omit<React.ComponentProps<typeof ItemMedia>, "variant">
+) {
+  return <ItemMedia variant="icon" {...props} />;
+}
 
 type ActionableItemTriggerProps = {
   children: React.ReactNode;
@@ -89,17 +93,19 @@ export function ActionableItemTrigger({
 }
 
 type ActionableItemInfoProps = {
-  title: string;
+  title?: string;
+  titleRender?: React.ReactNode;
   description?: string;
 };
 
 export function ActionableItemInfo({
   title,
+  titleRender,
   description,
 }: ActionableItemInfoProps) {
   return (
     <ItemContent>
-      <ItemTitle>{title}</ItemTitle>
+      <ItemTitle>{titleRender ?? title}</ItemTitle>
       {description && <ItemDescription>{description}</ItemDescription>}
     </ItemContent>
   );

@@ -51,6 +51,7 @@
     "@tiptap/react": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
     "@types/node": "^24.9.1",
+    "ahooks": "^3.9.6",
     "ai": "^5.0.106",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -73,7 +74,6 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.16",
     "tokenlens": "^1.3.1",
-    "use-debounce": "^10.0.6",
     "use-immer": "^0.11.0",
     "use-stick-to-bottom": "^1.1.1",
     "zustand": "^5.0.8"

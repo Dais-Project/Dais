@@ -114,7 +114,6 @@ function WorkspaceItem({
     <ActionableItem>
       <ActionableItemTrigger>
         <ActionableItemIcon
-          variant="icon"
           role="button"
           className={
             disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"

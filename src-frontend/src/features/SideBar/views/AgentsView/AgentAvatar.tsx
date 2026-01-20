@@ -1,4 +1,5 @@
 import { DynamicIcon, type IconName } from "lucide-react/dynamic";
+import { ActionableItemIcon } from "@/components/custom/item/ActionableItem";
 import { cn } from "@/lib/utils";
 
 type AgentAvatarProps = {
@@ -45,18 +46,12 @@ export function AgentAvatar({
 }: AgentAvatarProps) {
   const colorClass = getColorFromName(name || "Agent");
   return (
-    <div
-      className={cn(
-        "flex size-8 items-center justify-center rounded-sm border",
-        colorClass,
-        className
-      )}
-    >
+    <ActionableItemIcon className={colorClass}>
       <DynamicIcon
         name={iconName}
         className={cn(className, iconClassName)}
         {...props}
       />
-    </div>
+    </ActionableItemIcon>
   );
 }
