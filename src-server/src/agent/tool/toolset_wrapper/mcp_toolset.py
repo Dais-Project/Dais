@@ -1,19 +1,15 @@
 import asyncio
-import threading
 from dataclasses import replace
 from enum import Enum
-from typing import Sequence, cast
-from loguru import logger
+from typing import cast
 from liteai_sdk import (
     Toolset, ToolDef,
-    McpToolset, LocalMcpToolset, RemoteMcpToolset,
+    McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset,
     LocalServerParams, RemoteServerParams,
 )
-from .types import ToolsetManager, ToolMetadata
-from ...services import ToolsetService
-from ...db.models import toolset as toolset_models
-
-_logger = logger.bind(name="McpToolsetManager")
+from ..types import ToolMetadata
+from ....services import ToolsetService
+from ....db.models import toolset as toolset_models
 
 class McpToolsetStatus(str, Enum):
     CONNECTING = "connecting"
@@ -21,7 +17,7 @@ class McpToolsetStatus(str, Enum):
     DISCONNECTED = "disconnected"
     ERROR = "error"
 
-class McpConfigurableToolset(Toolset):
+class McpToolset(Toolset):
     def __init__(self, toolset_ent: toolset_models.Toolset):
         match toolset_ent.type:
             case toolset_models.ToolsetType.MCP_LOCAL:
@@ -76,7 +72,7 @@ class McpConfigurableToolset(Toolset):
         return result
 
     async def connect(self):
-        inner_toolset = cast(McpToolset, self._inner_toolset)
+        inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
         await inner_toolset.connect()
 
         latest_tool_list = inner_toolset.get_tools(namespaced_tool_name=False)
@@ -92,55 +88,3 @@ class McpConfigurableToolset(Toolset):
         inner_toolset = cast(McpToolset, self._inner_toolset)
         await inner_toolset.disconnect()
         self._status = McpToolsetStatus.DISCONNECTED
-
-# --- --- --- --- --- ---
-
-class McpToolsetManager(ToolsetManager):
-    def __init__(self):
-        self._lock = threading.Lock()
-        self._connecting = False
-        self._connected = False
-
-        with ToolsetService() as toolset_service:
-            toolset_ents = toolset_service.get_all_mcp_toolsets()
-
-        with self._lock:
-            self._toolsets: list[McpConfigurableToolset] = [McpConfigurableToolset(toolset)
-                                                            for toolset in toolset_ents]
-
-    @property
-    def toolsets(self) -> Sequence[Toolset]:
-        return self._toolsets
-
-    async def connect_mcp_servers(self):
-        with self._lock:
-            if self._connected or self._connecting: return
-            self._connecting = True
-
-        tasks = [toolset.connect() for toolset in self._toolsets]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        for toolset, result in zip(self._toolsets, results):
-            if not isinstance(result, BaseException): continue
-            _logger.exception(f"Failed to connect to MCP server {toolset.name}")
-            toolset.error = result
-
-        with self._lock:
-            self._connecting = False
-            self._connected = True
-
-    async def disconnect_mcp_servers(self):
-        with self._lock:
-            if not self._connected or self._connecting: return
-            self._connecting = False
-            self._connected = False
-
-        tasks = [toolset.disconnect() for toolset in self._toolsets]
-        await asyncio.gather(*tasks, return_exceptions=True)
-
-__instance: McpToolsetManager | None = None
-
-def use_mcp_toolset_manager() -> McpToolsetManager:
-    global __instance
-    if __instance is None:
-        __instance = McpToolsetManager()
-    return __instance

@@ -1,6 +1,6 @@
 import platform
 from liteai_sdk import Toolset
-from .toolset_manager import use_mcp_toolset_manager, BuiltinToolsetManager
+from .tool import use_mcp_toolset_manager, BuiltinToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
 from ..db.models import agent as agent_models,\
                         provider as provider_models,\

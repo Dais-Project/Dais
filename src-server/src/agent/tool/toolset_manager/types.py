@@ -1,9 +1,6 @@
 from abc import ABC
-from typing import Sequence, TypedDict
+from typing import Sequence
 from liteai_sdk import Toolset
-
-class ToolMetadata(TypedDict):
-    auto_approve: bool
 
 class ToolsetManager(ABC):
     @property

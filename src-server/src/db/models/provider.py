@@ -32,7 +32,7 @@ class LlmModel(Base):
                                                 back_populates="models",
                                                 viewonly=True)
     agents: Mapped[list["Agent"]] = relationship("Agent",
-                                                 back_populates="model",
+                                                 back_populates="_model",
                                                  viewonly=True)
 
 class Provider(Base):

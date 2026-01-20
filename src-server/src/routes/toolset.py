@@ -3,8 +3,7 @@ from flask import Blueprint, Response
 from flask_pydantic import validate
 from pydantic import BaseModel
 from .types import FlaskResponse
-from ..agent.toolset_manager import use_mcp_toolset_manager
-from ..agent.toolset_manager.mcp_toolset_manager import McpConfigurableToolset
+from ..agent.tool import use_mcp_toolset_manager, McpToolset
 from ..services.toolset import ToolsetService
 from ..db.schemas import toolset as toolset_schemas
 
@@ -29,7 +28,7 @@ def get_toolsets_brief() -> FlaskResponse[list[ToolsetBrief]]:
     mcp_toolset_manager = use_mcp_toolset_manager()
 
     result = []
-    for toolset in cast(list[McpConfigurableToolset], mcp_toolset_manager.toolsets):
+    for toolset in cast(list[McpToolset], mcp_toolset_manager.toolsets):
         ent = mcp_toolset_map[toolset.name]
         result.append(ToolsetBrief(id=ent.id,
                                    name=ent.name,

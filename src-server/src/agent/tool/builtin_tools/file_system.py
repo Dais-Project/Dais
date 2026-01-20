@@ -2,7 +2,7 @@ import difflib
 import shutil
 from pathlib import Path
 from markitdown import MarkItDown
-from ..toolset_manager.builtin_toolset_manager import built_in_tool, BuiltInToolset
+from ..toolset_wrapper import built_in_tool, BuiltInToolset
 
 class FileSystemToolset(BuiltInToolset):
     def __init__(self, cwd: str):

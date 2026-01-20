@@ -1,10 +1,7 @@
-from typing import Sequence
 from dataclasses import replace
-from liteai_sdk import Toolset, PythonToolset, python_tool, ToolDef
-from .types import ToolsetManager
-from ..toolset_manager.types import ToolMetadata
-from ..builtin_tools import FileSystemToolset
-from ...services import ToolsetService
+from liteai_sdk import PythonToolset, python_tool, ToolDef
+from ..types import ToolMetadata
+from ....services import ToolsetService
 
 built_in_tool = python_tool
 
@@ -35,11 +32,3 @@ class BuiltInToolset(PythonToolset):
                                metadata=ToolMetadata(auto_approve=tool_ent.auto_approve))
             result.append(tool_def)
         return result
-
-class BuiltinToolsetManager(ToolsetManager):
-    def __init__(self, cwd: str):
-        self._file_system_toolset = FileSystemToolset(cwd)
-
-    @property
-    def toolsets(self) -> Sequence[Toolset]:
-        return [self._file_system_toolset]

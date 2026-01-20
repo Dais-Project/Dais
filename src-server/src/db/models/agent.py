@@ -30,7 +30,7 @@ class Agent(Base):
                                                         back_populates="usable_agents",
                                                         viewonly=True)
     tasks: Mapped[list["Task"]] = relationship("Task",
-                                               back_populates="agent",
+                                               back_populates="_agent",
                                                viewonly=True)
 
 def init(session: Session):

@@ -47,7 +47,7 @@ class Toolset(Base):
     tools: Mapped[list["Tool"]] = relationship("Tool", back_populates="toolset", cascade="all, delete-orphan")
 
 def init(session: Session):
-    from ...agent.builtin_tools import FileSystemToolset
+    from ...agent.tool import FileSystemToolset
 
     file_system_toolset = Toolset(
         id=1,
