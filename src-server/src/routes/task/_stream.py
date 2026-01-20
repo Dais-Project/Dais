@@ -16,10 +16,12 @@ from ...agent.types import (
     ToolRequirePermissionEvent, ErrorEvent
 )
 from ...services.task import TaskService
-from ...db.schemas import task as task_schemas
 from ...utils.sse import format_sse
 
 _logger = logger.bind(name="TaskStreamRoute")
+
+def create_stream_response(stream: Generator[str, None, None]) -> FlaskResponse:
+    return Response(stream_with_context(stream), mimetype="text/event-stream")
 
 class TaskStreamBody(BaseModel):
     # to ensure that the agent_id for the target task is not None
@@ -39,10 +41,7 @@ class ToolReviewBody(TaskStreamBody):
 def retrive_task(task_id: int, agent_id: int) -> AgentTask:
     with TaskService() as task_service:
         task = task_service.get_task_by_id(task_id)
-        if task is None:
-            raise ValueError(f"Task {task_id} not found")
         task.agent_id = agent_id
-
     return AgentTask(task)
 
 def agent_stream(task: AgentTask) -> Generator[str]:
@@ -122,8 +121,7 @@ def continue_task(task_id: int, body: ContinueTaskBody) -> FlaskResponse:
     if body.message is not None:
         task.append_message(body.message)
 
-    return Response(stream_with_context(agent_stream(task)),
-                    mimetype="text/event-stream")
+    return create_stream_response(agent_stream(task))
 
 @tasks_bp.route("/<int:task_id>/tool_answer", methods=["POST"])
 @validate()
@@ -134,8 +132,7 @@ def tool_answer(task_id: int, body: ToolAnswerBody) -> FlaskResponse:
     """
     task = retrive_task(task_id, body.agent_id)
     task.set_tool_call_result(body.tool_call_id, body.answer)
-    return Response(stream_with_context(agent_stream(task)),
-                    mimetype="text/event-stream")
+    return create_stream_response(agent_stream(task))
 
 @tasks_bp.route("/<int:task_id>/tool_reviews", methods=["POST"])
 @validate()

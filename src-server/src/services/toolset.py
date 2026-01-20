@@ -9,8 +9,8 @@ from ..utils import use_async_task_pool
 
 class ToolsetNotFoundError(HTTPException):
     code = 404
-    def __init__(self, toolset_id: int) -> None:
-        description = f"Toolset {toolset_id} not found"
+    def __init__(self, toolset_identifier: int | str) -> None:
+        description = f"Toolset {toolset_identifier} not found"
         super().__init__(description=description)
 
 class ToolNotFoundError(HTTPException):
@@ -66,17 +66,23 @@ class ToolsetService(ServiceBase):
         toolsets = self._db_session.execute(stmt).scalars().all()
         return list(toolsets)
 
-    def get_toolset_by_id(self, id: int) -> toolset_models.Toolset | None:
-        return self._db_session.get(
+    def get_toolset_by_id(self, id: int) -> toolset_models.Toolset:
+        toolset = self._db_session.get(
             toolset_models.Toolset,
             id,
             options=[selectinload(toolset_models.Toolset.tools)])
+        if not toolset:
+            raise ToolsetNotFoundError(id)
+        return toolset
 
-    def get_toolset_by_internal_key(self, internal_key: str) -> toolset_models.Toolset | None:
+    def get_toolset_by_internal_key(self, internal_key: str) -> toolset_models.Toolset:
         stmt = (select(toolset_models.Toolset)
                .where(toolset_models.Toolset.internal_key == internal_key)
                .options(selectinload(toolset_models.Toolset.tools)))
-        return self._db_session.execute(stmt).scalar_one_or_none()
+        toolset = self._db_session.execute(stmt).scalar_one_or_none()
+        if not toolset:
+            raise ToolsetNotFoundError(internal_key)
+        return toolset
 
     def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
         match data.type:

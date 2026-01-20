@@ -8,7 +8,9 @@ from ..db.schemas import workspace as workspace_schemas
 
 class WorkspaceNotFoundError(HTTPException):
     code = 404
-    description = "Workspace not found"
+    def __init__(self, id: int):
+        description = f"Workspace {id} not found"
+        super().__init__(description=description)
 
 class WorkspaceService(ServiceBase):
     def get_workspaces(self, page: int = 1, per_page: int = 10) -> dict:
@@ -34,11 +36,14 @@ class WorkspaceService(ServiceBase):
             "total_pages": total_pages
         }
 
-    def get_workspace_by_id(self, id: int) -> workspace_models.Workspace | None:
-        return self._db_session.get(
+    def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
+        workspace = self._db_session.get(
             workspace_models.Workspace,
             id,
             options=[selectinload(workspace_models.Workspace.usable_agents)])
+        if not workspace:
+            raise WorkspaceNotFoundError(id)
+        return workspace
 
     def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
         usable_agent_ids = data.usable_agent_ids
@@ -64,7 +69,7 @@ class WorkspaceService(ServiceBase):
             workspace_models.Workspace.id == id)
         workspace = self._db_session.execute(stmt).scalar_one_or_none()
         if not workspace:
-            raise WorkspaceNotFoundError(f"Workspace {id} not found")
+            raise WorkspaceNotFoundError(id)
 
         usable_agent_ids = data.usable_agent_ids
 
@@ -91,7 +96,7 @@ class WorkspaceService(ServiceBase):
             workspace_models.Workspace.id == id)
         workspace = self._db_session.execute(stmt).scalar_one_or_none()
         if not workspace:
-            raise WorkspaceNotFoundError(f"Workspace {id} not found")
+            raise WorkspaceNotFoundError(id)
         try:
             self._db_session.delete(workspace)
             self._db_session.commit()

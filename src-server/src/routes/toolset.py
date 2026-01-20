@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from .types import FlaskResponse
 from ..agent.toolset_manager import use_mcp_toolset_manager
 from ..agent.toolset_manager.mcp_toolset_manager import McpConfigurableToolset
-from ..services.toolset import ToolsetService, ToolsetNotFoundError
+from ..services.toolset import ToolsetService
 from ..db.schemas import toolset as toolset_schemas
 
 toolset_bp = Blueprint("toolset", __name__)
@@ -47,8 +47,6 @@ def get_toolsets_brief() -> FlaskResponse[list[ToolsetBrief]]:
 def get_toolset(toolset_id: int) -> FlaskResponse[toolset_schemas.ToolsetRead]:
     with ToolsetService() as service:
         toolset = service.get_toolset_by_id(toolset_id)
-        if not toolset:
-            raise ToolsetNotFoundError(toolset_id)
     return toolset_schemas.ToolsetRead.model_validate(toolset)
 
 @toolset_bp.route("/", methods=["POST"])

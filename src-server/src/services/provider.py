@@ -7,7 +7,9 @@ from ..db.schemas import provider as provider_schemas
 
 class ProviderNotFoundError(HTTPException):
     code = 404
-    description = "Provider not found"
+    def __init__(self, id: int):
+        description = f"Provider {id} not found"
+        super().__init__(description=description)
 
 class ProviderService(ServiceBase):
     def get_providers(self) -> list[provider_models.Provider]:
@@ -16,11 +18,14 @@ class ProviderService(ServiceBase):
         providers = self._db_session.execute(stmt).scalars().all()
         return list(providers)
 
-    def get_provider_by_id(self, provider_id: int) -> provider_models.Provider | None:
-        return self._db_session.get(
+    def get_provider_by_id(self, provider_id: int) -> provider_models.Provider:
+        provider = self._db_session.get(
             provider_models.Provider,
             provider_id,
             options=[selectinload(provider_models.Provider.models)])
+        if not provider:
+            raise ProviderNotFoundError(provider_id)
+        return provider
 
     def create_provider(self, data: provider_schemas.ProviderCreate) -> provider_models.Provider:
         new_provider = provider_models.Provider(
@@ -105,7 +110,7 @@ class ProviderService(ServiceBase):
         stmt = select(provider_models.Provider).where(provider_models.Provider.id == id)
         provider = self._db_session.execute(stmt).scalar_one_or_none()
         if not provider:
-            raise ProviderNotFoundError(f"Provider {id} not found")
+            raise ProviderNotFoundError(id)
 
         if data.models is not None:
             provider.models = merge_models(provider.models, data.models)
@@ -128,7 +133,7 @@ class ProviderService(ServiceBase):
         stmt = select(provider_models.Provider).where(provider_models.Provider.id == id)
         provider = self._db_session.execute(stmt).scalar_one_or_none()
         if not provider:
-            raise ProviderNotFoundError(f"Provider {id} not found")
+            raise ProviderNotFoundError(id)
         try:
             self._db_session.delete(provider)
             self._db_session.commit()

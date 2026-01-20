@@ -13,8 +13,6 @@ class BuiltInToolset(PythonToolset):
         self._tools_cache = super().get_tools(namespaced_tool_name=False)
         with ToolsetService() as toolset_service:
             toolset_ent = toolset_service.get_toolset_by_internal_key(self.internal_key)
-            if toolset_ent is None:
-                raise ValueError(f"Toolset '{self.internal_key}' not found")
             toolset_ent = toolset_service.sync_toolset(toolset_ent.id,
                                                       [tool.name for tool in self._tools_cache])
         self._toolset_ent_map = {tool.internal_key: tool for tool in toolset_ent.tools}

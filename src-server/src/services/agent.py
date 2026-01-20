@@ -9,7 +9,9 @@ from ..db.schemas import agent as agent_schemas
 
 class AgentNotFoundError(HTTPException):
     code = 404
-    description = "Agent not found"
+    def __init__(self, id: int):
+        description = f"Agent {id} not found"
+        super().__init__(description=description)
 
 class AgentBrief(TypedDict):
     id: int
@@ -46,12 +48,15 @@ class AgentService(ServiceBase):
         agents = self._db_session.execute(stmt).all()
         return [AgentBrief(id=id, name=name, icon_name=icon_name) for id, name, icon_name in agents]
 
-    def get_agent_by_id(self, id: int) -> agent_models.Agent | None:
-        return self._db_session.get(
+    def get_agent_by_id(self, id: int) -> agent_models.Agent:
+        agent = self._db_session.get(
             agent_models.Agent,
             id,
             options=[selectinload(agent_models.Agent.model),
                      selectinload(agent_models.Agent.workspaces)])
+        if not agent:
+            raise AgentNotFoundError(id)
+        return agent
 
     def create_agent(self, data: agent_schemas.AgentCreate) -> agent_models.Agent:
         new_agent = agent_models.Agent(**data.model_dump())
@@ -70,7 +75,7 @@ class AgentService(ServiceBase):
             agent_models.Agent.id == id)
         agent = self._db_session.execute(stmt).scalar_one_or_none()
         if not agent:
-            raise AgentNotFoundError(f"Agent {id} not found")
+            raise AgentNotFoundError(id)
 
         for key, value in data.model_dump(exclude_unset=True).items():
             if value is not None:
@@ -89,7 +94,7 @@ class AgentService(ServiceBase):
             agent_models.Agent.id == id)
         agent = self._db_session.execute(stmt).scalar_one_or_none()
         if not agent:
-            raise AgentNotFoundError(f"Agent {id} not found")
+            raise AgentNotFoundError(id)
         try:
             self._db_session.delete(agent)
             self._db_session.commit()
