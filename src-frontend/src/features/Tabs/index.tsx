@@ -41,11 +41,13 @@ import type {
   ProviderTabMetadata,
   Tab,
   TaskTabMetadata,
+  ToolsetTabMetadata,
   WorkspaceTabMetadata,
 } from "@/types/tab";
 import { AgentPanel } from "./AgentPanel";
 import { ProviderPanel } from "./ProviderPanel";
 import { TaskPanel } from "./TaskPanel";
+import { ToolsetPanel } from "./ToolsetPanel";
 import { WorkspacePanel } from "./WorkspacePanel";
 
 const tabIconMap: Record<Tab["type"], LucideIcon> = {
@@ -169,6 +171,13 @@ function TabPanelRenderer({ tab }: { tab: Tab }) {
         <ProviderPanel
           tabId={tab.id}
           metadata={tab.metadata as ProviderTabMetadata}
+        />
+      );
+    case "toolset":
+      return (
+        <ToolsetPanel
+          tabId={tab.id}
+          metadata={tab.metadata as ToolsetTabMetadata}
         />
       );
     default:

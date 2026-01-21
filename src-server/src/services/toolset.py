@@ -13,6 +13,12 @@ class ToolsetNotFoundError(HTTPException):
         description = f"Toolset {toolset_identifier} not found"
         super().__init__(description=description)
 
+class ToolsetNameAlreadyExistsError(HTTPException):
+    code = 400
+    def __init__(self, name: str) -> None:
+        description = f"Toolset {name} already exists"
+        super().__init__(description=description)
+
 class ToolNotFoundError(HTTPException):
     code = 404
     def __init__(self, tool_id: int) -> None:
@@ -94,7 +100,12 @@ class ToolsetService(ServiceBase):
             case toolset_models.ToolsetType.MCP_REMOTE:
                 assert isinstance(data.params, RemoteServerParams)
                 client = RemoteMcpClient(data.name, data.params)
-        
+
+        try:
+            self.get_toolset_by_internal_key(data.name)
+        except ToolsetNotFoundError: pass
+        else: raise ToolsetNameAlreadyExistsError(data.name)
+
         async def list_tools():
             await client.connect()
             tools = await client.list_tools()
@@ -106,6 +117,7 @@ class ToolsetService(ServiceBase):
         tools = async_task_pool.wait_result(task_id)
         new_toolset = toolset_models.Toolset(
             **data.model_dump(),
+            internal_key=data.name,
             tools=[toolset_models.Tool.from_mcp_tool(tool)
                    for tool in tools]
         )
@@ -114,6 +126,8 @@ class ToolsetService(ServiceBase):
             self._db_session.add(new_toolset)
             self._db_session.commit()
             self._db_session.refresh(new_toolset)
+
+            _ = new_toolset.tools # load tools
         except Exception as e:
             self._db_session.rollback()
             raise e

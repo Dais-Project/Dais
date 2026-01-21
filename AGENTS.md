@@ -75,8 +75,23 @@ ORM：SQLAlchemy + Alembic
   - 在 API 路由处将错误转换为错误代码，供前端转换为用户易懂的错误原因
   - 在直接忽略错误时，必须给出解释说明
   - 错误日志应该仅出现在 except 块中，即实际处理错误的块中，raise 语句处禁止打错误日志
+
+### 最佳实践
+
+#### 后端
+
 - **参数校验**:
   - 应该一律使用 `flask-pydantic` 提供的 `@validate` 装饰器来做请求的 body 和 query 的校验以及返回的 schema 的校验，如非必要禁止手动编写请求 body 和 query 的提取以及将返回的 schema 手动转换为 json
+
+#### 前端
+
+- 在调用 API 方法时，对于从后端拉取状态的方法，使用 `@tanstack/react-query` 的 `useQuery` 来管理请求状态；对于需要修改后端状态的方法，使用 `@tanstack/react-query` 的 `useMutation` 来管理请求状态。
+- 在编写需要请求后端获取数据来渲染的组件时，需要将具体 fetch 后端 API 并渲染数据的部分封装成子组件，在子组件中使用 `@tanstack/react-query` 的 suspense API 来请求后端，并在父组件中使用 `<Suspense>`、`<ErrorBoundary>` 和 `@tanstack/react-query` 提供的 `QueryErrorResetBoundary` 组件来包裹子组件并处理加载、错误和重试等状态。
+- 在创建表单时，应使用 Composable Form 范式，即：
+  - 拒绝巨型表单 (No Monolithic Forms)：禁止在单一组件内通过大量 if (isEditMode) 判断来控制字段渲染。
+  - 组合优于配置 (Composition over Configuration)：使用“积木式”组合，由容器组件（Container）决定字段的渲染顺序和存在性。
+  - 原子化领域组件 (Atomic Domain Fields)：将特定业务字段的 UI (Input/Select)、逻辑 (Controller) 和校验规则 (Rules) 封装为独立组件。
+  - 上下文驱动 (Context Driven)：使用 FormProvider (在表单 Container 中) 和 useFormContext (在 Field Component 中) 避免 Props Drilling。
 
 ### 注意事项
 
@@ -96,9 +111,7 @@ ORM：SQLAlchemy + Alembic
 - 要使用图标时从 `lucide-react` 库中，统一用 `import { IconName } from "lucide-react"` 进行导入。
 - 使用 `zustand` 库进行状态管理，全局 store 放在 `frontend/src/stores/xxxStore.ts` 中。
 - 在进行 API 请求时，需要在 `frontend/src/api` 目录下创建新的 API 文件，API 方法统一使用 `function` 关键字定义。
-- 在调用 API 方法时，对于从后端拉取状态的方法，使用 `@tanstack/react-query` 的 `useQuery` 来管理请求状态；对于需要修改后端状态的方法，使用 `@tanstack/react-query` 的 `useMutation` 来管理请求状态。
 - 在需要创建表单时，使用 `react-hook-form` 库来辅助创建，并使用 shadcn-ui 提供的 Field 组件来辅助构建表单组件。
-- 在编写需要请求后端获取数据来渲染的组件时，需要将具体 fetch 后端 API 并渲染数据的部分封装成子组件，在子组件中使用 `@tanstack/react-query` 的 suspense API 来请求后端，并在父组件中使用 `<Suspense>`、`<ErrorBoundary>` 和 `@tanstack/react-query` 提供的 `QueryErrorResetBoundary` 组件来包裹子组件并处理加载、错误和重试等状态。
 - **严禁修改 `components` 目录下的文件**
 
 需要忽略的情况：

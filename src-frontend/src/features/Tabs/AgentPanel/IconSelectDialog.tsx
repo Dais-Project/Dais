@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -274,10 +273,9 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
       </DialogTrigger>
 
       <DialogContent showCloseButton={false} className="max-w-2xl p-0">
-        <Command>
+        <Command value={value ?? undefined}>
           <CommandInput placeholder="搜索图标..." />
           <CommandList className="shadcn-scroll max-h-[400px]">
-            <CommandEmpty>未找到图标</CommandEmpty>
             {iconGroups.map((group, index) => (
               <div key={group.heading}>
                 <CommandGroup heading={group.heading} className="p-2">
@@ -287,9 +285,12 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
                         key={iconName}
                         value={iconName}
                         onSelect={() => handleChange(iconName)}
-                        className="size-12 justify-center p-0"
+                        className="group size-12 justify-center p-0"
                       >
-                        <DynamicIcon name={iconName} className="size-6" />
+                        <DynamicIcon
+                          name={iconName}
+                          className="size-6 text-muted-foreground group-data-[selected=true]:text-primary"
+                        />
                       </CommandItem>
                     ))}
                   </div>
