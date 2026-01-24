@@ -1,8 +1,7 @@
-import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
-import { ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type TabPanelFrameProps = {
   children: React.ReactNode;
@@ -20,10 +19,7 @@ export function TabPanelFrame({
       {({ reset }) => (
         <ErrorBoundary onReset={reset} fallbackRender={fallbackRender}>
           <Suspense fallback={fallbackChildren}>
-            <ScrollArea className="h-full px-8">
-              {children}
-              <ScrollBar orientation="vertical" />
-            </ScrollArea>
+            <ScrollArea className="h-full px-8">{children}</ScrollArea>
           </Suspense>
         </ErrorBoundary>
       )}

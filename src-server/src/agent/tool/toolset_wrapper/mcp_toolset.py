@@ -54,9 +54,13 @@ class McpToolset(Toolset):
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
         def sync_in_thread():
-            tool_names = [tool.name for tool in latest_tool_list]
+            tools = [ToolsetService.ToolLike(
+                        name=tool.name,
+                        internal_key=tool.name,
+                        description=tool.description)
+                     for tool in latest_tool_list]
             with ToolsetService() as service:
-                return service.sync_toolset(self._toolset_id, tool_names)
+                return service.sync_toolset(self._toolset_id, tools)
         merged_toolset_ent = await asyncio.to_thread(sync_in_thread)
         return merged_toolset_ent.tools
 

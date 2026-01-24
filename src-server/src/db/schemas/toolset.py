@@ -5,6 +5,7 @@ from . import DTOBase
 
 class ToolBase(DTOBase):
     name: str
+    description: str
     is_enabled: bool = True
     auto_approve: bool = False
 
@@ -14,6 +15,7 @@ class ToolRead(ToolBase):
     internal_key: str
 
 class ToolUpdate(DTOBase):
+    id: int
     name: str | None = None
     is_enabled: bool | None = None
     auto_approve: bool | None = None
@@ -38,3 +40,4 @@ class ToolsetUpdate(DTOBase):
     name: str | None = None
     params: LocalServerParams | RemoteServerParams | None = None
     is_enabled: bool | None = None
+    tools: list[ToolUpdate] | None = None

@@ -1,26 +1,13 @@
-import {
-  QueryErrorResetBoundary,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { fetchToolsetById } from "@/api/toolset";
 import { FailedToLoad } from "@/components/FailedToLoad";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ToolsetEdit } from "@/features/Tabs/ToolsetPanel/ToolsetEdit";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ToolsetEditForm } from "@/features/Tabs/ToolsetPanel/ToolsetEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { ToolsetTabMetadata } from "@/types/tab";
-import type { ToolsetCreate } from "@/types/toolset";
 import type { TabPanelProps } from "../index";
-
-const DEFAULT_TOOLSET: ToolsetCreate = {
-  name: "",
-  type: "mcp_local",
-  params: {
-    command: "",
-    args: [],
-  },
-};
+import { TabPanelFrame } from "../TabPanelFrame";
+import { ToolsetCreateForm } from "./ToolsetCreateForm";
 
 function ToolsetCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.removeTab);
@@ -29,7 +16,7 @@ function ToolsetCreatePanel({ tabId }: { tabId: string }) {
     removeTab(tabId);
   };
 
-  return <ToolsetEdit toolset={DEFAULT_TOOLSET} onConfirm={handleComplete} />;
+  return <ToolsetCreateForm onConfirm={handleComplete} />;
 }
 
 function ToolsetEditPanel({
@@ -50,7 +37,7 @@ function ToolsetEditPanel({
     removeTab(tabId);
   };
 
-  return <ToolsetEdit toolset={toolset} onConfirm={handleComplete} />;
+  return <ToolsetEditForm toolset={toolset} onConfirm={handleComplete} />;
 }
 
 export function ToolsetPanel({
@@ -61,39 +48,27 @@ export function ToolsetPanel({
     return (
       <ScrollArea className="h-full px-8">
         <ToolsetCreatePanel tabId={tabId} />
-        <ScrollBar orientation="vertical" />
       </ScrollArea>
     );
   }
 
   return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ resetErrorBoundary }) => (
-            <div className="flex h-full items-center justify-center p-4">
-              <FailedToLoad
-                refetch={resetErrorBoundary}
-                description="无法加载 Toolset 信息，请稍后重试。"
-              />
-            </div>
-          )}
-        >
-          <Suspense
-            fallback={
-              <div className="flex h-full items-center justify-center p-4">
-                <p className="text-muted-foreground">加载中...</p>
-              </div>
-            }
-          >
-            <ScrollArea className="h-full px-8">
-              <ToolsetEditPanel tabId={tabId} toolsetId={metadata.id} />
-              <ScrollBar orientation="vertical" />
-            </ScrollArea>
-          </Suspense>
-        </ErrorBoundary>
+    <TabPanelFrame
+      fallbackChildren={
+        <div className="flex h-full items-center justify-center p-4">
+          <p className="text-muted-foreground">加载中...</p>
+        </div>
+      }
+      fallbackRender={({ resetErrorBoundary }) => (
+        <div className="flex h-full items-center justify-center p-4">
+          <FailedToLoad
+            refetch={resetErrorBoundary}
+            description="无法加载 Toolset 信息，请稍后重试。"
+          />
+        </div>
       )}
-    </QueryErrorResetBoundary>
+    >
+      <ToolsetEditPanel tabId={tabId} toolsetId={metadata.id} />
+    </TabPanelFrame>
   );
 }

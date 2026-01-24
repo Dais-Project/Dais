@@ -1,5 +1,3 @@
-export type ToolsetType = "builtin" | "mcp_local" | "mcp_remote";
-
 export type McpToolsetStatus =
   | "connecting"
   | "connected"
@@ -29,6 +27,8 @@ export type RemoteServerParams = {
 
 export type ToolsetParams = LocalServerParams | RemoteServerParams;
 
+export type ToolsetType = ToolsetBase["type"];
+
 export type ToolsetBrief = {
   id: number;
   name: string;
@@ -41,36 +41,39 @@ export type ToolRead = {
   id: number;
   toolset_id: number;
   name: string;
+  description: string;
   internal_key: string;
   is_enabled: boolean;
   auto_approve: boolean;
 };
 
 export type ToolUpdate = {
+  id: number;
   name?: string;
   is_enabled?: boolean;
   auto_approve?: boolean;
 };
 
-export type ToolsetRead = {
-  id: number;
+export type ToolsetBase = {
   name: string;
+} & (
+  | { type: "built_in"; params: null }
+  | { type: "mcp_local"; params: LocalServerParams }
+  | { type: "mcp_remote"; params: RemoteServerParams }
+);
+
+export type ToolsetRead = ToolsetBase & {
+  id: number;
   internal_key: string;
-  type: ToolsetType;
-  // will be null for builtin toolsets
-  params: ToolsetParams | null;
   is_enabled: boolean;
   tools: ToolRead[];
 };
 
-export type ToolsetCreate = {
-  name: string;
-  type: ToolsetType;
-  params: ToolsetParams;
-};
+export type ToolsetCreate = ToolsetBase;
 
-export type ToolsetUpdate = {
-  name?: string;
-  params?: ToolsetParams;
-  is_enabled?: boolean;
-};
+export type ToolsetUpdate = Partial<
+  ToolsetBase & {
+    is_enabled: boolean;
+    tools: ToolUpdate[];
+  }
+>;

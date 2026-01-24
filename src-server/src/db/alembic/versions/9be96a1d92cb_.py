@@ -35,7 +35,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('internal_key', sa.String(), nullable=False),
-    sa.Column('type', sa.Enum('BUILTIN', 'MCP_LOCAL', 'MCP_REMOTE', name='toolsettype', native_enum=False), nullable=False),
+    sa.Column('type', sa.Enum('BUILT_IN', 'MCP_LOCAL', 'MCP_REMOTE', name='toolsettype', native_enum=False), nullable=False),
     sa.Column('params', PydanticJSON(None), nullable=True),
     sa.Column('is_enabled', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id'),

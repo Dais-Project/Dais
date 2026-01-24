@@ -208,7 +208,7 @@ export function ToolsetList() {
 
   const { data } = useSuspenseQuery({
     queryKey: ["toolsets"],
-    queryFn: async () => fetchToolsetsBrief(),
+    queryFn: fetchToolsetsBrief,
   });
 
   const deleteToolsetMutation = useMutation({ mutationFn: deleteToolset });

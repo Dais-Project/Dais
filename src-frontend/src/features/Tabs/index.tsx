@@ -271,7 +271,7 @@ export function Tabs() {
           <ScrollBar className="h-1.5" orientation="horizontal" />
         </ScrollArea>
 
-        <div className="grow overflow-y-auto">
+        <div className="grow overflow-hidden">
           {(() => {
             if (activeTabId === null) {
               return null;

@@ -11,7 +11,11 @@ class BuiltInToolset(PythonToolset):
         with ToolsetService() as toolset_service:
             toolset_ent = toolset_service.get_toolset_by_internal_key(self.internal_key)
             toolset_ent = toolset_service.sync_toolset(toolset_ent.id,
-                                                      [tool.name for tool in self._tools_cache])
+                                                      [ToolsetService.ToolLike(
+                                                            name=tool.name,
+                                                            internal_key=tool.name,
+                                                            description=tool.description)
+                                                       for tool in self._tools_cache])
         self._toolset_ent_map = {tool.internal_key: tool for tool in toolset_ent.tools}
 
     @property
