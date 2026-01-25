@@ -11,7 +11,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { applyTheme } from "@/lib/applyTheme";
+import { applyTheme } from "@/lib/apply-theme";
 import { useConfigStore } from "@/stores/config-store";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ActivityBar } from "./features/ActivityBar/ActivityBar";
