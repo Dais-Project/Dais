@@ -213,7 +213,7 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
             >
               <MinimalTiptapEditor
                 {...field}
-                className="mt-2"
+                className="mx-1 mt-2"
                 editorClassName="min-h-[8em]"
               />
             </FieldItem>

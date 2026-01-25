@@ -1,5 +1,5 @@
 import { CheckIcon } from "lucide-react";
-import { type Key, useState } from "react";
+import { useState } from "react";
 import {
   Command,
   CommandEmpty,
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 type BaseSelectDialogProps<Selection> = {
   children: React.ReactNode;
   value?: Selection;
-  getKey?: (selection: Selection) => Key;
+  isSelected?: (selection: Selection) => boolean;
   getValue?: (selection: Selection) => string;
   getLabel?: (selection: Selection) => string;
   onSelect: (value: Selection) => void;
@@ -31,8 +31,8 @@ type SingleSelectDialogProps<Selection> = BaseSelectDialogProps<Selection> & {
 export function SingleSelectDialog<Selection>({
   children,
   value,
+  isSelected,
   selections,
-  getKey = (selection: Selection) => selection as Key,
   getValue = (selection: Selection) => selection as string,
   getLabel,
   onSelect,
@@ -62,22 +62,19 @@ export function SingleSelectDialog<Selection>({
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
               {selections.map((selection: Selection) => {
-                const key = getKey(selection);
                 const value_ = getValue(selection);
                 const label = getLabel?.(selection) ?? value_;
+                const isEqual =
+                  isSelected?.(selection) ??
+                  (value && getValue(value) === value_);
                 return (
                   <CommandItem
-                    key={key}
+                    key={value_}
                     value={value_}
                     onSelect={() => handleSelect(selection)}
                   >
                     <CheckIcon
-                      className={cn(
-                        "mr-2 size-4",
-                        value && getValue(value) === value_
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
+                      className={cn("mr-2 size-4", { "opacity-100": isEqual })}
                     />
                     {label}
                   </CommandItem>
@@ -104,8 +101,8 @@ type GroupedSingleSelectDialogProps<Selection> =
 export function GroupedSingleSelectDialog<Selection>({
   children,
   value,
+  isSelected,
   groups,
-  getKey = (selection: Selection) => selection as Key,
   getValue = (selection: Selection) => selection as string,
   getLabel,
   onSelect,
@@ -136,23 +133,22 @@ export function GroupedSingleSelectDialog<Selection>({
             {groups.map((group, groupIndex) => (
               <div key={group.heading}>
                 <CommandGroup heading={group.heading}>
-                  {group.items.map((item) => {
-                    const key = getKey(item);
-                    const value_ = getValue(item);
-                    const label = getLabel?.(item) ?? value_;
+                  {group.items.map((selection) => {
+                    const value_ = getValue(selection);
+                    const label = getLabel?.(selection) ?? value_;
+                    const isEqual =
+                      isSelected?.(selection) ??
+                      (value && getValue(value) === value_);
                     return (
                       <CommandItem
-                        key={key}
+                        key={value_}
                         value={value_}
-                        onSelect={() => handleSelect(item)}
+                        onSelect={() => handleSelect(selection)}
                       >
                         <CheckIcon
-                          className={cn(
-                            "mr-2 size-4",
-                            value && getValue(value) === value_
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
+                          className={cn("mr-2 size-4", {
+                            "opacity-0": !isEqual,
+                          })}
                         />
                         {label}
                       </CommandItem>

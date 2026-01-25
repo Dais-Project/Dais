@@ -2,15 +2,18 @@ import asyncio
 import queue
 import threading
 from collections.abc import Generator
+from enum import Enum
 import time
 from typing import Literal, cast
 from loguru import logger
-from liteai_sdk import LLM, AssistantMessage, LlmRequestParams,\
-                       SystemMessage, ToolMessage, UserMessage, execute_tool_sync
+from liteai_sdk import (
+    LLM, AssistantMessage, LlmRequestParams,
+    SystemMessage, ToolMessage, UserMessage, execute_tool_sync, ToolDef
+)
 from .context import AgentContext
 from .tool import finish_task, ask_user
 from .types import (
-    AgentEvent,
+    AgentEvent, ToolEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
     ToolExecutedEvent,
@@ -22,8 +25,16 @@ from ..db.models import task as task_models
 from ..db.schemas import task as task_schemas
 from ..utils import use_async_task_pool, TaskNotFoundError as AsyncTaskNotFoundError
 
+USER_IGNORED_TOOL_CALL_RESULT = "[System Message] User ignored this tool call."
+USER_DENIED_TOOL_CALL_RESULT = "[System Message] User denied this tool call."
+
 class ToolCallNotFoundError(Exception):
     tool_call_id: str
+
+class UserApprovalStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    DENIED = "denied"
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -59,12 +70,12 @@ class AgentTask:
         )
 
     async def _create_llm_call(self,
-                chunk_queue: queue.Queue[MessageChunkEvent
-                                       | MessageStartEvent
-                                       | MessageEndEvent
-                                       | TaskInterruptedEvent
-                                       | ErrorEvent]
-                ) -> ToolMessage | None:
+            chunk_queue: queue.Queue[MessageChunkEvent
+                                   | MessageStartEvent
+                                   | MessageEndEvent
+                                   | TaskInterruptedEvent
+                                   | ErrorEvent]
+            ) -> ToolMessage | None:
         """
         Create LLM API call, put message chunks into chunk_queue and return the first tool call message
         """
@@ -110,18 +121,37 @@ class AgentTask:
 
     def _process_tool_call_to_event(self,
             tool_call_message: ToolMessage
-            ) -> ToolExecutedEvent\
-               | ToolRequireUserResponseEvent\
-               | ToolRequirePermissionEvent | None:
+            ) -> ToolEvent | None:
         """Process tool call and convert to event"""
+        if tool_call_message.tool_def is None: return None
+
         if tool_call_message.tool_def in [ask_user, finish_task]:
             return ToolRequireUserResponseEvent(
                 tool_name=cast(Literal["ask_user", "finish_task"],
                               tool_call_message.name)
             )
 
-        if tool_call_message.tool_def is None:
-            return None
+        # Since the toolsets only contain ToolDefs,
+        # the tools are all under toolsets except for `ask_user` and `finish_task`,
+        # so we can safely assert the type of tool_def to ToolDef here.
+        assert isinstance(tool_call_message.tool_def, ToolDef)
+        tool_def = tool_call_message.tool_def
+
+        auto_approve = tool_def.metadata.get("auto_approve", False)
+        user_approval = tool_call_message.metadata.get("user_approval", None)
+        if user_approval is None:
+            tool_call_message.metadata["user_approval"] = UserApprovalStatus.PENDING
+            user_approval = UserApprovalStatus.PENDING
+        if auto_approve == False:
+            match user_approval:
+                case UserApprovalStatus.PENDING:
+                    return ToolRequirePermissionEvent(tool_call_id=tool_call_message.id)
+                case UserApprovalStatus.DENIED:
+                    tool_call_message.result = USER_DENIED_TOOL_CALL_RESULT
+                    return None
+                case UserApprovalStatus.APPROVED:
+                    # continue to execute
+                    pass
 
         result, error = None, None
         try:
@@ -154,7 +184,7 @@ class AgentTask:
            last_message.error is None:
             # If the previous tool call is not finished,
             # we consider it as ignored by user.
-            last_message.result = "[System Message] User ignored this tool call."
+            last_message.result = USER_IGNORED_TOOL_CALL_RESULT
 
         self._messages.append(message)
 
@@ -165,11 +195,32 @@ class AgentTask:
         Raises:
             ToolCallNotFoundError
         """
-        for message in self._messages:
+        for message in reversed(self._messages):
             if message.role == "tool" and message.id == tool_call_id:
                 message.result = result
                 break
         raise ToolCallNotFoundError(tool_call_id)
+
+    def approve_tool_call(self, tool_call_id: str, approved: bool) -> ToolEvent | None:
+        """
+        Approve or deny a tool call
+
+        Raises:
+            ToolCallNotFoundError
+        """
+        target_message = None
+        for message in reversed(self._messages):
+            if message.role == "tool" and message.id == tool_call_id:
+                if message.metadata["user_approval"] != UserApprovalStatus.PENDING:
+                    # The tool call has been approved or denied before.
+                    return None
+                if approved: message.metadata["user_approval"] = UserApprovalStatus.APPROVED
+                else:        message.metadata["user_approval"] = UserApprovalStatus.DENIED
+                target_message = message
+                break
+        if target_message is None:
+            raise ToolCallNotFoundError(tool_call_id)
+        return self._process_tool_call_to_event(target_message)
 
     def run(self) -> Generator[AgentEvent]:
         """

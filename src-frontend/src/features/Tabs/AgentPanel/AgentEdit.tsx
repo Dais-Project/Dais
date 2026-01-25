@@ -158,7 +158,7 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
             >
               <MinimalTiptapEditor
                 {...field}
-                className="mt-2"
+                className="mx-1 mt-2"
                 editorClassName="min-h-[8em]"
               />
             </FieldItem>

@@ -1,4 +1,5 @@
 import { Activity } from "react";
+import { activityVisible } from "@/lib/activity-visible";
 import { cn } from "@/lib/utils";
 
 export type SettingItemProps = {
@@ -39,7 +40,7 @@ export function SettingItem({
         <div className={cn("whitespace-nowrap leading-none", titleClassName)}>
           {title}
         </div>
-        <Activity mode={description ? "visible" : "hidden"}>
+        <Activity mode={activityVisible(description)}>
           <div
             className={cn(
               "text-muted-foreground text-xs",

@@ -9,8 +9,17 @@ import type { TaskRead, TaskUsage } from "@/types/task";
 export type TaskState = "idle" | "waiting" | "running";
 
 export type TaskRunner = {
-  continue: (taskId: number, messages: UserMessage | null) => void;
-  answerTool: (taskId: number, toolCallId: string, answer: string) => void;
+  continue: (
+    taskId: number,
+    agentId: number,
+    message: UserMessage | null
+  ) => void;
+  answerTool: (
+    taskId: number,
+    agentId: number,
+    toolCallId: string,
+    answer: string
+  ) => void;
   cancel: () => void;
   handleCustomToolAction: (
     toolMessageId: string,
@@ -92,10 +101,26 @@ export function useTaskRunner(
             arguments: toolCall.arguments,
             result: null,
             error: null,
+            metadata: {},
           } satisfies ToolMessage);
         }
 
         toolCallsBuffer.current.clear();
+      });
+    },
+    onToolRequirePermission(data) {
+      setTaskData((draft) => {
+        if (!draft) {
+          return;
+        }
+        const toolMessage = draft.messages.find(
+          (m) => m.role === "tool" && m.id === data.tool_call_id
+        ) as ToolMessage | undefined;
+        if (toolMessage === undefined) {
+          console.warn(`Tool message not found: ${data.tool_call_id}`);
+          return;
+        }
+        toolMessage.metadata.user_approval = "pending";
       });
     },
     onToolExecuted: (toolResult) => {
@@ -168,7 +193,11 @@ export function useTaskRunner(
     }
   };
 
-  const continue_ = (taskId: number, messages: UserMessage | null) => {
+  const continue_ = (
+    taskId: number,
+    agentId: number,
+    message: UserMessage | null
+  ) => {
     setState("waiting");
     abortController.current?.abort();
 
@@ -176,25 +205,29 @@ export function useTaskRunner(
       if (!draft) {
         return;
       }
-      if (messages) {
-        draft.messages.push(messages);
+      if (message) {
+        draft.messages.push(message);
       }
     });
 
     abortController.current = continueTask(
       taskId,
-      messages,
+      { agent_id: agentId, message },
       sseCallbacks.current
     );
   };
 
-  const answerTool = (taskId: number, toolCallId: string, answer: string) => {
+  const answerTool = (
+    taskId: number,
+    agentId: number,
+    toolCallId: string,
+    answer: string
+  ) => {
     setState("waiting");
     abortController.current?.abort();
     abortController.current = toolAnswer(
       taskId,
-      toolCallId,
-      answer,
+      { tool_call_id: toolCallId, agent_id: agentId, answer },
       sseCallbacks.current
     );
   };

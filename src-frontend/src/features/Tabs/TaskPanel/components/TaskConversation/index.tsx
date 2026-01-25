@@ -1,4 +1,3 @@
-import { Activity } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -27,11 +26,9 @@ export function TaskConversation({
   return (
     <Conversation id="conversation" className="conversation-container">
       <ConversationContent className="gap-y-4">
-        <Activity mode={isLoading ? "visible" : "hidden"}>
-          <ConversationEmptyState />
-        </Activity>
-        <Activity mode={isLoading ? "hidden" : "visible"}>
-          {messages?.map((message, index) => {
+        {isLoading && <ConversationEmptyState />}
+        {!isLoading &&
+          messages?.map((message, index) => {
             if (message.role === "system") {
               return null;
             }
@@ -52,7 +49,6 @@ export function TaskConversation({
               />
             );
           })}
-        </Activity>
         <ConversationScrollButton />
       </ConversationContent>
     </Conversation>

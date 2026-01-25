@@ -15,7 +15,8 @@ class TaskService(ServiceBase):
     def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
         new_task = task_models.Task(
             messages=data.messages,
-            **data.model_dump(exclude={"messages"})
+            _workspace_id=data.workspace_id, # only write workspace_id on create
+            **data.model_dump(exclude={"messages", "workspace_id"})
         )
 
         try:

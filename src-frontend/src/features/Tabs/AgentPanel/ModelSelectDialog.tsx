@@ -51,8 +51,8 @@ export function ModelSelectDialog({
     <GroupedSingleSelectDialog
       value={selectedModel ?? undefined}
       groups={groups}
-      getKey={(model) => model.id}
-      getValue={(model) => model.name}
+      getLabel={(model) => model.name}
+      getValue={(model) => model.id.toString()}
       onSelect={(model) => onSelect(model)}
       onOpenChange={(open) => setIsOpen(open)}
       placeholder="搜索模型..."

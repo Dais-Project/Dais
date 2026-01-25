@@ -215,27 +215,56 @@ function createTaskSseStream(
   return abortController;
 }
 
+type ContinueTaskBody = {
+  agent_id: number;
+  message: UserMessage | null;
+};
+
 export function continueTask(
   taskId: number,
-  message: UserMessage | null,
+  body: ContinueTaskBody,
   callbacks: TaskSseCallbacks
 ): AbortController {
   return createTaskSseStream(
     `${API_BASE}/tasks/${taskId}/continue`,
-    { message },
+    body,
     callbacks
   );
 }
 
+type ToolAnswerBody = {
+  agent_id: number;
+  tool_call_id: string;
+  answer: string;
+};
+
 export function toolAnswer(
   taskId: number,
-  toolCallId: string,
-  answer: string,
+  body: ToolAnswerBody,
   callbacks: TaskSseCallbacks
 ): AbortController {
   return createTaskSseStream(
     `${API_BASE}/tasks/${taskId}/tool_answer`,
-    { tool_call_id: toolCallId, answer },
+    body,
+    callbacks
+  );
+}
+
+type ToolReviewBody = {
+  agent_id: number;
+  tool_call_id: string;
+  status: "approve" | "deny";
+  auto_approve: boolean;
+};
+
+export function toolReview(
+  taskId: number,
+  body: ToolReviewBody,
+  callbacks: TaskSseCallbacks
+): AbortController {
+  return createTaskSseStream(
+    `${API_BASE}/tasks/${taskId}/tool_reviews`,
+    body,
     callbacks
   );
 }

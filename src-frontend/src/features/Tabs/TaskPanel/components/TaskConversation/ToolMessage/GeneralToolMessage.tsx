@@ -3,16 +3,13 @@ import {
   Tool,
   ToolContent,
   ToolHeader,
-  type ToolHeaderProps,
   ToolInput,
   ToolOutput,
+  type ToolState,
 } from "@/components/ai-elements/tool";
+import { activityVisible } from "@/lib/activity-visible";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
-
-type ToolState =
-  | "approval-requested"
-  | "approval-responded"
-  | ToolHeaderProps["state"];
+import { ToolConfirmation } from "./ToolConfirmation";
 
 export type GeneralToolMessageProps = {
   message: ToolMessageType;
@@ -31,8 +28,14 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
     if (message.result) {
       return "output-available";
     }
-    if (message.id && message.name && message.arguments) {
-      return "approval-requested";
+    switch (message.metadata.user_approval) {
+      case "pending":
+        return "approval-requested";
+      case "approved":
+        return "approval-responded";
+      case "denied":
+        return "output-denied";
+      default: // do nothing
     }
     return "input-streaming";
   })();
@@ -42,19 +45,25 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
   );
   return (
     <Tool defaultOpen={toolState === "approval-requested"}>
-      <ToolHeader
-        type={`tool-${message.name}`}
-        state={toolState as ToolHeaderProps["state"]}
-      />
+      <ToolHeader type={`tool-${message.name}`} state={toolState} />
       <ToolContent>
         <ToolInput input={inputObj} />
-        <Activity
-          mode={(message.result ?? message.error) ? "visible" : "hidden"}
-        >
+        <Activity mode={activityVisible(message.result ?? message.error)}>
           <ToolOutput
             output={message.result}
             errorText={message.error ?? undefined}
           />
+        </Activity>
+        <Activity
+          mode={activityVisible(
+            [
+              "approval-requested",
+              "approval-responded",
+              "output-denied",
+            ].includes(toolState)
+          )}
+        >
+          <ToolConfirmation state={toolState} />
         </Activity>
       </ToolContent>
     </Tool>

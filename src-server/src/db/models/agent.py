@@ -22,7 +22,8 @@ class Agent(Base):
 
     _model: Mapped["LlmModel | None"] = relationship("LlmModel",
                                                     back_populates="agents",
-                                                    passive_deletes=True)
+                                                    passive_deletes=True,
+                                                    lazy="joined")
     @hybrid_property
     def model(self) -> LlmModel | None: return self._model
     workspaces: Mapped[list["Workspace"]] = relationship("Workspace",

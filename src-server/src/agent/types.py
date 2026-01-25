@@ -53,14 +53,18 @@ class ErrorEvent:
     error: Exception
     event_id: Literal["ERROR"] = "ERROR"
 
+ToolEvent = (
+    ToolExecutedEvent |
+    ToolRequireUserResponseEvent |
+    ToolRequirePermissionEvent
+)
+
 AgentEvent = (
     MessageChunkEvent |
     MessageStartEvent |
     MessageEndEvent |
     TaskDoneEvent |
     TaskInterruptedEvent |
-    ToolExecutedEvent |
-    ToolRequireUserResponseEvent |
-    ToolRequirePermissionEvent |
+    ToolEvent |
     ErrorEvent
 )

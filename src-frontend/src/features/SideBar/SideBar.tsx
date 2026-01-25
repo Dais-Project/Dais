@@ -1,4 +1,5 @@
 import { Activity } from "react";
+import { activityVisible } from "@/lib/activity-visible";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { AgentsView } from "./views/AgentsView";
 import { PluginsView } from "./views/PluginsView";
@@ -26,7 +27,7 @@ export function SideBar() {
       ].map((Component) => (
         <Activity
           key={Component.componentId}
-          mode={activeView === Component.componentId ? "visible" : "hidden"}
+          mode={activityVisible(activeView === Component.componentId)}
         >
           <Component />
         </Activity>

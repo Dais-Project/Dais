@@ -10,6 +10,7 @@ from .blueprint import tasks_bp
 from ..types import FlaskResponse
 from ...agent import AgentTask
 from ...agent.types import (
+    AgentEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
     ToolExecutedEvent, ToolRequireUserResponseEvent,
@@ -35,6 +36,7 @@ class ToolAnswerBody(TaskStreamBody):
     answer: str
 
 class ToolReviewBody(TaskStreamBody):
+    tool_call_id: str
     status: Literal["approve", "deny"]
     auto_approve: bool = False
 
@@ -44,66 +46,66 @@ def retrive_task(task_id: int, agent_id: int) -> AgentTask:
         task.agent_id = agent_id
     return AgentTask(task)
 
+def agent_event_format(task: AgentTask, event: AgentEvent) -> str | None:
+    match event:
+        case MessageChunkEvent(chunk):
+            match chunk:
+                case TextChunk(content):
+                    return format_sse(event=event.event_id, data={
+                        "type": "text",
+                        "content": content,
+                    })
+                case UsageChunk() as chunk:
+                    return format_sse(event=event.event_id, data={
+                        "type": "usage",
+                        "max_tokens": task._ctx.model.context_size,
+                        **asdict(chunk),
+                    })
+                case ToolCallChunk() as chunk:
+                    return format_sse(event=event.event_id, data={
+                        "type": "tool_call",
+                        "data": asdict(chunk),
+                    })
+        case MessageStartEvent():
+            return format_sse(event=event.event_id, data=None)
+        case MessageEndEvent():
+            return format_sse(event=event.event_id, data=None)
+        case ToolExecutedEvent(tool_call_id=tool_call_id, result=result):
+            return format_sse(event=event.event_id, data={
+                "tool_call_id": tool_call_id,
+                "result": result,
+            })
+        case ToolRequireUserResponseEvent(tool_name=tool_name):
+            return format_sse(event=event.event_id, data={
+                "tool_name": tool_name,
+            })
+        case ToolRequirePermissionEvent(tool_call_id=tool_call_id):
+            return format_sse(event=event.event_id, data={
+                "tool_call_id": tool_call_id,
+            })
+        case TaskDoneEvent():
+            return format_sse(event=event.event_id, data=None)
+        case TaskInterruptedEvent():
+            return format_sse(event=event.event_id, data=None)
+        case ErrorEvent(error=error):
+            return format_sse(event=event.event_id, data={"message": str(error)})
+        case _:
+            _logger.warning(f"Unknown event: {event}")
+            return None
+
 def agent_stream(task: AgentTask) -> Generator[str]:
     """
     Process agent event stream and convert to SSE format
     """
     try:
         for event in task.run():
-            match event:
-                case MessageChunkEvent(chunk):
-                    match chunk:
-                        case TextChunk(content):
-                            yield format_sse(event=event.event_id, data={
-                                "type": "text",
-                                "content": content,
-                            })
-                        case UsageChunk() as chunk:
-                            yield format_sse(event=event.event_id, data={
-                                "type": "usage",
-                                "max_tokens": task._ctx.model.context_size,
-                                **asdict(chunk),
-                            })
-                        case ToolCallChunk() as chunk:
-                            yield format_sse(event=event.event_id, data={
-                                "type": "tool_call",
-                                "data": asdict(chunk),
-                            })
-
-                case MessageStartEvent():
-                    yield format_sse(event=event.event_id, data=None)
-
-                case MessageEndEvent():
-                    yield format_sse(event=event.event_id, data=None)
-
-                case ToolExecutedEvent(tool_call_id=tool_call_id, result=result):
-                    yield format_sse(event=event.event_id, data={
-                        "tool_call_id": tool_call_id,
-                        "result": result,
-                    })
-
-                case ToolRequireUserResponseEvent(tool_name=tool_name):
-                    yield format_sse(event=event.event_id, data={
-                        "tool_name": tool_name,
-                    })
-
-                case ToolRequirePermissionEvent(tool_call_id=tool_call_id):
-                    yield format_sse(event=event.event_id, data={
-                        "tool_call_id": tool_call_id,
-                    })
-
-                case TaskDoneEvent():
-                    yield format_sse(event=event.event_id, data=None)
-
-                case TaskInterruptedEvent():
-                    yield format_sse(event=event.event_id, data=None)
-
-                case ErrorEvent(error=error):
-                    _logger.error(f"Task failed: {error}")
-                    _logger.debug("Task openai messages: {}",
-                                 [m.to_litellm_message() for m in task._messages])
-                    yield format_sse(event=event.event_id, data={"message": str(error)})
-                    break
+            if (formatted_event := agent_event_format(task, event)) is not None:
+                yield formatted_event
+            if isinstance(event, ErrorEvent):
+                _logger.error(f"Task failed: {event.error}")
+                _logger.debug("Task openai messages: {}",
+                                [m.to_litellm_message() for m in task._messages])
+                break
     except GeneratorExit:
         # When client disconnects
         task.stop()
@@ -140,5 +142,12 @@ def tool_reviews(task_id: int, body: ToolReviewBody) -> FlaskResponse:
     """
     This endpoint is used to submit the tool call permissions.
     """
-    # TODO: Implement tool_reviews logic
-    ...
+    task = retrive_task(task_id, body.agent_id)
+
+    def temp_stream() -> Generator[str]:
+        tool_event = task.approve_tool_call(body.tool_call_id, body.status == "approve")
+        if tool_event is not None:
+            if (formatted_event := agent_event_format(task, tool_event)) is not None:
+                yield formatted_event
+        yield from agent_stream(task)
+    return create_stream_response(temp_stream())

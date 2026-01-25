@@ -6,8 +6,11 @@ from .types import FlaskResponse
 from ..agent.tool import use_mcp_toolset_manager, McpToolset
 from ..services.toolset import ToolsetService
 from ..db.schemas import toolset as toolset_schemas
+from ..utils import use_async_task_pool
 
 toolset_bp = Blueprint("toolset", __name__)
+async_task_pool = use_async_task_pool()
+mcp_toolset_manager = use_mcp_toolset_manager()
 
 class ToolsetBrief(BaseModel):
     id: int
@@ -24,8 +27,6 @@ def get_toolsets_brief() -> FlaskResponse[list[ToolsetBrief]]:
         mcp_toolsets = service.get_all_mcp_toolsets()
         mcp_toolset_map = {toolset.internal_key: toolset
                            for toolset in mcp_toolsets}
-
-    mcp_toolset_manager = use_mcp_toolset_manager()
 
     result = []
     for toolset in built_in_toolsets:
@@ -53,6 +54,8 @@ def get_toolset(toolset_id: int) -> FlaskResponse[toolset_schemas.ToolsetRead]:
 def create_mcp_toolset(body: toolset_schemas.ToolsetCreate) -> FlaskResponse[toolset_schemas.ToolsetRead]:
     with ToolsetService() as service:
         new_toolset = service.create_toolset(body)
+    task_id = async_task_pool.add_task(mcp_toolset_manager.refresh_toolset_metadata())
+    async_task_pool.wait_result(task_id)
     return toolset_schemas.ToolsetRead.model_validate(new_toolset), 201
 
 @toolset_bp.route("/<int:toolset_id>", methods=["PUT"])
@@ -60,10 +63,14 @@ def create_mcp_toolset(body: toolset_schemas.ToolsetCreate) -> FlaskResponse[too
 def update_toolset(toolset_id: int, body: toolset_schemas.ToolsetUpdate) -> FlaskResponse[toolset_schemas.ToolsetRead]:
     with ToolsetService() as service:
         updated_toolset = service.update_toolset(toolset_id, body)
+    task_id = async_task_pool.add_task(mcp_toolset_manager.refresh_toolset_metadata())
+    async_task_pool.wait_result(task_id)
     return toolset_schemas.ToolsetRead.model_validate(updated_toolset)
 
 @toolset_bp.route("/<int:toolset_id>", methods=["DELETE"])
 def delete_toolset(toolset_id: int) -> FlaskResponse:
     with ToolsetService() as service:
         service.delete_toolset(toolset_id)
+    task_id = async_task_pool.add_task(mcp_toolset_manager.refresh_toolset_metadata())
+    async_task_pool.wait_result(task_id)
     return Response(status=204)

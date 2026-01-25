@@ -52,7 +52,7 @@
     "@tiptap/starter-kit": "^3.14.0",
     "@types/node": "^24.9.1",
     "ahooks": "^3.9.6",
-    "ai": "^5.0.106",
+    "ai": "^6.0.49",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

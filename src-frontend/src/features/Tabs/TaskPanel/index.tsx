@@ -1,16 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, useEffect, useState } from "react";
+import { Activity, useEffect, useRef, useState } from "react";
 import { useImmer } from "use-immer";
 import { createTask, fetchTaskById } from "@/api/task";
+import { activityVisible } from "@/lib/activity-visible";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { UserMessage } from "@/types/message";
 import type { TaskTabMetadata } from "@/types/tab";
 import type { TaskRead } from "@/types/task";
 import type { TabPanelProps } from "../index";
-import { ContinueTask } from "./ContinueTask";
-import { PromptInput, type PromptInputMessage } from "./PromptInput";
-import { TaskConversation } from "./TaskConversation";
+import { ContinueTask } from "./components/ContinueTask";
+import {
+  PromptInput,
+  type PromptInputHandle,
+  type PromptInputMessage,
+} from "./components/PromptInput";
+import { TaskConversation } from "./components/TaskConversation";
 import { type TaskRunner, useTaskRunner } from "./use-task-runner";
 
 export const DEFAULT_TAB_TITLE = "New task";
@@ -23,6 +28,7 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
   const taskRunner = useTaskRunner(setTaskData, (_) => {
     setShowContinueTask(true);
   });
+  const promptInputRef = useRef<PromptInputHandle>(null);
 
   const queryClient = useQueryClient();
   const { data: taskQueryData, isLoading: taskLoading } = useQuery({
@@ -89,10 +95,10 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
         workspace_id: currentWorkspace.id,
         messages: [userMessage],
       });
-      taskRunner.continue(newTask.id, null);
+      taskRunner.continue(newTask.id, agentId, null);
     } else {
       setShowContinueTask(false);
-      taskRunner.continue(metadata.id, userMessage);
+      taskRunner.continue(metadata.id, agentId, userMessage);
     }
   };
 
@@ -101,7 +107,11 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
       return;
     }
     setShowContinueTask(false);
-    taskRunner.continue(metadata.id, null);
+    taskRunner.continue(
+      metadata.id,
+      promptInputRef.current?.agentId ?? 0,
+      null
+    );
   };
 
   const handleCustomToolAction = (
@@ -113,7 +123,12 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
     setShowContinueTask(false);
     taskRunner.handleCustomToolAction(...args);
     const [toolMessageId, _, data] = args;
-    taskRunner.answerTool(metadata.id, toolMessageId, data);
+    taskRunner.answerTool(
+      metadata.id,
+      taskData?.agent_id ?? 0,
+      toolMessageId,
+      data
+    );
   };
 
   return (
@@ -123,10 +138,11 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
         isLoading={taskLoading}
         onCustomToolAction={handleCustomToolAction}
       />
-      <Activity mode={showContinueTask ? "visible" : "hidden"}>
+      <Activity mode={activityVisible(showContinueTask)}>
         <ContinueTask onContinue={handleContinueTask} />
       </Activity>
       <PromptInput
+        ref={promptInputRef}
         taskType={metadata.type}
         taskData={taskData}
         taskState={taskRunner.state}

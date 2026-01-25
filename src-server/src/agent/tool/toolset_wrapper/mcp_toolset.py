@@ -75,6 +75,10 @@ class McpToolset(Toolset):
                                   metadata=ToolMetadata(auto_approve=tool_ent.auto_approve)))
         return result
 
+    def refresh_metadata(self, tools: list[toolset_models.Tool]):
+        self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
+                          for tool in tools}
+
     async def connect(self):
         inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
         await inner_toolset.connect()
@@ -82,10 +86,7 @@ class McpToolset(Toolset):
         latest_tool_list = inner_toolset.get_tools(namespaced_tool_name=False)
         merged_tool_list = await self._merge_tools(latest_tool_list)
 
-        # refresh tool map
-        self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
-                          for tool in merged_tool_list}
-
+        self.refresh_metadata(merged_tool_list)
         self._status = McpToolsetStatus.CONNECTED
 
     async def disconnect(self):

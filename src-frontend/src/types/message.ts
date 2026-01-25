@@ -56,6 +56,8 @@ export type AssistantMessage = {
   images: ChatCompletionImageURL[] | null;
 };
 
+export type UserApprovalStatus = "pending" | "approved" | "denied";
+
 export type ToolMessage = {
   role: "tool";
   id: string;
@@ -63,6 +65,9 @@ export type ToolMessage = {
   arguments: string;
   result: string | null;
   error: string | null;
+  metadata: {
+    user_approval?: UserApprovalStatus;
+  };
 };
 
 export type SystemMessage = {

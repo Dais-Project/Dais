@@ -2,10 +2,13 @@ import platform
 from liteai_sdk import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
-from ..db.models import agent as agent_models,\
-                        provider as provider_models,\
-                        workspace as workspace_models,\
-                        task as task_models
+from ..db.models import (
+    agent as agent_models,
+    provider as provider_models,
+    workspace as workspace_models,
+    task as task_models
+)
+from ..services.provider import ProviderService
 
 class AgentContext:
     def __init__(self, task: task_models.Task):
@@ -16,7 +19,9 @@ class AgentContext:
         self._model = self._agent.model
         if self._model is None:
             raise ValueError(f"Agent {self._agent.id} has no model")
-        self._provider = self._model.provider
+        
+        with ProviderService() as provider_service:
+            self._provider = provider_service.get_provider_by_id(self._model.provider_id)
 
         self._builtin_toolset_manager = BuiltinToolsetManager(self._workspace.directory)
         self._mcp_toolset_manager = use_mcp_toolset_manager()

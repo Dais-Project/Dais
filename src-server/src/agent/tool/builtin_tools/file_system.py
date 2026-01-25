@@ -6,6 +6,8 @@ from ..toolset_wrapper import built_in_tool, BuiltInToolset
 
 class FileSystemToolset(BuiltInToolset):
     def __init__(self, cwd: str):
+        super().__init__()
+
         if cwd == "~":
             cwd = str(Path.home())
         self.cwd = cwd

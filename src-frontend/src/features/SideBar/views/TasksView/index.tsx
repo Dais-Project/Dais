@@ -1,6 +1,6 @@
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Activity, Suspense } from "react";
+import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { FailedToLoad } from "@/components/FailedToLoad";
 import {
@@ -56,7 +56,7 @@ export function TasksView() {
         </SideBarHeaderDropdownAction>
       </SideBarHeader>
       <div className="h-full min-h-0 flex-1">
-        <Activity mode={currentWorkspace ? "visible" : "hidden"}>
+        {currentWorkspace && (
           <QueryErrorResetBoundary>
             {({ reset }) => {
               if (!currentWorkspace) {
@@ -79,8 +79,8 @@ export function TasksView() {
               );
             }}
           </QueryErrorResetBoundary>
-        </Activity>
-        <Activity mode={currentWorkspace ? "hidden" : "visible"}>
+        )}
+        {!currentWorkspace && (
           <Empty>
             <EmptyContent>
               <EmptyTitle>未选择工作区</EmptyTitle>
@@ -89,7 +89,7 @@ export function TasksView() {
               </EmptyDescription>
             </EmptyContent>
           </Empty>
-        </Activity>
+        )}
       </div>
     </div>
   );
