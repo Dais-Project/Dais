@@ -37,7 +37,7 @@ class ToolAnswerBody(TaskStreamBody):
 
 class ToolReviewBody(TaskStreamBody):
     tool_call_id: str
-    status: Literal["approve", "deny"]
+    status: Literal["approved", "denied"]
     auto_approve: bool = False
 
 def retrive_task(task_id: int, agent_id: int) -> AgentTask:
@@ -145,7 +145,7 @@ def tool_reviews(task_id: int, body: ToolReviewBody) -> FlaskResponse:
     task = retrive_task(task_id, body.agent_id)
 
     def temp_stream() -> Generator[str]:
-        tool_event = task.approve_tool_call(body.tool_call_id, body.status == "approve")
+        tool_event = task.approve_tool_call(body.tool_call_id, body.status == "approved")
         if tool_event is not None:
             if (formatted_event := agent_event_format(task, tool_event)) is not None:
                 yield formatted_event

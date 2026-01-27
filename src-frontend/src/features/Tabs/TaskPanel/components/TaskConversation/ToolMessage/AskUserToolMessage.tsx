@@ -4,20 +4,14 @@ import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
+import { useAgentTaskAction } from "../../../use-agent-task";
 
 export type AskUserToolMessageProps = {
   message: ToolMessageType;
-  onCustomToolAction?: (
-    toolMessageId: string,
-    event: string,
-    data: string
-  ) => void;
 };
 
-export function AskUserToolMessage({
-  message,
-  onCustomToolAction,
-}: AskUserToolMessageProps) {
+export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
+  const { answerTool } = useAgentTaskAction();
   const toolArguments = JSON.parse(message.arguments) as Record<
     string,
     unknown
@@ -30,14 +24,14 @@ export function AskUserToolMessage({
   const [answer, setAnswer] = useState(message.result ?? "");
 
   const handleSelectOption = (option: string) => {
-    onCustomToolAction?.(message.id, "select", option);
+    answerTool(message.id, option);
   };
 
   const handleSendAnswer = () => {
     if (hasResult) {
       return;
     }
-    onCustomToolAction?.(message.id, "text", answer);
+    answerTool(message.id, answer);
   };
 
   return (

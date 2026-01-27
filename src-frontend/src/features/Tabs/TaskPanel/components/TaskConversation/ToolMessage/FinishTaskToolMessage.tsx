@@ -4,16 +4,9 @@ import type { ToolMessage as ToolMessageType } from "@/types/message";
 
 export type FinishTaskToolMessageProps = {
   message: ToolMessageType;
-  onCustomToolAction?: (
-    toolMessageId: string,
-    event: string,
-    data: string
-  ) => void;
 };
 
-export function FinishTaskToolMessage({
-  message,
-}: FinishTaskToolMessageProps) {
+export function FinishTaskToolMessage({ message }: FinishTaskToolMessageProps) {
   const toolArguments = JSON.parse(message.arguments) as Record<
     string,
     unknown

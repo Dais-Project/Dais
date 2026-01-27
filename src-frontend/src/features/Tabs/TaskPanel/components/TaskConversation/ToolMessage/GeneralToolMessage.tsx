@@ -9,18 +9,15 @@ import {
 } from "@/components/ai-elements/tool";
 import { activityVisible } from "@/lib/activity-visible";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
+import { useAgentTaskAction } from "../../../use-agent-task";
 import { ToolConfirmation } from "./ToolConfirmation";
 
 export type GeneralToolMessageProps = {
   message: ToolMessageType;
-  onCustomToolAction?: (
-    toolMessageId: string,
-    event: string,
-    data: string
-  ) => void;
 };
 
 export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
+  const { reviewTool } = useAgentTaskAction();
   const toolState: ToolState = (() => {
     if (message.error) {
       return "output-error";
@@ -63,7 +60,11 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
             ].includes(toolState)
           )}
         >
-          <ToolConfirmation state={toolState} />
+          <ToolConfirmation
+            state={toolState}
+            onAccept={() => reviewTool(message.id, "approved", false)}
+            onReject={() => reviewTool(message.id, "denied", false)}
+          />
         </Activity>
       </ToolContent>
     </Tool>

@@ -250,10 +250,10 @@ export function toolAnswer(
   );
 }
 
-type ToolReviewBody = {
+export type ToolReviewBody = {
   agent_id: number;
   tool_call_id: string;
-  status: "approve" | "deny";
+  status: "approved" | "denied";
   auto_approve: boolean;
 };
 

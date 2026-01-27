@@ -12,6 +12,7 @@ from liteai_sdk import (
 )
 from .context import AgentContext
 from .tool import finish_task, ask_user
+from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
     AgentEvent, ToolEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
@@ -24,9 +25,6 @@ from ..services.task import TaskService
 from ..db.models import task as task_models
 from ..db.schemas import task as task_schemas
 from ..utils import use_async_task_pool, TaskNotFoundError as AsyncTaskNotFoundError
-
-USER_IGNORED_TOOL_CALL_RESULT = "[System Message] User ignored this tool call."
-USER_DENIED_TOOL_CALL_RESULT = "[System Message] User denied this tool call."
 
 class ToolCallNotFoundError(Exception):
     tool_call_id: str
@@ -185,6 +183,7 @@ class AgentTask:
             # If the previous tool call is not finished,
             # we consider it as ignored by user.
             last_message.result = USER_IGNORED_TOOL_CALL_RESULT
+            last_message.metadata.clear()
 
         self._messages.append(message)
 

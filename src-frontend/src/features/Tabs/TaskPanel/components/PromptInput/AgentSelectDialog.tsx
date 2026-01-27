@@ -6,7 +6,7 @@ import { useWorkspaceStore } from "@/stores/workspace-store";
 
 type AgentSelectDialogProps = {
   agentId: number | null;
-  onChange: (agentId: number | null) => void;
+  onChange: (agentId: number) => void;
 };
 
 export function AgentSelectDialog({
@@ -35,6 +35,7 @@ export function AgentSelectDialog({
       isSelected={(agent) => agent.id === agentId}
       selections={agents}
       getValue={(agent) => agent.id.toString()}
+      getLabel={(agent) => agent.name}
       onSelect={(agent) => onChange(agent.id)}
       placeholder="Search agent..."
       emptyText="No agent found."

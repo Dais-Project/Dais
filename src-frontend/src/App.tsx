@@ -37,6 +37,8 @@ function Layout() {
         closeSidebar();
       } else if (!(isClosed || isOpen)) {
         openSidebar();
+      }
+      if (!isClosed) {
         recentPanelSizePx.current = panelSize.inPixels;
       }
     },
@@ -48,8 +50,10 @@ function Layout() {
       return;
     }
     try {
-      if (isOpen) {
+      if (isOpen && recentPanelSizePx.current > 0) {
         sideBarPanelRef.current.resize(recentPanelSizePx.current);
+      } else if (isOpen && recentPanelSizePx.current === 0) {
+        sideBarPanelRef.current.expand();
       } else {
         sideBarPanelRef.current.collapse();
       }
