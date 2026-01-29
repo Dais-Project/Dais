@@ -16,7 +16,7 @@ class BuiltinToolsetManager(ToolsetManager):
     def toolsets(self) -> Sequence[Toolset]:
         result = []
         for toolset in [self._file_system_toolset]:
-            toolset_ent = self._toolset_map[toolset.name]
+            toolset_ent = self._toolset_map[toolset.internal_key]
             if not toolset_ent.is_enabled: continue
             result.append(toolset)
         return result

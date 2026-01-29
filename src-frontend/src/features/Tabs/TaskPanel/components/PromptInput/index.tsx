@@ -16,7 +16,7 @@ import {
   type TaskState,
   useAgentTaskAction,
   useAgentTaskState,
-} from "../../use-agent-task";
+} from "../../hooks/use-agent-task";
 import { AgentSelectDialog } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 

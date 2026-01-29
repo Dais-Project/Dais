@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -14,15 +13,18 @@ import {
   continueTask,
   fetchTaskById,
   type MessageChunkEventData,
+  type MessageReplaceEventData,
+  type MessageStartEventData,
   type TaskSseCallbacks,
-  type ToolExecutedEventData,
-  type ToolRequirePermissionEventData,
+  type TaskStartEventData,
+  type ToolCallEndEventData,
   type ToolReviewBody,
   toolAnswer,
   toolReview,
 } from "@/api/task";
 import {
   isToolMessage,
+  type Message,
   type ToolMessage,
   type UserMessage,
 } from "@/types/message";
@@ -39,6 +41,44 @@ export type TaskStream<Body extends { agent_id: number }> = (
   body: Body,
   callbacks: TaskSseCallbacks
 ) => AbortController;
+
+// --- --- --- --- --- ---
+
+function handleTextAccumulated(
+  allText: string,
+  setData: (updater: (draft: TaskRead) => void) => void
+) {
+  setData((draft) => {
+    const lastMessage = draft.messages.at(-1);
+    if (lastMessage?.role === "assistant") {
+      lastMessage.content = allText;
+      return;
+    }
+    draft.messages.push(emptyAssistantMessage());
+  });
+}
+
+function handleToolCallAccumulated(
+  toolCallId: string,
+  toolCall: { name: string; arguments: string },
+  setData: (updater: (draft: TaskRead) => void) => void
+) {
+  setData((draft) => {
+    const toolMessage = draft.messages.find(
+      (m) => isToolMessage(m) && m.tool_call_id === toolCallId
+    ) as ToolMessage | undefined;
+    if (toolMessage === undefined) {
+      draft.messages.push(
+        toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments)
+      );
+      return;
+    }
+    toolMessage.name = toolCall.name;
+    toolMessage.arguments = toolCall.arguments;
+  });
+}
+
+// --- --- --- --- --- ---
 
 export type AgentTaskState = {
   state: TaskState;
@@ -83,7 +123,7 @@ export function AgentTaskProvider({
 
   const [agentId, setAgentId] = useState(data.agent_id);
 
-  const setTaskData = useCallback(
+  const setData = useCallback(
     (updater: (draft: TaskRead) => void) => {
       queryClient.setQueryData<TaskRead>(["task", taskId], (old) =>
         produce(old, (draft) => draft && updater(draft))
@@ -93,55 +133,29 @@ export function AgentTaskProvider({
   );
 
   const textBuffer = useTextBuffer({
-    onAccumulated: useCallback(
-      (allText: string) => {
-        console.log("text accumulated: ");
-        setTaskData((draft) => {
-          const lastMessage = draft.messages.at(-1);
-          if (lastMessage?.role === "assistant") {
-            lastMessage.content = allText;
-            return;
-          }
-          draft.messages.push(emptyAssistantMessage());
-        });
-      },
-      [setTaskData]
-    ),
+    onAccumulated: (allText: string) => handleTextAccumulated(allText, setData),
   });
 
   const toolCallsBuffer = useToolCallBuffer({
-    onAccumulated: useCallback(
-      (toolCallId: string, toolCall: { name: string; arguments: string }) => {
-        console.log("on tool call accumulated: ", toolCallId, toolCall);
-        setTaskData((draft) => {
-          const toolMessage = draft.messages.find(
-            (m) => isToolMessage(m) && m.id === toolCallId
-          ) as ToolMessage | undefined;
-          if (toolMessage === undefined) {
-            draft.messages.push(
-              toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments)
-            );
-            return;
-          }
-          toolMessage.name = toolCall.name;
-          toolMessage.arguments = toolCall.arguments;
-        });
-      },
-      [setTaskData]
-    ),
+    onAccumulated: (toolCallId, toolCall) =>
+      handleToolCallAccumulated(toolCallId, toolCall, setData),
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
-
   const { state, setState, usage, setUsage, startStream, cancel } =
-    useTaskStream(taskId, agentId, sseCallbacksRef.current);
+    useTaskStream({ taskId, agentId, sseCallbacksRef });
 
-  const onMessageStart = useCallback(() => {
-    setState("running");
-    setTaskData((draft) => {
-      draft.messages.push(emptyAssistantMessage());
-    });
-  }, [setState, setTaskData]);
+  const onMessageStart = useCallback(
+    (eventData: MessageStartEventData) => {
+      setState("running");
+      setData((draft) => {
+        const newMessage = emptyAssistantMessage();
+        newMessage.id = eventData.message_id;
+        draft.messages.push(newMessage);
+      });
+    },
+    [setState, setData]
+  );
 
   const onMessageChunk = useCallback(
     (chunk: MessageChunkEventData) => {
@@ -169,36 +183,54 @@ export function AgentTaskProvider({
     toolCallsBuffer.clear();
   }, [textBuffer, toolCallsBuffer]);
 
-  const onToolRequirePermission = useCallback(
-    (toolData: ToolRequirePermissionEventData) => {
-      setTaskData((draft) => {
-        const toolMessage = draft.messages.find(
-          (m) => isToolMessage(m) && m.id === toolData.tool_call_id
-        ) as ToolMessage | undefined;
-        if (toolMessage === undefined) {
-          console.warn(`Tool message not found: ${toolData.tool_call_id}`);
+  const onMessageReplace = useCallback(
+    (eventData: MessageReplaceEventData) => {
+      setData((draft) => {
+        const index = draft.messages.findIndex(
+          (m) => m.id === eventData.message.id
+        );
+        if (index === -1) {
+          console.warn(
+            `Message not found for replacement: ${eventData.message.id}`
+          );
           return;
         }
-        toolMessage.metadata.user_approval = "pending";
+        draft.messages[index] = eventData.message as Message;
       });
     },
-    [setTaskData]
+    [setData]
   );
 
-  const onToolExecuted = useCallback(
-    (toolResult: ToolExecutedEventData) => {
-      setTaskData((draft) => {
-        const toolMessage = draft.messages.find(
-          (m) => isToolMessage(m) && m.id === toolResult.tool_call_id
-        ) as ToolMessage | undefined;
-        if (toolMessage === undefined) {
-          console.warn(`Tool message not found: ${toolResult.tool_call_id}`);
-          return;
+  const onTaskStart = useCallback(
+    (eventData: TaskStartEventData) => {
+      setData((draft) => {
+        const userMessage = draft.messages
+          .reverse()
+          .find((m) => m.id === eventData.message_id);
+        if (userMessage) {
+          userMessage.id = eventData.message_id;
         }
-        toolMessage.result = toolResult.result;
       });
     },
-    [setTaskData]
+    [setData]
+  );
+
+  const onToolCallEnd = useCallback(
+    (eventData: ToolCallEndEventData) => {
+      setData((draft) => {
+        const index = draft.messages.findIndex(
+          (m) =>
+            isToolMessage(m) &&
+            m.tool_call_id === eventData.message.tool_call_id
+        );
+        if (index === -1) {
+          draft.messages.push(eventData.message as ToolMessage);
+          return;
+        }
+        draft.messages[index] = eventData.message as ToolMessage;
+      });
+    },
+    [setData]
   );
 
   const onError = useCallback(
@@ -215,37 +247,28 @@ export function AgentTaskProvider({
     setState("idle");
   }, [setState]);
 
-  useEffect(() => {
-    sseCallbacksRef.current = {
-      onMessageStart,
-      onMessageChunk,
-      onMessageEnd,
-      onToolRequirePermission,
-      onToolExecuted,
-      onError,
-      onClose,
-    };
-  }, [
+  sseCallbacksRef.current = {
+    onTaskStart,
     onMessageStart,
     onMessageChunk,
     onMessageEnd,
-    onToolRequirePermission,
-    onToolExecuted,
+    onMessageReplace,
+    onToolCallEnd,
     onError,
     onClose,
-  ]);
+  };
 
   const continue_ = useCallback(
     (message: UserMessage | null = null) => {
       setState("waiting");
-      setTaskData((draft) => {
+      setData((draft) => {
         if (message) {
           draft.messages.push(message);
         }
       });
       startStream(continueTask, { message });
     },
-    [setState, setTaskData, startStream]
+    [setState, setData, startStream]
   );
 
   const answerTool = useCallback(
@@ -263,23 +286,13 @@ export function AgentTaskProvider({
       autoApprove: boolean
     ) => {
       setState("waiting");
-      setTaskData((draft) => {
-        const toolMessage = draft.messages.find(
-          (m) => isToolMessage(m) && m.id === toolCallId
-        ) as ToolMessage | undefined;
-        if (toolMessage === undefined) {
-          console.warn(`Tool message not found: ${toolCallId}`);
-          return;
-        }
-        toolMessage.metadata.user_approval = status;
-      });
       startStream(toolReview, {
         tool_call_id: toolCallId,
         auto_approve: autoApprove,
         status,
       });
     },
-    [setState, setTaskData, startStream]
+    [setState, startStream]
   );
 
   const stateValue = useMemo(

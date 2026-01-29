@@ -4,7 +4,8 @@ import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
-import { useAgentTaskAction } from "../../../use-agent-task";
+import { useAgentTaskAction } from "../../../hooks/use-agent-task";
+import { useToolArgument } from "../../../hooks/use-tool-argument";
 
 export type AskUserToolMessageProps = {
   message: ToolMessageType;
@@ -12,26 +13,28 @@ export type AskUserToolMessageProps = {
 
 export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
   const { answerTool } = useAgentTaskAction();
-  const toolArguments = JSON.parse(message.arguments) as Record<
-    string,
-    unknown
-  >;
-  const question = toolArguments.question as string;
-  const options = toolArguments.options as string[] | null | undefined;
+  const [disabled, setDisabled] = useState(false);
+  const toolArguments = useToolArgument<{
+    question: string;
+    options?: string[];
+  }>(message.arguments);
+  const { question, options } = toolArguments ?? {};
   const selectedOption = options && (message.result as string);
-  const hasResult = message.result !== null;
 
+  const hasResult = message.result !== null;
   const [answer, setAnswer] = useState(message.result ?? "");
 
   const handleSelectOption = (option: string) => {
-    answerTool(message.id, option);
+    setDisabled(true);
+    answerTool(message.tool_call_id, option);
   };
 
   const handleSendAnswer = () => {
+    setDisabled(true);
     if (hasResult) {
       return;
     }
-    answerTool(message.id, answer);
+    answerTool(message.tool_call_id, answer);
   };
 
   return (
@@ -41,13 +44,13 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
         <MessageCircleQuestionMark className="size-4 text-muted-foreground" />
       }
     >
-      <p className="font-medium text-sm">{question}</p>
+      {question && <p className="font-medium text-sm">{question}</p>}
       {options && (
         <div className="flex flex-col items-start justify-center gap-y-2">
           {options.map((option) => (
             <Button
               key={option}
-              disabled={hasResult}
+              disabled={hasResult || disabled}
               variant={option === selectedOption ? "default" : "outline"}
               onClick={() => handleSelectOption(option)}
             >
@@ -56,16 +59,16 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
           ))}
         </div>
       )}
-      {options ? null : (
+      {!options && (
         <div className="flex items-center gap-2">
           <Input
             type="text"
-            disabled={hasResult}
+            disabled={hasResult || disabled}
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}
           />
-          <Button disabled={hasResult} onClick={handleSendAnswer}>
+          <Button disabled={hasResult || disabled} onClick={handleSendAnswer}>
             <SendIcon />
           </Button>
         </div>

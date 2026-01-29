@@ -1,50 +1,24 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import type { ToolCallChunk, UserMessage } from "@/types/message";
-import type { TaskCreate, TaskRead, TaskUsage } from "@/types/task";
-import { API_BASE, fetchApi, type PaginatedResponse } from "./index";
+import type {
+  Message,
+  ToolCallChunk,
+  ToolMessage,
+  UserMessage,
+} from "@/types/message";
+import type { TaskUsage } from "@/types/task";
+import { API_BASE } from "../index";
 
-export async function fetchTasks(
-  workspaceId: number,
-  page = 1,
-  perPage = 15
-): Promise<PaginatedResponse<TaskRead>> {
-  const params = new URLSearchParams({
-    workspace_id: workspaceId.toString(),
-    page: page.toString(),
-    per_page: perPage.toString(),
-  });
+// ===============================================
+// === === === Agent Event Types Start === === ===
+// ===============================================
 
-  return await fetchApi<PaginatedResponse<TaskRead>>(
-    `${API_BASE}/tasks?${params}`
-  );
-}
+export type TaskStartEventData = {
+  message_id: string;
+};
 
-export async function fetchTaskById(taskId: number): Promise<TaskRead> {
-  return await fetchApi<TaskRead>(`${API_BASE}/tasks/${taskId}`);
-}
-
-export async function createTask(taskData: TaskCreate): Promise<TaskRead> {
-  return await fetchApi<TaskRead>(`${API_BASE}/tasks/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(taskData),
-  });
-}
-
-export async function deleteTask(taskId: number): Promise<void> {
-  await fetch(`${API_BASE}/tasks/${taskId}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-}
-
-// =========================================
-// === === === Agent Event Types === === ===
-// =========================================
+export type MessageStartEventData = {
+  message_id: string;
+};
 
 export type MessageChunkEventData =
   | {
@@ -58,6 +32,14 @@ export type MessageChunkEventData =
       type: "tool_call";
       data: ToolCallChunk;
     };
+
+export type MessageReplaceEventData = {
+  message: Message;
+};
+
+export type ToolCallEndEventData = {
+  message: ToolMessage;
+};
 
 export type ToolExecutedEventData = {
   tool_call_id: string;
@@ -77,9 +59,12 @@ export type ErrorEventData = {
 };
 
 export type AgentEventType =
+  | "TASK_START"
   | "MESSAGE_CHUNK"
   | "MESSAGE_START"
   | "MESSAGE_END"
+  | "MESSAGE_REPLACE"
+  | "TOOL_CALL_END"
   | "TASK_DONE"
   | "TASK_INTERRUPTED"
   | "TOOL_EXECUTED"
@@ -87,20 +72,27 @@ export type AgentEventType =
   | "TOOL_REQUIRE_PERMISSION"
   | "ERROR";
 
+// ===============================================
+// === === === Agent Event Types End === === ===
+// ===============================================
+
 export type TaskSseCallbacks = {
+  // task status callbacks
+  onTaskStart?: (data: TaskStartEventData) => void;
+  onTaskDone?: () => void;
+  onTaskInterrupted?: () => void;
+
   // message related callbacks
-  onMessageStart?: () => void;
+  onMessageStart?: (data: MessageStartEventData) => void;
   onMessageEnd?: () => void;
   onMessageChunk?: (chunk: MessageChunkEventData) => void;
+  onMessageReplace?: (data: MessageReplaceEventData) => void;
+  onToolCallEnd?: (data: ToolCallEndEventData) => void;
 
   // tool related callbacks
   onToolExecuted?: (data: ToolExecutedEventData) => void;
   onToolRequireUserResponse?: (data: ToolRequireUserResponseEventData) => void;
   onToolRequirePermission?: (data: ToolRequirePermissionEventData) => void;
-
-  // task status callbacks
-  onTaskDone?: () => void;
-  onTaskInterrupted?: () => void;
 
   // error and close callbacks
   onError?: (error: Error) => void;
@@ -143,16 +135,28 @@ function createTaskSseStream(
         const data = JSON.parse(event.data);
 
         switch (event.event as AgentEventType) {
+          case "TASK_START":
+            callbacks.onTaskStart?.(data as TaskStartEventData);
+            break;
+
           case "MESSAGE_CHUNK":
             callbacks.onMessageChunk?.(data as MessageChunkEventData);
             break;
 
           case "MESSAGE_START":
-            callbacks.onMessageStart?.();
+            callbacks.onMessageStart?.(data as MessageStartEventData);
             break;
 
           case "MESSAGE_END":
             callbacks.onMessageEnd?.();
+            break;
+
+          case "MESSAGE_REPLACE":
+            callbacks.onMessageReplace?.(data as MessageReplaceEventData);
+            break;
+
+          case "TOOL_CALL_END":
+            callbacks.onToolCallEnd?.(data as ToolCallEndEventData);
             break;
 
           case "TOOL_EXECUTED":

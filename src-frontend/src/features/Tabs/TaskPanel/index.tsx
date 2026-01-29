@@ -6,9 +6,9 @@ import { FailedToLoad } from "@/components/FailedToLoad";
 import type { TaskTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 import { CreateView } from "./CreateView";
+import { AgentTaskProvider } from "./hooks/use-agent-task";
 import { SessionView } from "./SessionView";
 import { SessionViewSkeleton } from "./SessionViewSkeleton";
-import { AgentTaskProvider } from "./use-agent-task";
 
 export const DEFAULT_TAB_TITLE = "New task";
 

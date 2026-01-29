@@ -34,7 +34,7 @@ export function useToolCallBuffer({
   const accumulate = useCallback(
     (chunk: ToolCallChunk) => {
       const existing = toolCallsRef.current.get(chunk.index);
-
+      let currentBuffer: ToolCallBuffer;
       if (existing) {
         existing.arguments += chunk.arguments;
         if (chunk.id) {
@@ -43,14 +43,17 @@ export function useToolCallBuffer({
         if (chunk.name) {
           existing.name = chunk.name;
         }
-        accumulateNotify(existing.id, { ...existing });
+        currentBuffer = { ...existing };
       } else {
-        toolCallsRef.current.set(chunk.index, {
+        const newBuffer = {
           id: chunk.id ?? "",
           name: chunk.name ?? "",
           arguments: chunk.arguments,
-        });
+        };
+        toolCallsRef.current.set(chunk.index, newBuffer);
+        currentBuffer = { ...newBuffer };
       }
+      accumulateNotify(currentBuffer.id, { ...currentBuffer });
     },
     [accumulateNotify]
   );

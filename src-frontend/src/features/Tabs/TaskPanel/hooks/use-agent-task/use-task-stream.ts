@@ -1,6 +1,7 @@
 import { useUnmount } from "ahooks";
 import {
   type Dispatch,
+  type RefObject,
   type SetStateAction,
   useCallback,
   useRef,
@@ -10,6 +11,12 @@ import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
 import type { TaskUsage } from "@/types/task";
 import type { TaskState } from ".";
+
+type TaskStreamProps = {
+  taskId: number;
+  agentId: number | null;
+  sseCallbacksRef: RefObject<TaskSseCallbacks>;
+};
 
 type TaskStreamResult = {
   state: TaskState;
@@ -29,11 +36,11 @@ export type TaskStreamFn<Body extends { agent_id: number }> = (
   callbacks: TaskSseCallbacks
 ) => AbortController;
 
-export function useTaskStream(
-  taskId: number,
-  agentId: number | null,
-  sseCallbacks: TaskSseCallbacks
-): TaskStreamResult {
+export function useTaskStream({
+  taskId,
+  agentId,
+  sseCallbacksRef,
+}: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
   const [usage, setUsage] = useState<TaskUsage>({
     input_tokens: 0,
@@ -63,10 +70,10 @@ export function useTaskStream(
           ...body,
           agent_id: agentId,
         },
-        sseCallbacks
+        sseCallbacksRef.current
       );
     },
-    [sseCallbacks, taskId, agentId]
+    [taskId, agentId, sseCallbacksRef]
   );
 
   const cancel = () => {

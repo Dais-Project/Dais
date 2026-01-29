@@ -10,7 +10,6 @@ from ..utils import use_async_task_pool
 
 toolset_bp = Blueprint("toolset", __name__)
 async_task_pool = use_async_task_pool()
-mcp_toolset_manager = use_mcp_toolset_manager()
 
 class ToolsetBrief(BaseModel):
     id: int
@@ -22,6 +21,8 @@ class ToolsetBrief(BaseModel):
 @toolset_bp.route("/brief", methods=["GET"])
 @validate(response_many=True)
 def get_toolsets_brief() -> FlaskResponse[list[ToolsetBrief]]:
+    mcp_toolset_manager = use_mcp_toolset_manager()
+
     with ToolsetService() as service:
         built_in_toolsets = service.get_all_built_in_toolsets()
         mcp_toolsets = service.get_all_mcp_toolsets()
@@ -52,6 +53,8 @@ def get_toolset(toolset_id: int) -> FlaskResponse[toolset_schemas.ToolsetRead]:
 @toolset_bp.route("/", methods=["POST"])
 @validate()
 def create_mcp_toolset(body: toolset_schemas.ToolsetCreate) -> FlaskResponse[toolset_schemas.ToolsetRead]:
+    mcp_toolset_manager = use_mcp_toolset_manager()
+
     with ToolsetService() as service:
         new_toolset = service.create_toolset(body)
     task_id = async_task_pool.add_task(mcp_toolset_manager.refresh_toolset_metadata())
@@ -61,6 +64,8 @@ def create_mcp_toolset(body: toolset_schemas.ToolsetCreate) -> FlaskResponse[too
 @toolset_bp.route("/<int:toolset_id>", methods=["PUT"])
 @validate()
 def update_toolset(toolset_id: int, body: toolset_schemas.ToolsetUpdate) -> FlaskResponse[toolset_schemas.ToolsetRead]:
+    mcp_toolset_manager = use_mcp_toolset_manager()
+
     with ToolsetService() as service:
         updated_toolset = service.update_toolset(toolset_id, body)
     task_id = async_task_pool.add_task(mcp_toolset_manager.refresh_toolset_metadata())
@@ -69,6 +74,8 @@ def update_toolset(toolset_id: int, body: toolset_schemas.ToolsetUpdate) -> Flas
 
 @toolset_bp.route("/<int:toolset_id>", methods=["DELETE"])
 def delete_toolset(toolset_id: int) -> FlaskResponse:
+    mcp_toolset_manager = use_mcp_toolset_manager()
+
     with ToolsetService() as service:
         service.delete_toolset(toolset_id)
     task_id = async_task_pool.add_task(mcp_toolset_manager.refresh_toolset_metadata())

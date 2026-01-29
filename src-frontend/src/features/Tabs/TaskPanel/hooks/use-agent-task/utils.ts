@@ -7,7 +7,7 @@ export function toolMessageFactory(
 ): ToolMessage {
   return {
     role: "tool",
-    id,
+    tool_call_id: id,
     name,
     arguments: arguments_,
     result: null,

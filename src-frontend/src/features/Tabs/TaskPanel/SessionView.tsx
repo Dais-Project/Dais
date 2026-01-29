@@ -2,7 +2,7 @@ import { useMount } from "ahooks";
 import { ContinueTask } from "./components/ContinueTask";
 import { PromptInput } from "./components/PromptInput";
 import { TaskConversation } from "./components/TaskConversation";
-import { useAgentTaskAction } from "./use-agent-task";
+import { useAgentTaskAction } from "./hooks/use-agent-task";
 
 type SessionViewProps = {
   shouldStartStream: boolean;

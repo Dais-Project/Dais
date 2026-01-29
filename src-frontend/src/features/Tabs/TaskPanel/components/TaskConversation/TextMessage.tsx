@@ -14,7 +14,7 @@ export function TextMessage({ text, from }: TextMessageProps) {
     return null;
   }
   return (
-    <Message from={from}>
+    <Message className="selectable-text" from={from}>
       <MessageContent>
         {from === "assistant" ? (
           <MessageResponse>{text}</MessageResponse>

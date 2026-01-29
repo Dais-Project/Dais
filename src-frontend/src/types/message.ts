@@ -42,12 +42,16 @@ export type ChatCompletionAudioResponse = {
 
 // --- --- --- --- --- ---
 
-export type UserMessage = {
+type BaseMessage = {
+  id: string;
+};
+
+export type UserMessage = BaseMessage & {
   role: "user";
   content: MessageContent;
 };
 
-export type AssistantMessage = {
+export type AssistantMessage = BaseMessage & {
   role: "assistant";
   content: string | null;
   reasoning_content: string | null;
@@ -58,9 +62,9 @@ export type AssistantMessage = {
 
 export type UserApprovalStatus = "pending" | "approved" | "denied";
 
-export type ToolMessage = {
+export type ToolMessage = BaseMessage & {
   role: "tool";
-  id: string;
+  tool_call_id: string;
   name: string;
   arguments: string;
   result: string | null;
@@ -70,7 +74,7 @@ export type ToolMessage = {
   };
 };
 
-export type SystemMessage = {
+export type SystemMessage = BaseMessage & {
   role: "system";
   content: string;
 };

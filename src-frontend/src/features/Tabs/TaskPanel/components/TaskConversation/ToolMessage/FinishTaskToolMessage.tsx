@@ -1,27 +1,30 @@
 import { CheckCircleIcon } from "lucide-react";
 import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
+import { useToolArgument } from "../../../hooks/use-tool-argument";
 
 export type FinishTaskToolMessageProps = {
   message: ToolMessageType;
 };
 
 export function FinishTaskToolMessage({ message }: FinishTaskToolMessageProps) {
-  const toolArguments = JSON.parse(message.arguments) as Record<
-    string,
-    unknown
-  >;
-  const taskSummary = toolArguments.task_summary as string;
+  const toolArguments = useToolArgument<{ task_summary: string }>(
+    message.arguments
+  );
 
   return (
     <CustomTool
       title="任务完成"
       icon={<CheckCircleIcon className="size-4 text-green-600" />}
     >
-      <div className="space-y-2">
-        <p className="text-muted-foreground text-sm">任务总结：</p>
-        <p className="whitespace-pre-wrap text-sm">{taskSummary}</p>
-      </div>
+      {toolArguments?.task_summary && (
+        <div className="space-y-2">
+          <p className="text-muted-foreground text-sm">任务总结：</p>
+          <p className="whitespace-pre-wrap text-sm">
+            {toolArguments.task_summary}
+          </p>
+        </div>
+      )}
     </CustomTool>
   );
 }

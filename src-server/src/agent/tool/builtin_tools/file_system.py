@@ -16,6 +16,9 @@ class FileSystemToolset(BuiltInToolset):
         # this set should stores file absolute path
         self._read_file_set = set()
 
+    @property
+    def name(self) -> str: return "FileSystem"
+
     def _is_markitdown_convertable_binary(self, path: str) -> bool:
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 

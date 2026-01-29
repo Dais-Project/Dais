@@ -1,4 +1,4 @@
-import { Activity, useMemo } from "react";
+import { Activity } from "react";
 import {
   Tool,
   ToolContent,
@@ -9,7 +9,8 @@ import {
 } from "@/components/ai-elements/tool";
 import { activityVisible } from "@/lib/activity-visible";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
-import { useAgentTaskAction } from "../../../use-agent-task";
+import { useAgentTaskAction } from "../../../hooks/use-agent-task";
+import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { ToolConfirmation } from "./ToolConfirmation";
 
 export type GeneralToolMessageProps = {
@@ -18,6 +19,7 @@ export type GeneralToolMessageProps = {
 
 export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
+  const toolArguments = useToolArgument(message.arguments);
   const toolState: ToolState = (() => {
     if (message.error) {
       return "output-error";
@@ -36,15 +38,11 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
     }
     return "input-streaming";
   })();
-  const inputObj = useMemo(
-    () => JSON.parse(message.arguments),
-    [message.arguments]
-  );
   return (
     <Tool defaultOpen={toolState === "approval-requested"}>
       <ToolHeader type={`tool-${message.name}`} state={toolState} />
       <ToolContent>
-        <ToolInput input={inputObj} />
+        <ToolInput input={toolArguments ?? message.arguments} />
         <Activity mode={activityVisible(message.result ?? message.error)}>
           <ToolOutput
             output={message.result}
@@ -62,8 +60,8 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
         >
           <ToolConfirmation
             state={toolState}
-            onAccept={() => reviewTool(message.id, "approved", false)}
-            onReject={() => reviewTool(message.id, "denied", false)}
+            onAccept={() => reviewTool(message.tool_call_id, "approved", false)}
+            onReject={() => reviewTool(message.tool_call_id, "denied", false)}
           />
         </Activity>
       </ToolContent>

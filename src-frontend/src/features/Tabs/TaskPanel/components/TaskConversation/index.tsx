@@ -3,7 +3,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { useAgentTaskState } from "../../use-agent-task";
+import { useAgentTaskState } from "../../hooks/use-agent-task";
 import { TextMessage } from "./TextMessage";
 import { ToolMessage } from "./ToolMessage";
 

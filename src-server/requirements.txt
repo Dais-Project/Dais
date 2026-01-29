@@ -3,7 +3,7 @@ flask==3.1.2
 flask-cors==6.0.2
 Flask-Pydantic==0.14.0
 loguru==0.7.3
-liteai-sdk>=0.3.0
+liteai-sdk>=0.6.0
 markitdown[docx,pdf,pptx]==0.1.4
 platformdirs==4.5.1
 pydantic==2.12.5

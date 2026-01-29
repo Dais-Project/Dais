@@ -1,6 +1,20 @@
 from dataclasses import dataclass
-from typing import Literal
-from liteai_sdk import MessageChunk
+from enum import Enum
+from typing import Literal, TypeGuard, TypedDict
+from liteai_sdk import MessageChunk, ToolMessage
+from ..db.models.task import TaskMessage
+
+@dataclass(frozen=True)
+class TaskStartEvent:
+    """Task start event"""
+    message_id: str # This ID is for the UserMessage that starts the task
+    event_id: Literal["TASK_START"] = "TASK_START"
+
+@dataclass(frozen=True)
+class MessageStartEvent:
+    """Message start event"""
+    message_id: str
+    event_id: Literal["MESSAGE_START"] = "MESSAGE_START"
 
 @dataclass(frozen=True)
 class MessageChunkEvent:
@@ -9,14 +23,21 @@ class MessageChunkEvent:
     event_id: Literal["MESSAGE_CHUNK"] = "MESSAGE_CHUNK"
 
 @dataclass(frozen=True)
-class MessageStartEvent:
-    """Message start event"""
-    event_id: Literal["MESSAGE_START"] = "MESSAGE_START"
-
-@dataclass(frozen=True)
 class MessageEndEvent:
     """Message end event"""
     event_id: Literal["MESSAGE_END"] = "MESSAGE_END"
+
+@dataclass(frozen=True)
+class MessageReplaceEvent:
+    """Message replace event - carries complete message object for frontend replacement"""
+    message: TaskMessage
+    event_id: Literal["MESSAGE_REPLACE"] = "MESSAGE_REPLACE"
+
+@dataclass(frozen=True)
+class ToolCallEndEvent:
+    """Tool call end event - notifies frontend that tool call has ended"""
+    message: ToolMessage
+    event_id: Literal["TOOL_CALL_END"] = "TOOL_CALL_END"
 
 @dataclass(frozen=True)
 class TaskDoneEvent:
@@ -60,11 +81,28 @@ ToolEvent = (
 )
 
 AgentEvent = (
+    TaskStartEvent |
     MessageChunkEvent |
     MessageStartEvent |
     MessageEndEvent |
+    MessageReplaceEvent |
+    ToolCallEndEvent |
     TaskDoneEvent |
     TaskInterruptedEvent |
     ToolEvent |
     ErrorEvent
 )
+
+# --- --- --- --- --- ---
+
+class UserApprovalStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    DENIED = "denied"
+
+class ToolMessageMetadata(TypedDict, total=False):
+    user_approval: UserApprovalStatus
+
+@staticmethod
+def is_agent_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
+    return True

@@ -2,7 +2,7 @@ import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useAgentTaskAction, useAgentTaskState } from "../use-agent-task";
+import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
 
 export function ContinueTask() {
   const { state, data } = useAgentTaskState();
@@ -10,22 +10,32 @@ export function ContinueTask() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (state === "error") {
-      setShow(true);
-      return;
-    }
     if (state !== "idle") {
       setShow(false);
       return;
     }
     const lastMessage = data.messages.at(-1);
-    if (lastMessage) {
-      const isAssistantMessage = lastMessage.role === "assistant";
-      const isFinishTaskTool =
-        lastMessage.role === "tool" && lastMessage.name === "finish_task";
-      if (!(isAssistantMessage || isFinishTaskTool)) {
+    if (!lastMessage) {
+      setShow(false);
+      return;
+    }
+    switch (lastMessage?.role) {
+      case "user":
+      case "assistant":
         setShow(true);
-      }
+        break;
+      case "tool":
+        if (lastMessage.name === "finish_task") {
+          setShow(false);
+          return;
+        }
+        if (lastMessage.result !== null || lastMessage.error !== null) {
+          setShow(true);
+          return;
+        }
+        break;
+      default:
+        break;
     }
   }, [state, data]);
 

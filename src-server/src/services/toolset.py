@@ -145,7 +145,7 @@ class ToolsetService(ServiceBase):
         toolset = self._db_session.execute(stmt).scalar_one_or_none()
         if not toolset:
             raise ToolsetNotFoundError(id)
-        
+
         if data.tools is not None:
             for tool_data in data.tools:
                 self.update_tool(id, tool_data.id, tool_data)
