@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from liteai_sdk import LlmProviders
+from dais_sdk import LlmProviders
 from . import Base
 from .utils import DataClassJSON
 

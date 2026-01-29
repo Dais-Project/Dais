@@ -1,5 +1,5 @@
 import platform
-from liteai_sdk import Toolset
+from dais_sdk import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
 from ..db.models import (

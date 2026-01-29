@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 import time
 from typing import Annotated, TYPE_CHECKING
-from liteai_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
+from dais_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
 from pydantic import Discriminator, TypeAdapter
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from pydantic import BaseModel
 from flask_pydantic import validate
-from liteai_sdk import LLM, LlmProviders
+from dais_sdk import LLM, LlmProviders
 from .types import FlaskResponse
 
 llm_api_bp = Blueprint("llm_api", __name__)

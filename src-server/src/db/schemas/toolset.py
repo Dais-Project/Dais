@@ -1,5 +1,5 @@
 from __future__ import annotations
-from liteai_sdk import LocalServerParams, RemoteServerParams
+from dais_sdk import LocalServerParams, RemoteServerParams
 from ..models.toolset import ToolsetType
 from . import DTOBase
 

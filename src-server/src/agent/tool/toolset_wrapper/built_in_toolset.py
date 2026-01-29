@@ -1,5 +1,5 @@
 from dataclasses import replace
-from liteai_sdk import PythonToolset, python_tool, ToolDef
+from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ....services import ToolsetService
 

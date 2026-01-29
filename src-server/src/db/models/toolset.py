@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from pydantic import TypeAdapter
-from liteai_sdk import LocalServerParams, RemoteServerParams, McpTool
+from dais_sdk import LocalServerParams, RemoteServerParams, McpTool
 from . import Base
 from .utils import PydanticJSON
 

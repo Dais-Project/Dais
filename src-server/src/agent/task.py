@@ -6,7 +6,7 @@ import uuid
 from collections.abc import Generator
 from typing import Literal, cast
 from loguru import logger
-from liteai_sdk import (
+from dais_sdk import (
     execute_tool_sync,
     LLM, AssistantMessage, LlmRequestParams,
     SystemMessage, ToolMessage, UserMessage, ToolDef

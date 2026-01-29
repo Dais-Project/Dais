@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, TypeGuard, TypedDict
-from liteai_sdk import MessageChunk, ToolMessage
+from dais_sdk import MessageChunk, ToolMessage
 from ..db.models.task import TaskMessage
 
 @dataclass(frozen=True)

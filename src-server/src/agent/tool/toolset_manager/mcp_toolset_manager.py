@@ -2,7 +2,7 @@ import asyncio
 import threading
 from typing import Sequence
 from loguru import logger
-from liteai_sdk import Toolset
+from dais_sdk import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
 from ....services import ToolsetService

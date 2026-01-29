@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import replace
 from enum import Enum
 from typing import cast
-from liteai_sdk import (
+from dais_sdk import (
     Toolset, ToolDef,
     McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset,
     LocalServerParams, RemoteServerParams,

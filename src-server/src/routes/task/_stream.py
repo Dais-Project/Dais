@@ -3,7 +3,7 @@ from dataclasses import asdict
 from typing import Literal
 from loguru import logger
 from flask import Response, stream_with_context
-from liteai_sdk import TextChunk, UsageChunk, ToolCallChunk, UserMessage
+from dais_sdk import TextChunk, UsageChunk, ToolCallChunk, UserMessage
 from pydantic import BaseModel
 from flask_pydantic import validate
 from .blueprint import tasks_bp

@@ -2,7 +2,7 @@ from typing import NamedTuple
 from werkzeug.exceptions import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from liteai_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
+from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .ServiceBase import ServiceBase
 from ..db.models import toolset as toolset_models
 from ..db.schemas import toolset as toolset_schemas

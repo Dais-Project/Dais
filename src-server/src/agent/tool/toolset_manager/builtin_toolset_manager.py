@@ -1,5 +1,5 @@
 from typing import Sequence
-from liteai_sdk import Toolset
+from dais_sdk import Toolset
 from .types import ToolsetManager
 from ..builtin_tools import FileSystemToolset
 from ....services import ToolsetService
