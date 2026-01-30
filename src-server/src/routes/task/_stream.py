@@ -1,13 +1,12 @@
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 from dataclasses import asdict
 from typing import Literal
 from loguru import logger
-from flask import Response, stream_with_context
+from fastapi import Request
+from sse_starlette import EventSourceResponse, ServerSentEvent, JSONServerSentEvent
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk, UserMessage
 from pydantic import BaseModel
-from flask_pydantic import validate
-from .blueprint import tasks_bp
-from ..types import FlaskResponse
+from .router import tasks_router
 from ...agent import AgentTask
 from ...agent.types import (
     AgentEvent,
@@ -19,17 +18,9 @@ from ...agent.types import (
     ToolRequirePermissionEvent, ErrorEvent
 )
 from ...services.task import TaskService
-from ...utils.sse import format_sse
 
 _logger = logger.bind(name="TaskStreamRoute")
-
-def create_stream_response(stream: Generator[str | None, None, None]) -> FlaskResponse:
-    def nonone_stream() -> Generator[str, None, None]:
-        for item in stream:
-            if item is not None: yield item
-    return Response(stream_with_context(nonone_stream()),
-                    mimetype="text/event-stream",
-                    headers={"Cache-Control": "no-cache"})
+AgentGenerator = AsyncGenerator[ServerSentEvent | None, None]
 
 class TaskStreamBody(BaseModel):
     # to ensure that the agent_id for the target task is not None
@@ -53,105 +44,116 @@ def retrive_task(task_id: int, agent_id: int) -> AgentTask:
         task.agent_id = agent_id
     return AgentTask(task)
 
-def agent_event_format(task: AgentTask, event: AgentEvent) -> str | None:
+def create_stream_response(stream: AgentGenerator) -> EventSourceResponse:
+    gen = (item async for item in stream if item is not None)
+    return EventSourceResponse(gen, headers={"Cache-Control": "no-cache"})
+
+def agent_event_format(task: AgentTask, event: AgentEvent) -> JSONServerSentEvent | None:
     match event:
         case TaskStartEvent(message_id=message_id):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "message_id": message_id,
             })
         case MessageStartEvent(message_id=message_id):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "message_id": message_id,
             })
         case MessageChunkEvent(chunk):
             match chunk:
                 case TextChunk(content):
-                    return format_sse(event=event.event_id, data={
+                    return JSONServerSentEvent(event=event.event_id, data={
                         "type": "text",
                         "content": content,
                     })
                 case UsageChunk() as chunk:
-                    return format_sse(event=event.event_id, data={
+                    return JSONServerSentEvent(event=event.event_id, data={
                         "type": "usage",
                         "max_tokens": task._ctx.model.context_size,
                         **asdict(chunk),
                     })
                 case ToolCallChunk() as chunk:
-                    return format_sse(event=event.event_id, data={
+                    return JSONServerSentEvent(event=event.event_id, data={
                         "type": "tool_call",
                         "data": asdict(chunk),
                     })
         case MessageEndEvent():
-            return format_sse(event=event.event_id, data=None)
+            return JSONServerSentEvent(event=event.event_id, data=None)
         case MessageReplaceEvent(message=message):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "message": message.model_dump(),
             })
         case ToolCallEndEvent(message=message):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "message": message.model_dump(),
             })
         case ToolExecutedEvent(tool_call_id=tool_call_id, result=result):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "tool_call_id": tool_call_id,
                 "result": result,
             })
         case ToolRequireUserResponseEvent(tool_name=tool_name):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "tool_name": tool_name,
             })
         case ToolRequirePermissionEvent(tool_call_id=tool_call_id):
-            return format_sse(event=event.event_id, data={
+            return JSONServerSentEvent(event=event.event_id, data={
                 "tool_call_id": tool_call_id,
             })
         case TaskDoneEvent():
-            return format_sse(event=event.event_id, data=None)
+            return JSONServerSentEvent(event=event.event_id, data=None)
         case TaskInterruptedEvent():
-            return format_sse(event=event.event_id, data=None)
+            return JSONServerSentEvent(event=event.event_id, data=None)
         case ErrorEvent(error=error):
-            return format_sse(event=event.event_id, data={"message": str(error)})
+            return JSONServerSentEvent(event=event.event_id, data={"message": str(error)})
         case _:
             _logger.warning(f"Unknown event: {event}")
             return None
 
-def agent_stream(task: AgentTask) -> Generator[str | None]:
+async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
     """
     Process agent event stream and convert to SSE format
     """
     try:
-        for event in task.run():
+        async for event in task.run():
+            if await request.is_disconnected():
+                task.stop()
+                break
+
             yield agent_event_format(task, event)
             if isinstance(event, ErrorEvent):
                 _logger.error(f"Task failed: {event.error}")
                 _logger.debug("Task openai messages: {}",
                              [m.to_litellm_message() for m in task._messages])
                 break
-    except GeneratorExit:
-        # When client disconnects
-        task.stop()
+    except Exception as e:
+        _logger.exception("Error in agent stream")
+        yield JSONServerSentEvent(event="error", data={"message": str(e)})
     finally:
         task.persist()
 
-@tasks_bp.route("/<int:task_id>/continue", methods=["POST"])
-@validate()
-def continue_task(task_id: int, body: ContinueTaskBody) -> FlaskResponse:
+# --- --- --- --- --- ---
+
+@tasks_router.post("/{task_id}/continue")
+async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) -> EventSourceResponse:
     """
     This endpoint is used to directly continue the existing task,
     or continue with a new UserMessage
     """
     task = retrive_task(task_id, body.agent_id)
 
-    def temp_stream() -> Generator[str | None]:
+    async def temp_stream() -> AgentGenerator:
         if body.message is not None:
             task.append_message(body.message)
-            yield agent_event_format(task, TaskStartEvent(message_id=body.message.id))
-        yield from agent_stream(task)
+            formatted = agent_event_format(task, TaskStartEvent(message_id=body.message.id))
+            if formatted:
+                yield formatted
+        async for event in agent_stream(task, request):
+            yield event
 
     return create_stream_response(temp_stream())
 
-@tasks_bp.route("/<int:task_id>/tool_answer", methods=["POST"])
-@validate()
-def tool_answer(task_id: int, body: ToolAnswerBody) -> FlaskResponse:
+@tasks_router.post("/{task_id}/tool_answer")
+async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> EventSourceResponse:
     """
     This endpoint is used for the HumanInTheLoop tool calls.
     The frontend should send the tool call id and the answer to this endpoint.
@@ -159,21 +161,21 @@ def tool_answer(task_id: int, body: ToolAnswerBody) -> FlaskResponse:
     task = retrive_task(task_id, body.agent_id)
     changed_message = task.set_tool_call_result(body.tool_call_id, body.answer)
 
-    def temp_stream() -> Generator[str | None]:
+    async def temp_stream() -> AgentGenerator:
         yield agent_event_format(task, MessageReplaceEvent(changed_message))
-        yield from agent_stream(task)
+        async for event in agent_stream(task, request):
+            yield event
 
     return create_stream_response(temp_stream())
 
-@tasks_bp.route("/<int:task_id>/tool_reviews", methods=["POST"])
-@validate()
-def tool_reviews(task_id: int, body: ToolReviewBody) -> FlaskResponse:
+@tasks_router.post("/{task_id}/tool_reviews")
+async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> EventSourceResponse:
     """
     This endpoint is used to submit the tool call permissions.
     """
     task = retrive_task(task_id, body.agent_id)
 
-    def temp_stream() -> Generator[str | None]:
+    async def temp_stream() -> AgentGenerator:
         tool_event, replace_event = task.approve_tool_call(
             body.tool_call_id, body.status == "approved")
 
@@ -183,5 +185,7 @@ def tool_reviews(task_id: int, body: ToolReviewBody) -> FlaskResponse:
         if tool_event is not None:
             yield agent_event_format(task, tool_event)
 
-        yield from agent_stream(task)
+        async for event in agent_stream(task, request):
+            yield event
+
     return create_stream_response(temp_stream())

@@ -21,8 +21,8 @@ tags: ["desktop", "LLM", "agent"]
 
 ### Python Sidecar
 
-后端框架：flask
-数据库：sqlite
+后端框架：FastAPI
+数据库：SQLite
 ORM：SQLAlchemy + Alembic
 数据校验：Pydantic
 
@@ -31,7 +31,7 @@ ORM：SQLAlchemy + Alembic
 ### 数据持久化
 
 仅前端使用的数据直接使用 zustand 的 persist 存储在 localStorage 中。
-对于前后端共享数据，如工作区设置、Agent 配置、用户会话数据等，通过后端存储在 sqlite 数据库中。
+对于前后端共享数据，如工作区设置、Agent 配置、用户会话数据等，通过后端存储在 SQLite 数据库中。
 
 ## 开发指南
 
@@ -80,8 +80,24 @@ ORM：SQLAlchemy + Alembic
 
 #### 后端
 
-- **参数校验**:
-  - 应该一律使用 `flask-pydantic` 提供的 `@validate` 装饰器来做请求的 body 和 query 的校验以及返回的 schema 的校验，如非必要禁止手动编写请求 body 和 query 的提取以及将返回的 schema 手动转换为 json
+- **路由函数返回值**: 应一律在在路由装饰器中定义 response_model，并在 returns 时直接返回 Pydantic Model。
+- **状态码**: 在需要使用 HTTP 状态码时不应直接写魔法数字，应该使用 FastAPI.status 中的状态码常量（比如 `status.HTTP_204_NO_CONTENT`）。
+- **错误处理**: 在 Service 层应该直接自定义错误类型，不应继承框架提供的错误类型，在创建 app 时使用统一的 exception_handler 来将 service 层错误类型转换为框架层的错误类型并返回给前端。
+- **Service 注入**: 在路由中如果需要调用 service，需要使用 FastAPI 的 Depends 装饰器配合 `Annotated` 注入 service，示例代码：
+```python
+agents_router = APIRouter()
+
+def get_agent_service():
+    with AgentService() as service:
+        yield service
+
+AgentServiceDep = Annotated[AgentService, Depends(get_agent_service)]
+
+@agents_router.get("/{agent_id}", response_model=AgentRead)
+def get_agent(agent_id: int, service: AgentServiceDep):
+    agent = service.get_agent_by_id(agent_id)
+    return AgentRead.model_validate(agent)
+```
 
 #### 前端
 

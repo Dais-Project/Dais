@@ -1,4 +1,3 @@
-from werkzeug.exceptions import HTTPException
 from abc import ABC
 from ..db import SessionLocal
 

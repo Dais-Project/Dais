@@ -1,12 +1,11 @@
 from typing import NamedTuple
-from werkzeug.exceptions import HTTPException
+from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .ServiceBase import ServiceBase
 from ..db.models import toolset as toolset_models
 from ..db.schemas import toolset as toolset_schemas
-from ..utils import use_async_task_pool
 
 class ToolsetNotFoundError(HTTPException):
     code = 404
@@ -96,7 +95,7 @@ class ToolsetService(ServiceBase):
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
+    async def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
         match data.type:
             case toolset_models.ToolsetType.BUILT_IN:
                 raise CannotCreateBuiltinToolsetError()
@@ -112,15 +111,12 @@ class ToolsetService(ServiceBase):
         except ToolsetNotFoundError: pass
         else: raise ToolsetNameAlreadyExistsError(data.name)
 
-        async def list_tools():
-            await client.connect()
+        await client.connect()
+        try:
             tools = await client.list_tools()
+        finally:
             await client.disconnect()
-            return tools
 
-        async_task_pool = use_async_task_pool()
-        task_id = async_task_pool.add_task(list_tools())
-        tools = async_task_pool.wait_result(task_id)
         new_toolset = toolset_models.Toolset(
             **data.model_dump(),
             internal_key=data.name,

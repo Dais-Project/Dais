@@ -1,9 +1,7 @@
 import asyncio
-import queue
-import threading
 import time
 import uuid
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 from typing import Literal, cast
 from loguru import logger
 from dais_sdk import (
@@ -28,14 +26,13 @@ from .types import (
 from ..services.task import TaskService
 from ..db.models import task as task_models
 from ..db.schemas import task as task_schemas
-from ..utils import use_async_task_pool, TaskNotFoundError as AsyncTaskNotFoundError
 
-LlmChunkQueue = queue.Queue[MessageChunkEvent
-                          | MessageStartEvent
-                          | MessageEndEvent
-                          | ToolCallEndEvent
-                          | TaskInterruptedEvent
-                          | ErrorEvent]
+LlmChunkQueue = asyncio.Queue[MessageChunkEvent
+                            | MessageStartEvent
+                            | MessageEndEvent
+                            | ToolCallEndEvent
+                            | TaskInterruptedEvent
+                            | ErrorEvent]
 
 def tool_execute_wrapper(tool_def: ToolDef, arguments: str) -> tuple[str | None, str | None]:
     """
@@ -58,7 +55,7 @@ class AgentTask:
     _logger = logger.bind(name="AgentTask")
 
     def __init__(self, task: task_models.Task):
-        self._lock = threading.Lock()
+        self._lock = asyncio.Lock()
         assert task.agent_id is not None
         ctx = self._ctx = AgentContext(task)
         self.llm = LLM(
@@ -68,7 +65,7 @@ class AgentTask:
         self.task_id = task.id
         self.model_id = ctx.model.name
         self._is_running = True
-        self._current_task_id = None
+        self._current_task = None
         self._messages = task.messages
         self._request_params = self._request_param_factory()
 
@@ -91,9 +88,9 @@ class AgentTask:
         assistant_message: AssistantMessage | None = None
         try:
             stream, message_queue = await self.llm.stream_text(self._request_params)
-            chunk_queue.put_nowait(MessageStartEvent(message_id=assistant_message_id))
+            await chunk_queue.put(MessageStartEvent(message_id=assistant_message_id))
             async for chunk in stream:
-                chunk_queue.put_nowait(MessageChunkEvent(chunk))
+                await chunk_queue.put(MessageChunkEvent(chunk))
 
             # Since we did not set `execute_tools` flag,
             # there will be only one assistant message in the queue
@@ -101,18 +98,18 @@ class AgentTask:
             assert type(first_message) == AssistantMessage
             assistant_message = first_message
             assistant_message.id = assistant_message_id
-            chunk_queue.put_nowait(MessageEndEvent())
+            await chunk_queue.put(MessageEndEvent())
         except asyncio.CancelledError:
-            chunk_queue.put_nowait(TaskInterruptedEvent())
+            await chunk_queue.put(TaskInterruptedEvent())
             raise
         except Exception as e:
             self._logger.exception(f"Failed to create llm call.")
-            chunk_queue.put_nowait(ErrorEvent(error=e))
+            await chunk_queue.put(ErrorEvent(error=e))
 
         if assistant_message is None:
             return None
 
-        with self._lock:
+        async with self._lock:
             self._messages.append(assistant_message)
 
         if not assistant_message.tool_calls or len(assistant_message.tool_calls) == 0:
@@ -126,39 +123,32 @@ class AgentTask:
 
         tool_call_message = partial_tool_messages[0]
 
-        with self._lock:
+        async with self._lock:
             self._messages.append(tool_call_message)
         return tool_call_message
 
-    def _consume_chunk_queue(self, chunk_queue: LlmChunkQueue) -> Generator[AgentEvent]:
+    async def _consume_chunk_queue(self, chunk_queue: LlmChunkQueue) -> AsyncGenerator[AgentEvent, None]:
         while self._is_running:
             try:
-                chunk = chunk_queue.get(timeout=0.3)
-            except queue.Empty:
+                # Use wait_for to avoid blocking forever if something goes wrong
+                chunk = await asyncio.wait_for(chunk_queue.get(), timeout=0.3)
+            except asyncio.TimeoutError:
                 continue
 
             yield chunk
             if isinstance(chunk, (MessageEndEvent, TaskInterruptedEvent, ErrorEvent)):
                 break
 
-    def _handle_tool_call(self, tool_call_message: ToolMessage) -> Generator[AgentEvent, None, bool]:
+    async def _handle_tool_call(self, tool_call_message: ToolMessage) -> AsyncGenerator[AgentEvent, None]:
         """
         Handle tool call and yield events
-
-        Returns:
-            bool: True if the task should be interrupted, False otherwise
         """
         if not (tool_event := self._process_tool_call_to_event(tool_call_message)):
-            return False
+            return
 
         yield tool_event
         if isinstance(tool_event, ToolRequirePermissionEvent):
             yield MessageReplaceEvent(message=tool_call_message)
-
-        if isinstance(tool_event, (ToolRequirePermissionEvent, ToolRequireUserResponseEvent)):
-            return True
-
-        return False
 
     def _process_tool_call_to_event(self, message: ToolMessage) -> ToolEvent | None:
         """Process tool call and convert to event"""
@@ -279,36 +269,40 @@ class AgentTask:
         replace_event = MessageReplaceEvent(message=target_message)
         return tool_event, replace_event
 
-    def run(self) -> Generator[AgentEvent]:
+    async def run(self) -> AsyncGenerator[AgentEvent, None]:
         """
         Run agent task and generate event stream
 
         Yields:
             AgentEvent: Various events during task execution
         """
-        async_task_pool = use_async_task_pool()
-
         try:
             while self._is_running:
-                chunk_queue = LlmChunkQueue()
-                self._current_task_id = async_task_pool.add_task(
+                chunk_queue = asyncio.Queue()
+                self._current_task = asyncio.create_task(
                                         self._create_llm_call(chunk_queue))
 
-                yield from self._consume_chunk_queue(chunk_queue)
+                async for chunk in self._consume_chunk_queue(chunk_queue):
+                    yield chunk
 
                 try:
-                    tool_call_message = async_task_pool.wait_result(self._current_task_id)
-                except AsyncTaskNotFoundError:
+                    tool_call_message = await self._current_task
+                except asyncio.CancelledError:
                     # Task cancelled by user
                     break
 
                 if tool_call_message is None:
-                    # Exception occurred during LLM call
+                    # Exception occurred during LLM call or no tool call
                     break
 
                 yield ToolCallEndEvent(message=tool_call_message)
 
-                should_interrupt = yield from self._handle_tool_call(tool_call_message)
+                should_interrupt = False
+                async for event in self._handle_tool_call(tool_call_message):
+                    yield event
+                    if isinstance(event, (ToolRequirePermissionEvent, ToolRequireUserResponseEvent)):
+                        should_interrupt = True
+                
                 if should_interrupt: break
         finally:
             # ensure TaskDoneEvent is yielded
@@ -322,8 +316,6 @@ class AgentTask:
             ))
 
     def stop(self):
-        with self._lock:
-            self._is_running = False
-            if self._current_task_id:
-                async_task_pool = use_async_task_pool()
-                async_task_pool.cancel(self._current_task_id)
+        self._is_running = False
+        if self._current_task:
+            self._current_task.cancel()
