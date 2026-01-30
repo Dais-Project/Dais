@@ -1,16 +1,15 @@
-from werkzeug.exceptions import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
+from .exceptions import NotFoundError
 from ..db.models import workspace as workspace_models
 from ..db.models import agent as agent_models
 from ..db.schemas import workspace as workspace_schemas
 
-class WorkspaceNotFoundError(HTTPException):
-    code = 404
-    def __init__(self, id: int):
-        description = f"Workspace {id} not found"
-        super().__init__(description=description)
+class WorkspaceNotFoundError(NotFoundError):
+    """Raised when a workspace is not found."""
+    def __init__(self, workspace_id: int) -> None:
+        super().__init__("Workspace", workspace_id)
 
 class WorkspaceService(ServiceBase):
     def get_workspaces(self, page: int = 1, per_page: int = 10) -> dict:

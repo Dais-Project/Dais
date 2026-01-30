@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import enum
+# import enum
 import time
+from enum import Enum
 from typing import Annotated, TYPE_CHECKING
 from dais_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
 from pydantic import Discriminator, TypeAdapter
@@ -22,7 +23,7 @@ TaskMessage = Annotated[
 message_adapter = TypeAdapter(TaskMessage)
 messages_adapter = TypeAdapter(list[TaskMessage])
 
-class TaskType(str, enum.Enum):
+class TaskType(str, Enum):
     Agent = "agent"
     Orchestration = "orchestration"
     CodeExecution = "code_execution"

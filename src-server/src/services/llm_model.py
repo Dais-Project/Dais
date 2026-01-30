@@ -1,13 +1,12 @@
-from werkzeug.exceptions import HTTPException
 from sqlalchemy.orm import joinedload
 from .ServiceBase import ServiceBase
+from .exceptions import NotFoundError
 from ..db.models import provider as provider_models
 
-class ModelNotFoundError(HTTPException):
-    code = 404
-    def __init__(self, id: int):
-        description = f"Model {id} not found"
-        super().__init__(description=description)
+class ModelNotFoundError(NotFoundError):
+    """Raised when a model is not found."""
+    def __init__(self, model_id: int) -> None:
+        super().__init__("Model", model_id)
 
 class LlmModelService(ServiceBase):
     def get_model_by_id(self, model_id: int) -> provider_models.LlmModel:

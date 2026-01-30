@@ -1,15 +1,15 @@
-from werkzeug.exceptions import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
+from .exceptions import NotFoundError
 from ..db.models import task as task_models
 from ..db.schemas import task as task_schemas
 
-class TaskNotFoundError(HTTPException):
-    code = 404
-    def __init__(self, id: int):
-        description = f"Task {id} not found"
-        super().__init__(description=description)
+class TaskNotFoundError(NotFoundError):
+    """Raised when a task is not found."""
+
+    def __init__(self, task_id: int) -> None:
+        super().__init__("Task", task_id)
 
 class TaskService(ServiceBase):
     def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
