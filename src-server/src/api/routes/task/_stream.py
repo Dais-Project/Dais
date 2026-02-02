@@ -7,8 +7,8 @@ from sse_starlette import EventSourceResponse, ServerSentEvent, JSONServerSentEv
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk, UserMessage
 from pydantic import BaseModel
 from .router import tasks_router
-from ...agent import AgentTask
-from ...agent.types import (
+from ....agent import AgentTask
+from ....agent.types import (
     AgentEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
     MessageReplaceEvent,
@@ -17,7 +17,7 @@ from ...agent.types import (
     ToolExecutedEvent, ToolRequireUserResponseEvent,
     ToolRequirePermissionEvent, ErrorEvent
 )
-from ...services.task import TaskService
+from ....services.task import TaskService
 
 _logger = logger.bind(name="TaskStreamRoute")
 AgentGenerator = AsyncGenerator[ServerSentEvent | None, None]
@@ -176,8 +176,8 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> 
     task = retrive_task(task_id, body.agent_id)
 
     async def temp_stream() -> AgentGenerator:
-        tool_event, replace_event = task.approve_tool_call(
-            body.tool_call_id, body.status == "approved")
+        tool_event, replace_event = await task.approve_tool_call(
+                                          body.tool_call_id, body.status == "approved")
 
         if replace_event is not None:
             yield agent_event_format(task, replace_event)

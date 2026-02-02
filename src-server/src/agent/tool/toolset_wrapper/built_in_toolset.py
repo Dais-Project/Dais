@@ -31,8 +31,8 @@ class BuiltInToolset(PythonToolset):
             normalized_name = (self.format_tool_name(tool.name)
                                if namespaced_tool_name
                                else tool.name)
-            tool_def = replace(tool,
-                               name=normalized_name,
-                               metadata=ToolMetadata(auto_approve=tool_ent.auto_approve))
-            result.append(tool_def)
+            tool_with_metadata = replace(tool,
+                                         name=normalized_name,
+                                         metadata=ToolMetadata(auto_approve=tool_ent.auto_approve))
+            result.append(tool_with_metadata)
         return result

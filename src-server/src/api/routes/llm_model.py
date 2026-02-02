@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
-from ..services.llm_model import LlmModelService
-from ..db.schemas import provider as provider_schemas
+from ...services.llm_model import LlmModelService
+from ...db.schemas import provider as provider_schemas
 
 llm_models_router = APIRouter()
 

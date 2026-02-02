@@ -1,10 +1,10 @@
 from typing import Annotated
-from fastapi import Depends, Query, Response, status
+from fastapi import Depends, Query, status
 from pydantic import BaseModel
-from ..types import PaginatedResponse
-from ...services.task import TaskService
-from ...db.schemas import task as task_schemas
 from .router import tasks_router
+from ..types import PaginatedResponse
+from ....services.task import TaskService
+from ....db.schemas import task as task_schemas
 
 class TasksQueryModel(BaseModel):
     workspace_id: int

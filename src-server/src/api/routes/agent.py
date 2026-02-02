@@ -2,8 +2,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
 from .types import PaginatedResponse
-from ..services.agent import AgentService
-from ..db.schemas import agent as agent_schemas
+from ...services.agent import AgentService
+from ...db.schemas import agent as agent_schemas
 
 agents_router = APIRouter()
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, TypeGuard, TypedDict
-from dais_sdk import MessageChunk, ToolMessage
+from dais_sdk import MessageChunk, ToolMessage, AssistantMessage
 from ..db.models.task import TaskMessage
 
 @dataclass(frozen=True)
@@ -25,6 +25,7 @@ class MessageChunkEvent:
 @dataclass(frozen=True)
 class MessageEndEvent:
     """Message end event"""
+    message: AssistantMessage
     event_id: Literal["MESSAGE_END"] = "MESSAGE_END"
 
 @dataclass(frozen=True)
@@ -57,6 +58,12 @@ class ToolExecutedEvent:
     event_id: Literal["TOOL_EXECUTED"] = "TOOL_EXECUTED"
 
 @dataclass(frozen=True)
+class ToolDeniedEvent:
+    """Tool execution result event"""
+    tool_call_id: str
+    event_id: Literal["TOOL_DENIED"] = "TOOL_DENIED"
+
+@dataclass(frozen=True)
 class ToolRequireUserResponseEvent:
     """Event for tools that require user response"""
     tool_name: Literal["ask_user", "finish_task"]
@@ -76,6 +83,7 @@ class ErrorEvent:
 
 ToolEvent = (
     ToolExecutedEvent |
+    ToolDeniedEvent |
     ToolRequireUserResponseEvent |
     ToolRequirePermissionEvent
 )

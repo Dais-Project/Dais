@@ -1,9 +1,9 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
 from .types import PaginatedResponse
-from ..services.workspace import WorkspaceService
-from ..db.schemas import workspace as workspace_schemas
+from ...services.workspace import WorkspaceService
+from ...db.schemas import workspace as workspace_schemas
 
 workspaces_router = APIRouter()
 

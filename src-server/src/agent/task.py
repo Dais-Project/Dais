@@ -5,16 +5,22 @@ from collections.abc import AsyncGenerator
 from typing import Literal, cast
 from loguru import logger
 from dais_sdk import (
-    execute_tool_sync,
+    ToolLike,
     LLM, AssistantMessage, LlmRequestParams,
-    SystemMessage, ToolMessage, UserMessage, ToolDef
+    SystemMessage, ToolMessage, UserMessage, ToolDef,
+    ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError
 )
 from .context import AgentContext
+from .exception_handlers import (
+    handle_tool_does_not_exist_error,
+    handle_tool_argument_decode_error,
+    handle_tool_execution_error
+)
 from .tool import finish_task, ask_user
 from .tool.types import is_tool_metadata
 from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
-    AgentEvent, ToolEvent,
+    AgentEvent, ToolDeniedEvent, ToolEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
     MessageReplaceEvent, ToolCallEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
@@ -27,27 +33,6 @@ from ..services.task import TaskService
 from ..db.models import task as task_models
 from ..db.schemas import task as task_schemas
 
-LlmChunkQueue = asyncio.Queue[MessageChunkEvent
-                            | MessageStartEvent
-                            | MessageEndEvent
-                            | ToolCallEndEvent
-                            | TaskInterruptedEvent
-                            | ErrorEvent]
-
-def tool_execute_wrapper(tool_def: ToolDef, arguments: str) -> tuple[str | None, str | None]:
-    """
-    Returns:
-        A tuple of (result, error)
-    """
-    result, error = None, None
-    try:
-        result = execute_tool_sync(tool_def, arguments)
-    except Exception as e:
-        error = f"{type(e).__name__}: {str(e)}"
-    return result, error
-
-# --- --- --- --- --- ---
-
 class ToolCallNotFoundError(Exception):
     tool_call_id: str
 
@@ -58,16 +43,22 @@ class AgentTask:
         self._lock = asyncio.Lock()
         assert task.agent_id is not None
         ctx = self._ctx = AgentContext(task)
-        self.llm = LLM(
-            provider=ctx.provider.type,
-            base_url=ctx.provider.base_url,
-            api_key=ctx.provider.api_key)
+        self.llm = self._llm_factory()
         self.task_id = task.id
         self.model_id = ctx.model.name
         self._is_running = True
-        self._current_task = None
+        self._current_task: asyncio.Task | None = None
         self._messages = task.messages
-        self._request_params = self._request_param_factory()
+
+    def _llm_factory(self) -> LLM:
+        llm = LLM(provider=self._ctx.provider.type,
+                  base_url=self._ctx.provider.base_url,
+                  api_key=self._ctx.provider.api_key)
+        tool_exception_handler_manager = llm.tool_exception_handler_manager
+        tool_exception_handler_manager.set_handler(ToolDoesNotExistError, handle_tool_does_not_exist_error)
+        tool_exception_handler_manager.set_handler(ToolArgumentDecodeError, handle_tool_argument_decode_error)
+        tool_exception_handler_manager.set_handler(ToolExecutionError, handle_tool_execution_error)
+        return llm
 
     def _request_param_factory(self) -> LlmRequestParams:
         return LlmRequestParams(
@@ -80,17 +71,25 @@ class AgentTask:
             toolsets=self._ctx.toolsets,
             tool_choice="required")
 
-    async def _create_llm_call(self, chunk_queue: LlmChunkQueue) -> ToolMessage | None:
+    async def _create_llm_call(self,
+                               request_params: LlmRequestParams
+                               ) -> AsyncGenerator[MessageChunkEvent
+                                                 | MessageStartEvent
+                                                 | MessageEndEvent
+                                                 | ToolCallEndEvent
+                                                 | TaskInterruptedEvent
+                                                 | ErrorEvent, None]:
         """
         Create LLM API call, put message chunks into chunk_queue and return the first tool call message
         """
         assistant_message_id = str(uuid.uuid4())
         assistant_message: AssistantMessage | None = None
         try:
-            stream, message_queue = await self.llm.stream_text(self._request_params)
-            await chunk_queue.put(MessageStartEvent(message_id=assistant_message_id))
+            self._current_task = asyncio.create_task(self.llm.stream_text(request_params))
+            stream, message_queue = await self._current_task
+            yield MessageStartEvent(message_id=assistant_message_id)
             async for chunk in stream:
-                await chunk_queue.put(MessageChunkEvent(chunk))
+                yield MessageChunkEvent(chunk)
 
             # Since we did not set `execute_tools` flag,
             # there will be only one assistant message in the queue
@@ -98,105 +97,52 @@ class AgentTask:
             assert type(first_message) == AssistantMessage
             assistant_message = first_message
             assistant_message.id = assistant_message_id
-            await chunk_queue.put(MessageEndEvent())
+            yield MessageEndEvent(message=assistant_message)
         except asyncio.CancelledError:
-            await chunk_queue.put(TaskInterruptedEvent())
+            yield TaskInterruptedEvent()
             raise
         except Exception as e:
             self._logger.exception(f"Failed to create llm call.")
-            await chunk_queue.put(ErrorEvent(error=e))
+            yield ErrorEvent(error=e)
+        finally:
+            self._current_task = None
 
-        if assistant_message is None:
-            return None
-
-        async with self._lock:
-            self._messages.append(assistant_message)
-
-        if not assistant_message.tool_calls or len(assistant_message.tool_calls) == 0:
-            return None
-
-        # Only keep the first tool call
-        assistant_message.tool_calls = assistant_message.tool_calls[:1]
-        partial_tool_messages = assistant_message.get_incomplete_tool_messages()
-        if partial_tool_messages is None or len(partial_tool_messages) == 0:
-            return None
-
-        tool_call_message = partial_tool_messages[0]
-
-        async with self._lock:
-            self._messages.append(tool_call_message)
-        return tool_call_message
-
-    async def _consume_chunk_queue(self, chunk_queue: LlmChunkQueue) -> AsyncGenerator[AgentEvent, None]:
-        while self._is_running:
-            try:
-                # Use wait_for to avoid blocking forever if something goes wrong
-                chunk = await asyncio.wait_for(chunk_queue.get(), timeout=0.3)
-            except asyncio.TimeoutError:
-                continue
-
-            yield chunk
-            if isinstance(chunk, (MessageEndEvent, TaskInterruptedEvent, ErrorEvent)):
-                break
-
-    async def _handle_tool_call(self, tool_call_message: ToolMessage) -> AsyncGenerator[AgentEvent, None]:
-        """
-        Handle tool call and yield events
-        """
-        if not (tool_event := self._process_tool_call_to_event(tool_call_message)):
-            return
-
-        yield tool_event
-        if isinstance(tool_event, ToolRequirePermissionEvent):
-            yield MessageReplaceEvent(message=tool_call_message)
-
-    def _process_tool_call_to_event(self, message: ToolMessage) -> ToolEvent | None:
+    async def _process_tool_call_to_event(self, tool: ToolLike, message: ToolMessage) -> ToolEvent:
         """Process tool call and convert to event"""
-        tool_def = self._request_params.find_tool(message.name)
-        metadata = message.metadata
-
-        if tool_def is None:
-            self._logger.warning(f"Tool call '{message.tool_call_id}' has no tool definition")
-            return None
-
-        if tool_def in [ask_user, finish_task]:
+        if tool in [ask_user, finish_task]:
             return ToolRequireUserResponseEvent(
                 tool_name=cast(Literal["ask_user", "finish_task"], message.name))
 
         # Since the toolsets only contain ToolDefs,
         # the tools are all under toolsets except for `ask_user` and `finish_task`,
         # so we can safely assert the type of tool_def to ToolDef here.
-        assert isinstance(tool_def, ToolDef)
+        assert isinstance(tool, ToolDef)
 
         # use TypeGuards to assert the type of metadata
-        assert is_tool_metadata(tool_def.metadata)
-        assert is_agent_metadata(metadata)
+        assert is_tool_metadata(tool.metadata)
+        assert is_agent_metadata(message.metadata)
 
-        if "user_approval" not in metadata:
-            metadata["user_approval"] = UserApprovalStatus.PENDING
+        if "user_approval" not in message.metadata:
+            message.metadata["user_approval"] = UserApprovalStatus.PENDING
 
-        if tool_def.metadata["auto_approve"] == False:
-            match metadata["user_approval"]:
+        if tool.metadata["auto_approve"] == False:
+            match message.metadata["user_approval"]:
                 case UserApprovalStatus.PENDING:
                     return ToolRequirePermissionEvent(tool_call_id=message.tool_call_id)
                 case UserApprovalStatus.DENIED:
                     message.result = USER_DENIED_TOOL_CALL_RESULT
-                    return None
+                    return ToolDeniedEvent(tool_call_id=message.tool_call_id)
                 case UserApprovalStatus.APPROVED:
                     # continue to execute
                     pass
 
-        result, error = tool_execute_wrapper(tool_def, message.arguments)
+        result, error = await self.llm.execute_tool_call(tool, message.arguments)
         message.result = result
         message.error = error
 
         return ToolExecutedEvent(
             tool_call_id=message.tool_call_id,
             result=result if error is None else None)
-
-    @property
-    def is_running(self) -> bool:
-        return self._is_running
 
     def append_message(self, message: UserMessage):
         try:
@@ -229,7 +175,7 @@ class AgentTask:
                 return message
         raise ToolCallNotFoundError(tool_call_id)
 
-    def approve_tool_call(
+    async def approve_tool_call(
         self, tool_call_id: str, approved: bool
     ) -> tuple[ToolEvent | None, MessageReplaceEvent | None]:
         """
@@ -265,7 +211,13 @@ class AgentTask:
                                      if approved
                                      else UserApprovalStatus.DENIED)
 
-        tool_event = self._process_tool_call_to_event(target_message)
+        request_params = self._request_param_factory()
+        tool = request_params.find_tool(target_message.name)
+        if tool is None:
+            self._logger.error(f"Tool called '{target_message.name}' is not defined.")
+            return None, None
+
+        tool_event = await self._process_tool_call_to_event(tool, target_message)
         replace_event = MessageReplaceEvent(message=target_message)
         return tool_event, replace_event
 
@@ -278,32 +230,42 @@ class AgentTask:
         """
         try:
             while self._is_running:
-                chunk_queue = asyncio.Queue()
-                self._current_task = asyncio.create_task(
-                                        self._create_llm_call(chunk_queue))
-
-                async for chunk in self._consume_chunk_queue(chunk_queue):
-                    yield chunk
-
+                last_chunk = None
+                request_params = self._request_param_factory()
                 try:
-                    tool_call_message = await self._current_task
+                    async for chunk in self._create_llm_call(request_params):
+                        yield chunk
+                        last_chunk = chunk
                 except asyncio.CancelledError:
                     # Task cancelled by user
                     break
 
-                if tool_call_message is None:
-                    # Exception occurred during LLM call or no tool call
+                assert last_chunk is not None
+                # normally, the final chunk should be one of MessageEndEvent, ErrorEvent, TaskInterruptedEvent
+                if not isinstance(last_chunk, (MessageEndEvent)):
                     break
 
+                assistant_message = last_chunk.message
+                tool_call_messages = assistant_message.get_incomplete_tool_messages()
+                if (assistant_message.tool_calls is None or
+                    tool_call_messages is None or len(tool_call_messages) == 0):
+                    # no tool call
+                    break
+
+                tool_call_message = tool_call_messages[0] # Only keep the first tool call
+                assistant_message.tool_calls = assistant_message.tool_calls[:1]
                 yield ToolCallEndEvent(message=tool_call_message)
 
-                should_interrupt = False
-                async for event in self._handle_tool_call(tool_call_message):
-                    yield event
-                    if isinstance(event, (ToolRequirePermissionEvent, ToolRequireUserResponseEvent)):
-                        should_interrupt = True
-                
-                if should_interrupt: break
+                tool = request_params.find_tool(tool_call_message.name)
+                if tool is None:
+                    yield ErrorEvent(error=Exception(f"Called not exist tool: {tool_call_message.name}"))
+                    break
+
+                event = await self._process_tool_call_to_event(tool, tool_call_message)
+                yield event
+                yield MessageReplaceEvent(message=tool_call_message)
+                if isinstance(event, (ToolRequirePermissionEvent, ToolRequireUserResponseEvent)):
+                    break
         finally:
             # ensure TaskDoneEvent is yielded
             yield TaskDoneEvent()
