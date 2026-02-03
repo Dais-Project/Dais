@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-# import enum
 import time
 from enum import Enum
 from typing import Annotated, TYPE_CHECKING
@@ -40,11 +37,9 @@ class Task(Base):
     _workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
     @hybrid_property
     def workspace_id(self) -> int: return self._workspace_id
-    _agent: Mapped["Agent | None"] = relationship("Agent",
-                                                 back_populates="tasks",
-                                                 passive_deletes=True)
+    _agent: Mapped[Agent | None] = relationship(back_populates="tasks",
+                                                passive_deletes=True)
     @hybrid_property
     def agent(self) -> Agent | None: return self._agent
-    workspace: Mapped["Workspace"] = relationship("Workspace",
-                                                  back_populates="tasks",
-                                                  viewonly=True)
+    workspace: Mapped[Workspace] = relationship(back_populates="tasks",
+                                                viewonly=True)

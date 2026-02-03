@@ -1,4 +1,5 @@
 from dataclasses import replace
+from typing import override
 from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ....services import ToolsetService
@@ -22,6 +23,7 @@ class BuiltInToolset(PythonToolset):
     def internal_key(self) -> str:
         return self.__class__.__name__
 
+    @override
     def get_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
         result = []
         for tool in self._tools_cache:

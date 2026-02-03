@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
@@ -20,19 +19,16 @@ class Agent(Base):
     system_prompt: Mapped[str]
     model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
 
-    _model: Mapped["LlmModel | None"] = relationship("LlmModel",
-                                                    back_populates="agents",
-                                                    passive_deletes=True,
-                                                    lazy="joined")
+    _model: Mapped[LlmModel | None] = relationship(back_populates="agents",
+                                                   passive_deletes=True,
+                                                   lazy="joined")
     @hybrid_property
     def model(self) -> LlmModel | None: return self._model
-    workspaces: Mapped[list["Workspace"]] = relationship("Workspace",
-                                                        secondary=workspace_agent_association_table,
-                                                        back_populates="usable_agents",
-                                                        viewonly=True)
-    tasks: Mapped[list["Task"]] = relationship("Task",
-                                               back_populates="_agent",
-                                               viewonly=True)
+    workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_agent_association_table,
+                                                       back_populates="usable_agents",
+                                                       viewonly=True)
+    tasks: Mapped[list[Task]] = relationship(back_populates="_agent",
+                                             viewonly=True)
 
 def init(session: Session):
     orchestration_agent = Agent(
