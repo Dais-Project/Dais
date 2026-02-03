@@ -3,20 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": {
-    "dev:frontend": "pnpm --filter src-frontend run dev",
-    "build:frontend": "pnpm --filter src-frontend run build",
-    "dev:server": "pnpm --filter src-server run dev",
-    "build:server": "pnpm --filter src-server run build && python scripts/rename_python_sidecar.py",
-    "generate:server": "pnpm --filter src-server run alembic-generate",
-    "dev:all": "run-p dev:frontend dev:server",
-    "dev": "tauri dev -- -- --dev",
-    "tauri": "tauri"
-  },
   "devDependencies": {
     "@biomejs/biome": "2.3.4",
     "@tauri-apps/cli": "^2",
-    "npm-run-all": "^4.1.5",
     "ultracite": "6.3.0"
   }
 }

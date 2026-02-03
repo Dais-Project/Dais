@@ -1,15 +1,14 @@
-from werkzeug.exceptions import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
+from .exceptions import NotFoundError
 from ..db.models import provider as provider_models
 from ..db.schemas import provider as provider_schemas
 
-class ProviderNotFoundError(HTTPException):
-    code = 404
-    def __init__(self, id: int):
-        description = f"Provider {id} not found"
-        super().__init__(description=description)
+class ProviderNotFoundError(NotFoundError):
+    """Raised when a provider is not found."""
+    def __init__(self, provider_id: int) -> None:
+        super().__init__("Provider", provider_id)
 
 class ProviderService(ServiceBase):
     def get_providers(self) -> list[provider_models.Provider]:

@@ -1,35 +1,32 @@
 from typing import NamedTuple
-from werkzeug.exceptions import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .ServiceBase import ServiceBase
+from .exceptions import NotFoundError, ConflictError, BadRequestError
 from ..db.models import toolset as toolset_models
 from ..db.schemas import toolset as toolset_schemas
-from ..utils import use_async_task_pool
 
-class ToolsetNotFoundError(HTTPException):
-    code = 404
+
+class ToolsetNotFoundError(NotFoundError):
+    """Raised when a toolset is not found."""
     def __init__(self, toolset_identifier: int | str) -> None:
-        description = f"Toolset {toolset_identifier} not found"
-        super().__init__(description=description)
+        super().__init__("Toolset", toolset_identifier)
 
-class ToolsetNameAlreadyExistsError(HTTPException):
-    code = 400
+class ToolsetInternalKeyAlreadyExistsError(ConflictError):
+    """Raised when attempting to create a toolset with a name that already exists."""
     def __init__(self, name: str) -> None:
-        description = f"Toolset {name} already exists"
-        super().__init__(description=description)
+        super().__init__(f"Toolset '{name}' already exists")
 
-class ToolNotFoundError(HTTPException):
-    code = 404
+class ToolNotFoundError(NotFoundError):
+    """Raised when a tool is not found."""
     def __init__(self, tool_id: int) -> None:
-        description = f"Tool {tool_id} not found"
-        super().__init__(description=description)
+        super().__init__("Tool", tool_id)
 
-class CannotCreateBuiltinToolsetError(HTTPException):
-    code = 400
-    description = "Cannot create builtin toolset"
-
+class CannotCreateBuiltinToolsetError(BadRequestError):
+    """Raised when attempting to create a builtin toolset."""
+    def __init__(self) -> None:
+        super().__init__("Cannot create builtin toolset")
 class ToolsetService(ServiceBase):
     class ToolLike(NamedTuple):
         name: str
@@ -96,7 +93,7 @@ class ToolsetService(ServiceBase):
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
+    async def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
         match data.type:
             case toolset_models.ToolsetType.BUILT_IN:
                 raise CannotCreateBuiltinToolsetError()
@@ -110,17 +107,14 @@ class ToolsetService(ServiceBase):
         try:
             self.get_toolset_by_internal_key(data.name)
         except ToolsetNotFoundError: pass
-        else: raise ToolsetNameAlreadyExistsError(data.name)
+        else: raise ToolsetInternalKeyAlreadyExistsError(data.name)
 
-        async def list_tools():
-            await client.connect()
+        await client.connect()
+        try:
             tools = await client.list_tools()
+        finally:
             await client.disconnect()
-            return tools
 
-        async_task_pool = use_async_task_pool()
-        task_id = async_task_pool.add_task(list_tools())
-        tools = async_task_pool.wait_result(task_id)
         new_toolset = toolset_models.Toolset(
             **data.model_dump(),
             internal_key=data.name,

@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+includes:
+  server:
+    taskfile: src-server/taskfile.yaml
+    dir: src-server
+  frontend:
+    taskfile: src-frontend/taskfile.yaml
+    dir: src-frontend
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - task --list-all
+
+  install-dev:
+    cmds:
+      - pnpm install
+      - task: frontend:install
+      - task: server:install-dev
+
+  dev:
+    cmds:
+      - tauri dev -- -- --dev
