@@ -25,7 +25,11 @@ tasks:
   dev:
     deps: [install-dev]
     cmds:
-      - uv run watchmedo auto-restart --patterns='*.py;*.html;*.css' --recursive -- uv run python entry.py
+      - >
+        uv run watchmedo auto-restart
+        --patterns="*.py;*.html;*.css"
+        --recursive
+        -- uv run python entry.py
 
   generate-migration:
     deps: [install-dev]
@@ -36,5 +40,5 @@ tasks:
   build:
     deps: [install-dev]
     cmds:
-      - uv run pyinstaller --name server entry.py
+      - uv run pyinstaller --noconfirm --name server entry.py
       - uv run python scripts/rename_python_sidecar.py --name=server --output-dir=../src-tauri/

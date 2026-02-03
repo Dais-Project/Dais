@@ -20,8 +20,3 @@ Start the dev servers
 ```
 task dev
 ```
-
-Build the executable
-```
-task build
-```

@@ -25,15 +25,3 @@ tasks:
   dev:
     cmds:
       - tauri dev -- -- --dev
-
-  # this command will automatically called by tauri's beforeDevCommand
-  dev-all:
-    deps:
-      - task: frontend:dev
-      - task: server:dev
-    parallel: true
-
-  build-all:
-    cmds:
-      - task: frontend:build
-      - task: server:build
