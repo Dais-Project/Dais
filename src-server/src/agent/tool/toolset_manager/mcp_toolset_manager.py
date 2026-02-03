@@ -1,6 +1,6 @@
 import asyncio
 import threading
-from typing import Sequence
+from typing import Sequence, override
 from loguru import logger
 from dais_sdk import Toolset
 from .types import ToolsetManager
@@ -22,6 +22,7 @@ class McpToolsetManager(ToolsetManager):
             self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
     @property
+    @override
     def toolsets(self) -> Sequence[Toolset]:
         return list(self._toolset_map.values())
 

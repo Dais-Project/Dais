@@ -5,20 +5,31 @@ from . import IS_DEV
 from .api import app
 from .db import migrate_db
 
-def prevent_port_occupancy(port):
+def prevent_port_occupancy(port: int):
     import os
     import signal
     import time
     import psutil
+
+    def try_kill(proc: psutil.Process):
+        try:
+            proc.terminate()
+            _, alive = psutil.wait_procs([proc], timeout=3)
+            if alive: proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+        except Exception as e:
+            logger.error(f"Error while killing process: {e}")
+
     for proc in psutil.process_iter(["pid", "name"]):
         try:
             for conn in proc.net_connections(kind="inet"):
                 if conn.laddr.port == port:
                     logger.info(f"Port {port} is occupied by process {proc.info["pid"]}, killing...")
-                    os.kill(proc.info["pid"], signal.SIGTERM)
-                    time.sleep(1)
+                    try_kill(proc)
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
+    time.sleep(1)
 
 def main():
     parser = argparse.ArgumentParser()

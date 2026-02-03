@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import dataclasses
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
@@ -28,12 +26,10 @@ class LlmModel(Base):
     _provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"))
     @hybrid_property
     def provider_id(self) -> int: return self._provider_id
-    provider: Mapped["Provider"] = relationship("Provider",
-                                                back_populates="models",
-                                                viewonly=True)
-    agents: Mapped[list["Agent"]] = relationship("Agent",
-                                                 back_populates="_model",
-                                                 viewonly=True)
+    provider: Mapped[Provider] = relationship(back_populates="models",
+                                              viewonly=True)
+    agents: Mapped[list[Agent]] = relationship(back_populates="_model",
+                                               viewonly=True)
 
 class Provider(Base):
     __tablename__ = "providers"
@@ -42,8 +38,7 @@ class Provider(Base):
     type: Mapped[LlmProviders]
     base_url: Mapped[str]
     api_key: Mapped[str]
-    models: Mapped[list[LlmModel]] = relationship("LlmModel",
-                                                  back_populates="provider",
+    models: Mapped[list[LlmModel]] = relationship(back_populates="provider",
                                                   cascade="all, delete-orphan")
 
 def init(session: Session):

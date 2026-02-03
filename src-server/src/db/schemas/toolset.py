@@ -1,7 +1,6 @@
-from __future__ import annotations
 from dais_sdk import LocalServerParams, RemoteServerParams
-from ..models.toolset import ToolsetType
 from . import DTOBase
+from ..models.toolset import ToolsetType
 
 class ToolBase(DTOBase):
     name: str

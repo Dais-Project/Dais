@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import replace
 from enum import Enum
-from typing import cast
+from typing import cast, override
 from dais_sdk import (
     Toolset, ToolDef,
     McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset,
@@ -36,6 +36,7 @@ class McpToolset(Toolset):
                           for tool in toolset_ent.tools}
 
     @property
+    @override
     def name(self) -> str:
         return self._inner_toolset.name
 
@@ -64,6 +65,7 @@ class McpToolset(Toolset):
         merged_toolset_ent = await asyncio.to_thread(sync_in_thread)
         return merged_toolset_ent.tools
 
+    @override
     def get_tools(self) -> list[ToolDef]:
         original_tools = self._inner_toolset.get_tools()
         result = []

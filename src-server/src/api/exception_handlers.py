@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Callable, Coroutine, TypeVar, TypedDict
+from typing import Any, Callable, Coroutine, TypedDict
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
@@ -16,8 +16,7 @@ class ErrorResponseContent(TypedDict):
     error_code: str
     message: str
 
-E = TypeVar("E", bound=Exception)
-def _specific_exception_handler(expected_exception: type[E]):
+def _specific_exception_handler[E: Exception](expected_exception: type[E]):
     """
     Since the app.add_exception_handler() requires the passed in handler function
     to have the signature of (request: Request, exc: Exception), but we want to
