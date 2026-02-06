@@ -8,7 +8,7 @@ dependencies = [
     "uvicorn==0.40.0",
     "sse-starlette==3.2.0",
     "loguru==0.7.3",
-    "dais-sdk>=0.6.0",
+    "dais-sdk==0.6.6",
     "markitdown[docx,pdf,pptx]==0.1.4",
     "platformdirs==4.5.1",
     "pydantic==2.12.5",

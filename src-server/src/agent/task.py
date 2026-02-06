@@ -222,12 +222,6 @@ class AgentTask:
         return tool_event, replace_event
 
     async def run(self) -> AsyncGenerator[AgentEvent, None]:
-        """
-        Run agent task and generate event stream
-
-        Yields:
-            AgentEvent: Various events during task execution
-        """
         try:
             while self._is_running:
                 last_chunk = None
@@ -246,6 +240,7 @@ class AgentTask:
                     break
 
                 assistant_message = last_chunk.message
+                self._messages.append(assistant_message)
                 tool_call_messages = assistant_message.get_incomplete_tool_messages()
                 if (assistant_message.tool_calls is None or
                     tool_call_messages is None or len(tool_call_messages) == 0):
@@ -253,6 +248,7 @@ class AgentTask:
                     break
 
                 tool_call_message = tool_call_messages[0] # Only keep the first tool call
+                self._messages.append(tool_call_message)
                 assistant_message.tool_calls = assistant_message.tool_calls[:1]
                 yield ToolCallEndEvent(message=tool_call_message)
 

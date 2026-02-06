@@ -43,10 +43,11 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
       icon={
         <MessageCircleQuestionMark className="size-4 text-muted-foreground" />
       }
+      defaultOpen
     >
-      {question && <p className="font-medium text-sm">{question}</p>}
+      {question && <p className="px-4 pb-2 font-medium text-sm">{question}</p>}
       {options && (
-        <div className="flex flex-col items-start justify-center gap-y-2">
+        <div className="flex flex-col items-start justify-center gap-y-2 px-4 pt-2 pb-4">
           {options.map((option) => (
             <Button
               key={option}
@@ -60,7 +61,7 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
         </div>
       )}
       {!options && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-2 pb-2">
           <Input
             type="text"
             disabled={hasResult || disabled}

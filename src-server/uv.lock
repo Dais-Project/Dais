@@ -351,7 +351,7 @@ wheels = [
 
 [[package]]
 name = "dais-sdk"
-version = "0.6.2"
+version = "0.6.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -361,9 +361,9 @@ dependencies = [
     { name = "starlette" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ab/84/102acf7d1502aa520a4d377d9fbea8a4e7f7134cb703da592ae16a3be1b0/dais_sdk-0.6.2.tar.gz", hash = "sha256:d17d2fb23210b9eaa2d7bedace86653a88c735e247327d7f5b97b9dc71b9e6ea", size = 19327, upload-time = "2026-02-01T13:21:29.698Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bd/26/c76c5326ea11dd7ae2aba55e420c0cd4786a627e8966e4c731064de46368/dais_sdk-0.6.6.tar.gz", hash = "sha256:2bc2bf62d427663181e1cb6b931367d8bc5d7164fd6a448f6a1571b403943dae", size = 19701, upload-time = "2026-02-06T04:22:42.368Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/d7/7007bbff4510a78393d35ad6355fb37ea6f8507b07088ec51c9697e759c7/dais_sdk-0.6.2-py3-none-any.whl", hash = "sha256:8b8c6692aee50b42af6d27d252d0e19d06f7ef1aaacf310fb21dad857c73eda5", size = 24887, upload-time = "2026-02-01T13:21:28.34Z" },
+    { url = "https://files.pythonhosted.org/packages/25/31/1ede0967d9451cc61e0823ae1f68444e3452532ae07ca1c52970c99c6fbc/dais_sdk-0.6.6-py3-none-any.whl", hash = "sha256:d0cb02b8e8356de69ecb004f93f92f37c7b6f805c3f3a4998d07d6adb0a0bbe6", size = 25227, upload-time = "2026-02-06T04:22:41.124Z" },
 ]
 
 [[package]]
@@ -396,7 +396,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = "==1.18.3" },
-    { name = "dais-sdk", specifier = ">=0.6.0" },
+    { name = "dais-sdk", specifier = "==0.6.6" },
     { name = "fastapi", specifier = "==0.128.0" },
     { name = "loguru", specifier = "==0.7.3" },
     { name = "markitdown", extras = ["docx", "pdf", "pptx"], specifier = "==0.1.4" },
@@ -971,7 +971,7 @@ wheels = [
 
 [[package]]
 name = "mcp"
-version = "1.25.0"
+version = "1.26.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -989,9 +989,9 @@ dependencies = [
     { name = "typing-inspection" },
     { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/2d/649d80a0ecf6a1f82632ca44bec21c0461a9d9fc8934d38cb5b319f2db5e/mcp-1.25.0.tar.gz", hash = "sha256:56310361ebf0364e2d438e5b45f7668cbb124e158bb358333cd06e49e83a6802", size = 605387, upload-time = "2025-12-19T10:19:56.985Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/6d/62e76bbb8144d6ed86e202b5edd8a4cb631e7c8130f3f4893c3f90262b10/mcp-1.26.0.tar.gz", hash = "sha256:db6e2ef491eecc1a0d93711a76f28dec2e05999f93afd48795da1c1137142c66", size = 608005, upload-time = "2026-01-24T19:40:32.468Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/fc/6dc7659c2ae5ddf280477011f4213a74f806862856b796ef08f028e664bf/mcp-1.25.0-py3-none-any.whl", hash = "sha256:b37c38144a666add0862614cc79ec276e97d72aa8ca26d622818d4e278b9721a", size = 233076, upload-time = "2025-12-19T10:19:55.416Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/d9/eaa1f80170d2b7c5ba23f3b59f766f3a0bb41155fbc32a69adfa1adaaef9/mcp-1.26.0-py3-none-any.whl", hash = "sha256:904a21c33c25aa98ddbeb47273033c435e595bbacfdb177f4bd87f6dceebe1ca", size = 233615, upload-time = "2026-01-24T19:40:30.652Z" },
 ]
 
 [[package]]

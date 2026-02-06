@@ -84,10 +84,10 @@ export function PromptInput() {
     <BasePromptInput
       className="rounded-md bg-background"
       onSubmit={(message) => {
-        const userMessage: UserMessage = {
+        const userMessage = {
           role: "user",
           content: message.text,
-        };
+        } as UserMessage;
         if (ableToSubmit) {
           setPrompt("");
           continueTask(userMessage);

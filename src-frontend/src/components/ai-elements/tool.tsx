@@ -1,6 +1,5 @@
 "use client";
 
-import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -29,8 +28,6 @@ export const Tool = ({ className, ...props }: ToolProps) => (
   />
 );
 
-export type ToolPart = ToolUIPart | DynamicToolUIPart;
-
 export type ToolState =
   | "input-streaming"
   | "input-available"
@@ -41,20 +38,11 @@ export type ToolState =
   | "output-denied";
 
 export type ToolHeaderProps = {
-  title?: string;
+  toolName: string;
+  toolsetName?: string;
   className?: string;
-} & (
-  | {
-      type: ToolUIPart["type"];
-      state: ToolState;
-      toolName?: never;
-    }
-  | {
-      type: DynamicToolUIPart["type"];
-      state: DynamicToolUIPart["state"];
-      toolName: string;
-    }
-);
+  state: ToolState;
+};
 
 export const getStatusBadge = (status: ToolState) => {
   const labels: Record<ToolState, string> = {
@@ -87,32 +75,34 @@ export const getStatusBadge = (status: ToolState) => {
 
 export const ToolHeader = ({
   className,
-  title,
-  type,
+  toolsetName,
   state,
   toolName,
   ...props
-}: ToolHeaderProps) => {
-  const derivedName =
-    type === "dynamic-tool" ? toolName : type.split("-").slice(1).join("-");
-
-  return (
-    <CollapsibleTrigger
-      className={cn(
-        "flex w-full items-center justify-between gap-4 p-3",
-        className
+}: ToolHeaderProps) => (
+  <CollapsibleTrigger
+    className={cn(
+      "flex w-full cursor-pointer items-center justify-between gap-4 p-3",
+      className
+    )}
+    {...props}
+  >
+    <div className="flex items-center gap-2">
+      <WrenchIcon className="size-4 text-muted-foreground" />
+      {toolsetName && (
+        <>
+          <span className="font-medium text-muted-foreground text-sm">
+            {toolsetName}
+          </span>
+          <span className="text-muted-foreground/40">/</span>
+        </>
       )}
-      {...props}
-    >
-      <div className="flex items-center gap-2">
-        <WrenchIcon className="size-4 text-muted-foreground" />
-        <span className="font-medium text-sm">{title ?? derivedName}</span>
-        {getStatusBadge(state)}
-      </div>
-      <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-    </CollapsibleTrigger>
-  );
-};
+      <span className="font-medium text-sm">{toolName}</span>
+      {getStatusBadge(state)}
+    </div>
+    <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+  </CollapsibleTrigger>
+);
 
 export type ToolContentProps = ComponentProps<typeof CollapsibleContent>;
 
@@ -127,7 +117,7 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
 );
 
 export type ToolInputProps = ComponentProps<"div"> & {
-  input: ToolPart["input"];
+  input: unknown;
 };
 
 export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
@@ -142,8 +132,8 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 );
 
 export type ToolOutputProps = ComponentProps<"div"> & {
-  output: ToolPart["output"];
-  errorText: ToolPart["errorText"];
+  output?: unknown;
+  errorText?: string;
 };
 
 export const ToolOutput = ({
@@ -171,16 +161,13 @@ export const ToolOutput = ({
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
         {errorText ? "Error" : "Result"}
       </h4>
-      <div
-        className={cn(
-          "overflow-x-auto rounded-md text-xs [&_table]:w-full",
-          errorText
-            ? "bg-destructive/10 text-destructive"
-            : "bg-muted/50 text-foreground"
+      <div className="overflow-x-auto rounded-md bg-muted/50 text-foreground text-xs [&_table]:w-full">
+        {errorText && (
+          <div className="bg-destructive/10 p-1 text-destructive">
+            {errorText}
+          </div>
         )}
-      >
-        {errorText && <div>{errorText}</div>}
-        {Output}
+        {errorText === undefined && Output}
       </div>
     </div>
   );

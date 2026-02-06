@@ -7,15 +7,14 @@ from sse_starlette import EventSourceResponse, ServerSentEvent, JSONServerSentEv
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk, UserMessage
 from pydantic import BaseModel
 from .router import tasks_router
+from ..types import EmptyServerSentEvent
 from ....agent import AgentTask
 from ....agent.types import (
     AgentEvent,
-    MessageChunkEvent, MessageStartEvent, MessageEndEvent,
-    MessageReplaceEvent,
-    TaskStartEvent, ToolCallEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
-    ToolExecutedEvent, ToolRequireUserResponseEvent,
-    ToolRequirePermissionEvent, ErrorEvent
+    MessageChunkEvent, MessageStartEvent, MessageEndEvent, MessageReplaceEvent,
+    ToolCallEndEvent, ToolExecutedEvent, ToolRequireUserResponseEvent, ToolRequirePermissionEvent,
+    ErrorEvent
 )
 from ....services.task import TaskService
 
@@ -48,12 +47,8 @@ def create_stream_response(stream: AgentGenerator) -> EventSourceResponse:
     gen = (item async for item in stream if item is not None)
     return EventSourceResponse(gen, headers={"Cache-Control": "no-cache"})
 
-def agent_event_format(task: AgentTask, event: AgentEvent) -> JSONServerSentEvent | None:
+def agent_event_format(task: AgentTask, event: AgentEvent) -> ServerSentEvent | None:
     match event:
-        case TaskStartEvent(message_id=message_id):
-            return JSONServerSentEvent(event=event.event_id, data={
-                "message_id": message_id,
-            })
         case MessageStartEvent(message_id=message_id):
             return JSONServerSentEvent(event=event.event_id, data={
                 "message_id": message_id,
@@ -76,35 +71,39 @@ def agent_event_format(task: AgentTask, event: AgentEvent) -> JSONServerSentEven
                         "type": "tool_call",
                         "data": asdict(chunk),
                     })
-        case MessageEndEvent():
-            return JSONServerSentEvent(event=event.event_id, data=None)
-        case MessageReplaceEvent(message=message):
+        case MessageEndEvent(message):
             return JSONServerSentEvent(event=event.event_id, data={
                 "message": message.model_dump(),
             })
-        case ToolCallEndEvent(message=message):
+        case MessageReplaceEvent(message):
             return JSONServerSentEvent(event=event.event_id, data={
                 "message": message.model_dump(),
             })
-        case ToolExecutedEvent(tool_call_id=tool_call_id, result=result):
+        case ToolCallEndEvent(message):
+            return JSONServerSentEvent(event=event.event_id, data={
+                "message": message.model_dump(),
+            })
+        case ToolExecutedEvent(tool_call_id, result):
             return JSONServerSentEvent(event=event.event_id, data={
                 "tool_call_id": tool_call_id,
                 "result": result,
             })
-        case ToolRequireUserResponseEvent(tool_name=tool_name):
+        case ToolRequireUserResponseEvent(tool_name):
             return JSONServerSentEvent(event=event.event_id, data={
                 "tool_name": tool_name,
             })
-        case ToolRequirePermissionEvent(tool_call_id=tool_call_id):
+        case ToolRequirePermissionEvent(tool_call_id):
             return JSONServerSentEvent(event=event.event_id, data={
                 "tool_call_id": tool_call_id,
             })
         case TaskDoneEvent():
-            return JSONServerSentEvent(event=event.event_id, data=None)
+            return EmptyServerSentEvent(event=event.event_id)
         case TaskInterruptedEvent():
-            return JSONServerSentEvent(event=event.event_id, data=None)
-        case ErrorEvent(error=error):
-            return JSONServerSentEvent(event=event.event_id, data={"message": str(error)})
+            return EmptyServerSentEvent(event=event.event_id)
+        case ErrorEvent(error):
+            return JSONServerSentEvent(event=event.event_id, data={
+                "message": str(error),
+            })
         case _:
             _logger.warning(f"Unknown event: {event}")
             return None
@@ -144,9 +143,6 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
     async def temp_stream() -> AgentGenerator:
         if body.message is not None:
             task.append_message(body.message)
-            formatted = agent_event_format(task, TaskStartEvent(message_id=body.message.id))
-            if formatted:
-                yield formatted
         async for event in agent_stream(task, request):
             yield event
 
@@ -181,7 +177,6 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> 
 
         if replace_event is not None:
             yield agent_event_format(task, replace_event)
-
         if tool_event is not None:
             yield agent_event_format(task, tool_event)
 

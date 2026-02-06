@@ -1,4 +1,5 @@
 import { CheckCircleIcon } from "lucide-react";
+import { Streamdown } from "streamdown";
 import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import type { ToolMessage as ToolMessageType } from "@/types/message";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -16,14 +17,12 @@ export function FinishTaskToolMessage({ message }: FinishTaskToolMessageProps) {
     <CustomTool
       title="任务完成"
       icon={<CheckCircleIcon className="size-4 text-green-600" />}
+      defaultOpen
     >
       {toolArguments?.task_summary && (
-        <div className="space-y-2">
-          <p className="text-muted-foreground text-sm">任务总结：</p>
-          <p className="whitespace-pre-wrap text-sm">
-            {toolArguments.task_summary}
-          </p>
-        </div>
+        <Streamdown className="px-4 pb-4 text-foreground text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+          {toolArguments.task_summary}
+        </Streamdown>
       )}
     </CustomTool>
   );

@@ -131,6 +131,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
     onConfirm: async (task) => {
       await deleteTaskMutation.mutateAsync(task.id);
       queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
+      queryClient.removeQueries({ queryKey: ["task", task.id] });
       removeTaskTab(task.id);
       toast.success("删除成功", {
         description: "已成功删除任务。",

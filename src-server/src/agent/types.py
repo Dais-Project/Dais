@@ -5,15 +5,9 @@ from dais_sdk import MessageChunk, ToolMessage, AssistantMessage
 from ..db.models.task import TaskMessage
 
 @dataclass(frozen=True)
-class TaskStartEvent:
-    """Task start event"""
-    message_id: str # This ID is for the UserMessage that starts the task
-    event_id: Literal["TASK_START"] = "TASK_START"
-
-@dataclass(frozen=True)
 class MessageStartEvent:
     """Message start event"""
-    message_id: str
+    message_id: str # This ID is for the AssistantMessage that is being streamed
     event_id: Literal["MESSAGE_START"] = "MESSAGE_START"
 
 @dataclass(frozen=True)
@@ -25,7 +19,7 @@ class MessageChunkEvent:
 @dataclass(frozen=True)
 class MessageEndEvent:
     """Message end event"""
-    message: AssistantMessage
+    message: AssistantMessage # This message contains the final assistant message
     event_id: Literal["MESSAGE_END"] = "MESSAGE_END"
 
 @dataclass(frozen=True)
@@ -89,7 +83,6 @@ ToolEvent = (
 )
 
 AgentEvent = (
-    TaskStartEvent |
     MessageChunkEvent |
     MessageStartEvent |
     MessageEndEvent |

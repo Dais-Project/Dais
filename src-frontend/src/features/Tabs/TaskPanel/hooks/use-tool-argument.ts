@@ -10,7 +10,7 @@ export function useToolArgument<T extends Record<string, unknown>>(
       setToolArguments(parsedArguments as T);
     } catch {
       setToolArguments(null);
-      console.error("Failed to parse tool arguments", rawArguments);
+      console.warn("Failed to parse tool arguments:", rawArguments);
     }
   }, [rawArguments]);
   return toolArguments;

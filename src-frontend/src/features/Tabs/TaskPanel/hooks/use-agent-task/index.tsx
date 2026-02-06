@@ -13,16 +13,17 @@ import {
   continueTask,
   fetchTaskById,
   type MessageChunkEventData,
+  type MessageEndEventData,
   type MessageReplaceEventData,
   type MessageStartEventData,
   type TaskSseCallbacks,
-  type TaskStartEventData,
   type ToolCallEndEventData,
   type ToolReviewBody,
   toolAnswer,
   toolReview,
 } from "@/api/task";
 import {
+  type AssistantMessage,
   isToolMessage,
   type Message,
   type ToolMessage,
@@ -32,7 +33,7 @@ import type { TaskRead, TaskUsage } from "@/types/task";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { emptyAssistantMessage, toolMessageFactory } from "./utils";
+import { assistantMessageFactory, toolMessageFactory } from "./utils";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -54,7 +55,9 @@ function handleTextAccumulated(
       lastMessage.content = allText;
       return;
     }
-    draft.messages.push(emptyAssistantMessage());
+    console.warn(
+      "Last message is not assistant when text chunk is accumulated"
+    );
   });
 }
 
@@ -69,7 +72,11 @@ function handleToolCallAccumulated(
     ) as ToolMessage | undefined;
     if (toolMessage === undefined) {
       draft.messages.push(
-        toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments)
+        toolMessageFactory(
+          toolCallId,
+          toolCall.name,
+          toolCall.arguments
+        ) as ToolMessage
       );
       return;
     }
@@ -149,7 +156,7 @@ export function AgentTaskProvider({
     (eventData: MessageStartEventData) => {
       setState("running");
       setData((draft) => {
-        const newMessage = emptyAssistantMessage();
+        const newMessage = assistantMessageFactory() as AssistantMessage;
         newMessage.id = eventData.message_id;
         draft.messages.push(newMessage);
       });
@@ -178,10 +185,25 @@ export function AgentTaskProvider({
     [textBuffer, toolCallsBuffer, setUsage]
   );
 
-  const onMessageEnd = useCallback(() => {
-    textBuffer.clear();
-    toolCallsBuffer.clear();
-  }, [textBuffer, toolCallsBuffer]);
+  const onMessageEnd = useCallback(
+    (eventData: MessageEndEventData) => {
+      textBuffer.clear();
+      toolCallsBuffer.clear();
+      setData((draft) => {
+        const index = draft.messages.findIndex(
+          (m) => m.id === eventData.message.id
+        );
+        if (index === -1) {
+          console.warn(
+            `Message not found for replacement: ${eventData.message.id}`
+          );
+          return;
+        }
+        draft.messages[index] = eventData.message as Message;
+      });
+    },
+    [textBuffer, toolCallsBuffer, setData]
+  );
 
   const onMessageReplace = useCallback(
     (eventData: MessageReplaceEventData) => {
@@ -196,20 +218,6 @@ export function AgentTaskProvider({
           return;
         }
         draft.messages[index] = eventData.message as Message;
-      });
-    },
-    [setData]
-  );
-
-  const onTaskStart = useCallback(
-    (eventData: TaskStartEventData) => {
-      setData((draft) => {
-        const userMessage = draft.messages
-          .reverse()
-          .find((m) => m.id === eventData.message_id);
-        if (userMessage) {
-          userMessage.id = eventData.message_id;
-        }
       });
     },
     [setData]
@@ -248,7 +256,6 @@ export function AgentTaskProvider({
   }, [setState]);
 
   sseCallbacksRef.current = {
-    onTaskStart,
     onMessageStart,
     onMessageChunk,
     onMessageEnd,

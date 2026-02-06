@@ -38,9 +38,25 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
     }
     return "input-streaming";
   })();
+  const [toolsetName, toolName] = (() => {
+    const originalToolName = message.name;
+    const hasToolsetName = originalToolName.includes("__");
+    if (!hasToolsetName) {
+      return [undefined, originalToolName];
+    }
+    return originalToolName.split("__");
+  })() as [string | undefined, string];
   return (
-    <Tool defaultOpen={toolState === "approval-requested"}>
-      <ToolHeader type={`tool-${message.name}`} state={toolState} />
+    <Tool
+      className="selectable-text"
+      defaultOpen={toolState === "approval-requested"}
+    >
+      <ToolHeader
+        className="sticky top-0 z-1 bg-card"
+        toolName={toolName}
+        toolsetName={toolsetName}
+        state={toolState}
+      />
       <ToolContent>
         <ToolInput input={toolArguments ?? message.arguments} />
         <Activity mode={activityVisible(message.result ?? message.error)}>
@@ -49,22 +65,22 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
             errorText={message.error ?? undefined}
           />
         </Activity>
-        <Activity
-          mode={activityVisible(
-            [
-              "approval-requested",
-              "approval-responded",
-              "output-denied",
-            ].includes(toolState)
-          )}
-        >
-          <ToolConfirmation
-            state={toolState}
-            onAccept={() => reviewTool(message.tool_call_id, "approved", false)}
-            onReject={() => reviewTool(message.tool_call_id, "denied", false)}
-          />
-        </Activity>
       </ToolContent>
+      <Activity
+        mode={activityVisible(
+          [
+            "approval-requested",
+            "approval-responded",
+            "output-denied",
+          ].includes(toolState)
+        )}
+      >
+        <ToolConfirmation
+          state={toolState}
+          onAccept={() => reviewTool(message.tool_call_id, "approved", false)}
+          onReject={() => reviewTool(message.tool_call_id, "denied", false)}
+        />
+      </Activity>
     </Tool>
   );
 }

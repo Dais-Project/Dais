@@ -6,12 +6,15 @@ from .api import app
 from .db import migrate_db
 
 def prevent_port_occupancy(port: int):
-    import os
-    import signal
     import time
     import psutil
 
     def try_kill(proc: psutil.Process):
+        if proc.pid <= 4:
+            # system critical process, skip
+            return
+
+        logger.info(f"Port {port} is occupied by process {proc.info["pid"]}, try killing...")
         try:
             proc.terminate()
             _, alive = psutil.wait_procs([proc], timeout=3)
@@ -25,7 +28,6 @@ def prevent_port_occupancy(port: int):
         try:
             for conn in proc.net_connections(kind="inet"):
                 if conn.laddr.port == port:
-                    logger.info(f"Port {port} is occupied by process {proc.info["pid"]}, killing...")
                     try_kill(proc)
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue

@@ -23,7 +23,12 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
   const createTaskMutation = useMutation({
     mutationFn: createTask,
     onSuccess: (taskRead) => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      if (currentWorkspace) {
+        queryClient.invalidateQueries({
+          queryKey: ["tasks", currentWorkspace.id],
+        });
+      }
+      queryClient.removeQueries({ queryKey: ["task", taskRead.id] });
       updateTabMetadata(tabId, {
         isDraft: false,
         type: taskType,
@@ -38,6 +43,7 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
     }
 
     const userMessage: UserMessage = {
+      id: crypto.randomUUID(),
       role: "user",
       content: message.text,
     };

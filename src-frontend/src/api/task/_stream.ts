@@ -12,12 +12,12 @@ import { API_BASE } from "../index";
 // === === === Agent Event Types Start === === ===
 // ===============================================
 
-export type TaskStartEventData = {
+export type MessageStartEventData = {
   message_id: string;
 };
 
-export type MessageStartEventData = {
-  message_id: string;
+export type MessageEndEventData = {
+  message: Message;
 };
 
 export type MessageChunkEventData =
@@ -59,7 +59,7 @@ export type ErrorEventData = {
 };
 
 export type AgentEventType =
-  | "TASK_START"
+  | "USER_MESSAGE_ACK"
   | "MESSAGE_CHUNK"
   | "MESSAGE_START"
   | "MESSAGE_END"
@@ -78,13 +78,12 @@ export type AgentEventType =
 
 export type TaskSseCallbacks = {
   // task status callbacks
-  onTaskStart?: (data: TaskStartEventData) => void;
   onTaskDone?: () => void;
   onTaskInterrupted?: () => void;
 
   // message related callbacks
   onMessageStart?: (data: MessageStartEventData) => void;
-  onMessageEnd?: () => void;
+  onMessageEnd?: (data: MessageEndEventData) => void;
   onMessageChunk?: (chunk: MessageChunkEventData) => void;
   onMessageReplace?: (data: MessageReplaceEventData) => void;
   onToolCallEnd?: (data: ToolCallEndEventData) => void;
@@ -131,76 +130,85 @@ function createTaskSseStream(
     },
 
     onmessage(event) {
+      let data: unknown;
       try {
-        const data = JSON.parse(event.data);
-
-        switch (event.event as AgentEventType) {
-          case "TASK_START":
-            callbacks.onTaskStart?.(data as TaskStartEventData);
-            break;
-
-          case "MESSAGE_CHUNK":
-            callbacks.onMessageChunk?.(data as MessageChunkEventData);
-            break;
-
-          case "MESSAGE_START":
-            callbacks.onMessageStart?.(data as MessageStartEventData);
-            break;
-
-          case "MESSAGE_END":
-            callbacks.onMessageEnd?.();
-            break;
-
-          case "MESSAGE_REPLACE":
-            callbacks.onMessageReplace?.(data as MessageReplaceEventData);
-            break;
-
-          case "TOOL_CALL_END":
-            callbacks.onToolCallEnd?.(data as ToolCallEndEventData);
-            break;
-
-          case "TOOL_EXECUTED":
-            callbacks.onToolExecuted?.(data as ToolExecutedEventData);
-            break;
-
-          case "TOOL_REQUIRE_USER_RESPONSE":
-            callbacks.onToolRequireUserResponse?.(
-              data as ToolRequireUserResponseEventData
-            );
-            break;
-
-          case "TOOL_REQUIRE_PERMISSION":
-            callbacks.onToolRequirePermission?.(
-              data as ToolRequirePermissionEventData
-            );
-            break;
-
-          case "TASK_DONE":
-            callbacks.onTaskDone?.();
-            callbacks.onClose?.();
-            abortController.abort();
-            return;
-
-          case "TASK_INTERRUPTED":
-            callbacks.onTaskInterrupted?.();
-            callbacks.onClose?.();
-            abortController.abort();
-            return;
-
-          case "ERROR":
-            callbacks.onError?.(new Error((data as ErrorEventData).message));
-            break;
-
-          default:
-            console.warn("Unknown SSE event type:", event.event);
+        if (event.data.length) {
+          data = JSON.parse(event.data);
+        } else {
+          data = null;
         }
       } catch (error) {
-        console.error("Failed to parse SSE message:", error);
+        console.error(
+          `\
+Failed to parse SSE message
+message type: ${event.event}
+message data: ${event.data}
+`,
+          error
+        );
         callbacks.onError?.(
           error instanceof Error
             ? error
             : new Error("Failed to parse SSE message")
         );
+        return;
+      }
+
+      switch (event.event as AgentEventType) {
+        case "MESSAGE_CHUNK":
+          callbacks.onMessageChunk?.(data as MessageChunkEventData);
+          break;
+
+        case "MESSAGE_START":
+          callbacks.onMessageStart?.(data as MessageStartEventData);
+          break;
+
+        case "MESSAGE_END":
+          callbacks.onMessageEnd?.(data as MessageEndEventData);
+          break;
+
+        case "MESSAGE_REPLACE":
+          callbacks.onMessageReplace?.(data as MessageReplaceEventData);
+          break;
+
+        case "TOOL_CALL_END":
+          callbacks.onToolCallEnd?.(data as ToolCallEndEventData);
+          break;
+
+        case "TOOL_EXECUTED":
+          callbacks.onToolExecuted?.(data as ToolExecutedEventData);
+          break;
+
+        case "TOOL_REQUIRE_USER_RESPONSE":
+          callbacks.onToolRequireUserResponse?.(
+            data as ToolRequireUserResponseEventData
+          );
+          break;
+
+        case "TOOL_REQUIRE_PERMISSION":
+          callbacks.onToolRequirePermission?.(
+            data as ToolRequirePermissionEventData
+          );
+          break;
+
+        case "TASK_DONE":
+          callbacks.onTaskDone?.();
+          callbacks.onClose?.();
+          abortController.abort();
+          return;
+
+        case "TASK_INTERRUPTED":
+          callbacks.onTaskInterrupted?.();
+          callbacks.onClose?.();
+          abortController.abort();
+          return;
+
+        case "ERROR":
+          callbacks.onError?.(new Error((data as ErrorEventData).message));
+          break;
+
+        default:
+          console.warn("Unknown SSE event type:", event.event);
       }
     },
 

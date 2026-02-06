@@ -103,6 +103,10 @@ export function isSystemMessage(message: Message): message is SystemMessage {
   return message.role === "system";
 }
 
+export function isToolMessageCompleted(message: ToolMessage) {
+  return message.result !== null || message.error !== null;
+}
+
 // --- --- --- --- --- ---
 
 export type TextChunk = {

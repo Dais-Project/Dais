@@ -4,7 +4,7 @@ export function toolMessageFactory(
   id: string,
   name: string,
   arguments_: string
-): ToolMessage {
+): Omit<ToolMessage, "id"> {
   return {
     role: "tool",
     tool_call_id: id,
@@ -16,7 +16,7 @@ export function toolMessageFactory(
   };
 }
 
-export function emptyAssistantMessage(): AssistantMessage {
+export function assistantMessageFactory(): Omit<AssistantMessage, "id"> {
   return {
     role: "assistant",
     content: "",
