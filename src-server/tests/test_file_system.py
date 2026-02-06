@@ -1,6 +1,12 @@
 import pytest
 from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+from src.agent.tool.builtin_tools.file_system import BuiltInToolset
+
+
+@pytest.fixture(autouse=True)
+def mock_built_in_toolset_init(mocker):
+    mocker.patch.object(BuiltInToolset, "__init__", return_value=None)
 
 
 class TestFileSystemToolInit:

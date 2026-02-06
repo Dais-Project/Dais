@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, TypeGuard, TypedDict
-from dais_sdk import MessageChunk, ToolMessage, AssistantMessage
+from dais_sdk import MessageChunk, ToolMessage, AssistantMessage, UsageChunk
 from ..db.models.task import TaskMessage
 
 @dataclass(frozen=True)
@@ -95,6 +95,24 @@ AgentEvent = (
 )
 
 # --- --- --- --- --- ---
+
+@dataclass(frozen=False)
+class ContextUsage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    max_tokens: int = 0
+
+    @property
+    def remaining_tokens(self) -> int:
+        reserved_output = 4096
+        safety_margin = int(self.max_tokens * 0.1)
+        return self.max_tokens - self.total_tokens - reserved_output - safety_margin
+
+    def set_usage(self, usage: UsageChunk) -> None:
+        self.input_tokens = usage.input_tokens
+        self.output_tokens = usage.output_tokens
+        self.total_tokens = usage.total_tokens
 
 class UserApprovalStatus(str, Enum):
     PENDING = "pending"

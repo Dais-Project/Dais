@@ -7,7 +7,8 @@ from loguru import logger
 from dais_sdk import (
     ToolLike,
     LLM, AssistantMessage, LlmRequestParams,
-    SystemMessage, ToolMessage, UserMessage, ToolDef,
+    SystemMessage, ToolMessage,
+    UsageChunk, UserMessage, ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError
 )
 from .context import AgentContext
@@ -27,6 +28,7 @@ from .types import (
     ToolExecutedEvent,
     ToolRequirePermissionEvent, ToolRequireUserResponseEvent,
     ErrorEvent,
+    ContextUsage,
     UserApprovalStatus, is_agent_metadata
 )
 from ..services.task import TaskService
@@ -49,6 +51,7 @@ class AgentTask:
         self._is_running = True
         self._current_task: asyncio.Task | None = None
         self._messages = task.messages
+        self._usage = ContextUsage(max_tokens=ctx.model.context_size)
 
     def _llm_factory(self) -> LLM:
         llm = LLM(provider=self._ctx.provider.type,
@@ -90,6 +93,8 @@ class AgentTask:
             yield MessageStartEvent(message_id=assistant_message_id)
             async for chunk in stream:
                 yield MessageChunkEvent(chunk)
+                if isinstance(chunk, UsageChunk):
+                    self._usage.set_usage(chunk)
 
             # Since we did not set `execute_tools` flag,
             # there will be only one assistant message in the queue

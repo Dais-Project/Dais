@@ -48,7 +48,7 @@ class Toolset(Base):
     tools: Mapped[list[Tool]] = relationship(back_populates="toolset", cascade="all, delete-orphan")
 
 def init(session: Session):
-    from ...agent.tool import FileSystemToolset
+    from ...agent.tool import FileSystemToolset, CodeExecutionToolset
 
     assert (FileSystemToolset.read_file.__doc__ is not None and
             FileSystemToolset.read_file_batch.__doc__ is not None and
@@ -74,13 +74,28 @@ def init(session: Session):
             Tool(name="Delete File", description=cleandoc(FileSystemToolset.delete.__doc__), internal_key=FileSystemToolset.delete.__name__),
             Tool(name="Copy File", description=cleandoc(FileSystemToolset.copy.__doc__), internal_key=FileSystemToolset.copy.__name__),
         ])
+    
+    assert (CodeExecutionToolset.shell.__doc__ is not None)
+    code_execution_toolset = Toolset(
+        id=2,
+        name="Code Execution",
+        internal_key=CodeExecutionToolset.__name__,
+        type=ToolsetType.BUILT_IN,
+        params=None,
+        is_enabled=True,
+        tools=[
+            Tool(name="Shell", description=cleandoc(CodeExecutionToolset.shell.__doc__), internal_key=CodeExecutionToolset.shell.__name__),
+        ])
 
-    stmt = select(Toolset).where(Toolset.id == file_system_toolset.id)
+    stmt = select(Toolset).where(Toolset.internal_key.in_([
+        file_system_toolset.internal_key,
+        code_execution_toolset.internal_key]))
     has_toolsets = session.execute(stmt).scalars().first()
     if has_toolsets is not None: return
 
     try:
         session.add(file_system_toolset)
+        session.add(code_execution_toolset)
         session.commit()
     except Exception as e:
         session.rollback()

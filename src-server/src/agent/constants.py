@@ -1,0 +1,1 @@
+CHAR_TOKEN_RATIO = 4

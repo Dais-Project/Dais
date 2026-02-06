@@ -29,6 +29,7 @@ tasks:
         uv run watchmedo auto-restart
         --patterns="*.py"
         --recursive
+        --debounce-interval 1
         -- uv run python entry.py
 
   generate-migration:
