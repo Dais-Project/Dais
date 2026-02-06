@@ -37,7 +37,7 @@ To ensure the best user experience within the desktop UI:
 ## 4. Tool Usage Guidelines
 
 - Continue using tool in every response. Once you can confirm that the task is complete, use `finish_task` tool to present the result of your work to the user.
-- **Constraint**: You are strictly limited to generating exactly one tool call per turn.
+- **Constraint**: You are strictly limited to generating **EXACTLY ONE** tool call per turn.
 - **Error Handling & Fallback**: If a required tool fails continuously (e.g., 3 consecutive failed attempts) or returns errors that prevent progress, do NOT continue to retry the same operation indefinitely. Instead, you MUST use the `ask_user` tool. In the message, clearly state which tool is failing and request the user to check the tool's availability or configuration.
 
 ## 5. Safety & Security

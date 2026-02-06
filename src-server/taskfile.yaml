@@ -27,7 +27,7 @@ tasks:
     cmds:
       - >
         uv run watchmedo auto-restart
-        --patterns="*.py;*.html;*.css"
+        --patterns="*.py"
         --recursive
         -- uv run python entry.py
 

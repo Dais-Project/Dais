@@ -56,6 +56,13 @@ export function useTaskStream({
       streamApi: TaskStreamFn<Body & { agent_id: number }>,
       body: Body
     ) => {
+      const overrideCallbacks: TaskSseCallbacks = {
+        ...sseCallbacksRef.current,
+        onClose: () => {
+          abortController.current = null;
+          sseCallbacksRef.current.onClose?.();
+        },
+      };
       if (agentId === null) {
         toast.error("任务失败", {
           description: "请先选择一个 Agent。",
@@ -63,14 +70,17 @@ export function useTaskStream({
         return;
       }
       setState("waiting");
-      abortController.current?.abort();
+      if (abortController.current) {
+        console.log("Aborting previous stream...");
+        abortController.current?.abort();
+      }
       abortController.current = streamApi(
         taskId,
         {
           ...body,
           agent_id: agentId,
         },
-        sseCallbacksRef.current
+        overrideCallbacks
       );
     },
     [taskId, agentId, sseCallbacksRef]

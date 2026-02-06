@@ -252,6 +252,10 @@ export function AgentTaskProvider({
   );
 
   const onClose = useCallback(() => {
+    // remove messages that are not persisted
+    setData((draft) => {
+      draft.messages = draft.messages.filter((m) => m.id !== undefined);
+    });
     setState("idle");
   }, [setState]);
 
