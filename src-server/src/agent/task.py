@@ -51,7 +51,6 @@ class AgentTask:
         self._is_running = True
         self._current_task: asyncio.Task | None = None
         self._messages = task.messages
-        self._usage = ContextUsage(max_tokens=ctx.model.context_size)
 
     def _llm_factory(self) -> LLM:
         llm = LLM(provider=self._ctx.provider.type,
@@ -94,7 +93,7 @@ class AgentTask:
             async for chunk in stream:
                 yield MessageChunkEvent(chunk)
                 if isinstance(chunk, UsageChunk):
-                    self._usage.set_usage(chunk)
+                    self._ctx.usage.set_usage(chunk)
 
             # Since we did not set `execute_tools` flag,
             # there will be only one assistant message in the queue

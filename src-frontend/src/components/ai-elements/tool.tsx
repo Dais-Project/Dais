@@ -163,8 +163,8 @@ export const ToolOutput = ({
       </h4>
       <div className="overflow-x-auto rounded-md bg-muted/50 text-foreground text-xs [&_table]:w-full">
         {errorText && (
-          <div className="bg-destructive/10 p-1 text-destructive">
-            {errorText}
+          <div className="whitespace-pre-wrap bg-destructive/10 p-1 text-destructive">
+            {errorText.replace(/\\n/g, "\n")}
           </div>
         )}
         {errorText === undefined && Output}

@@ -2,6 +2,7 @@ import platform
 from dais_sdk import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
+from .types import ContextUsage
 from ..db.models import (
     agent as agent_models,
     provider as provider_models,
@@ -23,8 +24,13 @@ class AgentContext:
         with ProviderService() as provider_service:
             self._provider = provider_service.get_provider_by_id(self._model.provider_id)
 
-        self._builtin_toolset_manager = BuiltinToolsetManager(self._workspace.directory)
+        self._usage = ContextUsage(max_tokens=self.model.context_size)
+        self._builtin_toolset_manager = BuiltinToolsetManager(self._workspace.directory, self._usage)
         self._mcp_toolset_manager = use_mcp_toolset_manager()
+
+    @property
+    def usage(self) -> ContextUsage:
+        return self._usage
 
     @property
     def system_instruction(self) -> str:

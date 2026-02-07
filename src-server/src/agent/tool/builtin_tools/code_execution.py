@@ -1,13 +1,14 @@
 import subprocess
 from pathlib import Path
-from .utils import truncate_output
+from .utils import truncate_output, resolve_cwd
 from ..toolset_wrapper import built_in_tool, BuiltInToolset
 from ...types import ContextUsage
 from ...constants import CHAR_TOKEN_RATIO
 
 class CodeExecutionToolset(BuiltInToolset):
-    def __init__(self, usage: ContextUsage):
+    def __init__(self, cwd: str | Path, usage: ContextUsage):
         super().__init__()
+        self.cwd = resolve_cwd(cwd)
         self._usage = usage
 
     @property
@@ -39,7 +40,7 @@ class CodeExecutionToolset(BuiltInToolset):
             int(self._usage.remaining_tokens / 4) * CHAR_TOKEN_RATIO,
             12000,
         )
-        current_dir = Path.cwd() / cwd
+        current_dir = self.cwd / cwd
 
         try:
             output = subprocess.run(

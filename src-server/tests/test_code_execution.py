@@ -1,7 +1,6 @@
 import subprocess
-
 import pytest
-
+from pathlib import Path
 from src.agent.tool.builtin_tools.code_execution import CodeExecutionToolset
 from src.agent.tool.builtin_tools.code_execution import BuiltInToolset
 from src.agent.types import ContextUsage
@@ -14,29 +13,30 @@ def mock_built_in_toolset_init(mocker):
 
 class TestCodeExecutionShell:
     def test_shell_success_strips_output_and_passes_args(self, mocker):
-        from pathlib import Path
-        tool = CodeExecutionToolset(ContextUsage(max_tokens=128000))
+        base_cwd = Path.cwd()
+        tool = CodeExecutionToolset(base_cwd, ContextUsage(max_tokens=128000))
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock()
         mock_process.stdout = b"  ok \n"
         mock_run.return_value = mock_process
 
-        cwd = Path.cwd() / "some/path"
+        cwd = Path("some/path")
+        current_dir = base_cwd / cwd
         result = tool.shell("echo", args=["hello"], cwd=str(cwd), timeout=5)
 
-        assert result == f"[Context: Current directory is {Path.cwd() / cwd}]\nok"
+        assert result == f"[Context: Current directory is {current_dir}]\nok"
         mock_run.assert_called_once_with(
             ["echo", "hello"],
             shell=True,
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            cwd=cwd,
+            cwd=current_dir,
             timeout=5,
         )
 
     def test_shell_truncates_output(self, mocker):
-        tool = CodeExecutionToolset(ContextUsage(max_tokens=128000))
+        tool = CodeExecutionToolset(Path.cwd(), ContextUsage(max_tokens=128000))
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock()
         output = "A" * 200000
@@ -48,7 +48,7 @@ class TestCodeExecutionShell:
         assert "Truncated" in result
 
     def test_shell_nonzero_exit_returns_stdout(self, mocker):
-        tool = CodeExecutionToolset(ContextUsage(max_tokens=128000))
+        tool = CodeExecutionToolset(Path.cwd(), ContextUsage(max_tokens=128000))
         mock_run = mocker.patch("subprocess.run")
         error = subprocess.CalledProcessError(1, "badcmd", output=b"error output\n")
         mock_run.side_effect = error
@@ -58,7 +58,7 @@ class TestCodeExecutionShell:
         assert result == "error output\n"
 
     def test_shell_timeout_raises_timeout_error(self, mocker):
-        tool = CodeExecutionToolset(ContextUsage(max_tokens=128000))
+        tool = CodeExecutionToolset(Path.cwd(), ContextUsage(max_tokens=128000))
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="sleep", timeout=1)
 

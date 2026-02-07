@@ -5,18 +5,13 @@ from typing import Iterator, TypedDict
 from pathlib import Path
 from markitdown import MarkItDown
 from ..toolset_wrapper import built_in_tool, BuiltInToolset
-from .utils import should_exclude, load_gitignore_spec, scandir_recursive
+from .utils import should_exclude, load_gitignore_spec, scandir_recursive, resolve_cwd
 
 class FileSystemToolset(BuiltInToolset):
     def __init__(self, cwd: str | Path):
         super().__init__()
 
-        if isinstance(cwd, str):
-            if cwd == "~":
-                cwd = Path.home()
-            else:
-                cwd = Path(cwd)
-        self.cwd = cwd
+        self.cwd = resolve_cwd(cwd)
         self.md = MarkItDown()
 
         # this set should stores file absolute path

@@ -12,7 +12,7 @@ class BuiltinToolsetManager(ToolsetManager):
         self._toolset_map = {toolset.internal_key: toolset
                              for toolset in toolset_ents}
         self._file_system_toolset = FileSystemToolset(cwd)
-        self._code_execution_toolset = CodeExecutionToolset(usage)
+        self._code_execution_toolset = CodeExecutionToolset(cwd, usage)
 
     @property
     @override

@@ -1,8 +1,22 @@
-import fnmatch
 import os
 import pathspec
 from collections.abc import Generator
 from pathlib import Path
+
+def resolve_cwd(cwd: str | Path) -> Path:
+    """
+    Resolve the current working directory.
+    If the input is a string, it will be resolved relative to the current working directory.
+    If the input is a Path object, it will be resolved as is.
+    Returns:
+        The absolute path of the current working directory.
+    """
+    if isinstance(cwd, str):
+        if cwd == "~":
+            cwd = Path.home()
+        else:
+            cwd = Path(cwd)
+    return cwd.resolve()
 
 def truncate_output(text: str, max_chars: int = 2000) -> str:
     """
