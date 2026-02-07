@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -12,9 +11,9 @@ class TestCopy:
 
         assert f"Successfully copied '{filename}' to 'copied_file.txt'" in result
 
-        assert (Path(temp_workspace) / filename).exists()
+        assert (temp_workspace / filename).exists()
 
-        dest_path = Path(temp_workspace) / "copied_file.txt"
+        dest_path = temp_workspace / "copied_file.txt"
         assert dest_path.exists()
         assert dest_path.read_text(encoding="utf-8") == content
 
@@ -27,7 +26,7 @@ class TestCopy:
 
         assert "Successfully copied" in result
 
-        dest_path = Path(temp_workspace) / dirname / filename
+        dest_path = temp_workspace / dirname / filename
         assert dest_path.exists()
         assert dest_path.read_text(encoding="utf-8") == content
 
@@ -36,12 +35,12 @@ class TestCopy:
         filename = "source.txt"
         content = "Line 1\nLine 2\nSpecial chars: !@#$%^&*()\n你好世界"
 
-        source_path = Path(temp_workspace) / filename
+        source_path = temp_workspace / filename
         source_path.write_text(content, encoding="utf-8")
 
         tool.copy(filename, "destination.txt")
 
-        dest_path = Path(temp_workspace) / "destination.txt"
+        dest_path = temp_workspace / "destination.txt"
         assert dest_path.read_text(encoding="utf-8") == content
 
     def test_copy_directory_to_new_path(self, temp_workspace, directory_with_files):
@@ -52,7 +51,7 @@ class TestCopy:
 
         assert "Successfully copied" in result
 
-        dest_path = Path(temp_workspace) / "copied_dir"
+        dest_path = temp_workspace / "copied_dir"
         assert dest_path.is_dir()
         assert (dest_path / "file1.txt").exists()
         assert (dest_path / "file2.txt").exists()
@@ -62,7 +61,7 @@ class TestCopy:
         dirname = directory_with_files
         tool = FileSystemToolset(temp_workspace)
 
-        target_dir = Path(temp_workspace) / "target"
+        target_dir = temp_workspace / "target"
         target_dir.mkdir()
 
         result = tool.copy(dirname, "target")
@@ -81,7 +80,7 @@ class TestCopy:
 
         assert "Successfully copied" in result
 
-        dest_path = Path(temp_workspace) / "copied_nested"
+        dest_path = temp_workspace / "copied_nested"
         assert dest_path.is_dir()
         assert (dest_path / "root.txt").exists()
         assert (dest_path / "level1" / "l1.txt").exists()
@@ -100,7 +99,7 @@ class TestCopy:
         filename, _ = sample_text_file
         tool = FileSystemToolset(temp_workspace)
 
-        dest_path = Path(temp_workspace) / "existing.txt"
+        dest_path = temp_workspace / "existing.txt"
         dest_path.write_text("existing content", encoding="utf-8")
 
         with pytest.raises(FileExistsError) as exc_info:
@@ -113,7 +112,7 @@ class TestCopy:
         dirname = directory_with_files
         tool = FileSystemToolset(temp_workspace)
 
-        target_dir = Path(temp_workspace) / "target"
+        target_dir = temp_workspace / "target"
         target_dir.mkdir()
         (target_dir / dirname).mkdir()
 
@@ -129,7 +128,7 @@ class TestCopy:
         result = tool.copy(filename, "copied_empty.txt")
 
         assert "Successfully copied" in result
-        dest_path = Path(temp_workspace) / "copied_empty.txt"
+        dest_path = temp_workspace / "copied_empty.txt"
         assert dest_path.exists()
         assert dest_path.read_text(encoding="utf-8") == ""
 
@@ -140,6 +139,6 @@ class TestCopy:
         result = tool.copy(dirname, "copied_empty_dir")
 
         assert "Successfully copied" in result
-        dest_path = Path(temp_workspace) / "copied_empty_dir"
+        dest_path = temp_workspace / "copied_empty_dir"
         assert dest_path.is_dir()
         assert len(list(dest_path.iterdir())) == 0

@@ -1,9 +1,15 @@
-import pytest
 from pathlib import Path
+
+import pytest
+from src.agent.tool.builtin_tools import file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
 class TestSearchFile:
+    def _fake_scandir_recursive(self, directory: Path, total_entries: int):
+        for index in range(total_entries):
+            yield directory / f"file_{index}.txt"
+
     def test_search_file_basic_matches(self, temp_workspace, nested_directory):
         tool = FileSystemToolset(temp_workspace)
         result = tool.search_file("*.txt")
@@ -40,3 +46,19 @@ class TestSearchFile:
         tool = FileSystemToolset(temp_workspace)
         with pytest.raises(NotADirectoryError):
             tool.search_file("*.txt", path=filename)
+
+    def test_search_file_stops_at_max_scan_limit(self, temp_workspace, monkeypatch):
+        tool = FileSystemToolset(temp_workspace)
+        max_scan_limit = 200_000
+        total_entries = max_scan_limit + 10
+
+        def fake_scandir_recursive(directory: Path):
+            return self._fake_scandir_recursive(directory, total_entries)
+
+        # 使用伪生成器避免创建海量真实文件，但仍覆盖扫描上限逻辑。
+        monkeypatch.setattr(file_system_module, "scandir_recursive", fake_scandir_recursive)
+
+        result = tool.search_file("*.txt", limit=max_scan_limit + 5)
+
+        assert result["total"] == max_scan_limit
+        assert len(result["matches"]) == max_scan_limit

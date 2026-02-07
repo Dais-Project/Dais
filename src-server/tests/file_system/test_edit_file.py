@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -16,7 +15,7 @@ class TestEditFile:
         assert "-Second line" in result
         assert "+Modified second line" in result
 
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         new_content = file_path.read_text(encoding="utf-8")
         assert "Modified second line" in new_content
         assert "Second line" not in new_content
@@ -32,7 +31,7 @@ class TestEditFile:
         assert "---" in result
         assert "+++" in result
 
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         final_content = file_path.read_text(encoding="utf-8")
         assert "New second line" in final_content
         assert "New third line" in final_content
@@ -53,7 +52,7 @@ class TestEditFile:
         filename = "unicode_edit.txt"
         original = "原始内容\n第二行"
 
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         file_path.write_text(original, encoding="utf-8")
 
         result = tool.edit_file(filename, "原始内容", "修改后的内容")
@@ -93,7 +92,7 @@ class TestEditFile:
         filename = "whitespace.txt"
         content = "Line with spaces\n  Indented line\nNormal line"
 
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         file_path.write_text(content, encoding="utf-8")
 
         with pytest.raises(ValueError):

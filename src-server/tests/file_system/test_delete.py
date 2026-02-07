@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -11,7 +10,7 @@ class TestDelete:
         result = tool.delete(filename)
 
         assert f"'{filename}' deleted successfully" in result
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         assert not file_path.exists()
 
     def test_delete_empty_directory(self, temp_workspace, empty_directory):
@@ -21,7 +20,7 @@ class TestDelete:
         result = tool.delete(dirname)
 
         assert f"'{dirname}' deleted successfully" in result
-        dir_path = Path(temp_workspace) / dirname
+        dir_path = temp_workspace / dirname
         assert not dir_path.exists()
 
     def test_delete_directory_with_contents(self, temp_workspace, directory_with_files):
@@ -31,7 +30,7 @@ class TestDelete:
         result = tool.delete(dirname)
 
         assert f"'{dirname}' deleted successfully" in result
-        dir_path = Path(temp_workspace) / dirname
+        dir_path = temp_workspace / dirname
         assert not dir_path.exists()
 
     def test_delete_file_removes_from_read_set(self, temp_workspace, sample_text_file):
@@ -39,7 +38,7 @@ class TestDelete:
         tool = FileSystemToolset(temp_workspace)
 
         tool.read_file(filename)
-        abs_path = str(Path(temp_workspace) / filename)
+        abs_path = str(temp_workspace / filename)
         assert abs_path in tool._read_file_set
 
         tool.delete(filename)
@@ -50,7 +49,7 @@ class TestDelete:
         tool = FileSystemToolset(temp_workspace)
         filename = "unread.txt"
 
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         file_path.write_text("content", encoding="utf-8")
 
         result = tool.delete(filename)
@@ -73,5 +72,5 @@ class TestDelete:
         result = tool.delete(dirname)
 
         assert "deleted successfully" in result
-        dir_path = Path(temp_workspace) / dirname
+        dir_path = temp_workspace / dirname
         assert not dir_path.exists()

@@ -56,7 +56,8 @@ def init(session: Session):
             FileSystemToolset.write_file.__doc__ is not None and
             FileSystemToolset.edit_file.__doc__ is not None and
             FileSystemToolset.delete.__doc__ is not None and
-            FileSystemToolset.copy.__doc__ is not None)
+            FileSystemToolset.copy.__doc__ is not None and
+            FileSystemToolset.search_file.__doc__ is not None)
 
     file_system_toolset = Toolset(
         id=1,
@@ -73,8 +74,9 @@ def init(session: Session):
             Tool(name="Edit File", description=cleandoc(FileSystemToolset.edit_file.__doc__), internal_key=FileSystemToolset.edit_file.__name__),
             Tool(name="Delete File", description=cleandoc(FileSystemToolset.delete.__doc__), internal_key=FileSystemToolset.delete.__name__),
             Tool(name="Copy File", description=cleandoc(FileSystemToolset.copy.__doc__), internal_key=FileSystemToolset.copy.__name__),
+            Tool(name="Search File", description=cleandoc(FileSystemToolset.search_file.__doc__), internal_key=FileSystemToolset.search_file.__name__),
         ])
-    
+
     assert (CodeExecutionToolset.shell.__doc__ is not None)
     code_execution_toolset = Toolset(
         id=2,

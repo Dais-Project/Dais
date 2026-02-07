@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -11,7 +10,7 @@ class TestWriteFile:
         result = tool.write_file("new_file.txt", content)
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / "new_file.txt"
+        file_path = temp_workspace / "new_file.txt"
         assert file_path.exists()
         assert file_path.read_text(encoding="utf-8") == content
 
@@ -22,7 +21,7 @@ class TestWriteFile:
         result = tool.write_file("unicode.txt", content)
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / "unicode.txt"
+        file_path = temp_workspace / "unicode.txt"
         assert file_path.read_text(encoding="utf-8") == content
 
     def test_write_file_creates_parent_directories(self, temp_workspace):
@@ -32,7 +31,7 @@ class TestWriteFile:
         result = tool.write_file("parent/child/nested.txt", content)
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / "parent" / "child" / "nested.txt"
+        file_path = temp_workspace / "parent" / "child" / "nested.txt"
         assert file_path.exists()
         assert file_path.read_text(encoding="utf-8") == content
 
@@ -46,7 +45,7 @@ class TestWriteFile:
         result = tool.write_file(filename, new_content)
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         assert file_path.read_text(encoding="utf-8") == new_content
 
     def test_write_file_overwrite_unread_file_raises_error(self, temp_workspace, sample_text_file):
@@ -65,7 +64,7 @@ class TestWriteFile:
         result = tool.write_file("empty_new.txt", "")
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / "empty_new.txt"
+        file_path = temp_workspace / "empty_new.txt"
         assert file_path.exists()
         assert file_path.read_text(encoding="utf-8") == ""
 
@@ -76,7 +75,7 @@ class TestWriteFile:
         result = tool.write_file("large_file.txt", content)
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / "large_file.txt"
+        file_path = temp_workspace / "large_file.txt"
         assert file_path.exists()
         assert len(file_path.read_text(encoding="utf-8")) == len(content)
 
@@ -87,5 +86,5 @@ class TestWriteFile:
         result = tool.write_file("file with spaces.txt", content)
 
         assert result == "File written successfully."
-        file_path = Path(temp_workspace) / "file with spaces.txt"
+        file_path = temp_workspace / "file with spaces.txt"
         assert file_path.exists()

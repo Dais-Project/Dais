@@ -480,7 +480,7 @@ class FileSystemToolset(BuiltInToolset):
                     matches.append(path.relative_to(abs_path).as_posix())
             return matches
 
-        MAX_SCAN_LIMIT = 100_0000
+        MAX_SCAN_LIMIT = 200_000
         abs_path = self.cwd / path
         if not abs_path.exists():
             raise FileNotFoundError(f"Directory not found at {path}")

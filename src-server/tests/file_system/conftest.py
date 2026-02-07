@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import BuiltInToolset
 
 
@@ -10,7 +9,7 @@ def mock_built_in_toolset_init(mocker):
 
 @pytest.fixture
 def sample_text_file(temp_workspace):
-    file_path = Path(temp_workspace) / "sample.txt"
+    file_path = temp_workspace / "sample.txt"
     content = "Line 1\nLine 2\nLine 3\nSpecial chars: !@#$%"
     file_path.write_text(content, encoding="utf-8")
     return "sample.txt", content
@@ -20,17 +19,17 @@ def sample_text_file(temp_workspace):
 def multiple_files(temp_workspace):
     files = {}
 
-    file1 = Path(temp_workspace) / "file1.txt"
+    file1 = temp_workspace / "file1.txt"
     content1 = "Content of file 1"
     file1.write_text(content1, encoding="utf-8")
     files["file1.txt"] = content1
 
-    file2 = Path(temp_workspace) / "file2.txt"
+    file2 = temp_workspace / "file2.txt"
     content2 = "Content of file 2\nSecond line"
     file2.write_text(content2, encoding="utf-8")
     files["file2.txt"] = content2
 
-    file3 = Path(temp_workspace) / "file3.txt"
+    file3 = temp_workspace / "file3.txt"
     content3 = "Content of file 3"
     file3.write_text(content3, encoding="utf-8")
     files["file3.txt"] = content3
@@ -40,7 +39,7 @@ def multiple_files(temp_workspace):
 
 @pytest.fixture
 def nested_directory(temp_workspace):
-    base = Path(temp_workspace)
+    base = temp_workspace
 
     (base / "dir1").mkdir()
     (base / "dir1" / "subdir1").mkdir()
@@ -57,7 +56,7 @@ def nested_directory(temp_workspace):
 
 @pytest.fixture
 def directory_with_hidden_and_gitignore(temp_workspace):
-    base = Path(temp_workspace)
+    base = temp_workspace
 
     (base / ".hidden_dir").mkdir()
     (base / ".hidden_dir" / "hidden.txt").write_text("Hidden content", encoding="utf-8")
@@ -77,21 +76,21 @@ def directory_with_hidden_and_gitignore(temp_workspace):
 
 @pytest.fixture
 def empty_file(temp_workspace):
-    file_path = Path(temp_workspace) / "empty.txt"
+    file_path = temp_workspace / "empty.txt"
     file_path.write_text("", encoding="utf-8")
     return "empty.txt"
 
 
 @pytest.fixture
 def empty_directory(temp_workspace):
-    dir_path = Path(temp_workspace) / "empty_dir"
+    dir_path = temp_workspace / "empty_dir"
     dir_path.mkdir()
     return "empty_dir"
 
 
 @pytest.fixture
 def file_with_content(temp_workspace):
-    file_path = Path(temp_workspace) / "editable.txt"
+    file_path = temp_workspace / "editable.txt"
     content = "Original content\nSecond line\nThird line"
     file_path.write_text(content, encoding="utf-8")
     return "editable.txt", content
@@ -99,7 +98,7 @@ def file_with_content(temp_workspace):
 
 @pytest.fixture
 def directory_with_files(temp_workspace):
-    dir_path = Path(temp_workspace) / "test_dir"
+    dir_path = temp_workspace / "test_dir"
     dir_path.mkdir()
 
     (dir_path / "file1.txt").write_text("File 1 content", encoding="utf-8")
@@ -111,7 +110,7 @@ def directory_with_files(temp_workspace):
 
 @pytest.fixture
 def nested_structure(temp_workspace):
-    base = Path(temp_workspace) / "complex_structure"
+    base = temp_workspace / "complex_structure"
     base.mkdir()
 
     (base / "level1").mkdir()
@@ -128,7 +127,7 @@ def nested_structure(temp_workspace):
 
 @pytest.fixture
 def file_with_duplicate_content(temp_workspace):
-    file_path = Path(temp_workspace) / "duplicate.txt"
+    file_path = temp_workspace / "duplicate.txt"
     content = "Duplicate line\nUnique line\nDuplicate line\nAnother unique line"
     file_path.write_text(content, encoding="utf-8")
     return "duplicate.txt", content

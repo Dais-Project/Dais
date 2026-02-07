@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -23,7 +22,7 @@ class TestReadFile:
         assert "   4 | Special chars: !@#$%" in result
 
     def test_read_binary_file_with_mock(self, temp_workspace, mocker):
-        pdf_path = Path(temp_workspace) / "test.pdf"
+        pdf_path = temp_workspace / "test.pdf"
         pdf_path.write_bytes(b"fake pdf content")
 
         mock_result = mocker.MagicMock()
@@ -51,7 +50,7 @@ class TestReadFile:
         assert result == ""
 
     def test_read_file_with_relative_path(self, temp_workspace):
-        subdir = Path(temp_workspace) / "subdir"
+        subdir = temp_workspace / "subdir"
         subdir.mkdir()
         file_path = subdir / "test.txt"
         file_path.write_text("Test content", encoding="utf-8")

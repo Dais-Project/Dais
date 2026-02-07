@@ -6,7 +6,7 @@ from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 class TestFileSystemToolInit:
     def test_init_with_absolute_path(self, temp_workspace):
         tool = FileSystemToolset(temp_workspace)
-        assert tool.cwd == Path(temp_workspace)
+        assert tool.cwd == temp_workspace
         assert hasattr(tool, "md")
 
     def test_init_with_tilde(self):

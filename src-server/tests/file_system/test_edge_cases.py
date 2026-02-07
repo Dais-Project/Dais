@@ -1,11 +1,10 @@
-from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
 class TestEdgeCases:
     def test_unicode_filename(self, temp_workspace):
         filename = "测试文件.txt"
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         content = "Unicode content: 你好世界"
         file_path.write_text(content, encoding="utf-8")
 
@@ -16,7 +15,7 @@ class TestEdgeCases:
     def test_special_characters_in_content(self, temp_workspace):
         filename = "special.txt"
         content = "Special chars: <>&\"'\n\t"
-        file_path = Path(temp_workspace) / filename
+        file_path = temp_workspace / filename
         file_path.write_text(content, encoding="utf-8")
 
         tool = FileSystemToolset(temp_workspace)
@@ -24,7 +23,7 @@ class TestEdgeCases:
         assert "<>&\"'" in result
 
     def test_list_directory_sorting(self, temp_workspace):
-        base = Path(temp_workspace)
+        base = temp_workspace
 
         (base / "zebra.txt").write_text("", encoding="utf-8")
         (base / "apple.txt").write_text("", encoding="utf-8")
