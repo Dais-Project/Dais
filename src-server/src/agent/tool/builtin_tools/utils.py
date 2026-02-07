@@ -1,4 +1,7 @@
+import fnmatch
+import os
 import pathspec
+from collections.abc import Generator
 from pathlib import Path
 
 def truncate_output(text: str, max_chars: int = 2000) -> str:
@@ -21,7 +24,7 @@ def load_gitignore_spec(cwd: Path) -> pathspec.PathSpec | None:
     gitignore_path = cwd / ".gitignore"
     if gitignore_path.exists():
         with open(gitignore_path, "r", encoding="utf-8") as f:
-            return pathspec.PathSpec.from_lines("gitwildmatch", f)
+            return pathspec.PathSpec.from_lines("gitignore", f)
     return None
 
 def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, include_hidden: bool = False) -> bool:
@@ -41,3 +44,22 @@ def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, includ
         if spec.match_file(rel_path):
             return True
     return False
+
+def scandir_recursive(directory: str | Path) -> Generator[os.DirEntry, None, None]:
+    """
+    Returns:
+        A generator that yields os.DirEntry objects for all files in the directory tree.
+    """
+    try:
+        with os.scandir(directory) as entries:
+            try:
+                for entry in entries:
+                    if entry.is_symlink(): continue
+                    elif entry.is_dir():   yield from scandir_recursive(entry.path)
+                    elif entry.is_file():  yield entry
+            except OSError:
+                # prevents entry being deleted during iteration
+                pass
+    except (PermissionError, FileNotFoundError):
+        # skip permission denied items and non-existent directories
+        pass

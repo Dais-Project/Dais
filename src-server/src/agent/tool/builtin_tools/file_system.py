@@ -1,18 +1,21 @@
 import difflib
 import shutil
 import pathspec
-from typing import Iterator
+from typing import Iterator, TypedDict
 from pathlib import Path
 from markitdown import MarkItDown
 from ..toolset_wrapper import built_in_tool, BuiltInToolset
-from .utils import should_exclude, load_gitignore_spec
+from .utils import should_exclude, load_gitignore_spec, scandir_recursive
 
 class FileSystemToolset(BuiltInToolset):
-    def __init__(self, cwd: str):
+    def __init__(self, cwd: str | Path):
         super().__init__()
 
-        if cwd == "~":
-            cwd = str(Path.home())
+        if isinstance(cwd, str):
+            if cwd == "~":
+                cwd = Path.home()
+            else:
+                cwd = Path(cwd)
         self.cwd = cwd
         self.md = MarkItDown()
 
@@ -44,7 +47,7 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             The contents of the file, with optional line numbers added.
         """
-        abs_path = Path(self.cwd) / path
+        abs_path = self.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
@@ -292,7 +295,7 @@ class FileSystemToolset(BuiltInToolset):
         if max_depth is not None and max_depth < 1:
             raise ValueError(f"Invalid max_depth: {max_depth}")
 
-        abs_path = Path(self.cwd) / path
+        abs_path = self.cwd / path
         include_hidden = show_all
         include_gitignored = show_all
         gitignore_spec = (load_gitignore_spec(abs_path)
@@ -330,7 +333,7 @@ class FileSystemToolset(BuiltInToolset):
             >>> write_file("test.txt", "Hello World!")
             File written successfully.
         """
-        abs_path = Path(self.cwd) / path
+        abs_path = self.cwd / path
 
         if abs_path.exists() and str(abs_path) not in self._read_file_set:
             raise PermissionError(f"File already exists and was not read before: {path}")
@@ -364,7 +367,7 @@ class FileSystemToolset(BuiltInToolset):
             )
             return "\n".join(diff)
 
-        abs_path = Path(self.cwd) / path
+        abs_path = self.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
@@ -394,7 +397,7 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             A success message if the target was deleted successfully.
         """
-        abs_path = Path(self.cwd) / path
+        abs_path = self.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"'{path}' not found.")
@@ -424,8 +427,8 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             A success message if the target was copied successfully.
         """
-        src_path = Path(self.cwd) / src
-        dest_path = Path(self.cwd) / dest
+        src_path = self.cwd / src
+        dest_path = self.cwd / dest
 
         if not src_path.exists():
             raise FileNotFoundError(f"'{src}' not found.")
@@ -441,3 +444,51 @@ class FileSystemToolset(BuiltInToolset):
         else:
             shutil.copy2(src_path, dest_path)
         return f"Successfully copied '{src}' to '{dest}'"
+
+    class SearchFileResult(TypedDict):
+        search_root: str
+        total: int
+        matches: list[str]
+
+    @built_in_tool
+    def search_file(self,
+                    pattern: str,
+                    path: str=".",
+                    limit: int=125) -> SearchFileResult:
+        """
+        Request to search for files matching the specified pattern within the specified directory.
+        Use this when you need to find specific files in the project directory.
+
+        Pattern examples:
+            - "*.py" matches all Python files
+            - "main.*" matches files like "main.py" and "main.txt"
+            - "docs/*.md" matches all Markdown files in the "docs" directory
+
+        Args:
+            pattern: (required) The pattern to match.
+            path: (optional, default: ".") The path of the directory to search in (relative to the current working directory).
+            limit: (optional, default: 125) The maximum number of matches to return.
+        """
+
+        def scan_collect(directory: Path) -> list[str]:
+            matches = []
+            for index, entry in enumerate(scandir_recursive(directory)):
+                if index >= MAX_SCAN_LIMIT: break
+                if len(matches) >= limit: break
+                path = Path(entry)
+                if path.match(pattern):
+                    matches.append(path.relative_to(abs_path).as_posix())
+            return matches
+
+        MAX_SCAN_LIMIT = 100_0000
+        abs_path = self.cwd / path
+        if not abs_path.exists():
+            raise FileNotFoundError(f"Directory not found at {path}")
+        if not abs_path.is_dir():
+            raise NotADirectoryError(f"Path {path} is not a directory")
+        results = scan_collect(abs_path)
+        return {
+            "search_root": abs_path.as_posix(),
+            "total": len(results),
+            "matches": results,
+        }
