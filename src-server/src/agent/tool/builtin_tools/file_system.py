@@ -1,8 +1,11 @@
 import difflib
 import shutil
+import pathspec
+from typing import Iterator
 from pathlib import Path
 from markitdown import MarkItDown
 from ..toolset_wrapper import built_in_tool, BuiltInToolset
+from .utils import should_exclude, load_gitignore_spec
 
 class FileSystemToolset(BuiltInToolset):
     def __init__(self, cwd: str):
@@ -122,7 +125,12 @@ class FileSystemToolset(BuiltInToolset):
         return result
 
     @built_in_tool
-    def list_directory(self, path: str = ".", recursive: bool = False, max_depth: int | None = None) -> str:
+    def list_directory(self,
+                       path: str = ".",
+                       recursive: bool = False,
+                       max_depth: int | None = None,
+                       show_all: bool = False,
+                       ) -> str:
         """
         Request to list files and directories within the specified directory.
 
@@ -142,6 +150,8 @@ class FileSystemToolset(BuiltInToolset):
                        - 2: List up to 2 levels deep
                        - n: List up to n levels deep
                        This parameter is only effective when recursive=True.
+            show_all: (optional, default: False) If True, includes hidden files (.) and files ignored by .gitignore.
+                       Use this if you can't find a specific file you're looking for.
 
         Returns:
             A formatted string containing:
@@ -192,6 +202,10 @@ class FileSystemToolset(BuiltInToolset):
             3 [file] __init__.py
         """
 
+        def filter_items(items: Iterator[Path], spec: pathspec.PathSpec | None) -> Iterator[Path]:
+            nonlocal include_hidden, abs_path
+            return filter(lambda x: not should_exclude(x, spec, abs_path, include_hidden), items)
+
         def format_item(item: Path) -> str:
             if item.is_symlink():
                 try:
@@ -209,7 +223,7 @@ class FileSystemToolset(BuiltInToolset):
             """Format directory contents in non-recursive mode."""
             try:
                 items = sorted(
-                    directory.iterdir(),
+                    filter_items(directory.iterdir(), gitignore_spec),
                     key=lambda x: (not x.is_dir(), x.name.lower())
                 )
             except PermissionError:
@@ -221,7 +235,6 @@ class FileSystemToolset(BuiltInToolset):
             lines = []
             for idx, item in enumerate(items, 1):
                 lines.append(f"{idx} {format_item(item)}")
-
             return lines
 
         def format_items_recursive(
@@ -244,16 +257,20 @@ class FileSystemToolset(BuiltInToolset):
             if max_depth is not None and current_depth > max_depth:
                 return []
 
+            local_gitignore_spec = (load_gitignore_spec(directory)
+                                    if not include_gitignored else None)
+            if gitignore_spec and local_gitignore_spec:
+                local_gitignore_spec = gitignore_spec + local_gitignore_spec
+
             try:
                 items = sorted(
-                    directory.iterdir(),
+                    filter_items(directory.iterdir(), local_gitignore_spec),
                     key=lambda x: (not x.is_dir(), x.name.lower())
                 )
             except PermissionError:
                 return []
 
             indent_str = "  " * indent
-
             if len(items) == 0:
                 return [indent_str + "(empty directory)"]
 
@@ -270,13 +287,16 @@ class FileSystemToolset(BuiltInToolset):
                         current_depth + 1,
                         max_depth
                     ))
-
             return lines
 
         if max_depth is not None and max_depth < 1:
             raise ValueError(f"Invalid max_depth: {max_depth}")
 
         abs_path = Path(self.cwd) / path
+        include_hidden = show_all
+        include_gitignored = show_all
+        gitignore_spec = (load_gitignore_spec(abs_path)
+                          if not include_gitignored else None)
 
         if not abs_path.exists():
             raise FileNotFoundError(f"Directory not found at {path}")
