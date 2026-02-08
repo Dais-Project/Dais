@@ -11,7 +11,7 @@ tags: ["desktop", "LLM", "agent"]
 ### 项目组织
 
 这个项目使用 Tauri v2 构建，使用额外的 Python 子项目作为 Sidecar。
-使用 [task](https://github.com/go-task/task) 来进行多语言间的命令管理。
+使用 Nx 来进行多语言间的命令管理。
 
 ### 前端部分
 

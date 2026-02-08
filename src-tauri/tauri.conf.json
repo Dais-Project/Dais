@@ -4,9 +4,7 @@
   "version": "0.1.0",
   "identifier": "org.dais.desktop",
   "build": {
-    "beforeDevCommand": "task --parallel frontend:dev server:dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "task frontend:build server:build",
     "frontendDist": "../src-frontend/dist"
   },
   "app": {

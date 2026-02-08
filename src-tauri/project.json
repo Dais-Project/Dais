@@ -1,0 +1,37 @@
+{
+  "name": "tauri",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "src-tauri",
+  "implicitDependencies": [
+    "frontend",
+    "server"
+  ],
+  "targets": {
+    "dev": {
+      "command": "tauri dev -- -- --dev",
+      "continuous": true,
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": [
+            "frontend",
+            "server"
+          ]
+        }
+      ]
+    },
+    "build": {
+      "command": "tauri build",
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": [
+            "frontend",
+            "server"
+          ]
+        }
+      ]
+    }
+  }
+}

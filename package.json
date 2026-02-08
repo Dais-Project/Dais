@@ -3,9 +3,16 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "postinstall": "nx run-many -t install",
+    "dev": "nx run-many -t dev",
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.3.4",
     "@tauri-apps/cli": "^2",
-    "ultracite": "6.3.0"
+    "ultracite": "6.3.0",
+    "nx": "22.4.5"
   }
 }

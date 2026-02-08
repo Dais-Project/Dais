@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultProject": "dais",
+  "targetDefaults": {
+    "nx:run-commands": {
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    }
+  }
+}
