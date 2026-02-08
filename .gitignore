@@ -15,7 +15,6 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 .zed/*
-.task
 .idea
 .DS_Store
 *.suo
@@ -26,3 +25,8 @@ dist-ssr
 
 /target/
 /node-bin/
+
+
+
+.nx/cache
+.nx/workspace-data

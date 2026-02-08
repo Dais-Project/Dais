@@ -1,0 +1,49 @@
+{
+  "name": "frontend",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "src-frontend",
+  "targets": {
+    "install": {
+      "command": "pnpm install",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/package.json"
+      ]
+    },
+    "dev": {
+      "command": "pnpm vite",
+      "continuous": true,
+      "dependsOn": [
+        "install",
+        {
+          "target": "dev",
+          "projects": [
+            "server"
+          ]
+        }
+      ]
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "install"
+      ],
+      "cache": true,
+      "options": {
+        "commands": [
+          "pnpm tsc",
+          "pnpm vite build"
+        ],
+        "parallel": false
+      },
+      "inputs": [
+        "{projectRoot}/**/*",
+        "!{projectRoot}/node_modules/**/*"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    }
+  }
+}

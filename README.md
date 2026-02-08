@@ -9,14 +9,19 @@
 
 ## Development
 
-This project uses [task](https://github.com/go-task/task) to manage all the development commands, use `task` to get all the available commands.
+This project uses Nx to manage all the development commands, use `pnpm` to run the available scripts in [`package.json`](package.json).
 
-Install dependencies
+Install dependencies (postinstall will run `nx run-many -t install` for subprojects)
 ```
-task install
+pnpm install
 ```
 
 Start the dev servers
 ```
-task dev
+pnpm run dev
+```
+
+Build all projects
+```
+pnpm run build
 ```

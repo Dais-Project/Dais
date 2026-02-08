@@ -1,0 +1,71 @@
+{
+  "name": "server",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "src-server",
+  "targets": {
+    "install": {
+      "command": "uv sync --group dev",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/pyproject.toml",
+        "{projectRoot}/uv.lock"
+      ]
+    },
+    "test": {
+      "command": "uv run pytest",
+      "dependsOn": [
+        "install"
+      ]
+    },
+    "dev": {
+      "command": "uv run watchfiles \"uv run python entry.py\" src --ignore-paths __pycache__",
+      "continuous": true,
+      "dependsOn": [
+        "install"
+      ]
+    },
+    "generate-migration": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "install"
+      ],
+      "options": {
+        "commands": [
+          "uv run alembic upgrade head",
+          "uv run alembic revision --autogenerate"
+        ],
+        "parallel": false,
+        "cwd": "src-server"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "install",
+        {
+          "target": "build",
+          "projects": [
+            "frontend"
+          ]
+        }
+      ],
+      "cache": true,
+      "options": {
+        "commands": [
+          "uv run pyinstaller --noconfirm --name server entry.py",
+          "uv run python scripts/rename_python_sidecar.py --name=server --output-dir=../src-tauri/"
+        ],
+        "parallel": false
+      },
+      "inputs": [
+        "{projectRoot}/**/*.py",
+        "{projectRoot}/pyproject.toml"
+      ],
+      "outputs": [
+        "{projectRoot}/dist",
+        "{workspaceRoot}/src-tauri/server*"
+      ]
+    }
+  }
+}

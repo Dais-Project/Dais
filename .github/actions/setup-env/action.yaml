@@ -1,0 +1,40 @@
+name: 'Setup Project Environment'
+description: 'Install Node, Pnpm, Python, UV and Rust'
+
+inputs:
+  python-version:
+    description: 'Python version'
+    default: '3.14.2'
+  pnpm-version:
+    description: 'Pnpm version'
+    default: '10'
+  rust-targets:
+    description: 'Rust targets'
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: setup node
+      uses: actions/setup-node@v6
+      with:
+        node-version: lts/*
+        cache: 'pnpm'
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: "auto"
+
+    - name: install Rust stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ inputs.rust-targets }}
