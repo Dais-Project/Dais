@@ -17,7 +17,7 @@ export function useTextBuffer({
   throttleDelay = 100,
 }: UseTextBufferProps): TextBuffer {
   const textRef = useRef<string>("");
-  const { run: accumulateNotify } = useThrottleFn(
+  const { run: accumulateNotify, cancel: cancelThrottle } = useThrottleFn(
     () => onAccumulated?.(textRef.current),
     { wait: throttleDelay }
   );
@@ -30,7 +30,8 @@ export function useTextBuffer({
   );
   const clear = useCallback(() => {
     textRef.current = "";
-  }, []);
+    cancelThrottle();
+  }, [cancelThrottle]);
 
   return {
     text: textRef.current,

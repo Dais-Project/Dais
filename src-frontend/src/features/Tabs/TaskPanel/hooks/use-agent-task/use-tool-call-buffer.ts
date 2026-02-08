@@ -25,7 +25,7 @@ export function useToolCallBuffer({
 }: UseToolCallBufferProps = {}): ToolCallBufferHook {
   const toolCallsRef = useRef<Map<number, ToolCallBuffer>>(new Map());
 
-  const { run: accumulateNotify } = useThrottleFn(
+  const { run: accumulateNotify, cancel: cancelThrottle } = useThrottleFn(
     (...args: [toolCallId: string, toolCall: ToolCallBuffer]) =>
       onAccumulated?.(...args),
     { wait: throttleDelay }
@@ -60,7 +60,8 @@ export function useToolCallBuffer({
 
   const clear = useCallback(() => {
     toolCallsRef.current.clear();
-  }, []);
+    cancelThrottle();
+  }, [cancelThrottle]);
 
   return {
     toolCalls: toolCallsRef.current,

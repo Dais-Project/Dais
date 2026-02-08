@@ -252,9 +252,14 @@ export function AgentTaskProvider({
   );
 
   const onClose = useCallback(() => {
-    // remove messages that are not persisted
     setData((draft) => {
-      draft.messages = draft.messages.filter((m) => m.id !== undefined);
+      draft.messages = draft.messages.filter((m) => {
+        const isDeterminedMessage = m.id !== undefined;
+        if (!isDeterminedMessage) {
+          console.warn(`Undetermined message found and removed: ${m}`);
+        }
+        return isDeterminedMessage;
+      });
     });
     setState("idle");
   }, [setState]);

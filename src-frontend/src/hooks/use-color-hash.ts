@@ -1,15 +1,6 @@
-import { DynamicIcon, type IconName } from "lucide-react/dynamic";
-import { ActionableItemIcon } from "@/components/custom/item/ActionableItem";
-import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
-type AgentAvatarProps = {
-  name: string;
-  iconName: IconName;
-  className?: string;
-  iconClassName?: string;
-} & Omit<React.ComponentProps<typeof DynamicIcon>, "name" | "className">;
-
-export const AVATAR_COLORS = [
+const AVATAR_COLORS = [
   // 灰色系 (最适合黑白灰应用)
   "bg-zinc-500/10 text-zinc-700 border-zinc-500/20 dark:bg-zinc-500/20 dark:text-zinc-300 dark:border-zinc-500/30",
   "bg-slate-500/10 text-slate-700 border-slate-500/20 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30",
@@ -27,7 +18,7 @@ export const AVATAR_COLORS = [
   "bg-cyan-500/10 text-cyan-700 border-cyan-500/20 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/30",
 ];
 
-export function getColorFromName(name: string) {
+function getColorFromName(name: string) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     // biome-ignore lint/suspicious/noBitwiseOperators: for hash
@@ -37,21 +28,14 @@ export function getColorFromName(name: string) {
   return AVATAR_COLORS[index];
 }
 
-export function AgentAvatar({
-  name,
-  iconName,
-  className,
-  iconClassName,
-  ...props
-}: AgentAvatarProps) {
-  const colorClass = getColorFromName(name || "Agent");
-  return (
-    <ActionableItemIcon className={colorClass}>
-      <DynamicIcon
-        name={iconName}
-        className={cn(className, iconClassName)}
-        {...props}
-      />
-    </ActionableItemIcon>
-  );
+export function useColorHash(seed?: undefined): null;
+export function useColorHash(seed: string): string;
+export function useColorHash(seed?: string): string | null;
+export function useColorHash(seed?: string): string | null {
+  return useMemo(() => {
+    if (!seed) {
+      return null;
+    }
+    return getColorFromName(seed);
+  }, [seed]);
 }

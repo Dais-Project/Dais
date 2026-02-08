@@ -15,6 +15,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
+import { useColorHash } from "@/hooks/use-color-hash";
 import { cn } from "@/lib/utils";
 
 type ActionableItemContextValue = {
@@ -54,10 +55,16 @@ export function ActionableItem({ children }: ActionableItemProps) {
   );
 }
 
-export function ActionableItemIcon(
-  props: Omit<React.ComponentProps<typeof ItemMedia>, "variant">
-) {
-  return <ItemMedia variant="icon" {...props} />;
+type ActionableItemIconProps = {
+  seed?: string;
+} & Omit<React.ComponentProps<typeof ItemMedia>, "variant">;
+
+export function ActionableItemIcon(props: ActionableItemIconProps) {
+  const { seed, className, ...rest } = props;
+  const colorClass = useColorHash(seed);
+  return (
+    <ItemMedia variant="icon" className={cn(className, colorClass)} {...rest} />
+  );
 }
 
 type ActionableItemTriggerProps = {
