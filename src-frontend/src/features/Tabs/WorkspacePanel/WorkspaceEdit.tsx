@@ -116,7 +116,6 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
       reset();
       onConfirm?.();
 
-      // 如果更新的是当前工作区，同步当前工作区状态
       if (updatedWorkspace.id === currentWorkspace?.id) {
         await syncCurrentWorkspace();
       }

@@ -27,9 +27,10 @@ tasks:
     cmds:
       - >
         uv run watchmedo auto-restart
-        --patterns="*.py"
+        --patterns="**/*.py"
+        --debounce-interval=1
+        --ignore-directories
         --recursive
-        --debounce-interval 1
         -- uv run python entry.py
 
   generate-migration:

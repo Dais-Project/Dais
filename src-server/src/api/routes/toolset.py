@@ -1,7 +1,8 @@
 from typing import Annotated, cast
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
 from ...agent.tool import use_mcp_toolset_manager, McpToolset
+from ...agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ...services.toolset import ToolsetService
 from ...db.schemas import toolset as toolset_schemas
 
@@ -11,7 +12,11 @@ def get_toolset_service():
     with ToolsetService() as service:
         yield service
 
+def get_mcp_toolset_manager(request: Request) -> McpToolsetManager:
+    return request.state.mcp_toolset_manager
+
 ToolsetServiceDep = Annotated[ToolsetService, Depends(get_toolset_service)]
+McpToolsetManagerDep = Annotated[McpToolsetManager, Depends(get_mcp_toolset_manager)]
 
 class ToolsetBrief(BaseModel):
     id: int
@@ -21,9 +26,10 @@ class ToolsetBrief(BaseModel):
     status: str | None = None
 
 @toolset_router.get("/brief", response_model=list[ToolsetBrief])
-def get_toolsets_brief(service: ToolsetServiceDep):
-    mcp_toolset_manager = use_mcp_toolset_manager()
-
+def get_toolsets_brief(
+    service: ToolsetServiceDep,
+    mcp_toolset_manager: McpToolsetManagerDep,
+):
     built_in_toolsets = service.get_all_built_in_toolsets()
     mcp_toolsets = service.get_all_mcp_toolsets()
     mcp_toolset_map = {toolset.internal_key: toolset
@@ -52,9 +58,8 @@ def get_toolset(toolset_id: int, service: ToolsetServiceDep):
 async def create_mcp_toolset(
     body: toolset_schemas.ToolsetCreate,
     service: ToolsetServiceDep,
+    mcp_toolset_manager: McpToolsetManagerDep,
 ):
-    mcp_toolset_manager = use_mcp_toolset_manager()
-
     new_toolset = service.create_toolset(body)
     await mcp_toolset_manager.refresh_toolset_metadata()
     return toolset_schemas.ToolsetRead.model_validate(new_toolset)
@@ -64,16 +69,17 @@ async def update_toolset(
     toolset_id: int,
     body: toolset_schemas.ToolsetUpdate,
     service: ToolsetServiceDep,
+    mcp_toolset_manager: McpToolsetManagerDep,
 ):
-    mcp_toolset_manager = use_mcp_toolset_manager()
-
     updated_toolset = service.update_toolset(toolset_id, body)
     await mcp_toolset_manager.refresh_toolset_metadata()
     return toolset_schemas.ToolsetRead.model_validate(updated_toolset)
 
 @toolset_router.delete("/{toolset_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_toolset(toolset_id: int, service: ToolsetServiceDep):
-    mcp_toolset_manager = use_mcp_toolset_manager()
-
+async def delete_toolset(
+    toolset_id: int,
+    service: ToolsetServiceDep,
+    mcp_toolset_manager: McpToolsetManagerDep,
+):
     service.delete_toolset(toolset_id)
     await mcp_toolset_manager.refresh_toolset_metadata()

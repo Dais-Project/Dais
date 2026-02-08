@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 class WorkspaceBase(DTOBase):
     name: str
     directory: str
+    workspace_background: str
 
 class WorkspaceRead(WorkspaceBase):
     id: int
@@ -18,4 +19,5 @@ class WorkspaceCreate(WorkspaceBase):
 class WorkspaceUpdate(DTOBase):
     name: str | None = None
     directory: str | None = None
+    workspace_background: str | None = None
     usable_agent_ids: list[int] | None = None

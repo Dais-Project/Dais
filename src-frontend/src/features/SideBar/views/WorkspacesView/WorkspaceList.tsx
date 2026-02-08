@@ -4,7 +4,6 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
-import React from "react";
 import { toast } from "sonner";
 import { deleteWorkspace, fetchWorkspaces } from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
@@ -149,22 +148,17 @@ function WorkspaceItem({
   );
 }
 
-const MemoizedWorkspaceItem = React.memo(
-  WorkspaceItem,
-  (prev, next) =>
-    prev.workspace.id === next.workspace.id &&
-    prev.workspace.name === next.workspace.name &&
-    prev.workspace.directory === next.workspace.directory
-);
-
 export function WorkspaceList() {
   const queryClient = useQueryClient();
-  const { tabs, removeTab } = useTabsStore();
-  const {
-    currentWorkspace,
-    setCurrentWorkspace,
-    isLoading: isCurrentWorkspaceLoading,
-  } = useWorkspaceStore();
+  const tabs = useTabsStore((state) => state.tabs);
+  const removeTab = useTabsStore((state) => state.removeTab);
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const setCurrentWorkspace = useWorkspaceStore(
+    (state) => state.setCurrentWorkspace
+  );
+  const isCurrentWorkspaceLoading = useWorkspaceStore(
+    (state) => state.isLoading
+  );
 
   const asyncConfirm = useAsyncConfirm<WorkspaceRead>({
     onConfirm: async (workspace) => {
@@ -220,7 +214,7 @@ export function WorkspaceList() {
     <>
       <ScrollArea className="flex-1">
         {data?.items.map((workspace) => (
-          <MemoizedWorkspaceItem
+          <WorkspaceItem
             key={workspace.id}
             workspace={workspace}
             disabled={isCurrentWorkspaceLoading}
