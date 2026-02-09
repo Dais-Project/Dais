@@ -8,7 +8,8 @@ dependencies = [
     "uvicorn==0.40.0",
     "sse-starlette==3.2.0",
     "loguru==0.7.3",
-    "dais-sdk==0.6.6",
+    "dais-sdk==0.6.7",
+    "dais-shell==0.1.1",
     "markitdown[docx,pdf,pptx]==0.1.4",
     "pathspec==1.0.4",
     "platformdirs==4.5.1",
@@ -27,9 +28,4 @@ dev = [
 ]
 
 [tool.uv]
-override-dependencies = ["onnxruntime==1.24.0.dev20260123005"]
-
-# TODO: This is a workaround for onnxruntime not being available on PyPI for Python 3.14 yet.
-[tool.uv.sources]
-# get from https://aiinfra.visualstudio.com/PublicPackages/_artifacts/feed/ORT-Nightly/PyPI/onnxruntime/overview/1.24.0.dev20260123005
-onnxruntime = { path = "wheels/onnxruntime-1.24.0.dev20260123005-cp314-cp314-win_amd64.whl" }
+override-dependencies = ["onnxruntime==1.24.1"]
