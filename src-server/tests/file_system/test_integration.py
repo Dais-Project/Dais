@@ -17,23 +17,6 @@ class TestIntegration:
         assert "Modified content" in final_content
         assert "Initial content" not in final_content
 
-    def test_copy_edit_workflow(self, temp_workspace, sample_text_file):
-        filename, _ = sample_text_file
-        tool = FileSystemToolset(temp_workspace)
-
-        tool.copy(filename, "copied_for_edit.txt")
-
-        result = tool.edit_file("copied_for_edit.txt", "Line 1", "Modified Line 1")
-
-        assert "---" in result
-        copied_path = temp_workspace / "copied_for_edit.txt"
-        content = copied_path.read_text(encoding="utf-8")
-        assert "Modified Line 1" in content
-
-        original_path = temp_workspace / filename
-        original_content = original_path.read_text(encoding="utf-8")
-        assert "Line 1" in original_content
-
     def test_read_write_edit_delete_workflow(self, temp_workspace, sample_text_file):
         filename, original_content = sample_text_file
         tool = FileSystemToolset(temp_workspace)
@@ -64,10 +47,11 @@ class TestIntegration:
         abs_path1 = str(file1_path)
         assert abs_path1 in tool._read_file_set
 
-        tool.copy(filename1, "file2.txt")
+        filename2 = "file2.txt"
+        tool.write_file(filename2, "Content 2")
+        tool.read_file(filename2)
 
-        tool.read_file("file2.txt")
-        abs_path2 = str(temp_workspace / "file2.txt")
+        abs_path2 = str(temp_workspace / filename2)
         assert abs_path2 in tool._read_file_set
 
         tool.delete(filename1)
@@ -75,7 +59,7 @@ class TestIntegration:
 
         assert abs_path2 in tool._read_file_set
 
-        tool.write_file("file2.txt", "New content")
+        tool.write_file(filename2, "New content")
 
-        file2_path = temp_workspace / "file2.txt"
+        file2_path = temp_workspace / filename2
         assert file2_path.read_text(encoding="utf-8") == "New content"

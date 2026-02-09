@@ -405,41 +405,6 @@ class FileSystemToolset(BuiltInToolset):
             abs_path.unlink()
         return f"'{path}' deleted successfully."
 
-    @built_in_tool
-    def copy(self, src: str, dest: str) -> str:
-        """
-        Request to copy a file or directory from source to destination.
-
-        Behavior:
-        1. If `dest` does not exist: Copies `src` to `dest` (renaming it).
-        2. If `dest` exists and is a directory: Copies `src` INTO `dest` (keeping original filename).
-        3. If `dest` exists and is a file: Raises FileExistsError (to prevent accidental overwrite).
-
-        Args:
-            src: (required) The path of the source (relative to the current working directory).
-            dest: (required) The path of the destination (relative to the current working directory).
-
-        Returns:
-            A success message if the target was copied successfully.
-        """
-        src_path = self.cwd / src
-        dest_path = self.cwd / dest
-
-        if not src_path.exists():
-            raise FileNotFoundError(f"'{src}' not found.")
-
-        if dest_path.is_dir():
-            dest_path = dest_path / src_path.name
-
-        if dest_path.exists():
-            raise FileExistsError(f"Target '{dest_path.name}' already exists at destination. Copy aborted to prevent overwrite.")
-
-        if src_path.is_dir():
-            shutil.copytree(src_path, dest_path)
-        else:
-            shutil.copy2(src_path, dest_path)
-        return f"Successfully copied '{src}' to '{dest}'"
-
     class SearchFileResult(TypedDict):
         search_root: str
         total: int
