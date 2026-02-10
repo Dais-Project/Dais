@@ -9,7 +9,7 @@ dependencies = [
     "uvicorn==0.40.0",
     "sse-starlette==3.2.0",
     "loguru==0.7.3",
-    "dais-sdk==0.6.7",
+    "dais-sdk==0.6.8",
     "dais-shell==0.1.1",
     "markitdown[docx,pdf,pptx]==0.1.4",
     "pathspec==1.0.4",

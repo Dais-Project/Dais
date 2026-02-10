@@ -34,8 +34,9 @@ class OsInteractionsToolset(BuiltInToolset):
                     ) -> ShellResult:
         """
         Request to execute a shell command.
-        Use this when you need to execute a shell command and get the output of the command.
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
+        This is a LOW PRIORITY tool - only use this tool when no suitable specialized tool is available.
+
         IMPORTANT:
             1. DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons.
             2. DO NOT use shell operators such as `&&`, `||`, `|`, `;`, `>`, `>>`, `<`, `2>&1`.
