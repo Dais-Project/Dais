@@ -4,15 +4,40 @@ import pathspec
 from typing import Iterator, TypedDict
 from pathlib import Path
 from markitdown import MarkItDown
-from ..toolset_wrapper import built_in_tool, BuiltInToolset
-from .utils import should_exclude, load_gitignore_spec, scandir_recursive, resolve_cwd
+from binaryornot.check import is_binary
+from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from .utils import scandir_recursive
+
+def load_gitignore_spec(cwd: Path) -> pathspec.PathSpec | None:
+    gitignore_path = cwd / ".gitignore"
+    if gitignore_path.exists():
+        with open(gitignore_path, "r", encoding="utf-8") as f:
+            return pathspec.PathSpec.from_lines("gitignore", f)
+    return None
+
+def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, include_hidden: bool = False) -> bool:
+    is_hidden = item.name.startswith(".")
+    if not include_hidden and is_hidden:
+        return True
+
+    if spec:
+        try:
+            rel_path = item.relative_to(cwd).as_posix()
+        except ValueError:
+            # item is not under cwd
+            return False
+
+        if item.is_dir():
+            rel_path += "/"
+        if spec.match_file(rel_path):
+            return True
+    return False
 
 class FileSystemToolset(BuiltInToolset):
-    def __init__(self, cwd: str | Path):
-        super().__init__()
+    def __init__(self, ctx: BuiltInToolsetContext):
+        super().__init__(ctx)
 
-        self.cwd = resolve_cwd(cwd)
-        self.md = MarkItDown()
+        self._md = MarkItDown()
 
         # this set should stores file absolute path
         self._read_file_set = set()
@@ -42,14 +67,16 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             The contents of the file, with optional line numbers added.
         """
-        abs_path = self.cwd / path
+        abs_path = self._ctx.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
 
         if self._is_markitdown_convertable_binary(path):
-            result = self.md.convert(abs_path)
+            result = self._md.convert(abs_path)
             lines = result.markdown.splitlines()
+        elif is_binary(str(abs_path)):
+            raise ValueError(f"File {path} is a binary file, and is not supported to read.")
         else:
             with open(abs_path, "r", encoding="utf-8") as f:
                 lines = f.read().splitlines()
@@ -290,7 +317,7 @@ class FileSystemToolset(BuiltInToolset):
         if max_depth is not None and max_depth < 1:
             raise ValueError(f"Invalid max_depth: {max_depth}")
 
-        abs_path = self.cwd / path
+        abs_path = self._ctx.cwd / path
         include_hidden = show_all
         include_gitignored = show_all
         gitignore_spec = (load_gitignore_spec(abs_path)
@@ -328,7 +355,7 @@ class FileSystemToolset(BuiltInToolset):
             >>> write_file("test.txt", "Hello World!")
             File written successfully.
         """
-        abs_path = self.cwd / path
+        abs_path = self._ctx.cwd / path
 
         if abs_path.exists() and str(abs_path) not in self._read_file_set:
             raise PermissionError(f"File already exists and was not read before: {path}")
@@ -362,7 +389,7 @@ class FileSystemToolset(BuiltInToolset):
             )
             return "\n".join(diff)
 
-        abs_path = self.cwd / path
+        abs_path = self._ctx.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
@@ -392,7 +419,7 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             A success message if the target was deleted successfully.
         """
-        abs_path = self.cwd / path
+        abs_path = self._ctx.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"'{path}' not found.")
@@ -441,7 +468,7 @@ class FileSystemToolset(BuiltInToolset):
             return matches
 
         MAX_SCAN_LIMIT = 200_000
-        abs_path = self.cwd / path
+        abs_path = self._ctx.cwd / path
         if not abs_path.exists():
             raise FileNotFoundError(f"Directory not found at {path}")
         if not abs_path.is_dir():

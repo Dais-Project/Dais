@@ -1,11 +1,13 @@
 import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
+from src.agent.types import ContextUsage
 
 
 class TestEditFile:
     def test_edit_file_single_line(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
 
         result = tool.edit_file(filename, "Second line", "Modified second line")
 
@@ -22,7 +24,7 @@ class TestEditFile:
 
     def test_edit_file_multiple_lines(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
 
         old_content = "Second line\nThird line"
         new_content = "New second line\nNew third line"
@@ -38,7 +40,7 @@ class TestEditFile:
 
     def test_edit_file_returns_valid_diff(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
 
         result = tool.edit_file(filename, "Original content", "Updated content")
 
@@ -48,7 +50,7 @@ class TestEditFile:
         assert any(line.startswith("@@") for line in lines)
 
     def test_edit_file_with_unicode(self, temp_workspace):
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
         filename = "unicode_edit.txt"
         original = "原始内容\n第二行"
 
@@ -62,7 +64,7 @@ class TestEditFile:
         assert "原始内容" not in new_content
 
     def test_edit_nonexistent_file(self, temp_workspace):
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
 
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.edit_file("nonexistent.txt", "old", "new")
@@ -71,7 +73,7 @@ class TestEditFile:
 
     def test_edit_file_content_not_found(self, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
 
         with pytest.raises(ValueError) as exc_info:
             tool.edit_file(filename, "This content does not exist", "new content")
@@ -80,7 +82,7 @@ class TestEditFile:
 
     def test_edit_file_content_found_multiple_times(self, temp_workspace, file_with_duplicate_content):
         filename, _ = file_with_duplicate_content
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
 
         with pytest.raises(ValueError) as exc_info:
             tool.edit_file(filename, "Duplicate line", "new content")
@@ -88,7 +90,7 @@ class TestEditFile:
         assert "Content found multiple times in file" in str(exc_info.value)
 
     def test_edit_file_with_whitespace_sensitivity(self, temp_workspace):
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
         filename = "whitespace.txt"
         content = "Line with spaces\n  Indented line\nNormal line"
 

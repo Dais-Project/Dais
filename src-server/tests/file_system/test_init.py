@@ -1,21 +1,23 @@
 import pytest
 from pathlib import Path
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
+from src.agent.types import ContextUsage
 
 
 class TestFileSystemToolInit:
     def test_init_with_absolute_path(self, temp_workspace):
-        tool = FileSystemToolset(temp_workspace)
-        assert tool.cwd == temp_workspace
-        assert hasattr(tool, "md")
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        assert tool._ctx.cwd == temp_workspace
+        assert hasattr(tool, "_md")
 
     def test_init_with_tilde(self):
-        tool = FileSystemToolset("~")
-        assert tool.cwd == Path.home()
+        tool = FileSystemToolset(BuiltInToolsetContext("~", ContextUsage()))
+        assert tool._ctx.cwd == Path.home()
 
     def test_markitdown_instance(self, temp_workspace):
-        tool = FileSystemToolset(temp_workspace)
-        assert tool.md is not None
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        assert tool._md is not None
 
 
 class TestIsMarkitdownConvertableBinary:

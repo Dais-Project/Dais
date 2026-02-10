@@ -1,10 +1,15 @@
 import pytest
-from src.agent.tool.builtin_tools.file_system import BuiltInToolset
+from src.agent.tool.toolset_wrapper import BuiltInToolset
 
 
 @pytest.fixture(autouse=True)
 def mock_built_in_toolset_init(mocker):
-    mocker.patch.object(BuiltInToolset, "__init__", return_value=None)
+    def _init(self, ctx):
+        self._ctx = ctx
+        self._tools_cache = []
+        self._toolset_ent_map = {}
+
+    mocker.patch.object(BuiltInToolset, "__init__", _init)
 
 
 @pytest.fixture

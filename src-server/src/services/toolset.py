@@ -27,6 +27,7 @@ class CannotCreateBuiltinToolsetError(BadRequestError):
     """Raised when attempting to create a builtin toolset."""
     def __init__(self) -> None:
         super().__init__("Cannot create builtin toolset")
+
 class ToolsetService(ServiceBase):
     class ToolLike(NamedTuple):
         name: str

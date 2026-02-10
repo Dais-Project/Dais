@@ -4,7 +4,7 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import React from "react";
+import type React from "react";
 import { toast } from "sonner";
 import { deleteToolset, fetchToolsetsBrief } from "@/api/toolset";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
@@ -167,15 +167,6 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
   );
 }
 
-const MemoizedToolsetItem = React.memo(
-  ToolsetItem,
-  (prev, next) =>
-    prev.toolset.id === next.toolset.id &&
-    prev.toolset.name === next.toolset.name &&
-    prev.toolset.type === next.toolset.type &&
-    prev.toolset.status === next.toolset.status
-);
-
 export function ToolsetList() {
   const queryClient = useQueryClient();
   const { tabs, removeTab } = useTabsStore();
@@ -218,7 +209,7 @@ export function ToolsetList() {
     <>
       <ScrollArea className="flex-1">
         {data?.map((toolset) => (
-          <MemoizedToolsetItem
+          <ToolsetItem
             key={toolset.id}
             toolset={toolset}
             onDelete={asyncConfirm.trigger}

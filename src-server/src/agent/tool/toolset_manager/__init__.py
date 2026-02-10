@@ -1,2 +1,2 @@
-from .mcp_toolset_manager import use_mcp_toolset_manager
+from .mcp_toolset_manager import use_mcp_toolset_manager, McpToolsetManager
 from .builtin_toolset_manager import BuiltinToolsetManager

@@ -1,4 +1,4 @@
-import { GlobeIcon, TerminalIcon, ToolCaseIcon } from "lucide-react";
+import { CpuIcon, GlobeIcon, TerminalIcon, ToolCaseIcon } from "lucide-react";
 import type { ToolsetType } from "@/types/toolset";
 
 type ToolsetIconProps = {
@@ -8,8 +8,8 @@ type ToolsetIconProps = {
 
 export function ToolsetIcon({ type, className }: ToolsetIconProps) {
   switch (type) {
-    case "builtin":
-      return <ToolCaseIcon className={className} />;
+    case "built_in":
+      return <CpuIcon className={className} />;
     case "mcp_local":
       return <TerminalIcon className={className} />;
     case "mcp_remote":

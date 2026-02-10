@@ -1,4 +1,6 @@
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
+from src.agent.types import ContextUsage
 
 
 class TestEdgeCases:
@@ -8,7 +10,7 @@ class TestEdgeCases:
         content = "Unicode content: 你好世界"
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
         result = tool.read_file(filename)
         assert result == content
 
@@ -18,7 +20,7 @@ class TestEdgeCases:
         file_path = temp_workspace / filename
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
         result = tool.read_file(filename)
         assert "<>&\"'" in result
 
@@ -30,7 +32,7 @@ class TestEdgeCases:
         (base / "zoo_dir").mkdir()
         (base / "alpha_dir").mkdir()
 
-        tool = FileSystemToolset(temp_workspace)
+        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
         result = tool.list_directory(".")
 
         lines = result.split("\n")

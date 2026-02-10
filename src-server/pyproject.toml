@@ -4,7 +4,8 @@ version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
     "alembic==1.18.3",
-    "fastapi==0.128.0",
+    "binaryornot==0.4.4",
+    "fastapi==0.128.6",
     "uvicorn==0.40.0",
     "sse-starlette==3.2.0",
     "loguru==0.7.3",
@@ -18,14 +19,9 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "pytest>=9.0.0",
-    "pytest-cov>=7.0.0",
-    "pytest-mock>=3.15.0",
-    "pyinstaller>=6.17.0",
-    "psutil>=7.2.2",
-    "watchfiles>=1.1.1",
-]
+dev = ["pyinstaller>=6.17.0", "psutil>=7.2.2", "watchfiles>=1.1.1"]
+test = ["pytest>=9.0.0", "pytest-cov>=7.0.0", "pytest-mock>=3.15.0"]
+types = ["types-binaryornot==0.4.0.20250507"]
 
 [tool.uv]
 override-dependencies = ["onnxruntime==1.24.1"]
