@@ -7,9 +7,7 @@
     "install": {
       "command": "pnpm install",
       "cache": true,
-      "inputs": [
-        "{projectRoot}/package.json"
-      ]
+      "inputs": ["{projectRoot}/package.json"]
     },
     "dev": {
       "command": "pnpm vite",
@@ -18,32 +16,20 @@
         "install",
         {
           "target": "dev",
-          "projects": [
-            "server"
-          ]
+          "projects": ["server"]
         }
       ]
     },
     "build": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "install"
-      ],
+      "dependsOn": ["install"],
       "cache": true,
       "options": {
-        "commands": [
-          "pnpm tsc",
-          "pnpm vite build"
-        ],
+        "commands": ["pnpm tsc", "pnpm vite build"],
         "parallel": false
       },
-      "inputs": [
-        "{projectRoot}/**/*",
-        "!{projectRoot}/node_modules/**/*"
-      ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
+      "inputs": ["{projectRoot}/**/*", "!{projectRoot}/node_modules/**/*"],
+      "outputs": ["{projectRoot}/dist"]
     }
   }
 }

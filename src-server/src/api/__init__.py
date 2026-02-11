@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.routing import APIRoute
 from .routes import (
     workspaces_router,
     tasks_router,
@@ -41,3 +42,14 @@ app.include_router(llm_models_router, prefix="/api/llm_models")
 app.include_router(llm_api_router, prefix="/api/llm")
 app.include_router(tasks_router, prefix="/api/tasks")
 app.include_router(toolset_router, prefix="/api/toolsets")
+
+
+def use_route_names_as_operation_ids(application: FastAPI) -> None:
+    """
+    Simplify operation IDs so that generated API clients have simpler function names.
+    Should be called only after all routes have been added.
+    """
+    for route in application.routes:
+        if isinstance(route, APIRoute):
+            route.operation_id = route.name
+use_route_names_as_operation_ids(app)

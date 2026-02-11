@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+openapi.json
+
 # Editor directories and files
 .vscode/*
 .zed/*
