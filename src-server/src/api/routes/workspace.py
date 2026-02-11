@@ -5,7 +5,7 @@ from .types import PaginatedResponse
 from ...services.workspace import WorkspaceService
 from ...db.schemas import workspace as workspace_schemas
 
-workspaces_router = APIRouter()
+workspaces_router = APIRouter(tags=["workspace"])
 
 def get_workspace_service():
     with WorkspaceService() as service:

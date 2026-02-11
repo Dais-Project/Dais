@@ -64,6 +64,12 @@
         "{workspaceRoot}/src-tauri/server*"
       ]
     },
+    "export-openapi": {
+      "command": "uv run python -m scripts.export_openapi",
+      "cache": true,
+      "inputs": ["{projectRoot}/src/api/**/*.py"],
+      "outputs": ["{workspaceRoot}/openapi.json"]
+    },
     "generate-migration": {
       "executor": "nx:run-commands",
       "dependsOn": [

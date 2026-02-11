@@ -3,33 +3,66 @@
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "src-frontend",
+  "implicitDependencies": [
+    "server"
+  ],
   "targets": {
     "install": {
       "command": "pnpm install",
       "cache": true,
-      "inputs": ["{projectRoot}/package.json"]
+      "inputs": [
+        "{projectRoot}/package.json"
+      ]
     },
     "dev": {
       "command": "pnpm vite",
       "continuous": true,
       "dependsOn": [
         "install",
+        "watch-api",
         {
           "target": "dev",
-          "projects": ["server"]
+          "projects": [
+            "server"
+          ]
         }
       ]
     },
     "build": {
       "executor": "nx:run-commands",
-      "dependsOn": ["install"],
+      "dependsOn": [
+        "install",
+        "watch-api"
+      ],
       "cache": true,
       "options": {
-        "commands": ["pnpm tsc", "pnpm vite build"],
+        "commands": [
+          "pnpm tsc",
+          "pnpm vite build"
+        ],
         "parallel": false
       },
-      "inputs": ["{projectRoot}/**/*", "!{projectRoot}/node_modules/**/*"],
-      "outputs": ["{projectRoot}/dist"]
+      "inputs": [
+        "{projectRoot}/**/*",
+        "!{projectRoot}/node_modules/**/*"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "watch-api": {
+      "command": "pnpm nodemon --watch ../openapi.json --exec pnpm orval",
+      "continuous": true,
+      "cache": false,
+      "dependsOn": [
+        "install",
+        {
+          "target": "export-openapi",
+          "projects": [
+            "server"
+          ]
+        }
+      ]
     }
   }
 }

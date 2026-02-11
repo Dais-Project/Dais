@@ -7,8 +7,8 @@ export default defineConfig({
     },
     output: {
       clean: true,
-      target: "./src/api/generated/endpoints.ts",
-      schemas: "./src/api/generated/schemas",
+      target: "./src/api/endpoints/",
+      schemas: "./src/api/schemas/",
       client: "react-query",
       mode: "tags-split",
       override: {
@@ -21,6 +21,9 @@ export default defineConfig({
           useInfinite: true,
         },
       },
+    },
+    hooks: {
+      afterAllFilesWrite: ["biome format --write"],
     },
   },
 });

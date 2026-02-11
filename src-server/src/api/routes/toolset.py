@@ -1,12 +1,12 @@
 from typing import Annotated, cast
 from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
-from ...agent.tool import use_mcp_toolset_manager, McpToolset
+from ...agent.tool import McpToolset
 from ...agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ...services.toolset import ToolsetService
 from ...db.schemas import toolset as toolset_schemas
 
-toolset_router = APIRouter()
+toolset_router = APIRouter(tags=["toolset"])
 
 def get_toolset_service():
     with ToolsetService() as service:

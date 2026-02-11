@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 from pydantic import BaseModel
 from dais_sdk import LLM, LlmProviders
 
-llm_api_router = APIRouter()
+llm_api_router = APIRouter(tags=["llm_api"])
 
 class FetchModelsBody(BaseModel):
     base_url: str

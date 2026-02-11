@@ -5,7 +5,7 @@ from .types import PaginatedResponse
 from ...services.agent import AgentService
 from ...db.schemas import agent as agent_schemas
 
-agents_router = APIRouter()
+agents_router = APIRouter(tags=["agent"])
 
 def get_agent_service():
     with AgentService() as service:

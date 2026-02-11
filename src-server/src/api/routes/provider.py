@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from ...services.provider import ProviderService
 from ...db.schemas import provider as provider_schemas
 
-providers_router = APIRouter()
+providers_router = APIRouter(tags=["provider"])
 
 def get_provider_service():
     with ProviderService() as service:

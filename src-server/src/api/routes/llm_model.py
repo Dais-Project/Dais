@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from ...services.llm_model import LlmModelService
 from ...db.schemas import provider as provider_schemas
 
-llm_models_router = APIRouter()
+llm_models_router = APIRouter(tags=["llm_model"])
 
 def get_llm_model_service():
     with LlmModelService() as service:
