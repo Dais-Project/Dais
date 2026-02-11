@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 from enum import Enum
 from typing import Annotated, TYPE_CHECKING
 from dais_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
@@ -7,7 +8,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from . import Base
-from .utils import PydanticJSON
+from .utils import DataClassJSON, PydanticJSON
 
 if TYPE_CHECKING:
     from .agent import Agent
@@ -25,11 +26,19 @@ class TaskType(str, Enum):
     Orchestration = "orchestration"
     CodeExecution = "code_execution"
 
+@dataclass
+class TaskUsage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    max_tokens: int = 0
+
 class Task(Base):
     __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
     type: Mapped[TaskType]
     title: Mapped[str]
+    usage: Mapped[TaskUsage] = mapped_column(DataClassJSON(TaskUsage))
     messages: Mapped[list[TaskMessage]] = mapped_column(PydanticJSON(messages_adapter), default=list)
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
     agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id", ondelete="SET NULL"))

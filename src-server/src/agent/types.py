@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, TypeGuard, TypedDict
 from dais_sdk import MessageChunk, ToolMessage, AssistantMessage, UsageChunk
-from ..db.models.task import TaskMessage
+from ..db.models.task import TaskMessage, TaskUsage
 
 @dataclass(frozen=True)
 class MessageStartEvent:
@@ -97,12 +97,7 @@ AgentEvent = (
 # --- --- --- --- --- ---
 
 @dataclass(frozen=False)
-class ContextUsage:
-    input_tokens: int = 0
-    output_tokens: int = 0
-    total_tokens: int = 0
-    max_tokens: int = 0
-
+class ContextUsage(TaskUsage):
     @property
     def remaining_tokens(self) -> int:
         reserved_output = 4096

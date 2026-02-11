@@ -41,7 +41,7 @@ class AgentContext:
             workspace_directory=self.workspace.directory,
             workspace_instruction=self.workspace.workspace_background,
             agent_instruction=self.agent.system_prompt
-        )
+        ).strip()
 
     @property
     def toolsets(self) -> list[Toolset]:

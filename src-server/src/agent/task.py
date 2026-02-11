@@ -1,6 +1,7 @@
 import asyncio
 import time
 import uuid
+from types import MethodType
 from collections.abc import AsyncGenerator
 from typing import Literal, cast
 from loguru import logger
@@ -17,7 +18,7 @@ from .exception_handlers import (
     handle_tool_argument_decode_error,
     handle_tool_execution_error
 )
-from .tool import finish_task, ask_user
+from .tool import ExecutionControlToolset
 from .tool.types import is_tool_metadata
 from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
@@ -28,7 +29,6 @@ from .types import (
     ToolExecutedEvent,
     ToolRequirePermissionEvent, ToolRequireUserResponseEvent,
     ErrorEvent,
-    ContextUsage,
     UserApprovalStatus, is_agent_metadata
 )
 from ..services.task import TaskService
@@ -69,7 +69,6 @@ class AgentTask:
                 SystemMessage(content=self._ctx.system_instruction),
                 *self._messages,
             ],
-            tools=[ask_user, finish_task],
             toolsets=self._ctx.toolsets,
             tool_choice="required")
 
@@ -113,14 +112,14 @@ class AgentTask:
 
     async def _process_tool_call_to_event(self, tool: ToolLike, message: ToolMessage) -> ToolEvent:
         """Process tool call and convert to event"""
-        if tool in [ask_user, finish_task]:
-            return ToolRequireUserResponseEvent(
-                tool_name=cast(Literal["ask_user", "finish_task"], message.name))
-
-        # Since the toolsets only contain ToolDefs,
-        # the tools are all under toolsets except for `ask_user` and `finish_task`,
+        # Since the toolsets only contain ToolDefs, and the tools are all under toolsets,
         # so we can safely assert the type of tool_def to ToolDef here.
         assert isinstance(tool, ToolDef)
+
+        if (isinstance(tool.execute, MethodType) and
+            tool.execute.__func__ in [ExecutionControlToolset.ask_user, ExecutionControlToolset.finish_task]):
+            return ToolRequireUserResponseEvent(
+                tool_name=cast(Literal["ask_user", "finish_task"], message.name))
 
         # use TypeGuards to assert the type of metadata
         assert is_tool_metadata(tool.metadata)
@@ -248,7 +247,7 @@ class AgentTask:
                 tool_call_messages = assistant_message.get_incomplete_tool_messages()
                 if (assistant_message.tool_calls is None or
                     tool_call_messages is None or len(tool_call_messages) == 0):
-                    # no tool call
+                    self._logger.info(f"No tool call found in message: {assistant_message}")
                     break
 
                 tool_call_message = tool_call_messages[0] # Only keep the first tool call
@@ -274,6 +273,7 @@ class AgentTask:
         with TaskService() as task_service:
             task_service.update_task(self.task_id, task_schemas.TaskUpdate(
                 messages=self._messages,
+                usage=self._ctx.usage,
                 last_run_at=int(time.time())
             ))
 

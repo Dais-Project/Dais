@@ -1,5 +1,5 @@
 from . import DTOBase
-from ..models.task import TaskMessage, TaskType
+from ..models.task import TaskMessage, TaskType, TaskUsage
 
 class TaskBase(DTOBase):
     title: str
@@ -8,6 +8,7 @@ class TaskBase(DTOBase):
 
 class TaskRead(TaskBase):
     id: int
+    usage: TaskUsage
     last_run_at: int
     agent_id: int | None = None
     workspace_id: int
@@ -18,6 +19,7 @@ class TaskCreate(TaskBase):
 
 class TaskUpdate(DTOBase):
     title: str | None = None
+    usage: TaskUsage | None = None
     last_run_at: int
     agent_id: int | None = None
     messages: list[TaskMessage] | None = None

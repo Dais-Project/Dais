@@ -74,7 +74,10 @@ export function SingleSelectDialog<Selection>({
                     onSelect={() => handleSelect(selection)}
                   >
                     <CheckIcon
-                      className={cn("mr-2 size-4", { "opacity-100": isEqual })}
+                      className={cn("mr-2 size-4", {
+                        "opacity-0": !isEqual,
+                        "opacity-100": isEqual,
+                      })}
                     />
                     {label}
                   </CommandItem>

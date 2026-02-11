@@ -2,7 +2,7 @@ from typing import Sequence, override
 from dais_sdk import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
-from ..builtin_tools import FileSystemToolset, OsInteractionsToolset
+from ..builtin_tools import FileSystemToolset, OsInteractionsToolset, ExecutionControlToolset
 from ...types import ContextUsage
 from ....services import ToolsetService
 
@@ -15,11 +15,12 @@ class BuiltinToolsetManager(ToolsetManager):
         context = BuiltInToolsetContext(cwd, usage)
         self._file_system_toolset = FileSystemToolset(context)
         self._os_interactions_toolset = OsInteractionsToolset(context)
+        self._execution_control_toolset = ExecutionControlToolset(context)
 
     @staticmethod
     def sync_toolsets():
         toolset_types: list[type[BuiltInToolset]] = [
-            FileSystemToolset, OsInteractionsToolset]
+            FileSystemToolset, OsInteractionsToolset, ExecutionControlToolset]
         for toolset in toolset_types:
             toolset.sync()
 
@@ -27,7 +28,9 @@ class BuiltinToolsetManager(ToolsetManager):
     @override
     def toolsets(self) -> Sequence[Toolset]:
         result = []
-        for toolset in [self._file_system_toolset, self._os_interactions_toolset]:
+        for toolset in [self._file_system_toolset,
+                        self._os_interactions_toolset,
+                        self._execution_control_toolset]:
             toolset_ent = self._toolset_map[toolset.internal_key]
             if not toolset_ent.is_enabled: continue
             result.append(toolset)

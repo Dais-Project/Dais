@@ -47,11 +47,12 @@ class Toolset(Base):
     tools: Mapped[list[Tool]] = relationship(back_populates="toolset", cascade="all, delete-orphan")
 
 def init(session: Session):
-    from ...agent.tool import FileSystemToolset, OsInteractionsToolset
+    from ...agent.tool import FileSystemToolset, OsInteractionsToolset, ExecutionControlToolset
 
     toolsets_to_init = [
         ("File System", FileSystemToolset.__name__, ToolsetType.BUILT_IN),
         ("OS Interactions", OsInteractionsToolset.__name__, ToolsetType.BUILT_IN),
+        ("Execution Control", ExecutionControlToolset.__name__, ToolsetType.BUILT_IN),
     ]
 
     try:
