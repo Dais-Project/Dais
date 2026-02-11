@@ -29,6 +29,7 @@ openapi.json
 /node-bin/
 
 
-
+# Nx
+migrations.json
 .nx/cache
 .nx/workspace-data

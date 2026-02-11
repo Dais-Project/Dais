@@ -16,6 +16,14 @@
       "suspicious": {
         "noConsole": "off",
         "noArrayIndexKey": "off"
+      },
+      "style": {
+        "useConsistentTypeDefinitions": {
+          "level": "error",
+          "options": {
+            "style": "type"
+          }
+        }
       }
     }
   }

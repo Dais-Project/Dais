@@ -2,11 +2,10 @@ from collections.abc import AsyncGenerator
 from dataclasses import asdict
 from typing import Literal
 from loguru import logger
-from fastapi import Request
+from fastapi import APIRouter, Request
 from sse_starlette import EventSourceResponse, ServerSentEvent, JSONServerSentEvent
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk, UserMessage
 from pydantic import BaseModel
-from .router import tasks_router
 from ..types import EmptyServerSentEvent
 from ....agent import AgentTask
 from ....agent.types import (
@@ -132,7 +131,9 @@ async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
 
 # --- --- --- --- --- ---
 
-@tasks_router.post("/{task_id}/continue")
+task_stream_router = APIRouter(tags=["task-internal"])
+
+@task_stream_router.post("/{task_id}/continue")
 async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) -> EventSourceResponse:
     """
     This endpoint is used to directly continue the existing task,
@@ -148,7 +149,7 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
 
     return create_stream_response(temp_stream())
 
-@tasks_router.post("/{task_id}/tool_answer")
+@task_stream_router.post("/{task_id}/tool_answer")
 async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> EventSourceResponse:
     """
     This endpoint is used for the HumanInTheLoop tool calls.
@@ -164,7 +165,7 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> E
 
     return create_stream_response(temp_stream())
 
-@tasks_router.post("/{task_id}/tool_reviews")
+@task_stream_router.post("/{task_id}/tool_reviews")
 async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> EventSourceResponse:
     """
     This endpoint is used to submit the tool call permissions.

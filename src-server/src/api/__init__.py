@@ -4,12 +4,13 @@ from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.routing import APIRoute
 from .routes import (
     workspaces_router,
-    tasks_router,
     providers_router,
     llm_api_router,
     llm_models_router,
     agents_router,
     toolset_router,
+    task_manage_router,
+    task_stream_router,
 )
 from .exception_handlers import (
     handle_service_error,
@@ -40,8 +41,9 @@ app.include_router(agents_router, prefix="/api/agents")
 app.include_router(providers_router, prefix="/api/providers")
 app.include_router(llm_models_router, prefix="/api/llm_models")
 app.include_router(llm_api_router, prefix="/api/llm")
-app.include_router(tasks_router, prefix="/api/tasks")
 app.include_router(toolset_router, prefix="/api/toolsets")
+app.include_router(task_manage_router, prefix="/api/tasks")
+app.include_router(task_stream_router, prefix="/api/tasks")
 
 
 def use_route_names_as_operation_ids(application: FastAPI) -> None:

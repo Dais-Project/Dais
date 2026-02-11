@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["./biome.jsonc"],
+  "files": {
+    "includes": [
+      "src/api/endpoints/**/*.ts",
+      "src/api/schemas/**/*.ts"
+    ]
+  },
+  "vcs": {
+    "useIgnoreFile": false
+  }
+}

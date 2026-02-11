@@ -12,6 +12,9 @@ export default defineConfig({
       client: "react-query",
       mode: "tags-split",
       override: {
+        fetch: {
+          includeHttpResponseReturnType: false,
+        },
         mutator: {
           path: "./src/api/custom-fetch.ts",
           name: "fetchApi",
@@ -23,7 +26,7 @@ export default defineConfig({
       },
     },
     hooks: {
-      afterAllFilesWrite: ["biome format --write"],
+      afterAllFilesWrite: ['biome format --write --config-path biome.format.jsonc'],
     },
   },
 });

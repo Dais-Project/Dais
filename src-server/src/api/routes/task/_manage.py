@@ -1,10 +1,11 @@
 from typing import Annotated
-from fastapi import Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
-from .router import tasks_router
 from ..types import PaginatedResponse
 from ....services.task import TaskService
 from ....db.schemas import task as task_schemas
+
+task_manage_router = APIRouter(tags=["task"])
 
 class TasksQueryModel(BaseModel):
     workspace_id: int
@@ -17,7 +18,7 @@ def get_task_service():
 
 TaskServiceDep = Annotated[TaskService, Depends(get_task_service)]
 
-@tasks_router.get("/", response_model=PaginatedResponse[task_schemas.TaskRead])
+@task_manage_router.get("/", response_model=PaginatedResponse[task_schemas.TaskRead])
 def get_tasks(
     service: TaskServiceDep,
     workspace_id: int = Query(...),
@@ -37,12 +38,12 @@ def get_tasks(
 
 # TODO: task brief API
 
-@tasks_router.get("/{task_id}", response_model=task_schemas.TaskRead)
+@task_manage_router.get("/{task_id}", response_model=task_schemas.TaskRead)
 def get_task(task_id: int, service: TaskServiceDep):
     task = service.get_task_by_id(task_id)
     return task_schemas.TaskRead.model_validate(task)
 
-@tasks_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
+@task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
 def new_task(
     service: TaskServiceDep,
     body: task_schemas.TaskCreate,
@@ -50,6 +51,6 @@ def new_task(
     new_task = service.create_task(body)
     return task_schemas.TaskRead.model_validate(new_task)
 
-@tasks_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@task_manage_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int, service: TaskServiceDep):
     service.delete_task(task_id)

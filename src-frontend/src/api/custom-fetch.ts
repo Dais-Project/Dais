@@ -1,3 +1,5 @@
+import { API_BASE } from "./index";
+
 type ErrorResponse = {
   error_code: string;
   message: string;
@@ -23,7 +25,7 @@ export async function fetchApi<T>(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<T> {
-  const res = await fetch(input, init);
+  const res = await fetch(`${API_BASE}${input}`, init);
   if (res.ok) {
     if (res.status === 204) {
       return {} as T;
