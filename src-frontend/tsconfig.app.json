@@ -20,6 +20,7 @@
       "@/*": ["./src/*"]
     },
     "types": ["vite/client"],
+    "incremental": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictNullChecks": true

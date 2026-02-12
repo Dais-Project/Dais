@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { FetchError } from "@/api";
-import { fetchWorkspaceById } from "@/api/workspace";
-import type { WorkspaceRead } from "@/types/workspace";
+import type { WorkspaceRead } from "@/api/generated/schemas";
+import { getWorkspace } from "@/api/workspace";
 
 type WorkspaceState = {
   currentWorkspace: WorkspaceRead | null;
@@ -40,7 +40,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
 
         set({ isLoading: true });
         try {
-          const workspace = await fetchWorkspaceById(workspaceId);
+          const workspace = await getWorkspace(workspaceId);
           set({ currentWorkspace: workspace });
         } catch (error) {
           console.error("Failed to fetch workspace:", error);

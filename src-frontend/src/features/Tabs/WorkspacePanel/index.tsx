@@ -1,5 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { fetchWorkspaceById } from "@/api/workspace";
+import { useGetWorkspaceSuspense } from "@/api/workspace";
 import { FailedToLoad } from "@/components/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { DEFAULT_WORKSPACE } from "@/constants/workspace";
@@ -29,15 +28,8 @@ function WorkspaceEditPanel({
   workspaceId: number;
 }) {
   const removeTab = useTabsStore((state) => state.removeTab);
-
-  const { data: workspace } = useSuspenseQuery({
-    queryKey: ["workspace", workspaceId],
-    queryFn: async () => await fetchWorkspaceById(workspaceId),
-  });
-
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
+  const { data: workspace } = useGetWorkspaceSuspense(workspaceId);
+  const handleComplete = () => removeTab(tabId);
 
   return <WorkspaceEdit workspace={workspace} onConfirm={handleComplete} />;
 }

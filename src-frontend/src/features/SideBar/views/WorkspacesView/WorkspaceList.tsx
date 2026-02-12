@@ -1,11 +1,12 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import { deleteWorkspace, fetchWorkspaces } from "@/api/workspace";
+import type { WorkspaceRead } from "@/api/generated/schemas";
+import {
+  getGetWorkspacesQueryKey,
+  useDeleteWorkspace,
+  useGetWorkspacesSuspense,
+} from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import {
   ActionableItem,
@@ -27,7 +28,6 @@ import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab, WorkspaceTabMetadata } from "@/types/tab";
-import type { WorkspaceRead } from "@/types/workspace";
 
 function createWorkspaceEditTab(
   workspaceId: number,
@@ -162,8 +162,8 @@ export function WorkspaceList() {
 
   const asyncConfirm = useAsyncConfirm<WorkspaceRead>({
     onConfirm: async (workspace) => {
-      await deleteWorkspaceMutation.mutateAsync(workspace.id);
-      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
+      queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
 
       const tabsToRemove = tabs.filter(
         (tab) =>
@@ -192,12 +192,8 @@ export function WorkspaceList() {
     },
   });
 
-  const { data } = useSuspenseQuery({
-    queryKey: ["workspaces"],
-    queryFn: async () => await fetchWorkspaces(1, 20),
-  });
-
-  const deleteWorkspaceMutation = useMutation({ mutationFn: deleteWorkspace });
+  const { data } = useGetWorkspacesSuspense({ page: 1, per_page: 20 });
+  const deleteWorkspaceMutation = useDeleteWorkspace();
 
   if (data?.items.length === 0) {
     return (

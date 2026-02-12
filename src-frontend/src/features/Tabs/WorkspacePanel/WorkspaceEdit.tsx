@@ -1,12 +1,21 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useGetAgentsBrief } from "@/api/agent";
-import type { AgentBrief } from "@/api/generated/schemas";
-import { createWorkspace, updateWorkspace } from "@/api/workspace";
+import type {
+  AgentBrief,
+  WorkspaceCreate,
+  WorkspaceRead,
+} from "@/api/generated/schemas";
+import {
+  getGetWorkspaceQueryKey,
+  getGetWorkspacesQueryKey,
+  useCreateWorkspace,
+  useUpdateWorkspace,
+} from "@/api/workspace";
 import { MultiSelectDialog } from "@/components/custom/dialog/MultiSelectDialog";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
@@ -15,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { WorkspaceCreate, WorkspaceRead } from "@/types/workspace";
 
 type AgentSelectDialogProps = {
   existingAgents: AgentBrief[];
@@ -82,45 +90,46 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
     }
   }, [workspace, reset, isEditMode]);
 
-  const createWorkspaceMutation = useMutation({
-    mutationFn: createWorkspace,
-    onSuccess: (newWorkspace) => {
-      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-      toast.success("创建成功", {
-        description: `已成功创建工作区 "${newWorkspace.name}"。`,
-      });
-      reset();
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("创建失败", {
-        description: error.message || "创建工作区时发生错误，请稍后重试。",
-      });
+  const createWorkspaceMutation = useCreateWorkspace({
+    mutation: {
+      onSuccess: (newWorkspace) => {
+        queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
+        toast.success("创建成功", {
+          description: `已成功创建工作区 "${newWorkspace.name}"。`,
+        });
+        reset();
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("创建失败", {
+          description: error.message || "创建工作区时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
-  const updateWorkspaceMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: FormValues }) =>
-      updateWorkspace(id, data),
-    onSuccess: async (updatedWorkspace) => {
-      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-      queryClient.invalidateQueries({
-        queryKey: ["workspace", updatedWorkspace.id],
-      });
-      toast.success("更新成功", {
-        description: `已成功更新工作区 "${updatedWorkspace.name}"。`,
-      });
-      reset();
-      onConfirm?.();
+  const updateWorkspaceMutation = useUpdateWorkspace({
+    mutation: {
+      onSuccess: async (updatedWorkspace) => {
+        queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey: getGetWorkspaceQueryKey(updatedWorkspace.id),
+        });
+        toast.success("更新成功", {
+          description: `已成功更新工作区 "${updatedWorkspace.name}"。`,
+        });
+        reset();
+        onConfirm?.();
 
-      if (updatedWorkspace.id === currentWorkspace?.id) {
-        await syncCurrentWorkspace();
-      }
-    },
-    onError: (error: Error) => {
-      toast.error("更新失败", {
-        description: error.message || "更新工作区时发生错误，请稍后重试。",
-      });
+        if (updatedWorkspace.id === currentWorkspace?.id) {
+          await syncCurrentWorkspace();
+        }
+      },
+      onError: (error: Error) => {
+        toast.error("更新失败", {
+          description: error.message || "更新工作区时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
@@ -138,9 +147,9 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
 
   const onSubmit = (data: FormValues) => {
     if (isEditMode) {
-      updateWorkspaceMutation.mutate({ id: workspace.id, data });
+      updateWorkspaceMutation.mutate({ workspaceId: workspace.id, data });
     } else {
-      createWorkspaceMutation.mutate(data);
+      createWorkspaceMutation.mutate({ data });
     }
   };
 
