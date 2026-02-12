@@ -23,7 +23,8 @@ export async function fetchApi<T>(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${input}`, init);
+  const url = new URL(input.toString(), API_BASE);
+  const res = await fetch(url, init);
   if (res.ok) {
     if (res.status === 204) {
       return undefined as T;

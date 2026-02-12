@@ -1,4 +1,4 @@
-import type { AgentRead } from "./agent";
+import type { AgentRead } from "@/api/generated/schemas";
 
 export type WorkspaceBase = {
   name: string;

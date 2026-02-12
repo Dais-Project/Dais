@@ -1,5 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { fetchAgentById } from "@/api/agent";
+import { useGetAgentSuspense } from "@/api/agent";
 import { FailedToLoad } from "@/components/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { DEFAULT_AGENT } from "@/constants/agent";
@@ -28,10 +27,7 @@ function AgentEditPanel({
 }) {
   const removeTab = useTabsStore((state) => state.removeTab);
 
-  const { data: agent } = useSuspenseQuery({
-    queryKey: ["agent", agentId],
-    queryFn: async () => await fetchAgentById(agentId),
-  });
+  const { data: agent } = useGetAgentSuspense(agentId);
 
   const handleComplete = () => {
     removeTab(tabId);

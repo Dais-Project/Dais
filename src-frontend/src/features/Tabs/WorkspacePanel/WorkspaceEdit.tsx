@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { fetchAgentsBrief } from "@/api/agent";
+import { useGetAgentsBrief } from "@/api/agent";
+import type { AgentBrief } from "@/api/generated/schemas";
 import { createWorkspace, updateWorkspace } from "@/api/workspace";
 import { MultiSelectDialog } from "@/components/custom/dialog/MultiSelectDialog";
 import { FieldItem } from "@/components/custom/item/FieldItem";
@@ -14,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { AgentBrief } from "@/types/agent";
 import type { WorkspaceCreate, WorkspaceRead } from "@/types/workspace";
 
 type AgentSelectDialogProps = {
@@ -26,10 +26,7 @@ export function AgentSelectDialog({
   existingAgents,
   onConfirm,
 }: AgentSelectDialogProps) {
-  const { data: allAgents, isLoading } = useQuery({
-    queryKey: ["agents", "brief"],
-    queryFn: fetchAgentsBrief,
-  });
+  const { data: allAgents, isLoading } = useGetAgentsBrief({});
 
   return (
     <MultiSelectDialog<AgentBrief>

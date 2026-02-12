@@ -1,13 +1,14 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import React from "react";
 import { toast } from "sonner";
-import { deleteAgent, fetchAgents } from "@/api/agent";
+import {
+  getGetAgentsQueryKey,
+  useDeleteAgent,
+  useGetAgentsSuspense,
+} from "@/api/agent";
+import type { AgentRead } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import {
   ActionableItem,
@@ -18,10 +19,10 @@ import {
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { IconName } from "@/features/Tabs/AgentPanel/IconSelectDialog";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { AgentRead } from "@/types/agent";
 import type { AgentTabMetadata, Tab } from "@/types/tab";
 
 function createAgentEditTab(agentId: number, agentName: string): Tab {
@@ -85,7 +86,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
     <ActionableItem>
       <ActionableItemTrigger>
         <ActionableItemIcon seed={agent.name}>
-          <DynamicIcon name={agent.icon_name} />
+          <DynamicIcon name={agent.icon_name as IconName} />
         </ActionableItemIcon>
         {/* <AgentAvatar name={agent.name} iconName={agent.icon_name} size={18} /> */}
         <ActionableItemInfo
@@ -124,8 +125,8 @@ export function AgentList() {
   const { tabs, removeTab } = useTabsStore();
   const asyncConfirm = useAsyncConfirm<AgentRead>({
     onConfirm: async (agent) => {
-      await deleteAgentMutation.mutateAsync(agent.id);
-      queryClient.invalidateQueries({ queryKey: ["agents"] });
+      await deleteAgentMutation.mutateAsync({ agentId: agent.id });
+      queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
 
       const tabsToRemove = tabs.filter(
         (tab) =>
@@ -149,12 +150,9 @@ export function AgentList() {
     },
   });
 
-  const { data } = useSuspenseQuery({
-    queryKey: ["agents"],
-    queryFn: async () => fetchAgents(),
-  });
+  const { data } = useGetAgentsSuspense();
 
-  const deleteAgentMutation = useMutation({ mutationFn: deleteAgent });
+  const deleteAgentMutation = useDeleteAgent();
 
   return (
     <>
