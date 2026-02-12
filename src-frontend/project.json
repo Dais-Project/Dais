@@ -57,7 +57,7 @@
       "dependsOn": [
         "install",
         {
-          "target": "export-openapi",
+          "target": "watch-schema",
           "projects": [
             "server"
           ]

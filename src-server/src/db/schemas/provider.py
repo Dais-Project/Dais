@@ -9,13 +9,13 @@ class LlmModelBase(DTOBase):
 class LlmModelRead(LlmModelBase):
     id: int
 
-class LlmModelCreate(LlmModelBase): pass
+class LlmModelCreate(LlmModelBase): ...
 
 class LlmModelUpdate(DTOBase):
     id: int
-    name: str | None = None
-    context_size: int | None = None
-    capability: LlmModelCapability | None = None
+    name: str | None
+    context_size: int | None
+    capability: LlmModelCapability | None
 
 # --- --- --- --- --- ---
 
@@ -33,8 +33,8 @@ class ProviderCreate(ProviderBase):
     models: list[LlmModelCreate]
 
 class ProviderUpdate(DTOBase):
-    name: str | None = None
-    type: LlmProviders | None = None
-    base_url: str | None = None
-    api_key: str | None = None
-    models: list[LlmModelUpdate | LlmModelCreate] | None = None
+    name: str | None
+    type: LlmProviders | None
+    base_url: str | None
+    api_key: str | None
+    models: list[LlmModelUpdate | LlmModelCreate] | None

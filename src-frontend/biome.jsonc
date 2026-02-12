@@ -26,5 +26,17 @@
         }
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/api/*.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
+  ]
 }

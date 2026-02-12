@@ -11,13 +11,13 @@ class WorkspaceBase(DTOBase):
 
 class WorkspaceRead(WorkspaceBase):
     id: int
-    usable_agents: list[AgentRead] = []
+    usable_agents: list[AgentRead]
 
 class WorkspaceCreate(WorkspaceBase):
-    usable_agent_ids: list[int] = []
+    usable_agent_ids: list[int]
 
 class WorkspaceUpdate(DTOBase):
-    name: str | None = None
-    directory: str | None = None
-    workspace_background: str | None = None
-    usable_agent_ids: list[int] | None = None
+    name: str | None
+    directory: str | None
+    workspace_background: str | None
+    usable_agent_ids: list[int] | None

@@ -10,7 +10,7 @@ class TaskRead(TaskBase):
     id: int
     usage: TaskUsage
     last_run_at: int
-    agent_id: int | None = None
+    agent_id: int | None
     workspace_id: int
 
 class TaskCreate(TaskBase):
@@ -18,8 +18,8 @@ class TaskCreate(TaskBase):
     workspace_id: int
 
 class TaskUpdate(DTOBase):
-    title: str | None = None
-    usage: TaskUsage | None = None
+    title: str | None
+    usage: TaskUsage | None
     last_run_at: int
-    agent_id: int | None = None
-    messages: list[TaskMessage] | None = None
+    agent_id: int | None
+    messages: list[TaskMessage] | None

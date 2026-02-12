@@ -13,13 +13,13 @@ class AgentBrief(DTOBase):
 
 class AgentRead(AgentBase):
     id: int
-    model: LlmModelRead | None = None
+    model: LlmModelRead | None
 
 class AgentCreate(AgentBase):
-    model_id: int | None = None
+    model_id: int | None
 
 class AgentUpdate(DTOBase):
-    name: str | None = None
-    icon_name: str | None = None
-    system_prompt: str | None = None
-    model_id: int | None = None
+    name: str | None
+    icon_name: str | None
+    system_prompt: str | None
+    model_id: int | None

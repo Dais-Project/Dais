@@ -15,14 +15,14 @@ class ToolRead(ToolBase):
 
 class ToolUpdate(DTOBase):
     id: int
-    name: str | None = None
-    is_enabled: bool | None = None
-    auto_approve: bool | None = None
+    name: str | None
+    is_enabled: bool | None
+    auto_approve: bool | None
 
 class ToolsetBase(DTOBase):
     name: str
     type: ToolsetType
-    params: LocalServerParams | RemoteServerParams | None = None
+    params: LocalServerParams | RemoteServerParams | None
     is_enabled: bool = True
 
 class ToolsetRead(ToolsetBase):
@@ -36,7 +36,7 @@ class ToolsetCreate(DTOBase):
     params: LocalServerParams | RemoteServerParams
 
 class ToolsetUpdate(DTOBase):
-    name: str | None = None
-    params: LocalServerParams | RemoteServerParams | None = None
-    is_enabled: bool | None = None
-    tools: list[ToolUpdate] | None = None
+    name: str | None
+    params: LocalServerParams | RemoteServerParams | None
+    is_enabled: bool | None
+    tools: list[ToolUpdate] | None
