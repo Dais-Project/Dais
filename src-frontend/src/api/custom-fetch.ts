@@ -5,21 +5,19 @@ type ErrorResponse = {
   message: string;
 };
 
-export class FetchError extends Error {
+export class FetchError<E extends ErrorResponse> extends Error {
   statusCode: number;
   errorCode: string;
 
-  constructor(statusCode: number, errorCode: string, message: string) {
-    super(message);
+  constructor(statusCode: number, error: E) {
+    super(error.message);
     this.name = "FetchError";
     this.statusCode = statusCode;
-    this.errorCode = errorCode;
-  }
-
-  static fromErrorResponse(statusCode: number, res: ErrorResponse): FetchError {
-    return new FetchError(statusCode, res.error_code, res.message);
+    this.errorCode = error.error_code;
   }
 }
+
+export type ErrorType<E extends ErrorResponse> = FetchError<E>;
 
 export async function fetchApi<T>(
   input: RequestInfo | URL,
@@ -28,18 +26,21 @@ export async function fetchApi<T>(
   const res = await fetch(`${API_BASE}${input}`, init);
   if (res.ok) {
     if (res.status === 204) {
-      return {} as T;
+      return undefined as T;
     }
     return (await res.json()) as T;
   }
 
   try {
     const errorBody = (await res.json()) as ErrorResponse;
-    throw FetchError.fromErrorResponse(res.status, errorBody);
+    throw new FetchError(res.status, errorBody);
   } catch {
     console.warn(
       `Failed to parse error response as JSON: ${res.status} ${res.statusText}`
     );
-    throw new FetchError(res.status, `HTTP_${res.status}`, res.statusText);
+    throw new FetchError(res.status, {
+      error_code: "HTTP_ERROR",
+      message: res.statusText,
+    });
   }
 }

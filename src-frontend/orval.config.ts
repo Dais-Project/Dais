@@ -7,8 +7,8 @@ export default defineConfig({
     },
     output: {
       clean: true,
-      target: "./src/api/endpoints/",
-      schemas: "./src/api/schemas/",
+      target: "./src/api/generated/endpoints/",
+      schemas: "./src/api/generated/schemas/",
       client: "react-query",
       mode: "tags-split",
       override: {
@@ -20,13 +20,19 @@ export default defineConfig({
           name: "fetchApi",
         },
         query: {
+          version: 5,
           useQuery: true,
           useInfinite: true,
+          useMutation: true,
+          useSuspenseQuery: true,
+          useSuspenseInfiniteQuery: true,
         },
       },
     },
     hooks: {
-      afterAllFilesWrite: ['biome format --write --config-path biome.format.jsonc'],
+      afterAllFilesWrite: [
+        "biome format --write --config-path biome.format.jsonc",
+      ],
     },
   },
 });

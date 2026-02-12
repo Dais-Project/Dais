@@ -13,6 +13,7 @@ from .routes import (
     task_stream_router,
 )
 from .exception_handlers import (
+    ErrorResponseSchema,
     handle_service_error,
     handle_validation_error,
     handle_http_exception,
@@ -21,7 +22,18 @@ from .exception_handlers import (
 from .lifespan import lifespan
 from ..services.exceptions import ServiceError
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    responses={
+        400: {"model": ErrorResponseSchema},
+        401: {"model": ErrorResponseSchema},
+        403: {"model": ErrorResponseSchema}, 
+        404: {"model": ErrorResponseSchema},
+        409: {"model": ErrorResponseSchema},
+        422: {"model": ErrorResponseSchema},
+        500: {"model": ErrorResponseSchema},
+    },
+)
 
 app.add_middleware(
     CORSMiddleware,

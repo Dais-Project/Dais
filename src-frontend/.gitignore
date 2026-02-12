@@ -1,3 +1,4 @@
 # Orval generated files
-src/api/schemas/
-src/api/endpoints/
+src/api/generated/
+
+.vscode/

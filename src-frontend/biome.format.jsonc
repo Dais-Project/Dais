@@ -3,8 +3,8 @@
   "extends": ["./biome.jsonc"],
   "files": {
     "includes": [
-      "src/api/endpoints/**/*.ts",
-      "src/api/schemas/**/*.ts"
+      "src/api/generated/endpoints/**/*.ts",
+      "src/api/generated/schemas/**/*.ts"
     ]
   },
   "vcs": {

@@ -6,6 +6,7 @@
   "scripts": {
     "postinstall": "nx run-many -t install",
     "dev": "nx run-many -t dev",
+    "dev-api": "nx run frontend:watch-api",
     "build": "nx run-many -t build",
     "test": "nx run-many -t test"
   },
