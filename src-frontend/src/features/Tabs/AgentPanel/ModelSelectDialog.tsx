@@ -1,10 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { fetchProviders } from "@/api/provider";
+import type { LlmModelRead } from "@/api/generated/schemas";
+import { getGetProvidersQueryKey, useGetProviders } from "@/api/provider";
 import { GroupedSingleSelectDialog } from "@/components/custom/dialog/SingleSelectDialog";
 import { Button } from "@/components/ui/button";
-import type { LlmModelRead } from "@/types/provider";
 
 type ModelSelectDialogProps = {
   selectedModel: LlmModelRead | null;
@@ -21,10 +20,11 @@ export function ModelSelectDialog({
     data: providers,
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ["providers"],
-    queryFn: fetchProviders,
-    enabled: isOpen,
+  } = useGetProviders({
+    query: {
+      queryKey: getGetProvidersQueryKey(),
+      enabled: isOpen,
+    },
   });
 
   const groups = useMemo(() => {

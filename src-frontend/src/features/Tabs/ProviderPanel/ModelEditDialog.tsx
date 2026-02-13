@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type { LlmModelCreate } from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,12 +15,11 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import type { LlmModelBase } from "@/types/provider";
 
 type ModelEditDialogProps = {
   children: React.ReactNode;
-  model: LlmModelBase | null;
-  onConfirm: (model: LlmModelBase) => void;
+  model: LlmModelCreate | null;
+  onConfirm: (model: LlmModelCreate) => void;
   onCancel?: () => void;
 };
 
@@ -34,7 +34,7 @@ export function ModelEditDialog({
     reset,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<LlmModelBase>({
+  } = useForm<LlmModelCreate>({
     defaultValues: {
       name: "",
       context_size: 128_000,
@@ -52,7 +52,7 @@ export function ModelEditDialog({
     }
   }, [model]);
 
-  const handleSubmitForm = (data: LlmModelBase) => {
+  const handleSubmitForm = (data: LlmModelCreate) => {
     onConfirm(data);
   };
 

@@ -1,8 +1,19 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { createProvider, updateProvider } from "@/api/provider";
+import type {
+  LlmProviders,
+  ProviderCreate,
+  ProviderRead,
+  ProviderUpdate,
+} from "@/api/generated/schemas";
+import {
+  getGetProviderQueryKey,
+  getGetProvidersQueryKey,
+  useCreateProvider,
+  useUpdateProvider,
+} from "@/api/provider";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { PasswordInput } from "@/components/Password";
 import { Button } from "@/components/ui/button";
@@ -19,12 +30,6 @@ import {
   PROVIDER_DEFAULT_URLS,
   PROVIDER_TYPE_LABELS,
 } from "@/constants/provider";
-import type {
-  LlmProviders,
-  ProviderCreate,
-  ProviderRead,
-  ProviderUpdate,
-} from "@/types/provider";
 import { ModelList } from "./ModelList";
 
 const URL_REGEX = /^(https?:\/\/)([^\s/$.?#].[^\s]*)$/;
@@ -58,52 +63,57 @@ export function ProviderEdit({ provider, onConfirm }: ProviderEditProps) {
 
   const formValues = useWatch({ control });
 
-  const createProviderMutation = useMutation({
-    mutationFn: createProvider,
-    onSuccess: (newProvider) => {
-      queryClient.invalidateQueries({ queryKey: ["providers"] });
-      toast.success("创建成功", {
-        description: `已成功创建 ${newProvider.name} 服务提供商。`,
-      });
-      reset();
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("创建失败", {
-        description: error.message || "创建 provider 时发生错误，请稍后重试。",
-      });
-    },
-  });
-
-  const updateProviderMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ProviderUpdate }) =>
-      updateProvider(id, data),
-    onSuccess: (updatedProvider) => {
-      queryClient.invalidateQueries({ queryKey: ["providers"] });
-      queryClient.invalidateQueries({
-        queryKey: ["provider", updatedProvider.id],
-      });
-      toast.success("更新成功", {
-        description: `已成功更新 ${updatedProvider.name} 服务提供商。`,
-      });
-      reset();
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("更新失败", {
-        description: error.message || "更新 provider 时发生错误，请稍后重试。",
-      });
+  const createProviderMutation = useCreateProvider({
+    mutation: {
+      onSuccess: (newProvider) => {
+        queryClient.invalidateQueries({ queryKey: getGetProvidersQueryKey() });
+        toast.success("创建成功", {
+          description: `已成功创建 ${newProvider.name} 服务提供商。`,
+        });
+        reset();
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("创建失败", {
+          description:
+            error.message || "创建 provider 时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
-  const onSubmit = (data: ProviderCreate | ProviderUpdate) => {
+  const updateProviderMutation = useUpdateProvider({
+    mutation: {
+      onSuccess: (updatedProvider) => {
+        queryClient.invalidateQueries({ queryKey: getGetProvidersQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey: getGetProviderQueryKey(updatedProvider.id),
+        });
+        toast.success("更新成功", {
+          description: `已成功更新 ${updatedProvider.name} 服务提供商。`,
+        });
+        reset();
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("更新失败", {
+          description:
+            error.message || "更新 provider 时发生错误，请稍后重试。",
+        });
+      },
+    },
+  });
+
+  const onSubmit = (data: ProviderCreate) => {
     if (isEditMode) {
       updateProviderMutation.mutate({
-        id: provider.id,
-        data,
+        providerId: provider.id,
+        data: data as ProviderUpdate,
       });
     } else {
-      createProviderMutation.mutate(data);
+      createProviderMutation.mutate({
+        data: data as ProviderCreate,
+      });
     }
   };
 
@@ -117,8 +127,9 @@ export function ProviderEdit({ provider, onConfirm }: ProviderEditProps) {
       formValues.base_url === "" ||
       (formValues.type &&
         formValues.base_url === PROVIDER_DEFAULT_URLS[formValues.type]);
-    if (shouldUpdateBaseUrl) {
-      setValue("base_url", PROVIDER_DEFAULT_URLS[value]);
+    const defaultUrl = PROVIDER_DEFAULT_URLS[value];
+    if (shouldUpdateBaseUrl && defaultUrl) {
+      setValue("base_url", defaultUrl);
     }
   };
 

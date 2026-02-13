@@ -8,7 +8,11 @@ import {
   useCreateAgent,
   useUpdateAgent,
 } from "@/api/agent";
-import type { AgentCreate, AgentRead } from "@/api/generated/schemas";
+import type {
+  AgentCreate,
+  AgentRead,
+  LlmModelRead,
+} from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
@@ -16,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
 import { DEFAULT_AGENT } from "@/constants/agent";
 import { ModelSelectDialog } from "@/features/Tabs/AgentPanel/ModelSelectDialog";
-import type { LlmModelRead as ProviderLlmModelRead } from "@/types/provider";
 import { type IconName, IconSelectDialog } from "./IconSelectDialog";
 
 type AgentEditProps = {
@@ -38,8 +41,9 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
     defaultValues: DEFAULT_AGENT,
   });
 
-  const [selectedModel, setSelectedModel] =
-    useState<ProviderLlmModelRead | null>(isEditMode ? agent.model : null);
+  const [selectedModel, setSelectedModel] = useState<LlmModelRead | null>(
+    isEditMode ? agent.model : null
+  );
 
   const createAgentMutation = useCreateAgent({
     mutation: {

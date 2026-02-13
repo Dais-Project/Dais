@@ -1,5 +1,14 @@
 import { defineConfig } from "orval";
 
+const operationSpecificConfig = {
+  fetch_models: {
+    query: {
+      useInfinite: false,
+      useSuspenseInfiniteQuery: false,
+    },
+  },
+};
+
 export default defineConfig({
   api: {
     input: {
@@ -27,6 +36,7 @@ export default defineConfig({
           useSuspenseQuery: true,
           useSuspenseInfiniteQuery: true,
         },
+        operations: operationSpecificConfig,
       },
     },
     hooks: {

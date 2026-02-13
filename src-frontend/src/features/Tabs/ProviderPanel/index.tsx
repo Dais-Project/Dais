@@ -1,10 +1,7 @@
-import {
-  QueryErrorResetBoundary,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { fetchProviderById } from "@/api/provider";
+import { useGetProviderSuspense } from "@/api/provider";
 import { FailedToLoad } from "@/components/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { DEFAULT_PROVIDER } from "@/constants/provider";
@@ -33,15 +30,8 @@ function ProviderEditPanel({
   providerId: number;
 }) {
   const removeTab = useTabsStore((state) => state.removeTab);
-
-  const { data: provider } = useSuspenseQuery({
-    queryKey: ["provider", providerId],
-    queryFn: async () => await fetchProviderById(providerId),
-  });
-
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
+  const { data: provider } = useGetProviderSuspense(providerId);
+  const handleComplete = () => removeTab(tabId);
 
   return <ProviderEdit provider={provider} onConfirm={handleComplete} />;
 }

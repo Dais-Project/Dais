@@ -1,48 +1,10 @@
-import type {
-  ProviderCreate,
-  ProviderRead,
-  ProviderUpdate,
-} from "@/types/provider";
-import { API_BASE, fetchApi } from "./index";
-
-export async function fetchProviders(): Promise<ProviderRead[]> {
-  return await fetchApi<ProviderRead[]>(`${API_BASE}/providers`);
-}
-
-export async function fetchProviderById(id: number): Promise<ProviderRead> {
-  return await fetchApi<ProviderRead>(`${API_BASE}/providers/${id}`);
-}
-
-export async function createProvider(
-  providerData: ProviderCreate
-): Promise<ProviderRead> {
-  return await fetchApi<ProviderRead>(`${API_BASE}/providers/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(providerData),
-  });
-}
-
-export async function updateProvider(
-  providerId: number,
-  providerData: ProviderUpdate
-): Promise<ProviderRead> {
-  return await fetchApi<ProviderRead>(`${API_BASE}/providers/${providerId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(providerData),
-  });
-}
-
-export async function deleteProvider(providerId: number): Promise<void> {
-  await fetch(`${API_BASE}/providers/${providerId}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-}
+export {
+  getGetProviderQueryKey,
+  getGetProvidersQueryKey,
+  useCreateProvider,
+  useDeleteProvider,
+  useGetProviderSuspense,
+  useGetProviders,
+  useGetProvidersSuspense,
+  useUpdateProvider,
+} from "./generated/endpoints/provider/provider";

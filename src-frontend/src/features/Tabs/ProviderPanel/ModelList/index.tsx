@@ -1,18 +1,15 @@
 import type {
   LlmModelCreate,
-  LlmModelUpdate,
   ProviderCreate,
   ProviderRead,
-} from "@/types/provider";
+} from "@/api/generated/schemas";
 import { ModelItem } from "./ModelItem";
 import { ModelListHeader } from "./ModelListHeader";
 import { useModelManagement } from "./useModelManagement";
 
-type LlmModel = LlmModelCreate | LlmModelUpdate;
-
 type ModelListProps = {
-  models: LlmModel[];
-  onConfirm: (models: LlmModel[]) => void;
+  models: LlmModelCreate[];
+  onConfirm: (models: LlmModelCreate[]) => void;
   provider: ProviderRead | ProviderCreate;
 };
 
