@@ -131,7 +131,7 @@ async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
 
 # --- --- --- --- --- ---
 
-task_stream_router = APIRouter(tags=["task-internal"])
+task_stream_router = APIRouter(tags=["task-stream"])
 
 @task_stream_router.post("/{task_id}/continue")
 async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) -> EventSourceResponse:
