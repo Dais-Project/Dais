@@ -1,12 +1,13 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { toast } from "sonner";
-import { deleteToolset, fetchToolsetsBrief } from "@/api/toolset";
+import type { McpToolsetStatus, ToolsetBrief } from "@/api/generated/schemas";
+import {
+  getGetToolsetsBriefQueryKey,
+  useDeleteToolset,
+  useGetToolsetsBriefSuspense,
+} from "@/api/toolset";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import {
   ActionableItem,
@@ -28,7 +29,6 @@ import { tabIdFactory } from "@/lib/tab";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab, ToolsetTabMetadata } from "@/types/tab";
-import type { McpToolsetStatus, ToolsetBrief } from "@/types/toolset";
 import { ToolsetIcon } from "./ToolsetIcon";
 
 function getStatusColor(status: McpToolsetStatus): string {
@@ -170,10 +170,13 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 export function ToolsetList() {
   const queryClient = useQueryClient();
   const { tabs, removeTab } = useTabsStore();
+  const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
     onConfirm: async (toolset) => {
-      await deleteToolsetMutation.mutateAsync(toolset.id);
-      queryClient.invalidateQueries({ queryKey: ["toolsets"] });
+      await deleteToolsetMutation.mutateAsync({ toolsetId: toolset.id });
+      queryClient.invalidateQueries({
+        queryKey: getGetToolsetsBriefQueryKey(),
+      });
 
       const tabsToRemove = tabs.filter(
         (tab) =>
@@ -197,18 +200,17 @@ export function ToolsetList() {
     },
   });
 
-  const { data } = useSuspenseQuery({
-    queryKey: ["toolsets"],
-    queryFn: fetchToolsetsBrief,
-    refetchInterval: 3000,
+  const { data: toolsets } = useGetToolsetsBriefSuspense({
+    query: {
+      // TODO: replace refetch polling with sse
+      refetchInterval: 3000,
+    },
   });
-
-  const deleteToolsetMutation = useMutation({ mutationFn: deleteToolset });
 
   return (
     <>
       <ScrollArea className="flex-1">
-        {data?.map((toolset) => (
+        {toolsets.map((toolset) => (
           <ToolsetItem
             key={toolset.id}
             toolset={toolset}

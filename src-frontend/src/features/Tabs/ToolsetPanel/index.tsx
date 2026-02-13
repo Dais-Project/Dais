@@ -1,5 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { fetchToolsetById } from "@/api/toolset";
+import { useGetToolsetSuspense } from "@/api/toolset";
 import { FailedToLoad } from "@/components/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToolsetEditForm } from "@/features/Tabs/ToolsetPanel/ToolsetEditForm";
@@ -27,15 +26,8 @@ function ToolsetEditPanel({
   toolsetId: number;
 }) {
   const removeTab = useTabsStore((state) => state.removeTab);
-
-  const { data: toolset } = useSuspenseQuery({
-    queryKey: ["toolset", toolsetId],
-    queryFn: async () => await fetchToolsetById(toolsetId),
-  });
-
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
+  const { data: toolset } = useGetToolsetSuspense(toolsetId);
+  const handleComplete = () => removeTab(tabId);
 
   return <ToolsetEditForm toolset={toolset} onConfirm={handleComplete} />;
 }

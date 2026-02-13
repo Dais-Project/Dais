@@ -5,8 +5,8 @@ from ..models.toolset import ToolsetType
 class ToolBase(DTOBase):
     name: str
     description: str
-    is_enabled: bool = True
-    auto_approve: bool = False
+    is_enabled: bool
+    auto_approve: bool
 
 class ToolRead(ToolBase):
     id: int
@@ -23,12 +23,12 @@ class ToolsetBase(DTOBase):
     name: str
     type: ToolsetType
     params: LocalServerParams | RemoteServerParams | None
-    is_enabled: bool = True
+    is_enabled: bool
 
 class ToolsetRead(ToolsetBase):
     id: int
     internal_key: str
-    tools: list[ToolRead] = []
+    tools: list[ToolRead]
 
 class ToolsetCreate(DTOBase):
     name: str
