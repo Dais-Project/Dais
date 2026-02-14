@@ -17,6 +17,9 @@ class TaskCreate(TaskBase):
     agent_id: int
     workspace_id: int
 
+"""
+Note: This schema is backend only type.
+"""
 class TaskUpdate(DTOBase):
     title: str | None
     usage: TaskUsage | None

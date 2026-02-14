@@ -24,6 +24,7 @@ from ..services.exceptions import ServiceError
 
 app = FastAPI(
     lifespan=lifespan,
+    separate_input_output_schemas=False,
     responses={
         400: {"model": ErrorResponseSchema},
         401: {"model": ErrorResponseSchema},

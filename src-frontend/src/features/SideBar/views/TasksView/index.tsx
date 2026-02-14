@@ -2,6 +2,7 @@ import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import type { TaskType } from "@/api/generated/schemas";
 import { FailedToLoad } from "@/components/FailedToLoad";
 import {
   Empty,
@@ -13,7 +14,6 @@ import { DEFAULT_TAB_TITLE } from "@/features/Tabs/TaskPanel";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { TaskType } from "@/types/task";
 import {
   SideBarHeader,
   SideBarHeaderDropdownAction,

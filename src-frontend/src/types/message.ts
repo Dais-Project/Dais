@@ -1,83 +1,9 @@
-/**
- * Text content in message
- */
-export type TextContent = {
-  type: "text";
-  text: string;
-};
-
-/**
- * Image URL content in message
- */
-export type ChatCompletionImageURL = {
-  url: string;
-  detail?: "auto" | "low" | "high";
-};
-
-/**
- * Image content in message
- */
-export type ImageContent = {
-  type: "image_url";
-  image_url: ChatCompletionImageURL;
-};
-
-export type MessageContent = string | Array<TextContent | ImageContent>;
-
-export type ChatCompletionToolCall = {
-  id: string;
-  type: "function";
-  function: {
-    name: string;
-    arguments: string; // JSON string
-  };
-};
-
-export type ChatCompletionAudioResponse = {
-  id: string;
-  data: string; // base64 encoded
-  expires_at: number;
-  transcript: string;
-};
-
-// --- --- --- --- --- ---
-
-type BaseMessage = {
-  id: string;
-};
-
-export type UserMessage = BaseMessage & {
-  role: "user";
-  content: MessageContent;
-};
-
-export type AssistantMessage = BaseMessage & {
-  role: "assistant";
-  content: string | null;
-  reasoning_content: string | null;
-  tool_calls: ChatCompletionToolCall[] | null;
-  audio: ChatCompletionAudioResponse | null;
-  images: ChatCompletionImageURL[] | null;
-};
-
-export type UserApprovalStatus = "pending" | "approved" | "denied";
-
-export type ToolMessage = BaseMessage & {
-  role: "tool";
-  tool_call_id: string;
-  name: string;
-  arguments: string;
-  result: string | null;
-  error: string | null;
-  metadata: {
-    user_approval?: UserApprovalStatus;
-  };
-};
-
-export type SystemMessage = BaseMessage & {
-  role: "system";
-  content: string;
-};
+import type {
+  AssistantMessage,
+  SystemMessage,
+  ToolMessage,
+  UserMessage,
+} from "@/api/generated/schemas";
 
 export type Message =
   | UserMessage

@@ -1,31 +1,7 @@
 import {
   defineConfig,
-  type OpenApiDocument,
   type OperationOptions,
 } from "orval";
-
-const DISABLED_OPERATIONS = ["continue_task", "tool_answer", "tool_reviews"];
-
-const sse_filter = (spec: OpenApiDocument) => {
-  if (!spec.paths) {
-    return spec;
-  }
-  for (const [path, pathItem] of Object.entries(spec.paths)) {
-    if (!pathItem) {
-      continue;
-    }
-    for (const [method, _operation] of Object.entries(pathItem)) {
-      const operation = _operation as { operationId: string };
-      if (DISABLED_OPERATIONS.includes(operation.operationId)) {
-        delete pathItem[method];
-      }
-    }
-    if (Object.keys(pathItem).length === 0) {
-      delete spec.paths[path];
-    }
-  }
-  return spec;
-};
 
 const operationSpecificConfig: Record<string, OperationOptions> = {
   fetch_models: {
@@ -40,9 +16,10 @@ export default defineConfig({
   api: {
     input: {
       target: "../openapi.json",
-      override: {
-        transformer: sse_filter,
-      },
+      filters: {
+        mode: "exclude",
+        tags: ["stream"],
+      }
     },
     output: {
       clean: true,

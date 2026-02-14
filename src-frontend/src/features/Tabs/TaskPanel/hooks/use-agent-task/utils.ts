@@ -1,4 +1,4 @@
-import type { AssistantMessage, ToolMessage } from "@/types/message";
+import type { AssistantMessage, ToolMessage } from "@/api/generated/schemas";
 
 export function toolMessageFactory(
   id: string,
@@ -20,6 +20,7 @@ export function assistantMessageFactory(): Omit<AssistantMessage, "id"> {
   return {
     role: "assistant",
     content: "",
+    usage: null,
     reasoning_content: null,
     tool_calls: null,
     audio: null,

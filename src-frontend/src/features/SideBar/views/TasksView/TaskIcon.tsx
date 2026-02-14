@@ -1,5 +1,5 @@
-import { BotIcon, WorkflowIcon } from "lucide-react";
-import type { TaskType } from "@/types/task";
+import { BotIcon, CodeXmlIcon, WorkflowIcon } from "lucide-react";
+import type { TaskType } from "@/api/generated/schemas";
 
 type TaskIconProps = {
   taskType: TaskType;
@@ -11,6 +11,8 @@ export function TaskIcon({ taskType, ...props }: TaskIconProps) {
       return <BotIcon {...props} />;
     case "orchestration":
       return <WorkflowIcon {...props} />;
+    case "code_execution":
+      return <CodeXmlIcon {...props} />;
     default:
       console.warn(`Unknown task type: ${taskType}`);
       return null;

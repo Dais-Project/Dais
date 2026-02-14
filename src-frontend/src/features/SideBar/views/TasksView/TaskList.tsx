@@ -1,13 +1,15 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { deleteTask, fetchTasks } from "@/api/task";
+import type { TaskRead } from "@/api/generated/schemas";
+import {
+  getGetTaskQueryKey,
+  getGetTasksQueryKey,
+  useDeleteTask,
+  useGetTasksSuspense,
+} from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import {
   ActionableItem,
@@ -27,7 +29,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { TaskRead } from "@/types/task";
 import { TaskIcon } from "./TaskIcon";
 
 function openTaskTab(task: TaskRead) {
@@ -126,12 +127,17 @@ type TaskListProps = {
 
 export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
+  const deleteTaskMutation = useDeleteTask();
 
   const asyncConfirm = useAsyncConfirm<TaskRead>({
     onConfirm: async (task) => {
-      await deleteTaskMutation.mutateAsync(task.id);
-      queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
-      queryClient.removeQueries({ queryKey: ["task", task.id] });
+      await deleteTaskMutation.mutateAsync({ taskId: task.id });
+      queryClient.invalidateQueries({
+        queryKey: getGetTasksQueryKey({ workspace_id: workspaceId }),
+      });
+      queryClient.removeQueries({
+        queryKey: getGetTaskQueryKey(task.id),
+      });
       removeTaskTab(task.id);
       toast.success("删除成功", {
         description: "已成功删除任务。",
@@ -144,12 +150,11 @@ export function TaskList({ workspaceId }: TaskListProps) {
     },
   });
 
-  const { data } = useSuspenseQuery({
-    queryKey: ["tasks", workspaceId],
-    queryFn: async () => await fetchTasks(workspaceId),
+  const { data } = useGetTasksSuspense({
+    workspace_id: workspaceId,
+    page: 1,
+    per_page: 15,
   });
-
-  const deleteTaskMutation = useMutation({ mutationFn: deleteTask });
 
   if (data.items.length === 0) {
     return (

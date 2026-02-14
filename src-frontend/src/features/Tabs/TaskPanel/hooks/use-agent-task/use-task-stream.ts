@@ -8,8 +8,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import type { TaskUsage } from "@/api/generated/schemas";
 import type { TaskSseCallbacks } from "@/api/task";
-import type { TaskUsage } from "@/types/task";
 import type { TaskState } from ".";
 
 type TaskStreamProps = {

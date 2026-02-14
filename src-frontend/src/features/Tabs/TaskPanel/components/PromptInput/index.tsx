@@ -1,5 +1,6 @@
 import type { ChatStatus } from "ai";
 import { useState } from "react";
+import type { TaskType, UserMessage } from "@/api/generated/schemas";
 import {
   PromptInput as BasePromptInput,
   PromptInputBody,
@@ -10,8 +11,6 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import type { UserMessage } from "@/types/message";
-import type { TaskType } from "@/types/task";
 import {
   type TaskState,
   useAgentTaskAction,

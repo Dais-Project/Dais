@@ -1,80 +1,29 @@
+/** biome-ignore-all lint/performance/noBarrelFile: To aggregate all task API exports */
+
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import type {
-  Message,
-  ToolCallChunk,
-  ToolMessage,
-  UserMessage,
-} from "@/types/message";
-import type { TaskUsage } from "@/types/task";
-import { API_BASE } from "../index";
+import {
+  MessageStartEventData,
+  MessageEndEventData,
+  MessageChunkEventData,
+  MessageReplaceEventData,
+  ToolCallEndEventData,
+  ToolExecutedEventData,
+  ToolRequireUserResponseEventData,
+  ToolRequirePermissionEventData,
+  ErrorEventData,
+  AgentEventType,
+} from "../types/agent-stream";
+import { ContinueTaskBody, ToolAnswerBody, ToolReviewBody } from "./generated/schemas";
+import { API_BASE } from ".";
 
-// ===============================================
-// === === === Agent Event Types Start === === ===
-// ===============================================
-
-export type MessageStartEventData = {
-  message_id: string;
-};
-
-export type MessageEndEventData = {
-  message: Message;
-};
-
-export type MessageChunkEventData =
-  | {
-      type: "text";
-      content: string;
-    }
-  | ({
-      type: "usage";
-    } & TaskUsage)
-  | {
-      type: "tool_call";
-      data: ToolCallChunk;
-    };
-
-export type MessageReplaceEventData = {
-  message: Message;
-};
-
-export type ToolCallEndEventData = {
-  message: ToolMessage;
-};
-
-export type ToolExecutedEventData = {
-  tool_call_id: string;
-  result: string | null;
-};
-
-export type ToolRequireUserResponseEventData = {
-  tool_name: "ask_user" | "finish_task";
-};
-
-export type ToolRequirePermissionEventData = {
-  tool_call_id: string;
-};
-
-export type ErrorEventData = {
-  message: string;
-};
-
-export type AgentEventType =
-  | "USER_MESSAGE_ACK"
-  | "MESSAGE_CHUNK"
-  | "MESSAGE_START"
-  | "MESSAGE_END"
-  | "MESSAGE_REPLACE"
-  | "TOOL_CALL_END"
-  | "TASK_DONE"
-  | "TASK_INTERRUPTED"
-  | "TOOL_EXECUTED"
-  | "TOOL_REQUIRE_USER_RESPONSE"
-  | "TOOL_REQUIRE_PERMISSION"
-  | "ERROR";
-
-// ===============================================
-// === === === Agent Event Types End === === ===
-// ===============================================
+export {
+  getGetTaskQueryKey,
+  getGetTasksQueryKey,
+  useDeleteTask,
+  useGetTaskSuspense,
+  useGetTasksSuspense,
+  useNewTask,
+} from "./generated/endpoints/task/task";
 
 export type TaskSseCallbacks = {
   // task status callbacks
@@ -227,11 +176,6 @@ message data: ${event.data}
   return abortController;
 }
 
-type ContinueTaskBody = {
-  agent_id: number;
-  message: UserMessage | null;
-};
-
 export function continueTask(
   taskId: number,
   body: ContinueTaskBody,
@@ -244,12 +188,6 @@ export function continueTask(
   );
 }
 
-type ToolAnswerBody = {
-  agent_id: number;
-  tool_call_id: string;
-  answer: string;
-};
-
 export function toolAnswer(
   taskId: number,
   body: ToolAnswerBody,
@@ -261,13 +199,6 @@ export function toolAnswer(
     callbacks
   );
 }
-
-export type ToolReviewBody = {
-  agent_id: number;
-  tool_call_id: string;
-  status: "approved" | "denied";
-  auto_approve: boolean;
-};
 
 export function toolReview(
   taskId: number,

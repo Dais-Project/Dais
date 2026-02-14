@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from enum import Enum
-from typing import Literal, TypeGuard, TypedDict
-from dais_sdk import MessageChunk, ToolMessage, AssistantMessage, UsageChunk
-from ..db.models.task import TaskMessage, TaskUsage
+from typing import Literal
+from dais_sdk import MessageChunk, ToolMessage, AssistantMessage
+from ...db.models.task import TaskMessage
 
 @dataclass(frozen=True)
 class MessageStartEvent:
@@ -93,30 +92,3 @@ AgentEvent = (
     ToolEvent |
     ErrorEvent
 )
-
-# --- --- --- --- --- ---
-
-@dataclass(frozen=False)
-class ContextUsage(TaskUsage):
-    @property
-    def remaining_tokens(self) -> int:
-        reserved_output = 4096
-        safety_margin = int(self.max_tokens * 0.1)
-        return self.max_tokens - self.total_tokens - reserved_output - safety_margin
-
-    def set_usage(self, usage: UsageChunk) -> None:
-        self.input_tokens = usage.input_tokens
-        self.output_tokens = usage.output_tokens
-        self.total_tokens = usage.total_tokens
-
-class UserApprovalStatus(str, Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    DENIED = "denied"
-
-class ToolMessageMetadata(TypedDict, total=False):
-    user_approval: UserApprovalStatus
-
-@staticmethod
-def is_agent_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
-    return True
