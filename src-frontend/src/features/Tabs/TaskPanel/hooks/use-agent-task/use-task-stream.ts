@@ -8,7 +8,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import type { TaskUsage } from "@/api/generated/schemas";
 import type { TaskSseCallbacks } from "@/api/task";
 import type { TaskState } from ".";
 
@@ -21,8 +20,6 @@ type TaskStreamProps = {
 type TaskStreamResult = {
   state: TaskState;
   setState: Dispatch<SetStateAction<TaskState>>;
-  usage: TaskUsage;
-  setUsage: Dispatch<SetStateAction<TaskUsage>>;
   startStream: <Body extends Record<string, unknown>>(
     streamApi: TaskStreamFn<Body & { agent_id: number }>,
     body: Body
@@ -42,12 +39,6 @@ export function useTaskStream({
   sseCallbacksRef,
 }: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
-  const [usage, setUsage] = useState<TaskUsage>({
-    input_tokens: 0,
-    output_tokens: 0,
-    total_tokens: 0,
-    max_tokens: 0,
-  });
   const abortController = useRef<AbortController | null>(null);
   useUnmount(() => abortController.current?.abort());
 
@@ -95,8 +86,6 @@ export function useTaskStream({
   return {
     state,
     setState,
-    usage,
-    setUsage,
     startStream,
     cancel,
   };

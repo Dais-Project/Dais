@@ -132,6 +132,7 @@ export function AgentTaskProvider({
   });
 
   const [agentId, setAgentId] = useState(data.agent_id);
+  const [usage, setUsage] = useState<TaskUsage>(data.usage);
 
   const setData = useCallback(
     (updater: (draft: TaskRead) => void) => {
@@ -152,8 +153,11 @@ export function AgentTaskProvider({
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
-  const { state, setState, usage, setUsage, startStream, cancel } =
-    useTaskStream({ taskId, agentId, sseCallbacksRef });
+  const { state, setState, startStream, cancel } = useTaskStream({
+    taskId,
+    agentId,
+    sseCallbacksRef,
+  });
 
   const onMessageStart = useCallback(
     (eventData: MessageStartEventData) => {
