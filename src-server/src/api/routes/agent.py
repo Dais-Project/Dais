@@ -13,16 +13,10 @@ def get_agent_service():
 
 AgentServiceDep = Annotated[AgentService, Depends(get_agent_service)]
 
-@agents_router.get("/", response_model=Page[agent_schemas.AgentRead])
+@agents_router.get("/", response_model=Page[agent_schemas.AgentBrief])
 def get_agents(service: AgentServiceDep):
     query = service.get_agents_query()
     return paginate(service.db_session, query)
-
-@agents_router.get("/brief", response_model=list[agent_schemas.AgentBrief])
-def get_agents_brief(service: AgentServiceDep):
-    agents = service.get_agents_brief()
-    return [agent_schemas.AgentBrief.model_validate(agent)
-            for agent in agents]
 
 @agents_router.get("/{agent_id}", response_model=agent_schemas.AgentRead)
 def get_agent(agent_id: int, service: AgentServiceDep):

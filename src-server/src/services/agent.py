@@ -12,25 +12,12 @@ class AgentNotFoundError(NotFoundError):
     def __init__(self, agent_id: int) -> None:
         super().__init__("Agent", agent_id)
 
-class AgentBrief(TypedDict):
-    id: int
-    name: str
-    icon_name: str
-
 class AgentService(ServiceBase):
     def get_agents_query(self):
         return (
             select(agent_models.Agent)
             .order_by(agent_models.Agent.id.desc())
         )
-
-    def get_agents_brief(self) -> list[AgentBrief]:
-        stmt = select(
-            agent_models.Agent.id,
-            agent_models.Agent.name,
-            agent_models.Agent.icon_name)
-        agents = self._db_session.execute(stmt).all()
-        return [AgentBrief(id=id, name=name, icon_name=icon_name) for id, name, icon_name in agents]
 
     def get_agent_by_id(self, id: int) -> agent_models.Agent:
         agent = self._db_session.get(
