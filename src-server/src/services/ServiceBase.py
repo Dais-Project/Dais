@@ -5,6 +5,10 @@ class ServiceBase(ABC):
     def __init__(self):
         self._db_session = SessionLocal()
 
+    @property
+    def db_session(self):
+        return self._db_session
+
     def __enter__(self):
         return self
 

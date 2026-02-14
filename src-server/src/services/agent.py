@@ -1,5 +1,5 @@
 from typing import TypedDict
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError
@@ -18,26 +18,11 @@ class AgentBrief(TypedDict):
     icon_name: str
 
 class AgentService(ServiceBase):
-    def get_agents(self, page: int = 1, per_page: int = 10) -> dict:
-        if page < 1: page = 1
-        if per_page < 5 or per_page > 100: per_page = 10
-
-        count_stmt = select(func.count(agent_models.Agent.id))
-        total = self._db_session.execute(count_stmt).scalar() or 0
-
-        offset = (page - 1) * per_page
-        total_pages = (total + per_page - 1) // per_page if total > 0 else 0
-
-        stmt = select(agent_models.Agent).limit(per_page).offset(offset)
-        agents = self._db_session.execute(stmt).scalars().all()
-
-        return {
-            "items": list(agents),
-            "total": total,
-            "page": page,
-            "per_page": per_page,
-            "total_pages": total_pages
-        }
+    def get_agents_query(self):
+        return (
+            select(agent_models.Agent)
+            .order_by(agent_models.Agent.id.desc())
+        )
 
     def get_agents_brief(self) -> list[AgentBrief]:
         stmt = select(

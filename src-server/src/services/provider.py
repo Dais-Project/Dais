@@ -15,8 +15,7 @@ class ProviderNotFoundError(NotFoundError):
 
 class ProviderService(ServiceBase):
     def get_providers(self) -> list[provider_models.Provider]:
-        stmt = select(provider_models.Provider).options(
-            selectinload(provider_models.Provider.models))
+        stmt = select(provider_models.Provider).order_by(provider_models.Provider.id.desc())
         providers = self._db_session.execute(stmt).scalars().all()
         return list(providers)
 

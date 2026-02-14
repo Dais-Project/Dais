@@ -4,7 +4,7 @@ from sse_starlette import EventSourceResponse
 from dais_sdk import UserMessage as SdkUserMessage
 from pydantic import BaseModel
 from ..message import UserMessage as ApiUserMessage
-from .....agent import AgentTask
+from .....agent.task import AgentTask
 from .....agent.types import MessageReplaceEvent
 from .....services.task import TaskService
 from .utils import AgentGenerator, agent_event_format, agent_stream

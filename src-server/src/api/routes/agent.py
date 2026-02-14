@@ -1,7 +1,7 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Query, status
-from pydantic import BaseModel
-from .types import PaginatedResponse
+from fastapi import APIRouter, Depends, status
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
 from ...services.agent import AgentService
 from ...db.schemas import agent as agent_schemas
 
@@ -13,25 +13,10 @@ def get_agent_service():
 
 AgentServiceDep = Annotated[AgentService, Depends(get_agent_service)]
 
-class AgentsQueryModel(BaseModel):
-    page: int = 1
-    per_page: int = 10
-
-@agents_router.get("/", response_model=PaginatedResponse[agent_schemas.AgentRead])
-def get_agents(
-    service: AgentServiceDep,
-    page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1),
-):
-    result = service.get_agents(page, per_page)
-    return PaginatedResponse[agent_schemas.AgentRead](
-        items=[agent_schemas.AgentRead.model_validate(agent)
-                for agent in result["items"]],
-        total=result["total"],
-        page=result["page"],
-        per_page=result["per_page"],
-        total_pages=result["total_pages"]
-    )
+@agents_router.get("/", response_model=Page[agent_schemas.AgentRead])
+def get_agents(service: AgentServiceDep):
+    query = service.get_agents_query()
+    return paginate(service.db_session, query)
 
 @agents_router.get("/brief", response_model=list[agent_schemas.AgentBrief])
 def get_agents_brief(service: AgentServiceDep):

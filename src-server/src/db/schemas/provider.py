@@ -25,6 +25,9 @@ class ProviderBase(DTOBase):
     base_url: str
     api_key: str
 
+class ProviderBrief(ProviderBase):
+    id: int
+
 class ProviderRead(ProviderBase):
     id: int
     models: list[LlmModelRead]

@@ -5,7 +5,7 @@ from fastapi import Request
 from sse_starlette import ServerSentEvent, JSONServerSentEvent
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk
 from ...types import EmptyServerSentEvent
-from .....agent import AgentTask
+from .....agent.task import AgentTask
 from .....agent.types import (
     AgentEvent,
     TaskDoneEvent, TaskInterruptedEvent,

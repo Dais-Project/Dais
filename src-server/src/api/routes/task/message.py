@@ -87,15 +87,21 @@ TaskMessage = UserMessage | AssistantMessage | SystemMessage | ToolMessage
 class TaskBase(DTOBase):
     title: str
     type: TaskType
-    messages: list[TaskMessage]
+    workspace_id: int
 
-class TaskRead(TaskBase):
+class TaskBrief(TaskBase):
     id: int
     usage: TaskUsage
     last_run_at: int
     agent_id: int | None
-    workspace_id: int
+
+class TaskRead(TaskBase):
+    id: int
+    messages: list[TaskMessage]
+    usage: TaskUsage
+    last_run_at: int
+    agent_id: int | None
 
 class TaskCreate(TaskBase):
+    messages: list[TaskMessage]
     agent_id: int
-    workspace_id: int

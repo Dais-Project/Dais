@@ -1,17 +1,16 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status
-from pydantic import BaseModel
-from .message import TaskRead as ApiTaskRead, TaskCreate as ApiTaskCreate
-from ..types import PaginatedResponse
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
+from .message import (
+    TaskBrief as ApiTaskBrief,
+    TaskRead as ApiTaskRead,
+    TaskCreate as ApiTaskCreate
+)
 from ....services.task import TaskService
 from ....db.schemas import task as task_schemas
 
 task_manage_router = APIRouter(tags=["task"])
-
-class TasksQueryModel(BaseModel):
-    workspace_id: int
-    page: int = 1
-    per_page: int = 15
 
 def get_task_service():
     with TaskService() as service:
@@ -19,25 +18,10 @@ def get_task_service():
 
 TaskServiceDep = Annotated[TaskService, Depends(get_task_service)]
 
-@task_manage_router.get("/", response_model=PaginatedResponse[ApiTaskRead])
-def get_tasks(
-    service: TaskServiceDep,
-    workspace_id: int = Query(...),
-    page: int = Query(1, ge=1),
-    per_page: int = Query(15, ge=1),
-):
-    result = service.get_tasks(workspace_id, page, per_page)
-
-    return PaginatedResponse[ApiTaskRead](
-        items=[ApiTaskRead.model_validate(task)
-               for task in result["items"]],
-        total=result["total"],
-        page=result["page"],
-        per_page=result["per_page"],
-        total_pages=result["total_pages"]
-    )
-
-# TODO: task brief API
+@task_manage_router.get("/", response_model=Page[ApiTaskBrief])
+def get_tasks(service: TaskServiceDep, workspace_id: int = Query(...)):
+    query = service.get_tasks_query(workspace_id)
+    return paginate(service.db_session, query)
 
 @task_manage_router.get("/{task_id}", response_model=ApiTaskRead)
 def get_task(task_id: int, service: TaskServiceDep):

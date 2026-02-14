@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.routing import APIRoute
+from fastapi_pagination import add_pagination
 from .routes import (
     workspaces_router,
     providers_router,
@@ -35,6 +36,7 @@ app = FastAPI(
         500: {"model": ErrorResponseSchema},
     },
 )
+add_pagination(app)
 
 app.add_middleware(
     CORSMiddleware,

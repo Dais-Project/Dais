@@ -11,13 +11,11 @@ def get_provider_service():
 
 ProviderServiceDep = Annotated[ProviderService, Depends(get_provider_service)]
 
-@providers_router.get("/", response_model=list[provider_schemas.ProviderRead])
+@providers_router.get("/", response_model=list[provider_schemas.ProviderBrief])
 def get_providers(service: ProviderServiceDep):
     providers = service.get_providers()
-    return [provider_schemas.ProviderRead.model_validate(provider)
+    return [provider_schemas.ProviderBrief.model_validate(provider)
             for provider in providers]
-
-# TODO: provider brief API
 
 @providers_router.get("/{provider_id}", response_model=provider_schemas.ProviderRead)
 def get_provider(provider_id: int, service: ProviderServiceDep):

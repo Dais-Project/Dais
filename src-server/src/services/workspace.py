@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError
@@ -12,28 +12,11 @@ class WorkspaceNotFoundError(NotFoundError):
         super().__init__("Workspace", workspace_id)
 
 class WorkspaceService(ServiceBase):
-    def get_workspaces(self, page: int = 1, per_page: int = 10) -> dict:
-        if page < 1: page = 1
-        if per_page < 5 or per_page > 100: per_page = 10
-
-        count_stmt = select(func.count(workspace_models.Workspace.id))
-        total = self._db_session.execute(count_stmt).scalar() or 0
-
-        offset = (page - 1) * per_page
-        total_pages = (total + per_page - 1) // per_page if total > 0 else 0
-
-        stmt = select(workspace_models.Workspace).options(
-            selectinload(workspace_models.Workspace.usable_agents)
-        ).limit(per_page).offset(offset)
-        workspaces = self._db_session.execute(stmt).scalars().all()
-
-        return {
-            "items": list(workspaces),
-            "total": total,
-            "page": page,
-            "per_page": per_page,
-            "total_pages": total_pages
-        }
+    def get_workspaces_query(self):
+        return (
+            select(workspace_models.Workspace)
+            .order_by(workspace_models.Workspace.id.desc())
+        )
 
     def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = self._db_session.get(
