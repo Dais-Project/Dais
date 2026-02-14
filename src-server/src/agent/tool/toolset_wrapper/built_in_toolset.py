@@ -15,7 +15,7 @@ class BuiltInToolsetContext:
 
     @classmethod
     def default(cls):
-        return cls(Path.cwd(), ContextUsage())
+        return cls(Path.cwd(), ContextUsage.default())
 
     @staticmethod
     def resolve_cwd(cwd: str | Path) -> Path:

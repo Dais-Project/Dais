@@ -6,6 +6,15 @@ from .metadata import *
 
 @dataclass(frozen=False)
 class ContextUsage(TaskUsage):
+    @classmethod
+    def default(cls) -> ContextUsage:
+        return cls(
+            input_tokens=0,
+            output_tokens=0,
+            total_tokens=0,
+            max_tokens=0,
+        )
+
     @property
     def remaining_tokens(self) -> int:
         reserved_output = 4096
