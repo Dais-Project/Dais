@@ -60,7 +60,7 @@ async def create_mcp_toolset(
     service: ToolsetServiceDep,
     mcp_toolset_manager: McpToolsetManagerDep,
 ):
-    new_toolset = service.create_toolset(body)
+    new_toolset = await service.create_toolset(body)
     await mcp_toolset_manager.refresh_toolset_metadata()
     return toolset_schemas.ToolsetRead.model_validate(new_toolset)
 
