@@ -1,11 +1,12 @@
 export {
   getGetAgentQueryKey,
-  getGetAgentsBriefQueryKey,
   getGetAgentsQueryKey,
   useCreateAgent,
   useDeleteAgent,
+  useGetAgentInfinite,
   useGetAgentSuspense,
-  useGetAgentsBrief,
+  useGetAgentsInfinite,
   useGetAgentsSuspense,
+  useGetAgentsSuspenseInfinite,
   useUpdateAgent,
 } from "./generated/endpoints/agent/agent";

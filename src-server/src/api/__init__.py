@@ -36,7 +36,6 @@ app = FastAPI(
         500: {"model": ErrorResponseSchema},
     },
 )
-add_pagination(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,6 +59,7 @@ app.include_router(toolset_router, prefix="/api/toolsets")
 app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 
+add_pagination(app)
 
 def use_route_names_as_operation_ids(application: FastAPI) -> None:
     """

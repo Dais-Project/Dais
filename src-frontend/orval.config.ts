@@ -1,7 +1,4 @@
-import {
-  defineConfig,
-  type OperationOptions,
-} from "orval";
+import { defineConfig, type OperationOptions } from "orval";
 
 const operationSpecificConfig: Record<string, OperationOptions> = {
   fetch_models: {
@@ -19,7 +16,7 @@ export default defineConfig({
       filters: {
         mode: "exclude",
         tags: ["stream"],
-      }
+      },
     },
     output: {
       clean: true,
@@ -42,6 +39,7 @@ export default defineConfig({
           useMutation: true,
           useSuspenseQuery: true,
           useSuspenseInfiniteQuery: true,
+          useInfiniteQueryParam: "page",
         },
         operations: operationSpecificConfig,
       },
