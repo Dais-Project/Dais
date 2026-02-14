@@ -1,20 +1,24 @@
 /** biome-ignore-all lint/performance/noBarrelFile: To aggregate all task API exports */
 
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import {
-  MessageStartEventData,
-  MessageEndEventData,
+import type {
+  AgentEventType,
+  ErrorEventData,
   MessageChunkEventData,
+  MessageEndEventData,
   MessageReplaceEventData,
+  MessageStartEventData,
   ToolCallEndEventData,
   ToolExecutedEventData,
-  ToolRequireUserResponseEventData,
   ToolRequirePermissionEventData,
-  ErrorEventData,
-  AgentEventType,
+  ToolRequireUserResponseEventData,
 } from "../types/agent-stream";
-import { ContinueTaskBody, ToolAnswerBody, ToolReviewBody } from "./generated/schemas";
 import { API_BASE } from ".";
+import type {
+  ContinueTaskBody,
+  ToolAnswerBody,
+  ToolReviewBody,
+} from "./generated/schemas";
 
 export {
   getGetTaskQueryKey,

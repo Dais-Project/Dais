@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { FetchError } from "@/api";
 import type { WorkspaceRead } from "@/api/generated/schemas";
+import type {
+  ErrorResponse,
+  FetchError,
+} from "@/api/orval-mutator/custom-fetch";
 import { getWorkspace } from "@/api/workspace";
 
 type WorkspaceState = {
@@ -64,12 +67,14 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
         if (!hydratedState?.currentWorkspace) {
           return;
         }
-        hydratedState.syncCurrentWorkspace().catch((syncError: FetchError) => {
-          if (syncError.statusCode === 404) {
-            hydratedState.setCurrentWorkspace(null);
-            return;
-          }
-        });
+        hydratedState
+          .syncCurrentWorkspace()
+          .catch((syncError: FetchError<ErrorResponse>) => {
+            if (syncError.statusCode === 404) {
+              hydratedState.setCurrentWorkspace(null);
+              return;
+            }
+          });
       },
     }
   )

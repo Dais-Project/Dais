@@ -1,6 +1,6 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "..";
 
-type ErrorResponse = {
+export type ErrorResponse = {
   error_code: string;
   message: string;
 };
