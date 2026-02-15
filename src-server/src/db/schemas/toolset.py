@@ -5,8 +5,8 @@ from ..models.toolset import ToolsetType
 class ToolBase(DTOBase):
     name: str
     description: str
-    is_enabled: bool = True
-    auto_approve: bool = False
+    is_enabled: bool
+    auto_approve: bool
 
 class ToolRead(ToolBase):
     id: int
@@ -15,20 +15,20 @@ class ToolRead(ToolBase):
 
 class ToolUpdate(DTOBase):
     id: int
-    name: str | None = None
-    is_enabled: bool | None = None
-    auto_approve: bool | None = None
+    name: str | None
+    is_enabled: bool | None
+    auto_approve: bool | None
 
 class ToolsetBase(DTOBase):
     name: str
     type: ToolsetType
-    params: LocalServerParams | RemoteServerParams | None = None
-    is_enabled: bool = True
+    params: LocalServerParams | RemoteServerParams | None
+    is_enabled: bool
 
 class ToolsetRead(ToolsetBase):
     id: int
     internal_key: str
-    tools: list[ToolRead] = []
+    tools: list[ToolRead]
 
 class ToolsetCreate(DTOBase):
     name: str
@@ -36,7 +36,7 @@ class ToolsetCreate(DTOBase):
     params: LocalServerParams | RemoteServerParams
 
 class ToolsetUpdate(DTOBase):
-    name: str | None = None
-    params: LocalServerParams | RemoteServerParams | None = None
-    is_enabled: bool | None = None
-    tools: list[ToolUpdate] | None = None
+    name: str | None
+    params: LocalServerParams | RemoteServerParams | None
+    is_enabled: bool | None
+    tools: list[ToolUpdate] | None

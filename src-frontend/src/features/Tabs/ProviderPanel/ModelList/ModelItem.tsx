@@ -1,4 +1,5 @@
 import { Edit2Icon, Trash2Icon } from "lucide-react";
+import type { LlmModelCreate } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import {
   Item,
@@ -7,25 +8,18 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
-import type {
-  LlmModelBase,
-  LlmModelCreate,
-  LlmModelUpdate,
-} from "@/types/provider";
 import { ModelEditDialog } from "../ModelEditDialog";
 import { ModelCapabilityBadges } from "./ModelCapabilityBadges";
 
-type LlmModel = LlmModelCreate | LlmModelUpdate;
-
 type ModelItemProps = {
-  model: LlmModel;
+  model: LlmModelCreate;
   index: number;
   onDelete: (index: number) => void;
-  onEdit: (index: number, model: LlmModelBase) => void;
+  onEdit: (index: number, model: LlmModelCreate) => void;
 };
 
 export function ModelItem({ model, index, onDelete, onEdit }: ModelItemProps) {
-  const handleEdit = (updatedModel: LlmModelBase) => {
+  const handleEdit = (updatedModel: LlmModelCreate) => {
     onEdit(index, updatedModel);
   };
 

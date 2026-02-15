@@ -1,12 +1,11 @@
 import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
-from src.agent.types import ContextUsage
 
 
 class TestListDirectory:
     def test_list_directory_non_recursive(self, temp_workspace, nested_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.list_directory(".")
 
         assert "Directory: ." in result
@@ -21,7 +20,7 @@ class TestListDirectory:
         temp_workspace,
         directory_with_hidden_and_gitignore,
     ):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.list_directory(".")
 
         assert "[file] keep.txt" in result
@@ -37,7 +36,7 @@ class TestListDirectory:
         temp_workspace,
         directory_with_hidden_and_gitignore,
     ):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.list_directory(".", show_all=True)
 
         assert "[file] keep.txt" in result
@@ -48,13 +47,13 @@ class TestListDirectory:
         assert ".gitignore" in result
 
     def test_list_empty_directory(self, temp_workspace, empty_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.list_directory(empty_directory)
 
         assert "(empty directory)" in result
 
     def test_list_directory_recursive_unlimited(self, temp_workspace, nested_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.list_directory(".", recursive=True)
 
         assert "1 [dir] dir1" in result
@@ -62,7 +61,7 @@ class TestListDirectory:
         assert "file4.txt" in result
 
     def test_list_directory_recursive_with_depth_limit(self, temp_workspace, nested_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.list_directory(".", recursive=True, max_depth=2)
 
         assert "[dir] dir1" in result
@@ -70,23 +69,23 @@ class TestListDirectory:
         assert "file4.txt" not in result
 
     def test_list_nonexistent_directory(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         with pytest.raises(FileNotFoundError):
             tool.list_directory("nonexistent")
 
     def test_list_file_as_directory(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         with pytest.raises(NotADirectoryError):
             tool.list_directory(filename)
 
     def test_list_directory_invalid_max_depth(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         with pytest.raises(ValueError):
             tool.list_directory(".", recursive=True, max_depth=0)
 
     def test_list_directory_with_permission_error(self, temp_workspace, mocker):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
 
         mock_iterdir = mocker.patch("pathlib.Path.iterdir")
         mock_iterdir.side_effect = PermissionError()

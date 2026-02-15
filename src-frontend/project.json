@@ -3,6 +3,9 @@
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "src-frontend",
+  "implicitDependencies": [
+    "server"
+  ],
   "targets": {
     "install": {
       "command": "pnpm install",
@@ -16,6 +19,7 @@
       "continuous": true,
       "dependsOn": [
         "install",
+        "watch-api",
         {
           "target": "dev",
           "projects": [
@@ -27,7 +31,8 @@
     "build": {
       "executor": "nx:run-commands",
       "dependsOn": [
-        "install"
+        "install",
+        "watch-api"
       ],
       "cache": true,
       "options": {
@@ -43,6 +48,20 @@
       ],
       "outputs": [
         "{projectRoot}/dist"
+      ]
+    },
+    "watch-api": {
+      "command": "pnpm nodemon --watch ../openapi.json --watch orval.config.ts --exec pnpm orval",
+      "continuous": true,
+      "cache": false,
+      "dependsOn": [
+        "install",
+        {
+          "target": "watch-schema",
+          "projects": [
+            "server"
+          ]
+        }
       ]
     }
   }

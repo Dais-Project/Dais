@@ -7,17 +7,21 @@ if TYPE_CHECKING:
 class WorkspaceBase(DTOBase):
     name: str
     directory: str
-    workspace_background: str
+
+class WorkspaceBrief(WorkspaceBase):
+    id: int
 
 class WorkspaceRead(WorkspaceBase):
     id: int
-    usable_agents: list[AgentRead] = []
+    workspace_background: str
+    usable_agents: list[AgentRead]
 
 class WorkspaceCreate(WorkspaceBase):
-    usable_agent_ids: list[int] = []
+    workspace_background: str
+    usable_agent_ids: list[int]
 
 class WorkspaceUpdate(DTOBase):
-    name: str | None = None
-    directory: str | None = None
-    workspace_background: str | None = None
-    usable_agent_ids: list[int] | None = None
+    name: str | None
+    directory: str | None
+    workspace_background: str | None
+    usable_agent_ids: list[int] | None

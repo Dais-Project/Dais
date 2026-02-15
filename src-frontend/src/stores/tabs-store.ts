@@ -93,6 +93,7 @@ export const useTabsStore = create<TabsStore>()(
             : state.tabs[idx - 1].id;
         });
       },
+      // TODO: remove tab filter
     })),
     { name: "tabs" }
   )

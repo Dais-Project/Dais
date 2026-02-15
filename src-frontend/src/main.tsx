@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/sonner";
 import App from "./App";
 import "./index.css";
 
-// 创建 QueryClient 实例
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

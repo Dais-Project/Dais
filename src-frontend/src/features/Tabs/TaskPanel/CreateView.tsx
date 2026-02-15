@@ -1,10 +1,13 @@
 import logo from "@shared/icon-square.png";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createTask } from "@/api/task";
+import { useQueryClient } from "@tanstack/react-query";
+import type { TaskType, UserMessage } from "@/api/generated/schemas";
+import {
+  getGetTaskQueryKey,
+  getGetTasksQueryKey,
+  useNewTask,
+} from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { UserMessage } from "@/types/message";
-import type { TaskType } from "@/types/task";
 import { DEFAULT_TAB_TITLE } from ".";
 import {
   PromptInputDraft,
@@ -20,20 +23,25 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
   const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
   const updateTabMetadata = useTabsStore((state) => state.updateTabMetadata);
-  const createTaskMutation = useMutation({
-    mutationFn: createTask,
-    onSuccess: (taskRead) => {
-      if (currentWorkspace) {
-        queryClient.invalidateQueries({
-          queryKey: ["tasks", currentWorkspace.id],
+  const createTaskMutation = useNewTask({
+    mutation: {
+      onSuccess: (taskRead) => {
+        if (currentWorkspace) {
+          queryClient.invalidateQueries({
+            queryKey: getGetTasksQueryKey({
+              workspace_id: currentWorkspace.id,
+            }),
+          });
+        }
+        queryClient.removeQueries({
+          queryKey: getGetTaskQueryKey(taskRead.id),
         });
-      }
-      queryClient.removeQueries({ queryKey: ["task", taskRead.id] });
-      updateTabMetadata(tabId, {
-        isDraft: false,
-        type: taskType,
-        id: taskRead.id,
-      });
+        updateTabMetadata(tabId, {
+          isDraft: false,
+          type: taskType,
+          id: taskRead.id,
+        });
+      },
     },
   });
 
@@ -49,11 +57,13 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
     };
 
     createTaskMutation.mutateAsync({
-      type: taskType,
-      title: DEFAULT_TAB_TITLE,
-      agent_id: agentId,
-      workspace_id: currentWorkspace.id,
-      messages: [userMessage],
+      data: {
+        type: taskType,
+        title: DEFAULT_TAB_TITLE,
+        agent_id: agentId,
+        workspace_id: currentWorkspace.id,
+        messages: [userMessage],
+      },
     });
   };
 

@@ -7,13 +7,13 @@ from src.agent.types import ContextUsage
 class TestReadFile:
     def test_read_text_file_without_line_numbers(self, temp_workspace, sample_text_file):
         filename, expected_content = sample_text_file
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.read_file(filename, enable_line_numbers=False)
         assert result == expected_content
 
     def test_read_text_file_with_line_numbers(self, temp_workspace, sample_text_file):
         filename, content = sample_text_file
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.read_file(filename, enable_line_numbers=True)
 
         lines = result.split("\n")
@@ -32,7 +32,7 @@ class TestReadFile:
         mock_md = mocker.MagicMock()
         mock_md.convert.return_value = mock_result
 
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         tool._md = mock_md
 
         result = tool.read_file("test.pdf")
@@ -41,13 +41,13 @@ class TestReadFile:
         mock_md.convert.assert_called_once()
 
     def test_read_nonexistent_file(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.read_file("nonexistent.txt")
         assert "File not found at nonexistent.txt" in str(exc_info.value)
 
     def test_read_empty_file(self, temp_workspace, empty_file):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.read_file(empty_file)
         assert result == ""
 
@@ -57,6 +57,6 @@ class TestReadFile:
         file_path = subdir / "test.txt"
         file_path.write_text("Test content", encoding="utf-8")
 
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.read_file("subdir/test.txt")
         assert result == "Test content"

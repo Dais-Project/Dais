@@ -1,6 +1,6 @@
 import { useFormContext, useWatch } from "react-hook-form";
+import type { ToolsetType } from "@/api/generated/schemas";
 import { SelectField } from "@/components/custom/form/fields";
-import type { ToolsetType } from "@/types/toolset";
 import type { ToolsetCreateFormValues } from "../form-types";
 
 export function ToolsetTypeSelectField() {

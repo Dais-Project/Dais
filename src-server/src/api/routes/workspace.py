@@ -1,11 +1,11 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Query, status
-from pydantic import BaseModel
-from .types import PaginatedResponse
+from fastapi import APIRouter, Depends, status
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
 from ...services.workspace import WorkspaceService
 from ...db.schemas import workspace as workspace_schemas
 
-workspaces_router = APIRouter()
+workspaces_router = APIRouter(tags=["workspace"])
 
 def get_workspace_service():
     with WorkspaceService() as service:
@@ -13,28 +13,10 @@ def get_workspace_service():
 
 WorkspaceServiceDep = Annotated[WorkspaceService, Depends(get_workspace_service)]
 
-class WorkspacesQueryModel(BaseModel):
-    page: int = 1
-    per_page: int = 10
-
-@workspaces_router.get("/", response_model=PaginatedResponse[workspace_schemas.WorkspaceRead])
-def get_workspaces(
-    service: WorkspaceServiceDep,
-    page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1),
-):
-    result = service.get_workspaces(page, per_page)
-
-    return PaginatedResponse[workspace_schemas.WorkspaceRead](
-        items=[workspace_schemas.WorkspaceRead.model_validate(workspace)
-               for workspace in result["items"]],
-        total=result["total"],
-        page=result["page"],
-        per_page=result["per_page"],
-        total_pages=result["total_pages"]
-    )
-
-# TODO: workspace brief API
+@workspaces_router.get("/", response_model=Page[workspace_schemas.WorkspaceBrief])
+def get_workspaces(service: WorkspaceServiceDep):
+    query = service.get_workspaces_query()
+    return paginate(service.db_session, query)
 
 @workspaces_router.get("/{workspace_id}", response_model=workspace_schemas.WorkspaceRead)
 def get_workspace(workspace_id: int, service: WorkspaceServiceDep):

@@ -1,8 +1,18 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { createAgent, updateAgent } from "@/api/agent";
+import {
+  getGetAgentQueryKey,
+  getGetAgentsQueryKey,
+  useCreateAgent,
+  useUpdateAgent,
+} from "@/api/agent";
+import type {
+  AgentCreate,
+  AgentRead,
+  LlmModelRead,
+} from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
@@ -10,8 +20,6 @@ import { Input } from "@/components/ui/input";
 import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
 import { DEFAULT_AGENT } from "@/constants/agent";
 import { ModelSelectDialog } from "@/features/Tabs/AgentPanel/ModelSelectDialog";
-import type { AgentCreate, AgentRead, AgentUpdate } from "@/types/agent";
-import type { LlmModelRead } from "@/types/provider";
 import { type IconName, IconSelectDialog } from "./IconSelectDialog";
 
 type AgentEditProps = {
@@ -29,6 +37,7 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
   const queryClient = useQueryClient();
 
   const { handleSubmit, control, reset } = useForm<FormValues>({
+    // TODO: remove this
     defaultValues: DEFAULT_AGENT,
   });
 
@@ -36,41 +45,42 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
     isEditMode ? agent.model : null
   );
 
-  const createAgentMutation = useMutation({
-    mutationFn: createAgent,
-    onSuccess: (newAgent) => {
-      queryClient.invalidateQueries({ queryKey: ["agents"] });
-      toast.success("创建成功", {
-        description: `已成功创建 ${newAgent.name} Agent。`,
-      });
-      reset();
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("创建失败", {
-        description: error.message || "创建 Agent 时发生错误，请稍后重试。",
-      });
+  const createAgentMutation = useCreateAgent({
+    mutation: {
+      onSuccess: (newAgent) => {
+        queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
+        toast.success("创建成功", {
+          description: `已成功创建 ${newAgent.name} Agent。`,
+        });
+        reset();
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("创建失败", {
+          description: error.message || "创建 Agent 时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
-  const updateAgentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: AgentUpdate }) =>
-      updateAgent(id, data),
-    onSuccess: (updatedAgent) => {
-      queryClient.invalidateQueries({ queryKey: ["agents"] });
-      queryClient.invalidateQueries({
-        queryKey: ["agent", updatedAgent.id],
-      });
-      toast.success("更新成功", {
-        description: `已成功更新 ${updatedAgent.name} Agent。`,
-      });
-      reset();
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("更新失败", {
-        description: error.message || "更新 Agent 时发生错误，请稍后重试。",
-      });
+  const updateAgentMutation = useUpdateAgent({
+    mutation: {
+      onSuccess: (updatedAgent) => {
+        queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey: getGetAgentQueryKey(updatedAgent.id),
+        });
+        toast.success("更新成功", {
+          description: `已成功更新 ${updatedAgent.name} Agent。`,
+        });
+        reset();
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("更新失败", {
+          description: error.message || "更新 Agent 时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
@@ -88,9 +98,9 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
 
   const onSubmit = (data: FormValues) => {
     if (isEditMode && "id" in agent) {
-      updateAgentMutation.mutate({ id: agent.id, data });
+      updateAgentMutation.mutate({ agentId: agent.id, data });
     } else {
-      createAgentMutation.mutate(data);
+      createAgentMutation.mutate({ data });
     }
   };
 

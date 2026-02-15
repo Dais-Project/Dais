@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+openapi.json
+
 # Editor directories and files
 .vscode/*
 .zed/*
@@ -27,6 +29,7 @@ dist-ssr
 /node-bin/
 
 
-
+# Nx
+migrations.json
 .nx/cache
 .nx/workspace-data

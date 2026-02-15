@@ -1,5 +1,5 @@
 from typing import NamedTuple
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .ServiceBase import ServiceBase
@@ -33,29 +33,6 @@ class ToolsetService(ServiceBase):
         name: str
         internal_key: str
         description: str
-
-    def get_toolsets(self, page: int = 1, per_page: int = 10) -> dict:
-        if page < 1: page = 1
-        if per_page < 5 or per_page > 100: per_page = 10
-
-        count_stmt = select(func.count(toolset_models.Toolset.id))
-        total = self._db_session.execute(count_stmt).scalar() or 0
-
-        offset = (page - 1) * per_page
-        total_pages = (total + per_page - 1) // per_page if total > 0 else 0
-
-        stmt = select(toolset_models.Toolset).options(
-            selectinload(toolset_models.Toolset.tools)
-        ).limit(per_page).offset(offset)
-        toolsets = self._db_session.execute(stmt).scalars().all()
-
-        return {
-            "items": list(toolsets),
-            "total": total,
-            "page": page,
-            "per_page": per_page,
-            "total_pages": total_pages
-        }
 
     def get_all_mcp_toolsets(self) -> list[toolset_models.Toolset]:
         stmt = select(toolset_models.Toolset).where(

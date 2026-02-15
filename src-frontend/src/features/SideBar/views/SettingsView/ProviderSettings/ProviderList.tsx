@@ -1,11 +1,12 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import { deleteProvider, fetchProviders } from "@/api/provider";
+import { LlmProviders, type ProviderRead } from "@/api/generated/schemas";
+import {
+  getGetProvidersQueryKey,
+  useDeleteProvider,
+  useGetProvidersSuspense,
+} from "@/api/provider";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,13 +26,14 @@ import { PROVIDER_TYPE_LABELS } from "@/constants/provider";
 import { tabIdFactory } from "@/lib/tab";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { LlmProviders, ProviderRead } from "@/types/provider";
 import type { ProviderTabMetadata, Tab } from "@/types/tab";
 
-const PROVIDER_TYPE_COLORS: Record<LlmProviders, string> = {
-  openai: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  anthropic: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  gemini:
+const PROVIDER_TYPE_COLORS: Partial<Record<LlmProviders, string>> = {
+  [LlmProviders.openai]:
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  [LlmProviders.anthropic]:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  [LlmProviders.gemini]:
     "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
 };
 
@@ -88,25 +90,27 @@ function ProviderItem({ provider }: ProviderItemProps) {
     openProviderEditTab(provider.id, provider.name);
   };
 
-  const deleteProviderMutation = useMutation({
-    mutationFn: deleteProvider,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["providers"] });
-      removeProviderTab(provider.id);
+  const deleteProviderMutation = useDeleteProvider({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetProvidersQueryKey() });
+        removeProviderTab(provider.id);
 
-      toast.success("删除成功", {
-        description: "已成功删除服务提供商。",
-      });
-    },
-    onError: (error: Error) => {
-      toast.error("删除失败", {
-        description: error.message || "删除服务提供商时发生错误，请稍后重试。",
-      });
+        toast.success("删除成功", {
+          description: "已成功删除服务提供商。",
+        });
+      },
+      onError: (error: Error) => {
+        toast.error("删除失败", {
+          description:
+            error.message || "删除服务提供商时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
   const handleDeleteConfirm = () => {
-    deleteProviderMutation.mutate(provider.id);
+    deleteProviderMutation.mutate({ providerId: provider.id });
   };
 
   return (
@@ -165,9 +169,10 @@ function ProviderItem({ provider }: ProviderItemProps) {
 }
 
 export function ProviderList() {
-  const { data: providers = [] } = useSuspenseQuery({
-    queryKey: ["providers"],
-    queryFn: async () => await fetchProviders(),
+  const { data: providers = [] } = useGetProvidersSuspense({
+    query: {
+      queryKey: getGetProvidersQueryKey(),
+    },
   });
 
   if (providers.length === 0) {

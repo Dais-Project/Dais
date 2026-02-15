@@ -1,4 +1,4 @@
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { produce } from "immer";
 import {
   createContext,
@@ -9,27 +9,30 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import type {
+  AssistantMessage,
+  TaskRead,
+  TaskUsage,
+  ToolMessage,
+  ToolReviewBody,
+  UserMessage,
+} from "@/api/generated/schemas";
 import {
   continueTask,
-  fetchTaskById,
-  type MessageChunkEventData,
-  type MessageEndEventData,
-  type MessageReplaceEventData,
-  type MessageStartEventData,
+  getGetTaskQueryKey,
   type TaskSseCallbacks,
-  type ToolCallEndEventData,
-  type ToolReviewBody,
   toolAnswer,
   toolReview,
+  useGetTaskSuspense,
 } from "@/api/task";
-import {
-  type AssistantMessage,
-  isToolMessage,
-  type Message,
-  type ToolMessage,
-  type UserMessage,
-} from "@/types/message";
-import type { TaskRead, TaskUsage } from "@/types/task";
+import type {
+  MessageChunkEventData,
+  MessageEndEventData,
+  MessageReplaceEventData,
+  MessageStartEventData,
+  ToolCallEndEventData,
+} from "@/types/agent-stream";
+import { isToolMessage, type Message } from "@/types/message";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
@@ -119,20 +122,21 @@ export function AgentTaskProvider({
   children,
 }: AgentTaskProviderProps) {
   const queryClient = useQueryClient();
-  const { data } = useSuspenseQuery({
-    queryKey: ["task", taskId],
-    queryFn: async () => await fetchTaskById(taskId),
-    staleTime: Number.POSITIVE_INFINITY,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+  const { data } = useGetTaskSuspense(taskId, {
+    query: {
+      staleTime: Number.POSITIVE_INFINITY,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+    },
   });
 
   const [agentId, setAgentId] = useState(data.agent_id);
+  const [usage, setUsage] = useState<TaskUsage>(data.usage);
 
   const setData = useCallback(
     (updater: (draft: TaskRead) => void) => {
-      queryClient.setQueryData<TaskRead>(["task", taskId], (old) =>
+      queryClient.setQueryData<TaskRead>(getGetTaskQueryKey(taskId), (old) =>
         produce(old, (draft) => draft && updater(draft))
       );
     },
@@ -149,8 +153,11 @@ export function AgentTaskProvider({
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
-  const { state, setState, usage, setUsage, startStream, cancel } =
-    useTaskStream({ taskId, agentId, sseCallbacksRef });
+  const { state, setState, startStream, cancel } = useTaskStream({
+    taskId,
+    agentId,
+    sseCallbacksRef,
+  });
 
   const onMessageStart = useCallback(
     (eventData: MessageStartEventData) => {
@@ -217,7 +224,7 @@ export function AgentTaskProvider({
           );
           return;
         }
-        draft.messages[index] = eventData.message as Message;
+        draft.messages[index] = eventData.message;
       });
     },
     [setData]

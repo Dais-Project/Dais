@@ -1,5 +1,5 @@
+import type { LlmModelCapability } from "@/api/generated/schemas";
 import { Badge } from "@/components/ui/badge";
-import type { LlmModelCapability } from "@/types/provider";
 
 type ModelCapabilityBadgesProps = {
   capability: LlmModelCapability;

@@ -16,7 +16,27 @@
       "suspicious": {
         "noConsole": "off",
         "noArrayIndexKey": "off"
+      },
+      "style": {
+        "useConsistentTypeDefinitions": {
+          "level": "error",
+          "options": {
+            "style": "type"
+          }
+        }
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/api/*.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
+  ]
 }

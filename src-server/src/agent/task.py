@@ -272,6 +272,8 @@ class AgentTask:
     def persist(self):
         with TaskService() as task_service:
             task_service.update_task(self.task_id, task_schemas.TaskUpdate(
+                title=None,
+                agent_id=self._ctx.agent.id,
                 messages=self._messages,
                 usage=self._ctx.usage,
                 last_run_at=int(time.time())

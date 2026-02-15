@@ -24,7 +24,9 @@ class AgentContext:
         with ProviderService() as provider_service:
             self._provider = provider_service.get_provider_by_id(self._model.provider_id)
 
-        self._usage = ContextUsage(max_tokens=self.model.context_size)
+        self._usage = ContextUsage.default()
+        self._usage.max_tokens = self._model.context_size
+
         self._builtin_toolset_manager = BuiltinToolsetManager(self._workspace.directory, self._usage)
         self._mcp_toolset_manager = use_mcp_toolset_manager()
 

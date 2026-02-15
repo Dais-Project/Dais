@@ -1,10 +1,10 @@
 import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { TaskRead } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { isToolMessageCompleted } from "@/types/message";
-import type { TaskRead } from "@/types/task";
 import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
+import { isToolMessageCompleted } from "@/types/message";
 
 function shouldShow(state: string, data: TaskRead): boolean {
   if (state === "waiting" || state === "running") {
@@ -24,11 +24,11 @@ function shouldShow(state: string, data: TaskRead): boolean {
   if (isToolMessageCompleted(lastMessage)) {
     return true;
   }
-  const { user_approval } = lastMessage.metadata;
-  if (user_approval === "pending") {
+  const userApproval = lastMessage.metadata?.user_approval;
+  if (userApproval === "pending") {
     return false;
   }
-  if (user_approval === "approved" || user_approval === "denied") {
+  if (userApproval === "approved" || userApproval === "denied") {
     return true;
   }
   return false;

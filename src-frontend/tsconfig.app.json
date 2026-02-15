@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -21,24 +17,14 @@
     "jsxImportSource": "react",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
-    "types": [
-      "vite/client"
-    ],
+    "types": ["vite/client"],
+    "incremental": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictNullChecks": true
   },
-  "include": [
-    "src",
-    "*.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/routeTree.gen.ts"
-  ]
+  "include": ["src", "*.d.ts"],
+  "exclude": ["node_modules", "dist", "src/routeTree.gen.ts"]
 }

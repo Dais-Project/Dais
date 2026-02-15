@@ -28,10 +28,10 @@ class TaskType(str, Enum):
 
 @dataclass
 class TaskUsage:
-    input_tokens: int = 0
-    output_tokens: int = 0
-    total_tokens: int = 0
-    max_tokens: int = 0
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    max_tokens: int
 
 class Task(Base):
     __tablename__ = "tasks"
