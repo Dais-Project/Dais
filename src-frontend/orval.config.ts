@@ -1,4 +1,4 @@
-import { defineConfig, type OperationOptions } from "orval";
+import { defineConfig, type InputOptions, type OperationOptions } from "orval";
 
 const operationSpecificConfig: Record<string, OperationOptions> = {
   fetch_models: {
@@ -9,15 +9,17 @@ const operationSpecificConfig: Record<string, OperationOptions> = {
   },
 };
 
+const input: InputOptions = {
+  target: "../openapi.json",
+  filters: {
+    mode: "exclude",
+    tags: ["stream"],
+  },
+};
+
 export default defineConfig({
   api: {
-    input: {
-      target: "../openapi.json",
-      filters: {
-        mode: "exclude",
-        tags: ["stream"],
-      },
-    },
+    input,
     output: {
       clean: true,
       target: "./src/api/generated/endpoints/",

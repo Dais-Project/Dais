@@ -9,6 +9,7 @@ interface PasswordInputProps extends Omit<ComponentProps<"input">, "type"> {
   className?: string;
 }
 
+// TODO: rewrite with input-group
 function PasswordInput({ className, ...props }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 

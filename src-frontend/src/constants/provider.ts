@@ -16,6 +16,6 @@ export const DEFAULT_PROVIDER = {
   name: "",
   type: "openai",
   base_url: "",
-  api_key: "",
+  api_key: "sk-",
   models: [],
-} satisfies Partial<ProviderCreate>;
+} satisfies ProviderCreate;
