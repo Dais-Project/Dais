@@ -1,4 +1,4 @@
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Switch } from "@/components/ui/switch";
 
@@ -15,25 +15,15 @@ export function SwitchField({
   description,
   disabled = false,
 }: SwitchFieldProps) {
-  const { control } = useFormContext();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
+  const fieldState = { error: errors[fieldName], invalid: !!errors[fieldName] };
 
   return (
-    <Controller
-      name={fieldName}
-      control={control}
-      render={({ field, fieldState }) => (
-        <FieldItem
-          title={label}
-          description={description}
-          fieldState={fieldState}
-        >
-          <Switch
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            disabled={disabled}
-          />
-        </FieldItem>
-      )}
-    />
+    <FieldItem title={label} description={description} fieldState={fieldState}>
+      <Switch {...register(fieldName, { value: false })} disabled={disabled} />
+    </FieldItem>
   );
 }

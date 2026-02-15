@@ -1,4 +1,4 @@
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
 
@@ -11,27 +11,32 @@ export function NameField({
   fieldName = "name",
   label = "名称",
 }: NameFieldProps) {
-  const { control } = useFormContext();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
+
+  const fieldState = {
+    error: errors[fieldName],
+    invalid: !!errors[fieldName],
+  };
+
   return (
-    <Controller
-      name={fieldName}
-      control={control}
-      rules={{
-        required: "请输入名称",
-        minLength: {
-          value: 1,
-          message: "名称不能为空",
-        },
-        maxLength: {
-          value: 50,
-          message: "名称长度不能超过 50 个字符",
-        },
-      }}
-      render={({ field, fieldState }) => (
-        <FieldItem title={label} fieldState={fieldState}>
-          <Input {...field} placeholder="请输入名称" />
-        </FieldItem>
-      )}
-    />
+    <FieldItem title={label} fieldState={fieldState}>
+      <Input
+        {...register(fieldName, {
+          required: "请输入名称",
+          minLength: {
+            value: 1,
+            message: "名称不能为空",
+          },
+          maxLength: {
+            value: 50,
+            message: "名称长度不能超过 50 个字符",
+          },
+        })}
+        placeholder="请输入名称"
+      />
+    </FieldItem>
   );
 }

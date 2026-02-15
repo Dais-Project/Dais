@@ -1,4 +1,3 @@
-import type { ControllerFieldState } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
@@ -6,7 +5,10 @@ export type FieldItemProps = {
   title: React.ReactNode;
   description?: React.ReactNode;
   children: React.ReactNode;
-  fieldState: ControllerFieldState;
+  fieldState: {
+    error?: { message?: string };
+    invalid: boolean;
+  };
   className?: string;
   titleClassName?: string;
   descriptionClassName?: string;
