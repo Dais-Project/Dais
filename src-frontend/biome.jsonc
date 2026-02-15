@@ -18,6 +18,7 @@
         "noArrayIndexKey": "off"
       },
       "style": {
+        "noExportedImports": "off",
         "useConsistentTypeDefinitions": {
           "level": "error",
           "options": {
