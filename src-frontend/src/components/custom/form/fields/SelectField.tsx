@@ -12,22 +12,33 @@ type SelectFieldProps<S extends Record<string, string>> = {
   fieldName?: string;
   label?: string;
   placeholder?: string;
-  selections: S;
+  selections?: S;
+  children?: React.ReactNode;
   disabled?: boolean;
   required?: boolean;
   errorMessage?: string;
 };
 
+export { SelectItem };
+
 export function SelectField<S extends Record<string, string>>({
+  selections,
+  children,
   fieldName = "type",
   label = "类型",
   placeholder = "请选择类型",
-  selections,
   disabled = false,
   required = true,
   errorMessage = "请选择类型",
 }: SelectFieldProps<S>) {
   const { control } = useFormContext();
+
+  if (selections && children) {
+    throw new Error("Cannot provide both selections and children");
+  }
+  if (!(selections || children)) {
+    throw new Error("Must provide either selections or children");
+  }
 
   return (
     <Controller
@@ -45,16 +56,18 @@ export function SelectField<S extends Record<string, string>>({
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(selections).map(
-                ([selectionLabel, selectionValue]) => (
-                  <SelectItem
-                    key={selectionValue as string}
-                    value={selectionValue as string}
-                  >
-                    {selectionLabel}
-                  </SelectItem>
-                )
-              )}
+              {children ??
+                // biome-ignore lint/style/noNonNullAssertion: selections is guaranteed to be defined if we reach this line
+                Object.entries(selections!).map(
+                  ([selectionLabel, selectionValue]) => (
+                    <SelectItem
+                      key={selectionValue as string}
+                      value={selectionValue as string}
+                    >
+                      {selectionLabel}
+                    </SelectItem>
+                  )
+                )}
             </SelectContent>
           </Select>
         </FieldItem>

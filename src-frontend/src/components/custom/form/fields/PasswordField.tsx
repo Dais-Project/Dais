@@ -1,35 +1,34 @@
 import { Controller, useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/Password";
 
-type NameFieldProps = {
-  fieldName: string;
+type PasswordFieldProps = {
+  fieldName?: string;
   label?: string;
+  placeholder?: string;
 };
 
-export function NameField({
-  fieldName = "name",
-  label = "名称",
-}: NameFieldProps) {
+export function PasswordField({
+  fieldName = "password",
+  label = "密码",
+  placeholder = "请输入密码",
+}: PasswordFieldProps) {
   const { control } = useFormContext();
+
   return (
     <Controller
       name={fieldName}
       control={control}
       rules={{
-        required: "请输入名称",
+        required: "请输入密码",
         minLength: {
           value: 1,
-          message: "名称不能为空",
-        },
-        maxLength: {
-          value: 50,
-          message: "名称长度不能超过 50 个字符",
+          message: "密码不能为空",
         },
       }}
       render={({ field, fieldState }) => (
         <FieldItem title={label} fieldState={fieldState}>
-          <Input {...field} placeholder="请输入名称" />
+          <PasswordInput {...field} placeholder={placeholder} />
         </FieldItem>
       )}
     />
