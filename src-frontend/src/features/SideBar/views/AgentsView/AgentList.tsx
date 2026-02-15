@@ -1,15 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import React from "react";
+import type React from "react";
 import { toast } from "sonner";
 import {
   getGetAgentsQueryKey,
   useDeleteAgent,
-  useGetAgentsSuspense,
+  useGetAgentsSuspenseInfinite,
 } from "@/api/agent";
-import type { AgentRead } from "@/api/generated/schemas";
+import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
+import { InfiniteScroll } from "@/components/custom/infinite-scroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -19,6 +20,7 @@ import {
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import type { IconName } from "@/features/Tabs/AgentPanel/IconSelectDialog";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
@@ -66,8 +68,8 @@ function openAgentEditTab({
 }
 
 type AgentItemProps = {
-  agent: AgentRead;
-  onDelete: (agent: AgentRead) => void;
+  agent: AgentBrief;
+  onDelete: (agent: AgentBrief) => void;
 };
 
 function AgentItem({ agent, onDelete }: AgentItemProps) {
@@ -89,10 +91,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
           <DynamicIcon name={agent.icon_name as IconName} />
         </ActionableItemIcon>
         {/* <AgentAvatar name={agent.name} iconName={agent.icon_name} size={18} /> */}
-        <ActionableItemInfo
-          title={agent.name}
-          description={agent.model ? agent.model.name : "未关联模型"}
-        />
+        <ActionableItemInfo title={agent.name} description="未关联模型" />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
@@ -111,19 +110,10 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
   );
 }
 
-const MemoizedAgentItem = React.memo(
-  AgentItem,
-  (prev, next) =>
-    prev.agent.id === next.agent.id &&
-    prev.agent.name === next.agent.name &&
-    prev.agent.icon_name === next.agent.icon_name &&
-    prev.agent.model?.name === next.agent.model?.name
-);
-
 export function AgentList() {
   const queryClient = useQueryClient();
   const { tabs, removeTab } = useTabsStore();
-  const asyncConfirm = useAsyncConfirm<AgentRead>({
+  const asyncConfirm = useAsyncConfirm<AgentBrief>({
     onConfirm: async (agent) => {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
       queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
@@ -150,20 +140,26 @@ export function AgentList() {
     },
   });
 
-  const { data } = useGetAgentsSuspense();
+  const query = useGetAgentsSuspenseInfinite(undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+  });
 
   const deleteAgentMutation = useDeleteAgent();
 
   return (
     <>
       <ScrollArea className="flex-1">
-        {data?.items.map((agent) => (
-          <MemoizedAgentItem
-            key={agent.id}
-            agent={agent}
-            onDelete={asyncConfirm.trigger}
-          />
-        ))}
+        <InfiniteScroll
+          query={query}
+          selectItems={(page) => page.items}
+          itemRender={(agent) => (
+            <AgentItem
+              key={agent.id}
+              agent={agent}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
+        />
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}

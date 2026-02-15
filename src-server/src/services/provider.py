@@ -14,8 +14,14 @@ class ProviderNotFoundError(NotFoundError):
         super().__init__("Provider", provider_id)
 
 class ProviderService(ServiceBase):
+    def get_providers_query(self):
+        return (
+            select(provider_models.Provider)
+            .order_by(provider_models.Provider.id.desc())
+        )
+
     def get_providers(self) -> list[provider_models.Provider]:
-        stmt = select(provider_models.Provider).order_by(provider_models.Provider.id.desc())
+        stmt = self.get_providers_query()
         providers = self._db_session.execute(stmt).scalars().all()
         return list(providers)
 

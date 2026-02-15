@@ -1,13 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import type { WorkspaceRead } from "@/api/generated/schemas";
+import type { WorkspaceBrief } from "@/api/generated/schemas";
 import {
   getGetWorkspacesQueryKey,
   useDeleteWorkspace,
-  useGetWorkspacesSuspense,
+  useGetWorkspacesSuspenseInfinite,
 } from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
+import { InfiniteScroll } from "@/components/custom/infinite-scroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -23,6 +24,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -74,11 +76,11 @@ function openWorkspaceEditTab({
 }
 
 type WorkspaceItemProps = {
-  workspace: WorkspaceRead;
+  workspace: WorkspaceBrief;
   disabled: boolean;
   isSelected: boolean;
   onSelect: (workspaceId: number) => void;
-  onDelete: (workspace: WorkspaceRead) => void;
+  onDelete: (workspace: WorkspaceBrief) => void;
 };
 
 function WorkspaceItem({
@@ -160,7 +162,7 @@ export function WorkspaceList() {
     (state) => state.isLoading
   );
 
-  const asyncConfirm = useAsyncConfirm<WorkspaceRead>({
+  const asyncConfirm = useAsyncConfirm<WorkspaceBrief>({
     onConfirm: async (workspace) => {
       await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
       queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
@@ -192,10 +194,12 @@ export function WorkspaceList() {
     },
   });
 
-  const { data } = useGetWorkspacesSuspense({ page: 1, per_page: 20 });
+  const query = useGetWorkspacesSuspenseInfinite(undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+  });
   const deleteWorkspaceMutation = useDeleteWorkspace();
 
-  if (data?.items.length === 0) {
+  if (query.data.pages.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -209,16 +213,20 @@ export function WorkspaceList() {
   return (
     <>
       <ScrollArea className="flex-1">
-        {data?.items.map((workspace) => (
-          <WorkspaceItem
-            key={workspace.id}
-            workspace={workspace}
-            disabled={isCurrentWorkspaceLoading}
-            isSelected={workspace.id === currentWorkspace?.id}
-            onSelect={setCurrentWorkspace}
-            onDelete={asyncConfirm.trigger}
-          />
-        ))}
+        <InfiniteScroll
+          query={query}
+          selectItems={(page) => page.items}
+          itemRender={(workspace) => (
+            <WorkspaceItem
+              key={workspace.id}
+              workspace={workspace}
+              disabled={isCurrentWorkspaceLoading}
+              isSelected={workspace.id === currentWorkspace?.id}
+              onSelect={setCurrentWorkspace}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
+        />
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}

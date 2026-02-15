@@ -1,4 +1,14 @@
-/** biome-ignore-all lint/performance/noBarrelFile: To aggregate all task API exports */
+export {
+  getGetTaskQueryKey,
+  getGetTasksQueryKey,
+  useDeleteTask,
+  useGetTaskSuspense,
+  useGetTasksSuspense,
+  useGetTasksSuspenseInfinite,
+  useNewTask,
+} from "./generated/endpoints/task/task";
+
+// --- --- --- --- --- ---
 
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import type {
@@ -19,15 +29,6 @@ import type {
   ToolAnswerBody,
   ToolReviewBody,
 } from "./generated/schemas";
-
-export {
-  getGetTaskQueryKey,
-  getGetTasksQueryKey,
-  useDeleteTask,
-  useGetTaskSuspense,
-  useGetTasksSuspense,
-  useNewTask,
-} from "./generated/endpoints/task/task";
 
 export type TaskSseCallbacks = {
   // task status callbacks

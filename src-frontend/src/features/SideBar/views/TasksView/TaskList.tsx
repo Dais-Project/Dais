@@ -1,16 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import React from "react";
+import type React from "react";
 import { toast } from "sonner";
-import type { TaskRead } from "@/api/generated/schemas";
+import type { TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
   getGetTasksQueryKey,
   useDeleteTask,
-  useGetTasksSuspense,
+  useGetTasksSuspenseInfinite,
 } from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
+import { InfiniteScroll } from "@/components/custom/infinite-scroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -26,12 +27,13 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { TaskIcon } from "./TaskIcon";
 
-function openTaskTab(task: TaskRead) {
+function openTaskTab(task: TaskBrief) {
   const { tabs, addTab, setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
     (t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id
@@ -66,8 +68,8 @@ function removeTaskTab(taskId: number) {
 }
 
 type TaskItemProps = {
-  task: TaskRead;
-  onDelete: (task: TaskRead) => void;
+  task: TaskBrief;
+  onDelete: (task: TaskBrief) => void;
 };
 
 function TaskItem({ task, onDelete }: TaskItemProps) {
@@ -113,14 +115,6 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
   );
 }
 
-const MemoizedTaskItem = React.memo(
-  TaskItem,
-  (prev, next) =>
-    prev.task.id === next.task.id &&
-    prev.task.title === next.task.title &&
-    prev.task.last_run_at === next.task.last_run_at
-);
-
 type TaskListProps = {
   workspaceId: number;
 };
@@ -129,7 +123,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
 
-  const asyncConfirm = useAsyncConfirm<TaskRead>({
+  const asyncConfirm = useAsyncConfirm<TaskBrief>({
     onConfirm: async (task) => {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
       queryClient.invalidateQueries({
@@ -150,13 +144,16 @@ export function TaskList({ workspaceId }: TaskListProps) {
     },
   });
 
-  const { data } = useGetTasksSuspense({
-    workspace_id: workspaceId,
-    page: 1,
-    per_page: 15,
-  });
+  const query = useGetTasksSuspenseInfinite(
+    {
+      workspace_id: workspaceId,
+    },
+    {
+      query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+    }
+  );
 
-  if (data.items.length === 0) {
+  if (query.data.pages.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -170,13 +167,17 @@ export function TaskList({ workspaceId }: TaskListProps) {
   return (
     <>
       <ScrollArea className="h-full">
-        {data.items.map((task) => (
-          <MemoizedTaskItem
-            key={task.id}
-            task={task}
-            onDelete={asyncConfirm.trigger}
-          />
-        ))}
+        <InfiniteScroll
+          query={query}
+          selectItems={(page) => page.items}
+          itemRender={(task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
+        />
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}

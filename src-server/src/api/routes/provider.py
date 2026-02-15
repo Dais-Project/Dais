@@ -1,5 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, status
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
 from ...services.provider import ProviderService
 from ...db.schemas import provider as provider_schemas
 
@@ -11,8 +13,13 @@ def get_provider_service():
 
 ProviderServiceDep = Annotated[ProviderService, Depends(get_provider_service)]
 
-@providers_router.get("/", response_model=list[provider_schemas.ProviderBrief])
+@providers_router.get("/", response_model=Page[provider_schemas.ProviderRead])
 def get_providers(service: ProviderServiceDep):
+    query = service.get_providers_query()
+    return paginate(service.db_session, query)
+
+@providers_router.get("/brief", response_model=list[provider_schemas.ProviderBrief])
+def get_provider_brief(service: ProviderServiceDep):
     providers = service.get_providers()
     return [provider_schemas.ProviderBrief.model_validate(provider)
             for provider in providers]
