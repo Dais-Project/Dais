@@ -3,7 +3,7 @@ import type { ControllerFieldState } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
-const fieldItemVariants = cva("flex justify-between py-2 pr-1.5", {
+const fieldItemVariants = cva("flex justify-between py-2", {
   variants: {
     orientation: {
       vertical: "flex-col",

@@ -24,8 +24,9 @@ export function NameField({
             message: "名称长度不能超过 50 个字符",
           },
         })}
-        {...controlProps}
         placeholder={placeholder}
+        className="w-auto min-w-0"
+        {...controlProps}
       />
     </FieldItem>
   );

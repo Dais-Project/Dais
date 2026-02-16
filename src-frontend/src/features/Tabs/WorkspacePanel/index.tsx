@@ -1,12 +1,12 @@
 import { useGetWorkspaceSuspense } from "@/api/workspace";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { DEFAULT_WORKSPACE } from "@/constants/workspace";
-import { WorkspaceEdit } from "@/features/Tabs/WorkspacePanel/WorkspaceEdit";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { WorkspaceTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../TabPanelFrame";
+import { WorkspaceCreateForm } from "./WorkspaceCreateForm";
+import { WorkspaceEditForm } from "./WorkspaceEditForm";
 
 function WorkspaceCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.removeTab);
@@ -15,9 +15,7 @@ function WorkspaceCreatePanel({ tabId }: { tabId: string }) {
     removeTab(tabId);
   };
 
-  return (
-    <WorkspaceEdit workspace={DEFAULT_WORKSPACE} onConfirm={handleComplete} />
-  );
+  return <WorkspaceCreateForm onConfirm={handleComplete} />;
 }
 
 function WorkspaceEditPanel({
@@ -31,7 +29,7 @@ function WorkspaceEditPanel({
   const { data: workspace } = useGetWorkspaceSuspense(workspaceId);
   const handleComplete = () => removeTab(tabId);
 
-  return <WorkspaceEdit workspace={workspace} onConfirm={handleComplete} />;
+  return <WorkspaceEditForm workspace={workspace} onConfirm={handleComplete} />;
 }
 
 export function WorkspacePanel({

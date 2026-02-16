@@ -334,7 +334,7 @@ export function SelectDialogFooter({
   };
 
   return (
-    <DialogFooter className="px-2 py-4">
+    <DialogFooter className="px-2 py-2">
       <Button variant="outline" size="sm" onClick={handleCancel}>
         {cancelText}
       </Button>

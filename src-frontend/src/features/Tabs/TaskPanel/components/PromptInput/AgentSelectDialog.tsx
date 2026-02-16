@@ -1,6 +1,15 @@
 import { ChevronsUpDownIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
-import { SingleSelectDialog } from "@/components/custom/dialog/SingleSelectDialog";
+import {
+  SelectDialog,
+  SelectDialogContent,
+  SelectDialogEmpty,
+  SelectDialogGroup,
+  SelectDialogItem,
+  SelectDialogList,
+  SelectDialogSearch,
+  SelectDialogTrigger,
+} from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 
@@ -31,28 +40,38 @@ export function AgentSelectDialog({
   }
 
   return (
-    <SingleSelectDialog
-      isSelected={(agent) => agent.id === agentId}
-      selections={agents}
-      getValue={(agent) => agent.id.toString()}
-      getLabel={(agent) => agent.name}
-      onSelect={(agent) => onChange(agent.id)}
-      placeholder="Search agent..."
-      emptyText="No agent found."
+    <SelectDialog
+      value={agentId?.toString()}
+      onValueChange={(value) => onChange(Number(value))}
     >
-      <Button
-        variant="outline"
-        role="combobox"
-        className="justify-between"
-        disabled={isCurrentWorkspaceLoading}
-      >
-        {buttonText}
-        {isCurrentWorkspaceLoading ? (
-          <Loader2Icon className="ml-2 size-4 shrink-0 animate-spin" />
-        ) : (
-          <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-        )}
-      </Button>
-    </SingleSelectDialog>
+      <SelectDialogTrigger>
+        <Button
+          variant="outline"
+          role="combobox"
+          className="justify-between"
+          disabled={isCurrentWorkspaceLoading}
+        >
+          {buttonText}
+          {isCurrentWorkspaceLoading ? (
+            <Loader2Icon className="ml-2 size-4 shrink-0 animate-spin" />
+          ) : (
+            <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+          )}
+        </Button>
+      </SelectDialogTrigger>
+      <SelectDialogContent className="p-0">
+        <SelectDialogSearch placeholder="Search agent..." />
+        <SelectDialogList>
+          <SelectDialogEmpty>No agent found.</SelectDialogEmpty>
+          <SelectDialogGroup>
+            {agents.map((agent) => (
+              <SelectDialogItem key={agent.id} value={agent.id.toString()}>
+                {agent.name}
+              </SelectDialogItem>
+            ))}
+          </SelectDialogGroup>
+        </SelectDialogList>
+      </SelectDialogContent>
+    </SelectDialog>
   );
 }

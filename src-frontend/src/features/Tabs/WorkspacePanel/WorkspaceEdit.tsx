@@ -4,7 +4,7 @@ import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useGetAgentsBrief } from "@/api/agent";
+import { useGetAgentsInfinite } from "@/api/agent";
 import type {
   AgentBrief,
   WorkspaceCreate,
@@ -16,13 +16,24 @@ import {
   useCreateWorkspace,
   useUpdateWorkspace,
 } from "@/api/workspace";
-import { MultiSelectDialog } from "@/components/custom/dialog/MultiSelectDialog";
+import {
+  SelectDialog,
+  SelectDialogContent,
+  SelectDialogEmpty,
+  SelectDialogFooter,
+  SelectDialogGroup,
+  SelectDialogItem,
+  SelectDialogList,
+  SelectDialogSearch,
+  SelectDialogTrigger,
+} from "@/components/custom/dialog/SelectDialog";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 
 type AgentSelectDialogProps = {
@@ -34,25 +45,48 @@ export function AgentSelectDialog({
   existingAgents,
   onConfirm,
 }: AgentSelectDialogProps) {
-  const { data: allAgents, isLoading } = useGetAgentsBrief({});
+  const { data: allAgents, isLoading } = useGetAgentsInfinite(undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+  });
+
+  const agents: AgentBrief[] =
+    allAgents?.pages.flatMap((page) => page.items) ?? [];
+
+  const handleConfirm = (selectedIds: string[]) => {
+    const selectedSet = new Set(selectedIds);
+    onConfirm?.(agents.filter((agent) => selectedSet.has(agent.id.toString())));
+  };
 
   return (
-    <MultiSelectDialog<AgentBrief>
-      values={existingAgents}
-      selections={allAgents ?? []}
-      getKey={(agent) => agent.id}
-      getValue={(agent) => agent.name}
-      onConfirm={onConfirm}
-      placeholder="搜索 Agent..."
-      emptyText="未找到匹配的 Agent"
-      confirmText="确定"
-      cancelText="取消"
+    <SelectDialog
+      mode="multi"
+      value={existingAgents.map((agent) => agent.id.toString())}
     >
-      <Button type="button" variant="outline" disabled={isLoading}>
-        {isLoading && <Loader2Icon className="mr-2 size-4 animate-spin" />}
-        {isLoading ? "加载中..." : "选择"}
-      </Button>
-    </MultiSelectDialog>
+      <SelectDialogTrigger>
+        <Button type="button" variant="outline" disabled={isLoading}>
+          {isLoading && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+          {isLoading ? "加载中..." : "选择"}
+        </Button>
+      </SelectDialogTrigger>
+      <SelectDialogContent>
+        <SelectDialogSearch placeholder="搜索 Agent..." />
+        <SelectDialogList>
+          <SelectDialogEmpty>未找到匹配的 Agent</SelectDialogEmpty>
+          <SelectDialogGroup>
+            {agents.map((agent) => (
+              <SelectDialogItem key={agent.id} value={agent.id.toString()}>
+                {agent.name}
+              </SelectDialogItem>
+            ))}
+          </SelectDialogGroup>
+        </SelectDialogList>
+        <SelectDialogFooter
+          onConfirm={handleConfirm}
+          confirmText="确定"
+          cancelText="取消"
+        />
+      </SelectDialogContent>
+    </SelectDialog>
   );
 }
 
@@ -176,7 +210,7 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
             maxLength: { value: 100, message: "名称最多100字符" },
           }}
           render={({ field, fieldState }) => (
-            <FieldItem title="名称" fieldState={fieldState}>
+            <FieldItem label="名称" fieldState={fieldState}>
               <Input {...field} placeholder="请输入工作区名称" />
             </FieldItem>
           )}
@@ -187,7 +221,7 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
           control={control}
           rules={{ required: "目录路径为必填项" }}
           render={({ field, fieldState }) => (
-            <FieldItem title="目录路径" fieldState={fieldState}>
+            <FieldItem label="目录路径" fieldState={fieldState}>
               <div className="flex gap-2">
                 <Input
                   {...field}
@@ -211,7 +245,7 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
           control={control}
           render={({ field, fieldState }) => (
             <FieldItem
-              title="工作区概况"
+              label="工作区概况"
               fieldState={fieldState}
               className="mt-2"
               orientation="vertical"
@@ -230,7 +264,7 @@ export function WorkspaceEdit({ workspace, onConfirm }: WorkspaceEditProps) {
           control={control}
           render={({ fieldState }) => (
             <div>
-              <FieldItem title="可用 Agent" fieldState={fieldState}>
+              <FieldItem label="可用 Agent" fieldState={fieldState}>
                 <AgentSelectDialog
                   existingAgents={usableAgents}
                   onConfirm={handleAgentConfirm}
