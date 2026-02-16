@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { PasswordInput } from "@/components/Password";
+import { PasswordInput } from "@/components/custom/PasswordInput";
 import type { FieldProps } from ".";
 
 type PasswordFieldProps = FieldProps<typeof PasswordInput>;
