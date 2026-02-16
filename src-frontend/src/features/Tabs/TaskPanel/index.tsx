@@ -1,7 +1,7 @@
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import type { TaskTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 import { CreateView } from "./CreateView";

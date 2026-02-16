@@ -2,7 +2,7 @@ import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { tabIdFactory } from "@/lib/tab";

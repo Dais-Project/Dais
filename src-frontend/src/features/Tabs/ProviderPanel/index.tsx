@@ -1,5 +1,5 @@
 import { useGetProviderSuspense } from "@/api/provider";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProviderCreateForm } from "@/features/Tabs/ProviderPanel/ProviderCreateForm";
 import { ProviderEditForm } from "@/features/Tabs/ProviderPanel/ProviderEditForm";

@@ -1,5 +1,5 @@
 import { useGetAgentSuspense } from "@/api/agent";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { DEFAULT_AGENT } from "@/constants/agent";
 import { AgentEdit } from "@/features/Tabs/AgentPanel/AgentEdit";

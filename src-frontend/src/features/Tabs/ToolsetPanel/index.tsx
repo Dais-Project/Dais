@@ -1,5 +1,5 @@
 import { useGetToolsetSuspense } from "@/api/toolset";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToolsetEditForm } from "@/features/Tabs/ToolsetPanel/ToolsetEditForm";
 import { useTabsStore } from "@/stores/tabs-store";

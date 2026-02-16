@@ -3,7 +3,7 @@ import { PlusIcon } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import type { TaskType } from "@/api/generated/schemas";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import {
   Empty,
   EmptyContent,

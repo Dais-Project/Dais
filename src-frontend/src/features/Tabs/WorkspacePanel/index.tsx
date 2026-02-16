@@ -1,5 +1,5 @@
 import { useGetWorkspaceSuspense } from "@/api/workspace";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { DEFAULT_WORKSPACE } from "@/constants/workspace";
 import { WorkspaceEdit } from "@/features/Tabs/WorkspacePanel/WorkspaceEdit";
