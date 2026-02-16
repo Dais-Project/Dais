@@ -11,7 +11,7 @@ export function ArgsField() {
       control={control}
       render={({ field, fieldState }) => (
         <FieldItem
-          title="参数"
+          label="参数"
           description="每行一个参数"
           fieldState={fieldState}
           orientation="vertical"

@@ -12,7 +12,7 @@ import { PasswordField } from "@/components/custom/form/fields/PasswordField";
 import { Button } from "@/components/ui/button";
 import { ModelsField } from "./fields/ModelsField";
 import { ProviderTypeSelectField } from "./fields/ProviderTypeSelectField";
-import type { ProviderEditFormValue } from "./form-types";
+import type { ProviderEditFormValues } from "./form-types";
 
 type ProviderEditFormProps = {
   provider: ProviderRead;
@@ -24,7 +24,7 @@ export function ProviderEditForm({
   onConfirm,
 }: ProviderEditFormProps) {
   const queryClient = useQueryClient();
-  const formValues: ProviderEditFormValue = provider;
+  const formValues: ProviderEditFormValues = provider;
 
   const updateMutation = useUpdateProvider({
     mutation: {
@@ -48,26 +48,26 @@ export function ProviderEditForm({
   });
 
   return (
-    <FormShell<ProviderEditFormValue>
+    <FormShell<ProviderEditFormValues>
       values={formValues}
-      onSubmit={(data: ProviderEditFormValue) => {
+      onSubmit={(data: ProviderEditFormValues) => {
         updateMutation.mutate({ providerId: provider.id, data });
       }}
     >
-      <NameField fieldName="name" label="名称" />
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ProviderTypeSelectField />
 
       <UrlField
         fieldName="base_url"
-        label="Base URL"
-        placeholder="请输入服务地址"
+        fieldProps={{ label: "Base URL" }}
+        controlProps={{ placeholder: "请输入服务地址" }}
       />
 
       <PasswordField
         fieldName="api_key"
-        label="API Key"
-        placeholder="请输入 API Key"
+        fieldProps={{ label: "API Key" }}
+        controlProps={{ placeholder: "请输入 API Key" }}
       />
 
       <ModelsField />

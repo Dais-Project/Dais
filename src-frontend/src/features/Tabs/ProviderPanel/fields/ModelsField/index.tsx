@@ -5,8 +5,8 @@ import type { ProviderCreate } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type {
-  ProviderCreateFormValue,
-  ProviderEditFormValue,
+  ProviderCreateFormValues,
+  ProviderEditFormValues,
 } from "../../form-types";
 import { ModelItem } from "./ModelItem";
 import { ModelSelectDialog } from "./ModelSelectDialog";
@@ -14,7 +14,7 @@ import { useModelManagement } from "./use-model-management";
 
 export function ModelsField() {
   const { control, trigger } = useFormContext<
-    ProviderCreateFormValue | ProviderEditFormValue
+    ProviderCreateFormValues | ProviderEditFormValues
   >();
   const [providerType, baseUrl, apiKey] = useWatch({
     control,

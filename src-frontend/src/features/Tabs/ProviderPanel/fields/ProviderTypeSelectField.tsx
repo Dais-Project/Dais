@@ -14,7 +14,11 @@ export function ProviderTypeSelectField({
   placeholder = "请选择类型",
 }: ProviderTypeSelectFieldProps) {
   return (
-    <SelectField fieldName={fieldName} label={label} placeholder={placeholder}>
+    <SelectField
+      fieldName={fieldName}
+      placeholder={placeholder}
+      fieldProps={{ label }}
+    >
       {Object.entries(PROVIDER_TYPE_LABELS).map(
         ([selectionValue, selectionLabel]) => (
           <SelectItem key={selectionValue} value={selectionValue}>

@@ -47,7 +47,7 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
 
   return (
     <FormShell<ToolsetCreateFormValues> onSubmit={handleSubmit}>
-      <NameField fieldName="name" label="名称" />
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ToolsetTypeSelectField />
 

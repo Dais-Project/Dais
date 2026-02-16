@@ -2,41 +2,25 @@ import { useFormContext } from "react-hook-form";
 import isURL from "validator/lib/isURL";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
+import type { FieldProps } from ".";
 
-type UrlFieldProps = {
-  fieldName?: string;
-  label?: string;
-  placeholder?: string;
-  required?: boolean;
-  description?: string;
-  align?: "start" | "center" | "end";
-};
+type UrlFieldProps = FieldProps<
+  typeof Input,
+  {
+    required?: boolean;
+  }
+>;
 
 export function UrlField({
   fieldName = "url",
-  label = "URL",
-  placeholder = "请输入 URL",
   required = true,
-  description,
-  align = "center",
+  fieldProps = { label: "URL", align: "center" },
+  controlProps = { placeholder: "请输入 URL" },
 }: UrlFieldProps) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext();
-
-  const fieldState = {
-    error: errors[fieldName],
-    invalid: !!errors[fieldName],
-  };
+  const { register, getFieldState } = useFormContext();
 
   return (
-    <FieldItem
-      title={label}
-      description={description}
-      fieldState={fieldState}
-      align={align}
-    >
+    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
       <Input
         {...register(fieldName, {
           required: required ? "请输入 URL" : false,
@@ -48,7 +32,7 @@ export function UrlField({
           },
         })}
         type="url"
-        placeholder={placeholder}
+        {...controlProps}
       />
     </FieldItem>
   );

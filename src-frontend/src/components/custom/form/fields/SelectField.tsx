@@ -7,17 +7,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { FieldProps } from ".";
 
-type SelectFieldProps<S extends Record<string, string>> = {
-  fieldName?: string;
-  label?: string;
-  placeholder?: string;
-  selections?: S;
-  children?: React.ReactNode;
-  disabled?: boolean;
-  required?: boolean;
-  errorMessage?: string;
-};
+type SelectFieldProps<S extends Record<string, string>> = FieldProps<
+  typeof Select,
+  {
+    placeholder?: string;
+    selections?: S;
+    children?: React.ReactNode;
+    required?: boolean;
+    errorMessage?: string;
+  }
+>;
 
 export { SelectItem };
 
@@ -25,17 +26,13 @@ export function SelectField<S extends Record<string, string>>({
   selections,
   children,
   fieldName = "type",
-  label = "类型",
   placeholder = "请选择类型",
-  disabled = false,
   required = true,
   errorMessage = "请选择类型",
+  fieldProps = { label: "类型" },
+  controlProps,
 }: SelectFieldProps<S>) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext();
-  const fieldState = { error: errors[fieldName], invalid: !!errors[fieldName] };
+  const { register, getFieldState } = useFormContext();
 
   if (selections && children) {
     throw new Error("Cannot provide both selections and children");
@@ -45,10 +42,10 @@ export function SelectField<S extends Record<string, string>>({
   }
 
   return (
-    <FieldItem title={label} fieldState={fieldState}>
+    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
       <Select
         {...register(fieldName, { required: required ? errorMessage : false })}
-        disabled={disabled}
+        {...controlProps}
       >
         <SelectTrigger>
           <SelectValue placeholder={placeholder} />

@@ -5,9 +5,9 @@ import type {
 } from "@/api/generated/schemas";
 
 type ProviderBaseFormValue = Omit<ProviderBrief, "id">;
-export type ProviderCreateFormValue = ProviderBaseFormValue & {
+export type ProviderCreateFormValues = ProviderBaseFormValue & {
   models: LlmModelCreate[];
 };
-export type ProviderEditFormValue = ProviderBaseFormValue & {
+export type ProviderEditFormValues = ProviderBaseFormValue & {
   models: (LlmModelCreate | LlmModelRead)[];
 };

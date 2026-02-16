@@ -64,7 +64,7 @@ export function ModelEditDialog({
         >
           <FieldGroup className="gap-y-2">
             <FieldItem
-              title="模型名称"
+              label="模型名称"
               fieldState={getFieldState("name", formState)}
             >
               <Input
@@ -80,7 +80,7 @@ export function ModelEditDialog({
             </FieldItem>
 
             <FieldItem
-              title="上下文大小"
+              label="上下文大小"
               fieldState={getFieldState("context_size", formState)}
             >
               <Input

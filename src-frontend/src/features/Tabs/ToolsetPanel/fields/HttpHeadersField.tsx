@@ -24,7 +24,7 @@ export function HttpHeadersField() {
       }}
       render={({ field, fieldState }) => (
         <FieldItem
-          title="HTTP Headers"
+          label="HTTP Headers"
           description="JSON 格式的请求头"
           fieldState={fieldState}
           orientation="vertical"

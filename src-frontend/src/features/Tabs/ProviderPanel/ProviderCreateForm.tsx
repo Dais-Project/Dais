@@ -7,7 +7,7 @@ import { NameField, UrlField } from "@/components/custom/form/fields";
 import { PasswordField } from "@/components/custom/form/fields/PasswordField";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PROVIDER } from "@/constants/provider";
-import { ModelListField } from "./fields/ModelListField";
+import { ModelsField } from "./fields/ModelsField";
 import { ProviderTypeSelectField } from "./fields/ProviderTypeSelectField";
 import type { ProviderCreateFormValues } from "./form-types";
 
@@ -50,23 +50,23 @@ export function ProviderCreateForm({ onConfirm }: ProviderCreateFormProps) {
       values={DEFAULT_PROVIDER}
       onSubmit={handleSubmit}
     >
-      <NameField fieldName="name" label="名称" />
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ProviderTypeSelectField />
 
       <UrlField
         fieldName="base_url"
-        label="Base URL"
-        placeholder="请输入服务地址"
+        fieldProps={{ label: "Base URL" }}
+        controlProps={{ placeholder: "请输入服务地址" }}
       />
 
       <PasswordField
         fieldName="api_key"
-        label="API Key"
-        placeholder="请输入 API Key"
+        fieldProps={{ label: "API Key" }}
+        controlProps={{ placeholder: "请输入 API Key" }}
       />
 
-      <ModelListField fieldName="models" />
+      <ModelsField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

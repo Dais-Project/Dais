@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import type { LlmModelCreate } from "@/api/generated/schemas";
 import { DEFAULT_LLM_MODEL } from "@/constants/provider";
 import type {
-  ProviderCreateFormValue,
-  ProviderEditFormValue,
+  ProviderCreateFormValues,
+  ProviderEditFormValues,
 } from "../../form-types";
 
-type ProviderFormValue = ProviderCreateFormValue | ProviderEditFormValue;
+type ProviderFormValue = ProviderCreateFormValues | ProviderEditFormValues;
 type ProviderModel = ProviderFormValue["models"][number];
 
 const buildDefaultModel = (name: string): ProviderModel => {

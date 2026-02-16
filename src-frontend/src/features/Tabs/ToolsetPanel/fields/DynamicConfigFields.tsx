@@ -23,9 +23,8 @@ export function DynamicConfigFields() {
       <>
         <UrlField
           fieldName="params.url"
-          label="URL"
-          placeholder="https://api.example.com"
-          align="start"
+          fieldProps={{ label: "URL", align: "start" }}
+          controlProps={{ placeholder: "https://api.example.com" }}
         />
         <HttpHeadersField />
       </>

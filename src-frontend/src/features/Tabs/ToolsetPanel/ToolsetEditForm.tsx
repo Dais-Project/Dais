@@ -61,11 +61,11 @@ export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
       values={formValues}
       onSubmit={handleSubmit}
     >
-      <NameField fieldName="name" label="名称" />
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ToolsetTypeSelectField />
 
-      <SwitchField fieldName="is_enabled" label="启用" />
+      <SwitchField fieldName="is_enabled" fieldProps={{ label: "启用" }} />
 
       <DynamicConfigFields />
 

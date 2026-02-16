@@ -116,7 +116,7 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
             maxLength: { value: 100, message: "名称最多100字符" },
           }}
           render={({ field, fieldState }) => (
-            <FieldItem title="名称" fieldState={fieldState}>
+            <FieldItem label="名称" fieldState={fieldState}>
               <Input {...field} placeholder="请输入 Agent 名称" />
             </FieldItem>
           )}
@@ -126,7 +126,7 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
           name="icon_name"
           control={control}
           render={({ field, fieldState }) => (
-            <FieldItem title="图标" fieldState={fieldState}>
+            <FieldItem label="图标" fieldState={fieldState}>
               <IconSelectDialog
                 value={field.value as IconName}
                 onChange={field.onChange}
@@ -139,7 +139,7 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
           name="model_id"
           control={control}
           render={({ field, fieldState }) => (
-            <FieldItem title="关联模型" fieldState={fieldState}>
+            <FieldItem label="关联模型" fieldState={fieldState}>
               <ModelSelectDialog
                 selectedModel={selectedModel}
                 onSelect={(model) => {
@@ -161,7 +161,7 @@ export function AgentEdit({ agent, onConfirm }: AgentEditProps) {
           }}
           render={({ field, fieldState }) => (
             <FieldItem
-              title="Agent 提示词"
+              label="Agent 提示词"
               fieldState={fieldState}
               className="mt-2"
               orientation="vertical"
