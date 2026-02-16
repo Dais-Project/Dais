@@ -8,8 +8,8 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
-import { ModelEditDialog } from "../ModelEditDialog";
 import { ModelCapabilityBadges } from "./ModelCapabilityBadges";
+import { ModelEditDialog } from "./ModelEditDialog";
 
 type ModelItemProps = {
   model: LlmModelCreate;
@@ -19,13 +19,9 @@ type ModelItemProps = {
 };
 
 export function ModelItem({ model, index, onDelete, onEdit }: ModelItemProps) {
-  const handleEdit = (updatedModel: LlmModelCreate) => {
+  const handleEdit = (updatedModel: LlmModelCreate) =>
     onEdit(index, updatedModel);
-  };
-
-  const handleDelete = () => {
-    onDelete(index);
-  };
+  const handleDelete = () => onDelete(index);
 
   return (
     <Item variant="outline" className="py-2">

@@ -1,67 +1,132 @@
 import { Loader2Icon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { LlmModelRead } from "@/api/generated/schemas";
-import { getGetProvidersQueryKey, useGetProviders } from "@/api/provider";
-import { GroupedSingleSelectDialog } from "@/components/custom/dialog/SingleSelectDialog";
+import { useGetProvidersSuspenseInfinite } from "@/api/provider";
+import {
+  SelectDialog,
+  SelectDialogContent,
+  SelectDialogEmpty,
+  SelectDialogGroup,
+  SelectDialogItem,
+  SelectDialogList,
+  SelectDialogSearch,
+  SelectDialogSeparator,
+  SelectDialogTrigger,
+} from "@/components/custom/dialog/SelectDialog";
+import { InfiniteScroll } from "@/components/custom/infinite-scroll";
 import { Button } from "@/components/ui/button";
 
 type ModelSelectDialogProps = {
   selectedModel: LlmModelRead | null;
-  onSelect: (modelId: LlmModelRead) => void;
+  onSelect: (model: LlmModelRead) => void;
 };
+
+type ModelSelectDialogItemsProps = {
+  onModelsReady: (models: Map<string, LlmModelRead>) => void;
+};
+
+function ModelSelectDialogItems({
+  onModelsReady,
+}: ModelSelectDialogItemsProps) {
+  const query = useGetProvidersSuspenseInfinite();
+
+  const providers = useMemo(() => {
+    return query.data.pages.flatMap((page) => page.items);
+  }, [query.data.pages]);
+
+  const modelMap = useMemo(() => {
+    const map = new Map<string, LlmModelRead>();
+    for (const provider of providers) {
+      for (const model of provider.models) {
+        map.set(model.id.toString(), model);
+      }
+    }
+    return map;
+  }, [providers]);
+
+  useEffect(() => {
+    onModelsReady(modelMap);
+  }, [modelMap, onModelsReady]);
+
+  return (
+    <>
+      <SelectDialogEmpty>
+        {providers.length === 0
+          ? "暂无供应商，请先添加 LLM 供应商以使用模型。"
+          : "未找到模型"}
+      </SelectDialogEmpty>
+      {providers.length > 0 && (
+        <InfiniteScroll
+          query={query}
+          selectItems={(page) => page.items}
+          itemRender={(provider, index) => (
+            <div key={provider.id}>
+              <SelectDialogGroup heading={provider.name}>
+                {provider.models.map((model) => (
+                  <SelectDialogItem key={model.id} value={model.id.toString()}>
+                    {model.name}
+                  </SelectDialogItem>
+                ))}
+              </SelectDialogGroup>
+              {index < providers.length - 1 && <SelectDialogSeparator />}
+            </div>
+          )}
+        />
+      )}
+    </>
+  );
+}
+
+function ModelSelectDialogLoading() {
+  return (
+    <div className="flex items-center px-2 py-6 text-muted-foreground text-sm">
+      <Loader2Icon className="mr-2 size-4 animate-spin" />
+      正在加载模型列表...
+    </div>
+  );
+}
 
 export function ModelSelectDialog({
   selectedModel,
   onSelect,
 }: ModelSelectDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const modelMapRef = useRef<Map<string, LlmModelRead>>(new Map());
 
-  const {
-    data: providers,
-    isLoading,
-    isError,
-  } = useGetProviders({
-    query: {
-      queryKey: getGetProvidersQueryKey(),
-      enabled: isOpen,
-    },
-  });
-
-  const groups = useMemo(() => {
-    if (!providers) {
-      return [];
+  const handleValueChange = (value: string) => {
+    const model = modelMapRef.current.get(value);
+    if (model) {
+      onSelect(model);
     }
-    return providers.map((provider) => ({
-      heading: provider.name,
-      items: provider.models,
-    }));
-  }, [providers]);
-
-  const emptyText = (() => {
-    if (isError) {
-      return "无法加载供应商和模型列表，请稍后重试。";
-    }
-    if (!providers || providers.length === 0) {
-      return "暂无供应商，请先添加 LLM 供应商以使用模型。";
-    }
-    return "未找到模型";
-  })();
+  };
 
   return (
-    <GroupedSingleSelectDialog
-      value={selectedModel ?? undefined}
-      groups={groups}
-      getLabel={(model) => model.name}
-      getValue={(model) => model.id.toString()}
-      onSelect={(model) => onSelect(model)}
-      onOpenChange={(open) => setIsOpen(open)}
-      placeholder="搜索模型..."
-      emptyText={emptyText}
+    <SelectDialog
+      value={selectedModel?.id.toString()}
+      onValueChange={handleValueChange}
+      open={isOpen}
+      onOpenChange={setIsOpen}
     >
-      <Button variant="outline" disabled={isLoading}>
-        {isLoading && <Loader2Icon className="mr-2 size-4 animate-spin" />}
-        {selectedModel ? selectedModel.name : "选择模型"}
-      </Button>
-    </GroupedSingleSelectDialog>
+      <SelectDialogTrigger>
+        <Button variant="outline">
+          {selectedModel ? selectedModel.name : "选择模型"}
+        </Button>
+      </SelectDialogTrigger>
+
+      <SelectDialogContent>
+        <SelectDialogSearch placeholder="搜索模型..." />
+        <SelectDialogList className="max-h-96">
+          {isOpen ? (
+            <Suspense fallback={<ModelSelectDialogLoading />}>
+              <ModelSelectDialogItems
+                onModelsReady={(models) => {
+                  modelMapRef.current = models;
+                }}
+              />
+            </Suspense>
+          ) : null}
+        </SelectDialogList>
+      </SelectDialogContent>
+    </SelectDialog>
   );
 }

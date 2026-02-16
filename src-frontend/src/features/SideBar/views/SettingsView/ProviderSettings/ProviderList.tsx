@@ -169,13 +169,9 @@ function ProviderItem({ provider }: ProviderItemProps) {
 }
 
 export function ProviderList() {
-  const { data: providers = [] } = useGetProvidersSuspense({
-    query: {
-      queryKey: getGetProvidersQueryKey(),
-    },
-  });
+  const { data: providers } = useGetProvidersSuspense();
 
-  if (providers.length === 0) {
+  if (providers.items.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -188,7 +184,7 @@ export function ProviderList() {
 
   return (
     <div className="flex-1 space-y-2">
-      {providers.map((provider) => (
+      {providers.items.map((provider) => (
         <ProviderItem key={provider.id} provider={provider} />
       ))}
     </div>

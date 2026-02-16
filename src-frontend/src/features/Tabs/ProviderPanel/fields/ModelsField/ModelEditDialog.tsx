@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import type { LlmModelCreate } from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { DEFAULT_LLM_MODEL } from "@/constants/provider";
 
 type ModelEditDialogProps = {
   children: React.ReactNode;
@@ -29,22 +30,8 @@ export function ModelEditDialog({
   onConfirm,
   onCancel,
 }: ModelEditDialogProps) {
-  const {
-    control,
-    reset,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<LlmModelCreate>({
-    defaultValues: {
-      name: "",
-      context_size: 128_000,
-      capability: {
-        vision: false,
-        reasoning: false,
-        tool_use: false,
-      },
-    },
-  });
+  const { reset, handleSubmit, register, getFieldState, formState } =
+    useForm<LlmModelCreate>({ defaultValues: DEFAULT_LLM_MODEL });
 
   useEffect(() => {
     if (model) {
@@ -76,43 +63,38 @@ export function ModelEditDialog({
           }}
         >
           <FieldGroup className="gap-y-2">
-            <Controller
-              name="name"
-              control={control}
-              rules={{
-                required: "请输入模型名称",
-                minLength: {
-                  value: 1,
-                  message: "模型名称不能为空",
-                },
-              }}
-              render={({ field, fieldState }) => (
-                <FieldItem title="模型名称" fieldState={fieldState}>
-                  <Input {...field} placeholder="请输入模型名称" />
-                </FieldItem>
-              )}
-            />
+            <FieldItem
+              title="模型名称"
+              fieldState={getFieldState("name", formState)}
+            >
+              <Input
+                {...register("name", {
+                  required: "请输入模型名称",
+                  minLength: {
+                    value: 1,
+                    message: "模型名称不能为空",
+                  },
+                })}
+                placeholder="请输入模型名称"
+              />
+            </FieldItem>
 
-            <Controller
-              name="context_size"
-              control={control}
-              rules={{
-                required: "请输入上下文大小",
-                min: {
-                  value: 1,
-                  message: "上下文大小必须大于 0",
-                },
-              }}
-              render={({ field, fieldState }) => (
-                <FieldItem title="上下文大小" fieldState={fieldState}>
-                  <Input
-                    {...field}
-                    type="number"
-                    placeholder="请输入上下文大小"
-                  />
-                </FieldItem>
-              )}
-            />
+            <FieldItem
+              title="上下文大小"
+              fieldState={getFieldState("context_size", formState)}
+            >
+              <Input
+                {...register("context_size", {
+                  required: "请输入上下文大小",
+                  min: {
+                    value: 1,
+                    message: "上下文大小必须大于 0",
+                  },
+                })}
+                type="number"
+                placeholder="请输入上下文大小"
+              />
+            </FieldItem>
 
             <Field className="mt-4 flex flex-row justify-between">
               <FieldLabel className="self-start">模型能力</FieldLabel>
@@ -134,26 +116,19 @@ export function ModelEditDialog({
                     label: "工具调用",
                   },
                 ].map((capability) => (
-                  <Controller
+                  <Field
                     key={capability.id}
-                    name={capability.name}
-                    control={control}
-                    render={({ field }) => (
-                      <Field orientation="horizontal" className="w-fit">
-                        <Checkbox
-                          id={capability.id}
-                          checked={field.value as boolean}
-                          onCheckedChange={field.onChange}
-                        />
-                        <FieldLabel
-                          htmlFor={capability.id}
-                          className="font-normal"
-                        >
-                          {capability.label}
-                        </FieldLabel>
-                      </Field>
-                    )}
-                  />
+                    orientation="horizontal"
+                    className="w-fit"
+                  >
+                    <Checkbox
+                      id={capability.id}
+                      {...register(capability.name, { value: false })}
+                    />
+                    <FieldLabel htmlFor={capability.id} className="font-normal">
+                      {capability.label}
+                    </FieldLabel>
+                  </Field>
                 ))}
               </div>
             </Field>
@@ -163,8 +138,8 @@ export function ModelEditDialog({
             <DialogClose asChild>
               <Button variant="outline">取消</Button>
             </DialogClose>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "保存中..." : "保存"}
+            <Button type="submit" disabled={formState.isSubmitting}>
+              {formState.isSubmitting ? "保存中..." : "保存"}
             </Button>
           </DialogFooter>
         </form>

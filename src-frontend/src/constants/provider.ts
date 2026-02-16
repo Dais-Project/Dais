@@ -1,4 +1,8 @@
-import { LlmProviders, type ProviderCreate } from "@/api/generated/schemas";
+import {
+  type LlmModelCreate,
+  LlmProviders,
+  type ProviderCreate,
+} from "@/api/generated/schemas";
 
 export const PROVIDER_TYPE_LABELS: Partial<Record<LlmProviders, string>> = {
   [LlmProviders.openai]: "OpenAI",
@@ -19,3 +23,13 @@ export const DEFAULT_PROVIDER = {
   api_key: "sk-",
   models: [],
 } satisfies ProviderCreate;
+
+export const DEFAULT_LLM_MODEL = {
+  name: "",
+  context_size: 128_000,
+  capability: {
+    vision: false,
+    reasoning: false,
+    tool_use: false,
+  },
+} satisfies LlmModelCreate;
