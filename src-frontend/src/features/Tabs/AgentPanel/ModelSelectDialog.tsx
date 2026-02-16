@@ -13,7 +13,7 @@ import {
   SelectDialogSeparator,
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
-import { InfiniteScroll } from "@/components/custom/infinite-scroll";
+import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { Button } from "@/components/ui/button";
 
 type ModelSelectDialogProps = {

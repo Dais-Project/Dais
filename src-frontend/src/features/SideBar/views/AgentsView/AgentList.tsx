@@ -10,7 +10,7 @@ import {
 } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { InfiniteScroll } from "@/components/custom/infinite-scroll";
+import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
   ActionableItemIcon,

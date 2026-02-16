@@ -8,7 +8,7 @@ import {
   useGetWorkspacesSuspenseInfinite,
 } from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { InfiniteScroll } from "@/components/custom/infinite-scroll";
+import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
   ActionableItemIcon,
