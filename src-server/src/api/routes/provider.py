@@ -21,7 +21,7 @@ def get_providers(service: ProviderServiceDep):
 @providers_router.get("/brief", response_model=list[provider_schemas.ProviderBrief])
 def get_provider_brief(service: ProviderServiceDep):
     providers = service.get_providers()
-    return [provider_schemas.ProviderBrief.model_validate(provider)
+    return [provider_schemas.ProviderBrief.from_provider(provider)
             for provider in providers]
 
 @providers_router.get("/{provider_id}", response_model=provider_schemas.ProviderRead)

@@ -1,5 +1,5 @@
 from . import DTOBase
-from ..models.provider import LlmProviders, LlmModelCapability
+from ..models.provider import Provider, LlmProviders, LlmModelCapability
 
 class LlmModelBase(DTOBase):
     name: str
@@ -27,6 +27,18 @@ class ProviderBase(DTOBase):
 
 class ProviderBrief(ProviderBase):
     id: int
+    model_count: int
+
+    @classmethod
+    def from_provider(cls, provider: Provider) -> ProviderBrief:
+        return cls(
+            id=provider.id,
+            name=provider.name,
+            type=provider.type,
+            base_url=provider.base_url,
+            api_key=provider.api_key,
+            model_count=len(provider.models),
+        )
 
 class ProviderRead(ProviderBase):
     id: int

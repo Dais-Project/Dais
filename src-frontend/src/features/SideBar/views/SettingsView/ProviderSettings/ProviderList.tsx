@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import { LlmProviders, type ProviderRead } from "@/api/generated/schemas";
+import { LlmProviders, type ProviderBrief } from "@/api/generated/schemas";
 import {
   getGetProvidersQueryKey,
   useDeleteProvider,
-  useGetProvidersSuspense,
+  useGetProviderBriefSuspense,
 } from "@/api/provider";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +79,7 @@ function removeProviderTab(providerId: number) {
 }
 
 type ProviderItemProps = {
-  provider: ProviderRead;
+  provider: ProviderBrief;
 };
 
 function ProviderItem({ provider }: ProviderItemProps) {
@@ -133,7 +133,7 @@ function ProviderItem({ provider }: ProviderItemProps) {
         </ItemTitle>
         <ItemDescription className="space-x-1">
           <span className="text-muted-foreground text-sm">
-            {provider.models.length} 个模型
+            {provider.model_count} 个模型
           </span>
         </ItemDescription>
       </ItemContent>
@@ -169,9 +169,9 @@ function ProviderItem({ provider }: ProviderItemProps) {
 }
 
 export function ProviderList() {
-  const { data: providers } = useGetProvidersSuspense();
+  const { data: providers } = useGetProviderBriefSuspense();
 
-  if (providers.items.length === 0) {
+  if (providers.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -184,7 +184,7 @@ export function ProviderList() {
 
   return (
     <div className="flex-1 space-y-2">
-      {providers.items.map((provider) => (
+      {providers.map((provider) => (
         <ProviderItem key={provider.id} provider={provider} />
       ))}
     </div>

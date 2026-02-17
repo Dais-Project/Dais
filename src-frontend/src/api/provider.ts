@@ -3,11 +3,7 @@ export {
   getGetProvidersQueryKey,
   useCreateProvider,
   useDeleteProvider,
-  useGetProviderInfinite,
+  useGetProviderBriefSuspense,
   useGetProviderSuspense,
-  useGetProviders,
-  useGetProvidersInfinite,
-  useGetProvidersSuspense,
-  useGetProvidersSuspenseInfinite,
   useUpdateProvider,
 } from "./generated/endpoints/provider/provider";
