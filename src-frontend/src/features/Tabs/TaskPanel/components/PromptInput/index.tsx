@@ -122,9 +122,10 @@ export function PromptInput() {
       className="rounded-md bg-background"
       onSubmit={(message) => {
         const userMessage = {
+          id: crypto.randomUUID(),
           role: "user",
           content: message.text,
-        } as UserMessage;
+        } satisfies UserMessage;
         if (ableToSubmit) {
           setPrompt("");
           continueTask(userMessage);

@@ -24,13 +24,13 @@ class NoCurrentWorkspaceError extends Error {
 export function AgentSelectErrorFallback({ error }: FallbackProps) {
   if (error instanceof NoCurrentWorkspaceError) {
     return (
-      <Button variant="outline" className="justify-between">
+      <Button variant="outline" className="justify-between" disabled>
         当前未打开工作区
       </Button>
     );
   }
   return (
-    <Button variant="outline" className="justify-between">
+    <Button variant="outline" className="justify-between" disabled>
       工作区加载失败
     </Button>
   );
