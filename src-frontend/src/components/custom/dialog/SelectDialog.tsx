@@ -321,11 +321,11 @@ export function SelectDialogSeparator() {
 
 export function SelectDialogSkeleton() {
   return (
-    <>
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-full" />
-    </>
+    <div className="space-y-1">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full" />
+    </div>
   );
 }
 

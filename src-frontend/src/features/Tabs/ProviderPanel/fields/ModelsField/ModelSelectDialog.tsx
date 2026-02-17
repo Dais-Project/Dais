@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ProviderCreate } from "@/api/generated/schemas";
+import type { FetchModelsParams, LlmProviders } from "@/api/generated/schemas";
 import { useFetchModelsSuspense } from "@/api/llm";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
@@ -17,7 +17,7 @@ import {
 
 type ModelQueryListProps = {
   enabled: boolean;
-  provider: ProviderCreate;
+  provider: FetchModelsParams;
 };
 
 function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
@@ -31,6 +31,7 @@ function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
 
   return (
     <>
+      <SelectDialogEmpty>未找到模型</SelectDialogEmpty>
       {data?.models?.map((model) => (
         <SelectDialogItem key={model} value={model}>
           {model}
@@ -42,7 +43,11 @@ function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
 
 type ModelSelectDialogProps = {
   children: React.ReactNode;
-  provider: ProviderCreate;
+  provider: {
+    type: LlmProviders;
+    base_url: string;
+    api_key: string;
+  };
   existingModelNames: string[];
   onConfirm: (selectedModelNames: string[]) => void;
 };
@@ -66,7 +71,6 @@ export function ModelSelectDialog({
       <SelectDialogContent>
         <SelectDialogSearch placeholder="搜索模型..." />
         <SelectDialogList>
-          <SelectDialogEmpty>未找到模型</SelectDialogEmpty>
           <SelectDialogGroup>
             <AsyncBoundary
               skeleton={<SelectDialogSkeleton />}

@@ -1,10 +1,10 @@
 import type {
   LlmModelCreate,
   LlmModelRead,
-  ProviderBrief,
+  ProviderRead,
 } from "@/api/generated/schemas";
 
-type ProviderBaseFormValue = Omit<ProviderBrief, "id">;
+type ProviderBaseFormValue = Omit<ProviderRead, "id">;
 export type ProviderCreateFormValues = ProviderBaseFormValue & {
   models: LlmModelCreate[];
 };

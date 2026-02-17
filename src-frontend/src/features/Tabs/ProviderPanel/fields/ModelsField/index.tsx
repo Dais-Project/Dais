@@ -1,7 +1,6 @@
 import { DownloadIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import type { ProviderCreate } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type {
@@ -42,13 +41,11 @@ export function ModelsField() {
       <div className="flex justify-between">
         <Label>模型列表</Label>
         <ModelSelectDialog
-          provider={
-            {
-              type: providerType,
-              base_url: baseUrl,
-              api_key: apiKey,
-            } as ProviderCreate
-          }
+          provider={{
+            type: providerType,
+            base_url: baseUrl,
+            api_key: apiKey,
+          }}
           existingModelNames={existingModelNames}
           onConfirm={handleSelectModels}
         >
