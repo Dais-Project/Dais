@@ -56,7 +56,7 @@ type ActivityBarItemProps = {
 } & React.ComponentProps<typeof Button>;
 
 function ActivityBarItem({ id, icon, ...props }: ActivityBarItemProps) {
-  const { activeView, isOpen, toggleSidebar } = useSidebarStore();
+  const { activeView, isOpen, toggle: toggleSidebar } = useSidebarStore();
 
   return (
     <Button

@@ -25,7 +25,7 @@ function Layout() {
     storage: localStorage,
   });
 
-  const { isOpen, openSidebar, closeSidebar } = useSidebarStore();
+  const { isOpen, open: openSidebar, close: closeSidebar } = useSidebarStore();
   const recentPanelSizePx = useRef(0);
   const groupRef = useGroupRef();
   const sideBarPanelRef = usePanelRef();

@@ -15,9 +15,9 @@ type SidebarState = {
 };
 
 type SidebarActions = {
-  openSidebar: (view?: View) => void;
-  closeSidebar: () => void;
-  toggleSidebar: (view?: View) => void;
+  open: (view?: View) => void;
+  close: () => void;
+  toggle: (view?: View) => void;
 };
 
 type SidebarStore = SidebarState & SidebarActions;
@@ -29,7 +29,7 @@ export const useSidebarStore = create<SidebarStore>()(
     (set, get) => ({
       isOpen: false,
       activeView: null,
-      toggleSidebar: (view: View | null = null) => {
+      toggle: (view: View | null = null) => {
         const { isOpen, activeView } = get();
         if (activeView !== null && view !== null && view !== activeView) {
           set({ isOpen: true, activeView: view });
@@ -40,11 +40,11 @@ export const useSidebarStore = create<SidebarStore>()(
           activeView: view ?? activeView ?? DEFAULT_VIEW,
         });
       },
-      openSidebar: (view: View | null = null) => {
+      open: (view: View | null = null) => {
         const { activeView } = get();
         set({ isOpen: true, activeView: view ?? activeView ?? DEFAULT_VIEW });
       },
-      closeSidebar: () => {
+      close: () => {
         set({ isOpen: false });
       },
     }),
