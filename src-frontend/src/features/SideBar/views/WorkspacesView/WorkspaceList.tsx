@@ -154,10 +154,8 @@ export function WorkspaceList() {
   const queryClient = useQueryClient();
   const tabs = useTabsStore((state) => state.tabs);
   const removeTab = useTabsStore((state) => state.removeTab);
-  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
-  const setCurrentWorkspace = useWorkspaceStore(
-    (state) => state.setCurrentWorkspace
-  );
+  const currentWorkspace = useWorkspaceStore((state) => state.current);
+  const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore(
     (state) => state.isLoading
   );

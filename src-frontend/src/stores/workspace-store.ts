@@ -8,17 +8,17 @@ import type {
 import { getWorkspace } from "@/api/workspace";
 
 type WorkspaceState = {
-  currentWorkspace: WorkspaceRead | null;
+  current: WorkspaceRead | null;
   isLoading: boolean;
 };
 
 type WorkspaceActions = {
-  setCurrentWorkspace: (workspaceId: number | null) => Promise<void>;
-  syncCurrentWorkspace: (workspaceId?: number) => Promise<void>;
+  setCurrent: (workspaceId: number | null) => Promise<void>;
+  syncCurrent: (workspaceId?: number) => Promise<void>;
 };
 
 type PersistedWorkspaceState = {
-  currentWorkspace: WorkspaceRead | null;
+  current: WorkspaceRead | null;
 };
 
 type WorkspaceStore = WorkspaceState & WorkspaceActions;
@@ -26,17 +26,17 @@ type WorkspaceStore = WorkspaceState & WorkspaceActions;
 export const useWorkspaceStore = create<WorkspaceStore>()(
   persist(
     (set, get) => ({
-      currentWorkspace: null,
+      current: null,
       isLoading: false,
-      async setCurrentWorkspace(workspaceId) {
+      async setCurrent(workspaceId) {
         if (workspaceId === null) {
-          set({ currentWorkspace: null });
+          set({ current: null });
           return;
         }
-        await get().syncCurrentWorkspace(workspaceId);
+        await get().syncCurrent(workspaceId);
       },
-      async syncCurrentWorkspace(workspaceId_) {
-        const workspaceId = workspaceId_ ?? get().currentWorkspace?.id;
+      async syncCurrent(workspaceId_) {
+        const workspaceId = workspaceId_ ?? get().current?.id;
         if (!workspaceId) {
           return;
         }
@@ -44,7 +44,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
         set({ isLoading: true });
         try {
           const workspace = await getWorkspace(workspaceId);
-          set({ currentWorkspace: workspace });
+          set({ current: workspace });
         } catch (error) {
           console.error("Failed to fetch workspace:", error);
           throw error;
@@ -57,21 +57,21 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       name: "workspace",
       partialize: (state) =>
         ({
-          currentWorkspace: state.currentWorkspace,
+          current: state.current,
         }) satisfies PersistedWorkspaceState,
       onRehydrateStorage: () => (hydratedState, error) => {
         if (error) {
           console.error("Failed to load workspace from storage:", error);
           return;
         }
-        if (!hydratedState?.currentWorkspace) {
+        if (!hydratedState?.current) {
           return;
         }
         hydratedState
-          .syncCurrentWorkspace()
+          .syncCurrent()
           .catch((syncError: FetchError<ErrorResponse>) => {
             if (syncError.statusCode === 404) {
-              hydratedState.setCurrentWorkspace(null);
+              hydratedState.setCurrent(null);
               return;
             }
           });

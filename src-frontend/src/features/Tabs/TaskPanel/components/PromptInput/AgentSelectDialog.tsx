@@ -22,7 +22,7 @@ export function AgentSelectDialog({
   agentId,
   onChange,
 }: AgentSelectDialogProps) {
-  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const currentWorkspace = useWorkspaceStore((state) => state.current);
   const isCurrentWorkspaceLoading = useWorkspaceStore(
     (state) => state.isLoading
   );

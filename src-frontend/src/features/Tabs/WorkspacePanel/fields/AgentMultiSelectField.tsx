@@ -48,7 +48,7 @@ function AgentSelectedList({
   selectedAgentIds: number[];
 }) {
   const usableAgents = useWorkspaceStore(
-    (state) => state.currentWorkspace?.usable_agents
+    (state) => state.current?.usable_agents
   );
   const { data } = useGetAgentsSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,

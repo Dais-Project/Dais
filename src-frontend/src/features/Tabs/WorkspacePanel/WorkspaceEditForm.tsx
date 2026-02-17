@@ -31,10 +31,8 @@ export function WorkspaceEditForm({
   onConfirm,
 }: WorkspaceEditFormProps) {
   const queryClient = useQueryClient();
-  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
-  const syncCurrentWorkspace = useWorkspaceStore(
-    (state) => state.syncCurrentWorkspace
-  );
+  const currentWorkspace = useWorkspaceStore((state) => state.current);
+  const syncCurrentWorkspace = useWorkspaceStore((state) => state.syncCurrent);
 
   const formValues = useMemo(
     () => workspaceToEditFormValues(workspace),
