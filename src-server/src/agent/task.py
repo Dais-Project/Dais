@@ -18,7 +18,7 @@ from .exception_handlers import (
     handle_tool_argument_decode_error,
     handle_tool_execution_error
 )
-from .tool import ExecutionControlToolset
+from .tool import ExecutionControlToolset, UserInteractionToolset
 from .tool.types import is_tool_metadata
 from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
@@ -117,7 +117,7 @@ class AgentTask:
         assert isinstance(tool, ToolDef)
 
         if (isinstance(tool.execute, MethodType) and
-            tool.execute.__func__ in [ExecutionControlToolset.ask_user, ExecutionControlToolset.finish_task]):
+            tool.execute.__func__ in [UserInteractionToolset.ask_user, ExecutionControlToolset.finish_task]):
             return ToolRequireUserResponseEvent(
                 tool_name=cast(Literal["ask_user", "finish_task"], message.name))
 
