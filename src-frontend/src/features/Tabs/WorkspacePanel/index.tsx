@@ -9,7 +9,7 @@ import { WorkspaceCreateForm } from "./WorkspaceCreateForm";
 import { WorkspaceEditForm } from "./WorkspaceEditForm";
 
 function WorkspaceCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
 
   const handleComplete = () => {
     removeTab(tabId);
@@ -25,7 +25,7 @@ function WorkspaceEditPanel({
   tabId: string;
   workspaceId: number;
 }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
   const { data: workspace } = useGetWorkspaceSuspense(workspaceId);
   const handleComplete = () => removeTab(tabId);
 

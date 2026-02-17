@@ -24,7 +24,7 @@ import { TaskList } from "./TaskList";
 import { TaskListSkeleton } from "./TaskListSkeleton";
 
 export function TasksView() {
-  const addTab = useTabsStore((state) => state.addTab);
+  const addTab = useTabsStore((state) => state.add);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   const handleNewTask = (taskType: TaskType) => {

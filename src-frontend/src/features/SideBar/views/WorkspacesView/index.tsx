@@ -13,7 +13,7 @@ import { WorkspaceList } from "./WorkspaceList";
 import { WorkspaceListSkeleton } from "./WorkspaceListSkeleton";
 
 function openWorkspaceCreateTab() {
-  const addTab = useTabsStore.getState().addTab;
+  const addTab = useTabsStore.getState().add;
   addTab({
     id: tabIdFactory(),
     type: "workspace",

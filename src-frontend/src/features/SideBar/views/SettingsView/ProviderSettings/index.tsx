@@ -43,7 +43,7 @@ function createProviderCreateTab(): Tab {
 }
 
 export function ProviderSettings() {
-  const addTab = useTabsStore((state) => state.addTab);
+  const addTab = useTabsStore((state) => state.add);
 
   const handleAddProvider = () => {
     const newTab = createProviderCreateTab();

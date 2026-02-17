@@ -13,7 +13,7 @@ import { AgentList } from "./AgentList";
 import { AgentListSkeleton } from "./AgentListSkeleton";
 
 function openAgentCreateTab() {
-  const addTab = useTabsStore.getState().addTab;
+  const addTab = useTabsStore.getState().add;
   addTab({
     id: tabIdFactory(),
     type: "agent",

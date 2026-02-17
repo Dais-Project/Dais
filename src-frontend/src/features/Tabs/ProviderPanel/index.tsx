@@ -9,7 +9,7 @@ import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../TabPanelFrame";
 
 function ProviderCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
   const handleComplete = () => removeTab(tabId);
 
   return <ProviderCreateForm onConfirm={handleComplete} />;
@@ -22,7 +22,7 @@ function ProviderEditPanel({
   tabId: string;
   providerId: number;
 }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
   const { data: provider } = useGetProviderSuspense(providerId);
   const handleComplete = () => removeTab(tabId);
 

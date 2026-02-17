@@ -9,7 +9,7 @@ import { TabPanelFrame } from "../TabPanelFrame";
 import { ToolsetCreateForm } from "./ToolsetCreateForm";
 
 function ToolsetCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
 
   const handleComplete = () => {
     removeTab(tabId);
@@ -25,7 +25,7 @@ function ToolsetEditPanel({
   tabId: string;
   toolsetId: number;
 }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
   const { data: toolset } = useGetToolsetSuspense(toolsetId);
   const handleComplete = () => removeTab(tabId);
 

@@ -48,7 +48,11 @@ function createProviderEditTab(providerId: number, providerName: string): Tab {
 }
 
 function openProviderEditTab(providerId: number, providerName: string) {
-  const { tabs, addTab, setActiveTab } = useTabsStore.getState();
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "provider" &&
@@ -65,7 +69,7 @@ function openProviderEditTab(providerId: number, providerName: string) {
 }
 
 function removeProviderTab(providerId: number) {
-  const { tabs, removeTab } = useTabsStore.getState();
+  const { tabs, remove: removeTab } = useTabsStore.getState();
   const tabsToRemove = tabs.filter(
     (tab) =>
       tab.type === "provider" &&

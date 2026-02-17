@@ -73,7 +73,10 @@ type AgentItemProps = {
 };
 
 function AgentItem({ agent, onDelete }: AgentItemProps) {
-  const { tabs, addTab, setActiveTab } = useTabsStore();
+  const tabs = useTabsStore((state) => state.tabs);
+  const addTab = useTabsStore((state) => state.add);
+  const setActiveTab = useTabsStore((state) => state.setActive);
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openAgentEditTab({
@@ -114,7 +117,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 
 export function AgentList() {
   const queryClient = useQueryClient();
-  const { tabs, removeTab } = useTabsStore();
+  const { tabs, remove: removeTab } = useTabsStore();
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     onConfirm: async (agent) => {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });

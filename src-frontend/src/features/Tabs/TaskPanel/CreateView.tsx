@@ -22,7 +22,7 @@ type CreateViewProps = {
 export function CreateView({ tabId, taskType }: CreateViewProps) {
   const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
-  const updateTabMetadata = useTabsStore((state) => state.updateTabMetadata);
+  const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
   const createTaskMutation = useNewTask({
     mutation: {
       onSuccess: (taskRead) => {

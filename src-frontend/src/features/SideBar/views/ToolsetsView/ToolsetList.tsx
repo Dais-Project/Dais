@@ -108,7 +108,10 @@ type ToolsetItemProps = {
 };
 
 function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
-  const { tabs, addTab, setActiveTab } = useTabsStore();
+  const tabs = useTabsStore((state) => state.tabs);
+  const addTab = useTabsStore((state) => state.add);
+  const setActiveTab = useTabsStore((state) => state.setActive);
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openToolsetEditTab({
@@ -169,7 +172,9 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 
 export function ToolsetList() {
   const queryClient = useQueryClient();
-  const { tabs, removeTab } = useTabsStore();
+  const tabs = useTabsStore((state) => state.tabs);
+  const removeTab = useTabsStore((state) => state.remove);
+
   const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
     onConfirm: async (toolset) => {

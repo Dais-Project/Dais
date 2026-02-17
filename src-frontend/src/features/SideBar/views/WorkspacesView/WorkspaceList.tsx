@@ -90,7 +90,9 @@ function WorkspaceItem({
   onSelect,
   onDelete,
 }: WorkspaceItemProps) {
-  const { tabs, addTab, setActiveTab } = useTabsStore();
+  const tabs = useTabsStore((state) => state.tabs);
+  const addTab = useTabsStore((state) => state.add);
+  const setActiveTab = useTabsStore((state) => state.setActive);
 
   const handleSelect = (e: React.MouseEvent) => {
     if (disabled) {
@@ -153,7 +155,7 @@ function WorkspaceItem({
 export function WorkspaceList() {
   const queryClient = useQueryClient();
   const tabs = useTabsStore((state) => state.tabs);
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore(

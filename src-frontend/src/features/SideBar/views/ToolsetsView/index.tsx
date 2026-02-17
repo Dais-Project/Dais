@@ -13,7 +13,7 @@ import { ToolsetList } from "./ToolsetList";
 import { ToolsetListSkeleton } from "./ToolsetListSkeleton";
 
 function openToolsetCreateTab() {
-  const addTab = useTabsStore.getState().addTab;
+  const addTab = useTabsStore.getState().add;
   addTab({
     id: tabIdFactory(),
     type: "toolset",

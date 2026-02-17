@@ -34,7 +34,11 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { TaskIcon } from "./TaskIcon";
 
 function openTaskTab(task: TaskBrief) {
-  const { tabs, addTab, setActiveTab } = useTabsStore.getState();
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id
   );
@@ -56,15 +60,11 @@ function openTaskTab(task: TaskBrief) {
 }
 
 function removeTaskTab(taskId: number) {
-  const { tabs, removeTab } = useTabsStore.getState();
-  const tabsToRemove = tabs.filter(
+  const removeTabsPattern = useTabsStore.getState().removePattern;
+  removeTabsPattern(
     (tab) =>
       tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId
   );
-
-  for (const tab of tabsToRemove) {
-    removeTab(tab.id);
-  }
 }
 
 type TaskItemProps = {
