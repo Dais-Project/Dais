@@ -51,12 +51,7 @@ export function AgentPanel({
 
   return (
     <TabPanelFrame
-      fallbackChildren={
-        <div className="flex h-full items-center justify-center p-4">
-          <p className="text-muted-foreground">加载中...</p>
-        </div>
-      }
-      fallbackRender={({ resetErrorBoundary }) => (
+      errorRender={({ resetErrorBoundary }) => (
         <div className="flex h-full items-center justify-center p-4">
           <FailedToLoad
             refetch={resetErrorBoundary}

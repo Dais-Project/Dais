@@ -10,10 +10,7 @@ import { WorkspaceEditForm } from "./WorkspaceEditForm";
 
 function WorkspaceCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);
-
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
+  const handleComplete = () => removeTab(tabId);
 
   return <WorkspaceCreateForm onConfirm={handleComplete} />;
 }
@@ -47,12 +44,7 @@ export function WorkspacePanel({
 
   return (
     <TabPanelFrame
-      fallbackChildren={
-        <div className="flex h-full items-center justify-center p-4">
-          <p className="text-muted-foreground">加载中...</p>
-        </div>
-      }
-      fallbackRender={({ resetErrorBoundary }) => (
+      errorRender={({ resetErrorBoundary }) => (
         <div className="flex h-full items-center justify-center p-4">
           <FailedToLoad
             refetch={resetErrorBoundary}
