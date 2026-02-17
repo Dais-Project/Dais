@@ -3,8 +3,8 @@ import { persist } from "zustand/middleware";
 import type { AppConfig } from "../types/common";
 
 type ConfigStore = {
-  config: AppConfig;
-  setPartialConfig: (partialConfig: Partial<AppConfig>) => void;
+  current: AppConfig;
+  setPartial: (partialConfig: Partial<AppConfig>) => void;
   restoreDefault: () => void;
 };
 
@@ -16,13 +16,13 @@ const DEFAULT_CONFIG: AppConfig = {
 export const useConfigStore = create<ConfigStore>()(
   persist(
     (set, get) => ({
-      config: DEFAULT_CONFIG,
-      setPartialConfig(partialConfig) {
-        const current = get().config;
-        set({ config: { ...current, ...partialConfig } });
+      current: DEFAULT_CONFIG,
+      setPartial(partialConfig) {
+        const current = get().current;
+        set({ current: { ...current, ...partialConfig } });
       },
       restoreDefault() {
-        set({ config: DEFAULT_CONFIG });
+        set({ current: DEFAULT_CONFIG });
       },
     }),
     { name: "app-config" }

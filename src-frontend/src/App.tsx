@@ -91,7 +91,7 @@ function Layout() {
 }
 
 function App() {
-  const { config } = useConfigStore();
+  const { current: config } = useConfigStore();
   const { theme } = config;
 
   useEffect(() => applyTheme(theme), [theme]);

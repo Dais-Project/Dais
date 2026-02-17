@@ -10,7 +10,7 @@ import { useConfigStore } from "@/stores/config-store";
 import type { AppTheme, Language } from "@/types/common";
 
 export function GeneralSettings() {
-  const { config, setPartialConfig } = useConfigStore();
+  const { current: config, setPartial: setPartialConfig } = useConfigStore();
 
   const handleThemeChange = (value: string) => {
     setPartialConfig({ theme: value as AppTheme });
