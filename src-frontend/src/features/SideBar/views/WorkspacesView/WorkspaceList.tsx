@@ -154,8 +154,7 @@ function WorkspaceItem({
 
 export function WorkspaceList() {
   const queryClient = useQueryClient();
-  const tabs = useTabsStore((state) => state.tabs);
-  const removeTab = useTabsStore((state) => state.remove);
+  const removeTabsPattern = useTabsStore((state) => state.removePattern);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore(
@@ -167,16 +166,12 @@ export function WorkspaceList() {
       await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
       queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
 
-      const tabsToRemove = tabs.filter(
+      removeTabsPattern(
         (tab) =>
           tab.type === "workspace" &&
           tab.metadata.mode === "edit" &&
           tab.metadata.id === workspace.id
       );
-
-      for (const tab of tabsToRemove) {
-        removeTab(tab.id);
-      }
 
       // clear current workspace if deleted
       if (workspace.id === currentWorkspace?.id) {

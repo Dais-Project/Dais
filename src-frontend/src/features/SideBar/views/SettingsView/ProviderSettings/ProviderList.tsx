@@ -69,17 +69,13 @@ function openProviderEditTab(providerId: number, providerName: string) {
 }
 
 function removeProviderTab(providerId: number) {
-  const { tabs, remove: removeTab } = useTabsStore.getState();
-  const tabsToRemove = tabs.filter(
+  const { removePattern } = useTabsStore.getState();
+  removePattern(
     (tab) =>
       tab.type === "provider" &&
       tab.metadata.mode === "edit" &&
       tab.metadata.id === providerId
   );
-
-  for (const tab of tabsToRemove) {
-    removeTab(tab.id);
-  }
 }
 
 type ProviderItemProps = {

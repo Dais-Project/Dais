@@ -117,22 +117,19 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 
 export function AgentList() {
   const queryClient = useQueryClient();
-  const { tabs, remove: removeTab } = useTabsStore();
+  const removePattern = useTabsStore((state) => state.removePattern);
+
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     onConfirm: async (agent) => {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
       queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
 
-      const tabsToRemove = tabs.filter(
+      removePattern(
         (tab) =>
           tab.type === "agent" &&
           tab.metadata.mode === "edit" &&
           tab.metadata.id === agent.id
       );
-
-      for (const tab of tabsToRemove) {
-        removeTab(tab.id);
-      }
 
       toast.success("删除成功", {
         description: "已成功删除 Agent。",

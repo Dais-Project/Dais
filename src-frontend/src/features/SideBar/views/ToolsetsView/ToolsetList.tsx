@@ -172,8 +172,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 
 export function ToolsetList() {
   const queryClient = useQueryClient();
-  const tabs = useTabsStore((state) => state.tabs);
-  const removeTab = useTabsStore((state) => state.remove);
+  const removeTabsPattern = useTabsStore((state) => state.removePattern);
 
   const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
@@ -183,16 +182,12 @@ export function ToolsetList() {
         queryKey: getGetToolsetsBriefQueryKey(),
       });
 
-      const tabsToRemove = tabs.filter(
+      removeTabsPattern(
         (tab) =>
           tab.type === "toolset" &&
           tab.metadata.mode === "edit" &&
           tab.metadata.id === toolset.id
       );
-
-      for (const tab of tabsToRemove) {
-        removeTab(tab.id);
-      }
 
       toast.success("删除成功", {
         description: "已成功删除 Toolset。",
