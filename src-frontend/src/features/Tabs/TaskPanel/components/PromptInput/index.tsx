@@ -1,5 +1,6 @@
 import type { ChatStatus } from "ai";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import type { TaskType, UserMessage } from "@/api/generated/schemas";
 import {
   PromptInput as BasePromptInput,
@@ -16,7 +17,10 @@ import {
   useAgentTaskAction,
   useAgentTaskState,
 } from "../../hooks/use-agent-task";
-import { AgentSelectDialog } from "./AgentSelectDialog";
+import {
+  AgentSelectDialog,
+  AgentSelectErrorFallback,
+} from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 
 export type PromptInputHandle = {
@@ -31,6 +35,43 @@ const PROMPTINPUT_STATE_MAPPING: Record<TaskState, ChatStatus> = {
   running: "streaming",
   error: "error",
 };
+
+type PromptInputAgentStateProps = {
+  taskType: TaskType;
+  agentId: number | null;
+  onChange: (agentId: number) => void;
+};
+
+function PromptInputAgentState({
+  taskType,
+  agentId,
+  onChange,
+}: PromptInputAgentStateProps) {
+  switch (taskType) {
+    case "agent":
+      return (
+        <ErrorBoundary fallbackRender={AgentSelectErrorFallback}>
+          <Suspense
+            fallback={
+              <Button variant="outline" disabled>
+                Loading...
+              </Button>
+            }
+          >
+            <AgentSelectDialog agentId={agentId} onChange={onChange} />
+          </Suspense>
+        </ErrorBoundary>
+      );
+    case "orchestration":
+      return (
+        <Button variant="outline" disabled>
+          Orchestrator
+        </Button>
+      );
+    default:
+      return null;
+  }
+}
 
 type PromptInputDraftProps = {
   taskType: TaskType;
@@ -57,14 +98,11 @@ export function PromptInputDraft({
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>
-          {taskType === "agent" && (
-            <AgentSelectDialog agentId={agentId} onChange={setAgentId} />
-          )}
-          {taskType === "orchestration" && (
-            <Button variant="outline" disabled>
-              Orchestrator
-            </Button>
-          )}
+          <PromptInputAgentState
+            taskType={taskType}
+            agentId={agentId}
+            onChange={setAgentId}
+          />
         </PromptInputTools>
         <PromptInputSubmit disabled={!ableToSubmit} />
       </PromptInputFooter>
@@ -103,14 +141,11 @@ export function PromptInput() {
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>
-          {data.type === "agent" && (
-            <AgentSelectDialog agentId={agentId} onChange={setAgentId} />
-          )}
-          {data.type === "orchestration" && (
-            <Button variant="outline" disabled>
-              Orchestrator
-            </Button>
-          )}
+          <PromptInputAgentState
+            taskType={data.type}
+            agentId={agentId}
+            onChange={setAgentId}
+          />
           {usage && <ContextUsage usage={usage} />}
         </PromptInputTools>
         <PromptInputSubmit

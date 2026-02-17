@@ -9,6 +9,7 @@ import { getWorkspace } from "@/api/workspace";
 
 type WorkspaceState = {
   current: WorkspaceRead | null;
+  currentPromise: Promise<WorkspaceRead> | null;
   isLoading: boolean;
 };
 
@@ -27,10 +28,15 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
   persist(
     (set, get) => ({
       current: null,
+      currentPromise: null,
       isLoading: false,
       async setCurrent(workspaceId) {
         if (workspaceId === null) {
-          set({ current: null });
+          set({
+            current: null,
+            currentPromise: null,
+            isLoading: false,
+          });
           return;
         }
         await get().syncCurrent(workspaceId);
@@ -41,15 +47,17 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
           return;
         }
 
-        set({ isLoading: true });
+        const promise = getWorkspace(workspaceId);
+        const isLatestRequest = () => get().currentPromise === promise;
+        set({ isLoading: true, currentPromise: promise });
         try {
-          const workspace = await getWorkspace(workspaceId);
-          set({ current: workspace });
+          const workspace = await promise;
+          isLatestRequest() && set({ current: workspace });
         } catch (error) {
-          console.error("Failed to fetch workspace:", error);
+          console.error(`Failed to fetch workspace ${workspaceId}:`, error);
           throw error;
         } finally {
-          set({ isLoading: false });
+          isLatestRequest() && set({ isLoading: false });
         }
       },
     }),
