@@ -5,5 +5,6 @@ export {
   useDeleteProvider,
   useGetProviderBriefSuspense,
   useGetProviderSuspense,
+  useGetProvidersSuspenseInfinite,
   useUpdateProvider,
 } from "./generated/endpoints/provider/provider";
