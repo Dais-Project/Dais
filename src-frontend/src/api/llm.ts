@@ -1,1 +1,1 @@
-export { useFetchModels } from "./generated/endpoints/llm-api/llm-api";
+export { useFetchModelsSuspense } from "./generated/endpoints/llm-api/llm-api";

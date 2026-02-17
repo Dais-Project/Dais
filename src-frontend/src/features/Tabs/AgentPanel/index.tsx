@@ -1,8 +1,8 @@
 import { useGetAgentSuspense } from "@/api/agent";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { DEFAULT_AGENT } from "@/constants/agent";
-import { AgentEdit } from "@/features/Tabs/AgentPanel/AgentEdit";
+import { AgentCreateForm } from "@/features/Tabs/AgentPanel/AgentCreateForm";
+import { AgentEditForm } from "@/features/Tabs/AgentPanel/AgentEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
@@ -15,7 +15,7 @@ function AgentCreatePanel({ tabId }: { tabId: string }) {
     removeTab(tabId);
   };
 
-  return <AgentEdit agent={DEFAULT_AGENT} onConfirm={handleComplete} />;
+  return <AgentCreateForm onConfirm={handleComplete} />;
 }
 
 function AgentEditPanel({
@@ -33,7 +33,7 @@ function AgentEditPanel({
     removeTab(tabId);
   };
 
-  return <AgentEdit agent={agent} onConfirm={handleComplete} />;
+  return <AgentEditForm agent={agent} onConfirm={handleComplete} />;
 }
 
 export function AgentPanel({

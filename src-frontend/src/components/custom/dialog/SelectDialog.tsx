@@ -25,6 +25,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type Selection = string | number;
@@ -312,6 +313,20 @@ export function SelectDialogItem<V extends Selection>({
 
 export function SelectDialogSeparator() {
   return <CommandSeparator />;
+}
+
+// ============================================================
+// Skeleton
+// ============================================================
+
+export function SelectDialogSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-full" />
+    </>
+  );
 }
 
 // ============================================================

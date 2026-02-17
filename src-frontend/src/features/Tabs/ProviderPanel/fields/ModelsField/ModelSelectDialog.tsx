@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import type { ProviderCreate } from "@/api/generated/schemas";
-import { useFetchModels } from "@/api/llm";
+import { useFetchModelsSuspense } from "@/api/llm";
 import {
   SelectDialog,
   SelectDialogContent,
@@ -9,8 +10,35 @@ import {
   SelectDialogItem,
   SelectDialogList,
   SelectDialogSearch,
+  SelectDialogSkeleton,
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
+import { TanstackSuspenseContainer } from "@/components/custom/TanstackSuspenseContainer";
+
+type ModelQueryListProps = {
+  enabled: boolean;
+  provider: ProviderCreate;
+};
+
+function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
+  const { data, refetch } = useFetchModelsSuspense(provider);
+
+  useEffect(() => {
+    if (enabled) {
+      refetch();
+    }
+  }, [enabled]);
+
+  return (
+    <>
+      {data?.models?.map((model) => (
+        <SelectDialogItem key={model} value={model}>
+          {model}
+        </SelectDialogItem>
+      ))}
+    </>
+  );
+}
 
 type ModelSelectDialogProps = {
   children: React.ReactNode;
@@ -25,31 +53,27 @@ export function ModelSelectDialog({
   existingModelNames,
   onConfirm,
 }: ModelSelectDialogProps) {
-  const { data, isLoading, refetch } = useFetchModels(provider, {
-    query: { enabled: false },
-  });
+  const [open, setOpen] = useState(false);
 
   return (
     <SelectDialog<string>
       mode="multi"
       value={existingModelNames}
-      onOpenChange={(open) => {
-        open && refetch();
-      }}
+      open={open}
+      onOpenChange={setOpen}
     >
       <SelectDialogTrigger>{children}</SelectDialogTrigger>
       <SelectDialogContent>
         <SelectDialogSearch placeholder="搜索模型..." />
         <SelectDialogList>
-          <SelectDialogEmpty>
-            {isLoading ? "加载中..." : "未找到模型"}
-          </SelectDialogEmpty>
+          <SelectDialogEmpty>未找到模型</SelectDialogEmpty>
           <SelectDialogGroup>
-            {data?.models?.map((model) => (
-              <SelectDialogItem key={model} value={model}>
-                {model}
-              </SelectDialogItem>
-            ))}
+            <TanstackSuspenseContainer
+              fallback={<SelectDialogSkeleton />}
+              errorDescription="无法加载模型列表，请稍后重试。"
+            >
+              <ModelQueryList enabled={open} provider={provider} />
+            </TanstackSuspenseContainer>
           </SelectDialogGroup>
         </SelectDialogList>
         <SelectDialogFooter

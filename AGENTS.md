@@ -110,6 +110,7 @@ def get_agent(agent_id: int, service: AgentServiceDep):
   - 组合优于配置：使用“积木式”组合，由容器组件（Container）决定字段的渲染顺序和存在性。
   - 原子化表单组件：将特定业务字段的 UI (Input, Select 等)、逻辑 (Controller) 和校验规则 (Rules) 封装为独立组件。
   - 上下文驱动：使用 FormProvider (在表单 Container 中) 和 useFormContext (在 Field Component 中) 避免 Props Drilling。
+- 在编写资源选择 dialog 组件时，应该基于项目现成的 SelectDialog 组件构建，同时对于需要异步加载的数据，应该单独将选项列表封装在单独的 list 组件中，并在该组件中使用 suspense API 加载数据，同时在 dialog 层处理 suspense 状态。
 
 ### 注意事项
 
