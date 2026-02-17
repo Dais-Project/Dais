@@ -7,6 +7,7 @@ class AgentBase(DTOBase):
 
 class AgentBrief(AgentBase):
     id: int
+    model: LlmModelRead | None
 
 class AgentRead(AgentBase):
     id: int

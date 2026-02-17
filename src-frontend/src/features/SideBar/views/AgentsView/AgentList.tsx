@@ -90,8 +90,10 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
         <ActionableItemIcon seed={agent.name}>
           <DynamicIcon name={agent.icon_name as IconName} />
         </ActionableItemIcon>
-        {/* <AgentAvatar name={agent.name} iconName={agent.icon_name} size={18} /> */}
-        <ActionableItemInfo title={agent.name} description="未关联模型" />
+        <ActionableItemInfo
+          title={agent.name}
+          description={agent.model?.name ?? "无模型"}
+        />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
