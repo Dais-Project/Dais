@@ -1,8 +1,5 @@
-from typing import TYPE_CHECKING
 from . import DTOBase
-
-if TYPE_CHECKING:
-    from .agent import AgentRead
+from .agent import AgentRead
 
 class WorkspaceBase(DTOBase):
     name: str
