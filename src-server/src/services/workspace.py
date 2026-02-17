@@ -55,8 +55,9 @@ class WorkspaceService(ServiceBase):
 
         usable_agent_ids = data.usable_agent_ids
 
-        for key, value in data.model_dump(exclude_unset=True, exclude={"usable_agent_ids"}).items():
-            if value is not None:
+        update_data = data.model_dump(exclude_unset=True, exclude={"usable_agent_ids"})
+        for key, value in update_data.items():
+            if hasattr(workspace, key) and value is not None:
                 setattr(workspace, key, value)
 
         if usable_agent_ids is not None:

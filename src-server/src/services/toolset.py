@@ -112,9 +112,7 @@ class ToolsetService(ServiceBase):
         return new_toolset
 
     def update_toolset(self, id: int, data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
-        stmt = select(toolset_models.Toolset).where(
-            toolset_models.Toolset.id == id)
-        toolset = self._db_session.execute(stmt).scalar_one_or_none()
+        toolset = self._db_session.get(toolset_models.Toolset, id)
         if not toolset:
             raise ToolsetNotFoundError(id)
 
@@ -122,8 +120,9 @@ class ToolsetService(ServiceBase):
             for tool_data in data.tools:
                 self.update_tool(id, tool_data.id, tool_data)
 
-        for key, value in data.model_dump(exclude={"tools"}, exclude_unset=True).items():
-            if value is not None:
+        update_data = data.model_dump(exclude={"tools"}, exclude_unset=True)
+        for key, value in update_data.items():
+            if hasattr(toolset, key) and value is not None:
                 setattr(toolset, key, value)
 
         try:

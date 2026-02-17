@@ -42,14 +42,13 @@ class AgentService(ServiceBase):
         return new_agent
 
     def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
-        stmt = select(agent_models.Agent).where(
-            agent_models.Agent.id == id)
-        agent = self._db_session.execute(stmt).scalar_one_or_none()
+        agent = self._db_session.get(agent_models.Agent, id)
         if not agent:
             raise AgentNotFoundError(id)
 
-        for key, value in data.model_dump(exclude_unset=True).items():
-            if value is not None:
+        update_data = data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            if hasattr(agent, key) and value is not None:
                 setattr(agent, key, value)
 
         try:
@@ -61,9 +60,7 @@ class AgentService(ServiceBase):
         return agent
 
     def delete_agent(self, id: int) -> None:
-        stmt = select(agent_models.Agent).where(
-            agent_models.Agent.id == id)
-        agent = self._db_session.execute(stmt).scalar_one_or_none()
+        agent = self._db_session.get(agent_models.Agent, id)
         if not agent:
             raise AgentNotFoundError(id)
         try:

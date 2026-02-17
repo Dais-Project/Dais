@@ -17,11 +17,10 @@ from dais_sdk.types.message import (
     ChatCompletionImageURL, 
     LiteLlmUsage
 )
-from pydantic import BaseModel
 from ....db.schemas import DTOBase
 from ....db.models.task import TaskType, TaskUsage
 
-class BaseMessage(BaseModel):
+class BaseMessage(DTOBase):
     id: str
 
     @property

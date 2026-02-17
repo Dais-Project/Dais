@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Annotated, TYPE_CHECKING
+from typing import Annotated, TYPE_CHECKING, Self
 from dais_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
 from pydantic import Discriminator, TypeAdapter
 from sqlalchemy import ForeignKey
@@ -33,12 +33,21 @@ class TaskUsage:
     total_tokens: int
     max_tokens: int
 
+    @classmethod
+    def default(cls) -> Self:
+        return cls(
+            input_tokens=0,
+            output_tokens=0,
+            total_tokens=0,
+            max_tokens=0,
+        )
+
 class Task(Base):
     __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
     type: Mapped[TaskType]
     title: Mapped[str]
-    usage: Mapped[TaskUsage] = mapped_column(DataClassJSON(TaskUsage))
+    usage: Mapped[TaskUsage] = mapped_column(DataClassJSON(TaskUsage), default=TaskUsage.default)
     messages: Mapped[list[TaskMessage]] = mapped_column(PydanticJSON(messages_adapter), default=list)
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
     agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id", ondelete="SET NULL"))

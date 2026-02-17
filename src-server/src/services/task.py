@@ -34,9 +34,8 @@ class TaskService(ServiceBase):
 
     def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
         new_task = task_models.Task(
-            messages=data.messages,
-            _workspace_id=data.workspace_id, # only write workspace_id on create
-            **data.model_dump(exclude={"messages", "workspace_id"})
+            _workspace_id=data.workspace_id,
+            **data.model_dump(exclude={"workspace_id"})
         )
 
         try:
@@ -49,19 +48,13 @@ class TaskService(ServiceBase):
         return new_task
 
     def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:
-        stmt = select(task_models.Task).where(task_models.Task.id == id)
-        task = self._db_session.execute(stmt).scalar_one_or_none()
-
+        task = self._db_session.get(task_models.Task, id)
         if not task:
             raise TaskNotFoundError(id)
 
         update_data = data.model_dump(exclude_unset=True)
-
-        if data.messages is not None:
-            task.messages = data.messages
-
         for key, value in update_data.items():
-            if key != "messages" and hasattr(task, key):
+            if hasattr(task, key) and value is not None:
                 setattr(task, key, value)
 
         try:

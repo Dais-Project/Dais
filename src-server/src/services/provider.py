@@ -96,19 +96,16 @@ class ProviderService(ServiceBase):
 
             return new_models
 
-
-        stmt = select(provider_models.Provider).where(provider_models.Provider.id == id)
-        provider = self._db_session.execute(stmt).scalar_one_or_none()
+        provider = self._db_session.get(provider_models.Provider, id)
         if not provider:
             raise ProviderNotFoundError(id)
 
         if data.models is not None:
             provider.models = merge_models(provider.models, data.models)
 
-        update_data = data.model_dump(exclude_unset=True)
-        update_data.pop("models", None)
+        update_data = data.model_dump(exclude_unset=True, exclude={"models"})
         for key, value in update_data.items():
-            if value is not None:
+            if hasattr(provider, key) and value is not None:
                 setattr(provider, key, value)
 
         try:
