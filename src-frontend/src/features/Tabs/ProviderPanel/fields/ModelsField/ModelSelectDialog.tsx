@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ProviderCreate } from "@/api/generated/schemas";
 import { useFetchModelsSuspense } from "@/api/llm";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   SelectDialog,
   SelectDialogContent,
@@ -13,7 +14,6 @@ import {
   SelectDialogSkeleton,
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
-import { TanstackSuspenseContainer } from "@/components/custom/TanstackSuspenseContainer";
 
 type ModelQueryListProps = {
   enabled: boolean;
@@ -68,12 +68,12 @@ export function ModelSelectDialog({
         <SelectDialogList>
           <SelectDialogEmpty>未找到模型</SelectDialogEmpty>
           <SelectDialogGroup>
-            <TanstackSuspenseContainer
-              fallback={<SelectDialogSkeleton />}
+            <AsyncBoundary
+              skeleton={<SelectDialogSkeleton />}
               errorDescription="无法加载模型列表，请稍后重试。"
             >
               <ModelQueryList enabled={open} provider={provider} />
-            </TanstackSuspenseContainer>
+            </AsyncBoundary>
           </SelectDialogGroup>
         </SelectDialogList>
         <SelectDialogFooter

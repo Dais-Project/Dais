@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useController, useFormContext } from "react-hook-form";
 import { useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief, AgentRead } from "@/api/generated/schemas";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   SelectDialog,
   SelectDialogContent,
@@ -16,7 +17,6 @@ import {
 } from "@/components/custom/dialog/SelectDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { TanstackSuspenseContainer } from "@/components/custom/TanstackSuspenseContainer";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
@@ -126,12 +126,12 @@ export function AgentMultiSelectField() {
             <SelectDialogList>
               <SelectDialogEmpty>未找到匹配的 Agent</SelectDialogEmpty>
               <SelectDialogGroup>
-                <TanstackSuspenseContainer
+                <AsyncBoundary
                   skeleton={<SelectDialogSkeleton />}
                   errorDescription="无法加载 Agent 列表，请稍后重试。"
                 >
                   <AgentQueryList />
-                </TanstackSuspenseContainer>
+                </AsyncBoundary>
               </SelectDialogGroup>
             </SelectDialogList>
             <SelectDialogFooter
@@ -143,9 +143,9 @@ export function AgentMultiSelectField() {
         </SelectDialog>
       </FieldItem>
 
-      <TanstackSuspenseContainer errorDescription="无法加载 Agent 列表，请稍后重试。">
+      <AsyncBoundary errorDescription="无法加载 Agent 列表，请稍后重试。">
         <AgentSelectedList selectedAgentIds={value} />
-      </TanstackSuspenseContainer>
+      </AsyncBoundary>
     </div>
   );
 }

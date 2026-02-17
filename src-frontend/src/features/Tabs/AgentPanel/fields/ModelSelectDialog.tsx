@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { LlmModelRead } from "@/api/generated/schemas";
 import { useGetProvidersSuspenseInfinite } from "@/api/provider";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   SelectDialog,
   SelectDialogContent,
@@ -14,7 +15,6 @@ import {
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
-import { TanstackSuspenseContainer } from "@/components/custom/TanstackSuspenseContainer";
 import { Button } from "@/components/ui/button";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 
@@ -104,8 +104,8 @@ export function ModelSelectDialog({
       <SelectDialogContent>
         <SelectDialogSearch placeholder="搜索模型..." />
         <SelectDialogList className="max-h-96">
-          <TanstackSuspenseContainer
-            fallback={<SelectDialogSkeleton />}
+          <AsyncBoundary
+            skeleton={<SelectDialogSkeleton />}
             errorDescription="无法加载模型列表，请稍后重试。"
           >
             <ModelQueryList
@@ -113,7 +113,7 @@ export function ModelSelectDialog({
                 modelMapRef.current = models;
               }}
             />
-          </TanstackSuspenseContainer>
+          </AsyncBoundary>
         </SelectDialogList>
       </SelectDialogContent>
     </SelectDialog>
