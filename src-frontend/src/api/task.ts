@@ -30,6 +30,8 @@ import type {
   ToolReviewBody,
 } from "./generated/schemas";
 
+const TASK_STREAM_BASE_URL = new URL("api/tasks/", API_BASE);
+
 export type TaskSseCallbacks = {
   // task status callbacks
   onTaskDone?: () => void;
@@ -53,13 +55,13 @@ export type TaskSseCallbacks = {
 };
 
 function createTaskSseStream(
-  url: string,
+  url: URL | string,
   body: object,
   callbacks: TaskSseCallbacks
 ): AbortController {
   const abortController = new AbortController();
 
-  fetchEventSource(url, {
+  fetchEventSource(new Request(url), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -187,7 +189,7 @@ export function continueTask(
   callbacks: TaskSseCallbacks
 ): AbortController {
   return createTaskSseStream(
-    `${API_BASE}/tasks/${taskId}/continue`,
+    new URL(`${taskId}/continue`, TASK_STREAM_BASE_URL),
     body,
     callbacks
   );
@@ -199,7 +201,7 @@ export function toolAnswer(
   callbacks: TaskSseCallbacks
 ): AbortController {
   return createTaskSseStream(
-    `${API_BASE}/tasks/${taskId}/tool_answer`,
+    new URL(`${taskId}/tool_answer`, TASK_STREAM_BASE_URL),
     body,
     callbacks
   );
@@ -211,7 +213,7 @@ export function toolReview(
   callbacks: TaskSseCallbacks
 ): AbortController {
   return createTaskSseStream(
-    `${API_BASE}/tasks/${taskId}/tool_reviews`,
+    new URL(`${taskId}/tool_reviews`, TASK_STREAM_BASE_URL),
     body,
     callbacks
   );
