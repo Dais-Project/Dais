@@ -13,11 +13,12 @@ type SelectFieldProps<S extends Record<string, string>> = FieldProps<
   typeof Select,
   {
     placeholder?: string;
-    selections?: S;
-    children?: React.ReactNode;
     required?: boolean;
     errorMessage?: string;
-  }
+  } & MustOneOf<{
+    selections: S;
+    children: React.ReactNode;
+  }>
 >;
 
 export { SelectItem };
@@ -33,14 +34,6 @@ export function SelectField<S extends Record<string, string>>({
   controlProps,
 }: SelectFieldProps<S>) {
   const { register, getFieldState } = useFormContext();
-
-  if (selections && children) {
-    throw new Error("Cannot provide both selections and children");
-  }
-  if (!(selections || children)) {
-    throw new Error("Must provide either selections or children");
-  }
-
   return (
     <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
       <Select

@@ -11,6 +11,7 @@ import {
   SelectDialogItem,
   SelectDialogList,
   SelectDialogSearch,
+  SelectDialogSkeleton,
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
@@ -125,7 +126,10 @@ export function AgentMultiSelectField() {
             <SelectDialogList>
               <SelectDialogEmpty>未找到匹配的 Agent</SelectDialogEmpty>
               <SelectDialogGroup>
-                <TanstackSuspenseContainer errorDescription="无法加载 Agent 列表，请稍后重试。">
+                <TanstackSuspenseContainer
+                  skeleton={<SelectDialogSkeleton />}
+                  errorDescription="无法加载 Agent 列表，请稍后重试。"
+                >
                   <AgentQueryList />
                 </TanstackSuspenseContainer>
               </SelectDialogGroup>
