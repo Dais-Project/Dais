@@ -1,9 +1,6 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
 import type { TaskType } from "@/api/generated/schemas";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   Empty,
   EmptyContent,
@@ -57,28 +54,12 @@ export function TasksView() {
       </SideBarHeader>
       <div className="h-full min-h-0 flex-1">
         {currentWorkspace && (
-          <QueryErrorResetBoundary>
-            {({ reset }) => {
-              if (!currentWorkspace) {
-                return null;
-              }
-              return (
-                <ErrorBoundary
-                  onReset={reset}
-                  fallbackRender={({ resetErrorBoundary }) => (
-                    <FailedToLoad
-                      refetch={resetErrorBoundary}
-                      description="无法加载任务列表，请稍后重试。"
-                    />
-                  )}
-                >
-                  <Suspense fallback={<TaskListSkeleton />}>
-                    <TaskList workspaceId={currentWorkspace.id} />
-                  </Suspense>
-                </ErrorBoundary>
-              );
-            }}
-          </QueryErrorResetBoundary>
+          <AsyncBoundary
+            skeleton={<TaskListSkeleton />}
+            errorDescription="无法加载任务列表，请稍后重试。"
+          >
+            <TaskList workspaceId={currentWorkspace.id} />
+          </AsyncBoundary>
         )}
         {!currentWorkspace && (
           <Empty>

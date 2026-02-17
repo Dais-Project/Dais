@@ -1,8 +1,5 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { tabIdFactory } from "@/lib/tab";
@@ -52,23 +49,12 @@ export function ProviderSettings() {
 
   return (
     <div className="flex flex-col">
-      <QueryErrorResetBoundary>
-        {({ reset }) => (
-          <ErrorBoundary
-            onReset={reset}
-            fallbackRender={({ resetErrorBoundary }) => (
-              <FailedToLoad
-                refetch={resetErrorBoundary}
-                description="无法加载服务提供商列表，请稍后重试。"
-              />
-            )}
-          >
-            <Suspense fallback={<ProviderListSkeleton />}>
-              <ProviderList />
-            </Suspense>
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
+      <AsyncBoundary
+        skeleton={<ProviderListSkeleton />}
+        errorDescription="无法加载服务提供商列表，请稍后重试。"
+      >
+        <ProviderList />
+      </AsyncBoundary>
 
       <div className="w-full p-4">
         <Button

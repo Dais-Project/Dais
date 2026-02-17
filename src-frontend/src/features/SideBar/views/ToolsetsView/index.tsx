@@ -1,8 +1,5 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import {
@@ -33,23 +30,12 @@ export function ToolsetsView() {
         />
       </SideBarHeader>
       <div className="flex-1">
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary
-              onReset={reset}
-              fallbackRender={({ resetErrorBoundary }) => (
-                <FailedToLoad
-                  refetch={resetErrorBoundary}
-                  description="无法加载 Toolset 列表，请稍后重试。"
-                />
-              )}
-            >
-              <Suspense fallback={<ToolsetListSkeleton />}>
-                <ToolsetList />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
+        <AsyncBoundary
+          skeleton={<ToolsetListSkeleton />}
+          errorDescription="无法加载 Toolset 列表，请稍后重试。"
+        >
+          <ToolsetList />
+        </AsyncBoundary>
       </div>
     </div>
   );

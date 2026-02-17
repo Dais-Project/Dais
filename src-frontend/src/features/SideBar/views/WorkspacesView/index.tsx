@@ -1,8 +1,5 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import {
@@ -34,23 +31,12 @@ export function WorkspacesView() {
         />
       </SideBarHeader>
       <div className="flex-1">
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary
-              onReset={reset}
-              fallbackRender={({ resetErrorBoundary }) => (
-                <FailedToLoad
-                  refetch={resetErrorBoundary}
-                  description="无法加载工作区列表，请稍后重试。"
-                />
-              )}
-            >
-              <Suspense fallback={<WorkspaceListSkeleton />}>
-                <WorkspaceList />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
+        <AsyncBoundary
+          skeleton={<WorkspaceListSkeleton />}
+          errorDescription="无法加载工作区列表，请稍后重试。"
+        >
+          <WorkspaceList />
+        </AsyncBoundary>
       </div>
     </div>
   );

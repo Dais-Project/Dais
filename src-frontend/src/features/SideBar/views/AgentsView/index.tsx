@@ -1,8 +1,5 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import {
@@ -34,23 +31,12 @@ export function AgentsView() {
         />
       </SideBarHeader>
       <div className="flex-1">
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary
-              onReset={reset}
-              fallbackRender={({ resetErrorBoundary }) => (
-                <FailedToLoad
-                  refetch={resetErrorBoundary}
-                  description="无法加载 Agent 列表，请稍后重试。"
-                />
-              )}
-            >
-              <Suspense fallback={<AgentListSkeleton />}>
-                <AgentList />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
+        <AsyncBoundary
+          skeleton={<AgentListSkeleton />}
+          errorDescription="无法加载 Agent 列表，请稍后重试。"
+        >
+          <AgentList />
+        </AsyncBoundary>
       </div>
     </div>
   );
