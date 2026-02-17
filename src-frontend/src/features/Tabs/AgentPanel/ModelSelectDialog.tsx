@@ -101,7 +101,7 @@ export function ModelSelectDialog({
   };
 
   return (
-    <SelectDialog
+    <SelectDialog<string>
       value={selectedModel?.id.toString()}
       onValueChange={handleValueChange}
       open={isOpen}

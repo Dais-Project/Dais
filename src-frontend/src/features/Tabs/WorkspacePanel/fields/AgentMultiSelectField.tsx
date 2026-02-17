@@ -1,13 +1,7 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { useFormContext } from "react-hook-form";
-import {
-  useGetAgentsInfinite,
-  useGetAgentsSuspenseInfinite,
-} from "@/api/agent";
-import type { AgentBrief } from "@/api/generated/schemas";
+import { useMemo } from "react";
+import { useController, useFormContext } from "react-hook-form";
+import { useGetAgentsSuspenseInfinite } from "@/api/agent";
+import type { AgentBrief, AgentRead } from "@/api/generated/schemas";
 import {
   SelectDialog,
   SelectDialogContent,
@@ -19,15 +13,19 @@ import {
   SelectDialogSearch,
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { FieldItem } from "@/components/custom/item/FieldItem";
+import { TanstackSuspenseContainer } from "@/components/custom/TanstackSuspenseContainer";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
-import type { FieldProps } from "../../../../components/custom/form/fields";
+import { useWorkspaceStore } from "@/stores/workspace-store";
+import type {
+  WorkspaceCreateFormValues,
+  WorkspaceEditFormValues,
+} from "../form-types";
 
-function AgentList() {
+function AgentQueryList() {
   const query = useGetAgentsSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -36,7 +34,7 @@ function AgentList() {
       query={query}
       selectItems={(page) => page.items}
       itemRender={(agent) => (
-        <SelectDialogItem key={agent.id} value={agent.id.toString()}>
+        <SelectDialogItem<number> key={agent.id} value={agent.id}>
           {agent.name}
         </SelectDialogItem>
       )}
@@ -44,79 +42,82 @@ function AgentList() {
   );
 }
 
-type AgentMultiSelectFieldProps = FieldProps<
-  typeof Button,
-  {
-    initialAgents?: AgentBrief[];
-  }
->;
-
-export function AgentMultiSelectField({
-  fieldName = "usable_agent_ids",
-  fieldProps = { label: "可用 Agent" },
-  initialAgents = [],
-}: AgentMultiSelectFieldProps) {
-  const { getFieldState, register, setValue } = useFormContext();
-  const [selectedAgents, setSelectedAgents] =
-    useState<AgentBrief[]>(initialAgents);
-
-  const { data: allAgents, isLoading } = useGetAgentsInfinite(undefined, {
+function AgentSelectedList({
+  selectedAgentIds,
+}: {
+  selectedAgentIds: number[];
+}) {
+  const usableAgents = useWorkspaceStore(
+    (state) => state.currentWorkspace?.usable_agents
+  );
+  const { data } = useGetAgentsSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
+  const usableAgentMap = useMemo(() => {
+    const map = new Map<number, AgentRead>();
+    for (const agent of usableAgents ?? []) {
+      map.set(agent.id, agent);
+    }
+    return map;
+  }, [usableAgents]);
+  const fetchedAgentMap = useMemo(() => {
+    if (!data) {
+      return new Map<number, AgentBrief>();
+    }
+    const map = new Map<number, AgentBrief>();
+    for (const agent of data.pages.flatMap((page) => page.items)) {
+      map.set(agent.id, agent);
+    }
+    return map;
+  }, [data]);
 
-  const agents: AgentBrief[] =
-    allAgents?.pages.flatMap((page) => page.items) ?? [];
-
-  const selectedIdValues = useMemo(
-    () => selectedAgents.map((agent) => agent.id.toString()),
-    [selectedAgents]
+  const selectedAgents = useMemo(() => {
+    const agents: AgentBrief[] = [];
+    for (const id of selectedAgentIds) {
+      const agent1 = usableAgentMap.get(id);
+      if (agent1) {
+        agents.push(agent1);
+        continue;
+      }
+      const agent2 = fetchedAgentMap.get(id);
+      if (agent2) {
+        agents.push(agent2);
+      }
+    }
+    return agents;
+  }, [usableAgents, data]);
+  return (
+    <div className="mt-2 space-y-2">
+      {selectedAgents.map((agent) => (
+        <Item key={agent.id} variant="outline" size="sm">
+          <ItemContent>
+            <ItemTitle>{agent.name}</ItemTitle>
+          </ItemContent>
+        </Item>
+      ))}
+    </div>
   );
+}
 
-  useEffect(() => {
-    register(fieldName);
-  }, [fieldName, register]);
-
-  useEffect(() => {
-    setSelectedAgents(initialAgents);
-    setValue(
-      fieldName,
-      initialAgents.map((agent) => agent.id),
-      {
-        shouldDirty: false,
-        shouldTouch: false,
-        shouldValidate: false,
-      }
-    );
-  }, [fieldName, initialAgents, setValue]);
-
-  function handleConfirm(selectedIds: string[]) {
-    const selectedSet = new Set(selectedIds);
-    const nextSelectedAgents = agents.filter((agent) =>
-      selectedSet.has(agent.id.toString())
-    );
-
-    setSelectedAgents(nextSelectedAgents);
-    setValue(
-      fieldName,
-      nextSelectedAgents.map((agent) => agent.id),
-      {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      }
-    );
-  }
+export function AgentMultiSelectField() {
+  const { control } = useFormContext<
+    WorkspaceCreateFormValues | WorkspaceEditFormValues
+  >();
+  const {
+    field: { value, onChange },
+    fieldState,
+  } = useController({
+    name: "usable_agent_ids",
+    control,
+  });
 
   return (
     <div>
-      <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
-        <SelectDialog mode="multi" value={selectedIdValues}>
+      <FieldItem label="可用的 Agent" fieldState={fieldState}>
+        <SelectDialog<number> mode="multi" value={value}>
           <SelectDialogTrigger>
-            <Button type="button" variant="outline" disabled={isLoading}>
-              {isLoading && (
-                <Loader2Icon className="mr-2 size-4 animate-spin" />
-              )}
-              {isLoading ? "加载中..." : "选择"}
+            <Button type="button" variant="outline">
+              选择
             </Button>
           </SelectDialogTrigger>
           <SelectDialogContent>
@@ -124,27 +125,13 @@ export function AgentMultiSelectField({
             <SelectDialogList>
               <SelectDialogEmpty>未找到匹配的 Agent</SelectDialogEmpty>
               <SelectDialogGroup>
-                <QueryErrorResetBoundary>
-                  {({ reset }) => (
-                    <ErrorBoundary
-                      onReset={reset}
-                      fallbackRender={({ resetErrorBoundary }) => (
-                        <FailedToLoad
-                          refetch={resetErrorBoundary}
-                          description="无法加载 Agent 列表，请稍后重试。"
-                        />
-                      )}
-                    >
-                      <Suspense>
-                        <AgentList />
-                      </Suspense>
-                    </ErrorBoundary>
-                  )}
-                </QueryErrorResetBoundary>
+                <TanstackSuspenseContainer errorDescription="无法加载 Agent 列表，请稍后重试。">
+                  <AgentQueryList />
+                </TanstackSuspenseContainer>
               </SelectDialogGroup>
             </SelectDialogList>
             <SelectDialogFooter
-              onConfirm={handleConfirm}
+              onConfirm={onChange}
               confirmText="确定"
               cancelText="取消"
             />
@@ -152,15 +139,9 @@ export function AgentMultiSelectField({
         </SelectDialog>
       </FieldItem>
 
-      <div className="mt-2 space-y-2">
-        {selectedAgents.map((agent) => (
-          <Item key={agent.id} variant="outline" size="sm">
-            <ItemContent>
-              <ItemTitle>{agent.name}</ItemTitle>
-            </ItemContent>
-          </Item>
-        ))}
-      </div>
+      <TanstackSuspenseContainer errorDescription="无法加载 Agent 列表，请稍后重试。">
+        <AgentSelectedList selectedAgentIds={value} />
+      </TanstackSuspenseContainer>
     </div>
   );
 }

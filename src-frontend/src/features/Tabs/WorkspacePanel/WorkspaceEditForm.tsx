@@ -96,11 +96,7 @@ export function WorkspaceEditForm({
         minLength={0}
       />
 
-      <AgentMultiSelectField
-        fieldName="usable_agent_ids"
-        fieldProps={{ label: "可用 Agent" }}
-        initialAgents={workspace.usable_agents}
-      />
+      <AgentMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>

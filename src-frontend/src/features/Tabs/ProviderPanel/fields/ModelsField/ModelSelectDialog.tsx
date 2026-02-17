@@ -30,7 +30,7 @@ export function ModelSelectDialog({
   });
 
   return (
-    <SelectDialog
+    <SelectDialog<string>
       mode="multi"
       value={existingModelNames}
       onOpenChange={(open) => {

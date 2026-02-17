@@ -27,25 +27,30 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+type Selection = string | number;
+
 // ============================================================
 // Context
 // ============================================================
 
-type SelectDialogContextValue = {
+type SelectDialogContextValue<K> = {
   mode: "single" | "multi";
   open: boolean;
   setOpen: (open: boolean) => void;
-  selectedKeys: Set<string>;
-  toggle: (key: string) => void;
-  isSelected: (key: string) => boolean;
+  selectedKeys: Set<K>;
+  toggle: (key: K) => void;
+  isSelected: (key: K) => boolean;
 };
 
-const SelectDialogContext = createContext<SelectDialogContextValue | null>(
+// biome-ignore lint/suspicious/noExplicitAny: use any to allow any key type
+const SelectDialogContext = createContext<SelectDialogContextValue<any> | null>(
   null
 );
 
-function useSelectDialog() {
-  const ctx = useContext(SelectDialogContext);
+function useSelectDialog<V extends Selection>() {
+  const ctx = useContext<SelectDialogContextValue<V> | null>(
+    SelectDialogContext
+  );
   if (!ctx) {
     throw new Error(
       "SelectDialog compound components must be used within <SelectDialog>"
@@ -58,31 +63,31 @@ function useSelectDialog() {
 // Root
 // ============================================================
 
-export type SelectDialogProps = {
+export type SelectDialogProps<V extends Selection> = {
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 } & (
   | {
       mode?: "single";
-      value?: string;
-      onValueChange?: (value: string) => void;
+      value?: V;
+      onValueChange?: (value: V) => void;
     }
   | {
       mode: "multi";
-      value?: string[];
-      onValueChange?: (value: string[]) => void;
+      value?: V[];
+      onValueChange?: (value: V[]) => void;
     }
 );
 
-export function SelectDialog({
+export function SelectDialog<V extends Selection>({
   children,
   open: controlledOpen,
   onOpenChange,
   mode = "single",
   value,
   onValueChange,
-}: SelectDialogProps) {
+}: SelectDialogProps<V>) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
@@ -90,7 +95,7 @@ export function SelectDialog({
   // Normalize value into a Set<string>
   const externalKeys = useMemo(() => {
     if (value === undefined) {
-      return new Set<string>();
+      return new Set<V>();
     }
     if (Array.isArray(value)) {
       return new Set(value);
@@ -99,7 +104,7 @@ export function SelectDialog({
   }, [value]);
 
   // Internal draft state (for multi-select, commit on confirm)
-  const [draftKeys, setDraftKeys] = useState<Set<string>>(externalKeys);
+  const [draftKeys, setDraftKeys] = useState<Set<V>>(externalKeys);
 
   // Sync draft when dialog opens
   const prevOpen = useRef(open);
@@ -121,10 +126,10 @@ export function SelectDialog({
   );
 
   const toggle = useCallback(
-    (key: string) => {
+    (key: V) => {
       if (mode === "single") {
         // Single: commit immediately and close
-        (onValueChange as ((v: string) => void) | undefined)?.(key);
+        (onValueChange as ((v: V) => void) | undefined)?.(key);
         setOpen(false);
       } else {
         // Multi: update draft
@@ -143,7 +148,7 @@ export function SelectDialog({
   );
 
   const isSelected = useCallback(
-    (key: string) => {
+    (key: V) => {
       if (mode === "single") {
         return externalKeys.has(key);
       }
@@ -153,7 +158,7 @@ export function SelectDialog({
   );
 
   // Expose commit / cancel for footer
-  const ctx = useMemo<SelectDialogContextValue>(
+  const ctx = useMemo<SelectDialogContextValue<V>>(
     () => ({
       mode,
       open,
@@ -190,13 +195,15 @@ export function SelectDialogTrigger({
 // Content (wraps DialogContent + Command)
 // ============================================================
 
+type SelectDialogContentProps = {
+  children: React.ReactNode;
+  className?: string;
+};
+
 export function SelectDialogContent({
   children,
   className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+}: SelectDialogContentProps) {
   return (
     <DialogContent
       showCloseButton={false}
@@ -223,13 +230,15 @@ export function SelectDialogSearch({
 // List
 // ============================================================
 
+type SelectDialogListProps = {
+  children: React.ReactNode;
+  className?: string;
+};
+
 export function SelectDialogList({
   children,
   className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+}: SelectDialogListProps) {
   return (
     <CommandList className={cn("shadcn-scroll", className)}>
       {children}
@@ -253,13 +262,15 @@ export function SelectDialogEmpty({
 // Group
 // ============================================================
 
+type SelectDialogGroupProps = {
+  heading?: string;
+  children: React.ReactNode;
+};
+
 export function SelectDialogGroup({
   heading,
   children,
-}: {
-  heading?: string;
-  children: React.ReactNode;
-}) {
+}: SelectDialogGroupProps) {
   return <CommandGroup heading={heading}>{children}</CommandGroup>;
 }
 
@@ -267,21 +278,23 @@ export function SelectDialogGroup({
 // Item
 // ============================================================
 
-export function SelectDialogItem({
+type SelectDialogItemProps<V extends Selection> = {
+  value: V;
+  children?: React.ReactNode;
+  className?: string;
+};
+
+export function SelectDialogItem<V extends Selection>({
   value,
   children,
   className,
-}: {
-  value: string;
-  children?: React.ReactNode;
-  className?: string;
-}) {
+}: SelectDialogItemProps<V>) {
   const { toggle, isSelected } = useSelectDialog();
   const selected = isSelected(value);
 
   return (
     <CommandItem
-      value={value}
+      value={value.toString()}
       onSelect={() => toggle(value)}
       className={className}
     >
@@ -305,18 +318,20 @@ export function SelectDialogSeparator() {
 // Footer (multi-select confirm / cancel)
 // ============================================================
 
-export function SelectDialogFooter({
+type SelectDialogFooterProps<V extends Selection> = {
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: (keys: V[]) => void;
+  onCancel?: () => void;
+};
+
+export function SelectDialogFooter<V extends Selection>({
   confirmText = "Confirm",
   cancelText = "Cancel",
   onConfirm,
   onCancel,
-}: {
-  confirmText?: string;
-  cancelText?: string;
-  onConfirm?: (keys: string[]) => void;
-  onCancel?: () => void;
-}) {
-  const { mode, selectedKeys, setOpen } = useSelectDialog();
+}: SelectDialogFooterProps<V>) {
+  const { mode, selectedKeys, setOpen } = useSelectDialog<V>();
 
   if (mode === "single") {
     console.warn("SelectDialogFooter should only be used in multi-select mode");

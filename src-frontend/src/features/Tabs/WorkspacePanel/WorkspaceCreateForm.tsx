@@ -67,10 +67,7 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
         minLength={0}
       />
 
-      <AgentMultiSelectField
-        fieldName="usable_agent_ids"
-        fieldProps={{ label: "可用 Agent" }}
-      />
+      <AgentMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

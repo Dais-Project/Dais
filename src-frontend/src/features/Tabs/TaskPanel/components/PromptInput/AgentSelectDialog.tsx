@@ -40,8 +40,8 @@ export function AgentSelectDialog({
   }
 
   return (
-    <SelectDialog
-      value={agentId?.toString()}
+    <SelectDialog<number>
+      value={agentId ?? undefined}
       onValueChange={(value) => onChange(Number(value))}
     >
       <SelectDialogTrigger>
