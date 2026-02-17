@@ -1,3 +1,4 @@
 from .file_system import FileSystemToolset
 from .os_interactions import OsInteractionsToolset
+from .user_interaction import UserInteractionToolset
 from .execution_control import ExecutionControlToolset
