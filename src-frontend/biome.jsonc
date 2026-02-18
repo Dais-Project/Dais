@@ -28,6 +28,9 @@
       }
     }
   },
+  "formatter": {
+    "lineWidth": 120
+  },
   "overrides": [
     {
       "includes": ["src/api/*.ts"],

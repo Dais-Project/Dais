@@ -1,6 +1,6 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
-import type { ToolMessage as ToolMessageType } from "@/api/generated/schemas";
+import type { ToolMessage as ToolMessageType, UserInteractionAskUser } from "@/api/generated/schemas";
 import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +14,7 @@ export type AskUserToolMessageProps = {
 export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
   const { answerTool } = useAgentTaskAction();
   const [disabled, setDisabled] = useState(false);
-  const toolArguments = useToolArgument<{
-    question: string;
-    options?: string[];
-  }>(message.arguments);
+  const toolArguments = useToolArgument<UserInteractionAskUser>(message.arguments);
   const { question, options } = toolArguments ?? {};
   const selectedOption = options && (message.result as string);
 
@@ -39,10 +36,8 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
 
   return (
     <CustomTool
-      title="Dai 有个问题："
-      icon={
-        <MessageCircleQuestionMark className="size-4 text-muted-foreground" />
-      }
+      title="Dais 有个问题："
+      icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
       defaultOpen
     >
       {question && <p className="px-4 pb-2 font-medium text-sm">{question}</p>}

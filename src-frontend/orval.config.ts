@@ -24,9 +24,12 @@ export default defineConfig({
       clean: true,
       target: "./src/api/generated/endpoints/",
       schemas: "./src/api/generated/schemas/",
+      operationSchemas: "./src/api/generated/schemas/params/",
       client: "react-query",
       mode: "tags-split",
+      namingConvention: "kebab-case",
       override: {
+        useTypeOverInterfaces: true,
         fetch: {
           includeHttpResponseReturnType: false,
         },
@@ -47,9 +50,7 @@ export default defineConfig({
       },
     },
     hooks: {
-      afterAllFilesWrite: [
-        "biome format --write --config-path biome.format.jsonc",
-      ],
+      afterAllFilesWrite: ["biome format --write --config-path biome.format.jsonc"],
     },
   },
 });
