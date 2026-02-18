@@ -34,7 +34,6 @@ def export_openapi_schema(schema_dict: dict[str, Any]):
 def main():
     print("Exporting OpenAPI schema...")
     schema = custom_openapi()
-    schema = app.openapi()
     export_openapi_schema(schema)
 
 if __name__ == "__main__":
