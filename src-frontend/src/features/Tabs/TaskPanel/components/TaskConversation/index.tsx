@@ -21,7 +21,7 @@ export function TaskConversation() {
           }
           return (
             <TextMessage
-              key={message.id}
+              key={message.id ?? message.content}
               text={message.content as string | null}
               from={message.role}
             />

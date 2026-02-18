@@ -1,4 +1,5 @@
 import { useMount } from "ahooks";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
 import { PromptInput } from "./components/PromptInput";
@@ -13,10 +14,18 @@ export function SessionViewSkeleton() {
         <Skeleton className="h-40 w-3/4 self-start rounded-lg" />
         <Skeleton className="h-20 w-3/4 self-start rounded-lg" />
       </div>
-      <div className="flex flex-col gap-y-2">
-        <Skeleton className="h-24 w-full rounded-md" />
-        <Skeleton className="h-10 w-24 self-end rounded-md" />
-      </div>
+      <Card className="w-full animate-pulse bg-accent/30">
+        <CardContent className="space-y-2">
+          <Skeleton className="h-6 w-full rounded-md" />
+          <Skeleton className="h-6 max-w-64 rounded-md" />
+        </CardContent>
+        <CardFooter>
+          <div className="flex w-full justify-between">
+            <Skeleton className="h-10 w-24 rounded-md" />
+            <Skeleton className="h-10 w-10 rounded-md" />
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
