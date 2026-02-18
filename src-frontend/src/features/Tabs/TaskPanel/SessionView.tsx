@@ -2,9 +2,10 @@ import { useMount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
+import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput } from "./components/PromptInput";
 import { TaskConversation } from "./components/TaskConversation";
-import { useAgentTaskAction } from "./hooks/use-agent-task";
+import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
 
 export function SessionViewSkeleton() {
   return (
@@ -35,6 +36,7 @@ type SessionViewProps = {
 };
 
 export function SessionView({ shouldStartStream }: SessionViewProps) {
+  const { state } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
   useMount(() => {
     if (shouldStartStream) {
@@ -44,7 +46,8 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
   return (
     <div className="flex h-full flex-col p-4 pt-0">
       <TaskConversation />
-      <ContinueTask />
+      {state === "idle" && <ContinueTask />}
+      {state === "error" && <ErrorRetry />}
       <PromptInput />
     </div>
   );
