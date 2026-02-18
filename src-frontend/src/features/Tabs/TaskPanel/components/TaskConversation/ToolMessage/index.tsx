@@ -1,4 +1,3 @@
-// import type { ToolMessage as ToolMessageType } from "@/types/message";
 import {
   BuiltInTools,
   type ToolMessage as ToolMessageType,

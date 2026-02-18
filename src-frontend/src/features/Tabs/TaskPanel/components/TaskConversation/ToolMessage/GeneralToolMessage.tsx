@@ -1,4 +1,5 @@
 import { Activity } from "react";
+import type { ToolMessage as ToolMessageType } from "@/api/generated/schemas";
 import {
   Tool,
   ToolContent,
@@ -8,7 +9,6 @@ import {
   type ToolState,
 } from "@/components/ai-elements/tool";
 import { activityVisible } from "@/lib/activity-visible";
-import type { ToolMessage as ToolMessageType } from "@/types/message";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { ToolConfirmation } from "./ToolConfirmation";

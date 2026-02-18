@@ -1,7 +1,7 @@
 import { CheckCircleIcon } from "lucide-react";
 import { Streamdown } from "streamdown";
+import type { ToolMessage as ToolMessageType } from "@/api/generated/schemas";
 import { CustomTool } from "@/components/custom/ai-components/CustomTool";
-import type { ToolMessage as ToolMessageType } from "@/types/message";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 
 export type FinishTaskToolMessageProps = {
