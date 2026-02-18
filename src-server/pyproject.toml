@@ -21,7 +21,12 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pyinstaller>=6.17.0", "psutil>=7.2.2", "watchfiles>=1.1.1"]
+dev = [
+    "pyinstaller>=6.17.0",
+    "psutil>=7.2.2",
+    "watchfiles>=1.1.1",
+    "openapi-pydantic>=0.5.1",
+]
 test = ["pytest>=9.0.0", "pytest-cov>=7.0.0", "pytest-mock>=3.15.0"]
 types = ["types-binaryornot==0.4.0.20250507"]
 

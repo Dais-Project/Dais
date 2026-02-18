@@ -10,13 +10,14 @@ def dev():
     run_process("./src", target=entry, watch_filter=path_filter)
 
 def schema():
-    from scripts.export_openapi import export_openapi_schema
+    from scripts.export_openapi import main
+    watches = ["./src/db/schemas", "./src/api", "./scripts/export_openapi.py"]
     path_filter = PythonFilter(
         ignore_paths=["__pycache__", ".venv"] 
     )
     run_process(
-        "./src/db/schemas", "./src/api",
-        target=export_openapi_schema,
+        *watches,
+        target=main,
         watch_filter=path_filter
     )
 
