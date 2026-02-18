@@ -52,7 +52,10 @@ class TaskService(ServiceBase):
         if not task:
             raise TaskNotFoundError(id)
 
-        update_data = data.model_dump(exclude_unset=True)
+        if data.messages is not None:
+            task.messages = data.messages
+
+        update_data = data.model_dump(exclude_unset=True, exclude={"messages"})
         for key, value in update_data.items():
             if hasattr(task, key) and value is not None:
                 setattr(task, key, value)

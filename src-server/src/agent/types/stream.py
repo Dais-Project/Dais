@@ -74,14 +74,14 @@ class ErrorEvent:
     error: Exception
     event_id: Literal["ERROR"] = "ERROR"
 
-ToolEvent = (
+type ToolEvent = (
     ToolExecutedEvent |
     ToolDeniedEvent |
     ToolRequireUserResponseEvent |
     ToolRequirePermissionEvent
 )
 
-AgentEvent = (
+type AgentEvent = (
     MessageChunkEvent |
     MessageStartEvent |
     MessageEndEvent |

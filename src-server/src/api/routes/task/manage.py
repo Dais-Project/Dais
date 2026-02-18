@@ -30,7 +30,7 @@ def get_task(task_id: int, service: TaskServiceDep):
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=ApiTaskRead)
 def new_task(service: TaskServiceDep, body: ApiTaskCreate):
-    new_task = service.create_task(task_schemas.TaskCreate.model_validate(body))
+    new_task = service.create_task(task_schemas.TaskCreate.model_validate(body, from_attributes=True))
     return ApiTaskRead.model_validate(new_task)
 
 @task_manage_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
