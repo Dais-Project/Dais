@@ -5,9 +5,15 @@ from .user_interaction import UserInteractionToolset
 from .execution_control import ExecutionControlToolset
 from ..toolset_wrapper import BuiltInToolsetContext
 
-builtin_tool_members = {}
-for toolset in [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]:
-    temp_instance = toolset(BuiltInToolsetContext.default())
-    tools = temp_instance.get_tools(namespaced_tool_name=True)
-    builtin_tool_members.update({tool.name.upper(): tool.name for tool in tools})
-BuiltInTools = Enum("BuiltInTools", builtin_tool_members)
+def get_builtin_tool_enum() -> type[Enum]:
+    builtin_tool_members = {}
+    for toolset in [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]:
+        temp_instance = toolset(BuiltInToolsetContext.default())
+        # use get_original_tools instead of get_tools
+        # to get the original tools without any filtering
+        # and avoid database dependency
+        tools = temp_instance.get_original_tools(namespaced_tool_name=True)
+        builtin_tool_members.update({tool.name.upper(): tool.name
+                                     for tool in tools})
+    BuiltInTools = Enum("BuiltInTools", builtin_tool_members)
+    return BuiltInTools

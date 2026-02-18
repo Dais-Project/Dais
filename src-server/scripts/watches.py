@@ -11,7 +11,11 @@ def dev():
 
 def schema():
     from scripts.export_openapi import main
-    watches = ["./src/db/schemas", "./src/api", "./scripts/export_openapi.py"]
+    watches = [
+        "./src/api",
+        "./src/db/schemas",
+        "./scripts/export_openapi.py",
+    ]
     path_filter = PythonFilter(
         ignore_paths=["__pycache__", ".venv"] 
     )

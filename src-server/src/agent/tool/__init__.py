@@ -1,5 +1,5 @@
 from .builtin_tools import (
-    BuiltInTools,
+    get_builtin_tool_enum,
     FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset
 )
 from .toolset_manager import *
