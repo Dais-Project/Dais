@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 from typing import Any
-from openapi_pydantic import OpenAPI, Components, Schema
+from openapi_pydantic import DataType, OpenAPI, Components, Schema
 from pydantic import TypeAdapter
+from dais_sdk import ToolSchema
 from src.main import app
 from src.db.schemas.extra import EXTRA_SCHEMA_TYPES
 
@@ -16,6 +17,15 @@ def custom_openapi() -> dict[str, Any]:
         openapi.components.schemas = {}
 
     for model in EXTRA_SCHEMA_TYPES:
+        if isinstance(model, dict):
+            tool_func = model["function"]
+            openapi.components.schemas[tool_func["name"]] = Schema(
+                type=DataType.OBJECT,
+                properties=tool_func["parameters"]["properties"],
+                required=tool_func["parameters"]["required"],
+            )
+            continue
+
         schema_dict = TypeAdapter(model).json_schema()
         defs = schema_dict.pop("$defs", {})
         openapi.components.schemas[model.__name__] = Schema(**schema_dict)

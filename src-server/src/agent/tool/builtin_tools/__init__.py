@@ -1,4 +1,7 @@
 from enum import Enum
+from typing import TYPE_CHECKING, Iterator, cast
+from dais_sdk import ToolSchema
+from dais_sdk.tool.prepare import prepare_tools
 from .file_system import FileSystemToolset
 from .os_interactions import OsInteractionsToolset
 from .user_interaction import UserInteractionToolset
@@ -17,3 +20,12 @@ def get_builtin_tool_enum() -> type[Enum]:
                                      for tool in tools})
     BuiltInTools = Enum("BuiltInTools", builtin_tool_members)
     return BuiltInTools
+
+def get_builtin_tool_arg_schemas() -> list[ToolSchema]:
+    result = []
+    for toolset in [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]:
+        temp_instance = toolset(BuiltInToolsetContext.default())
+        tools = temp_instance.get_original_tools(namespaced_tool_name=True)
+        # only append the parameters schema
+        result.extend(prepare_tools(tools))
+    return result

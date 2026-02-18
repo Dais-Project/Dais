@@ -1,8 +1,8 @@
 from typing import TypeAliasType
-from ...agent.tool import get_builtin_tool_enum
-from ...agent.tool.builtin_tools.execution_control import TodoItem
+from dais_sdk import ToolSchema
+from ...agent.tool import get_builtin_tool_enum, get_builtin_tool_arg_schemas
 
-EXTRA_SCHEMA_TYPES: list[type | TypeAliasType] = [
+EXTRA_SCHEMA_TYPES: list[type | TypeAliasType | ToolSchema] = [
     get_builtin_tool_enum(),
-    TodoItem,
+    *get_builtin_tool_arg_schemas(),
 ]
