@@ -1,30 +1,30 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AppConfig } from "../types/common";
+import type { AppSettings } from "../types/common";
 
-type ConfigStore = {
-  current: AppConfig;
-  setPartial: (partialConfig: Partial<AppConfig>) => void;
+type SettingsStore = {
+  current: AppSettings;
+  setPartial: (partialConfig: Partial<AppSettings>) => void;
   restoreDefault: () => void;
 };
 
-const DEFAULT_CONFIG: AppConfig = {
+const DEFAULT_SETTINGS: AppSettings = {
   theme: "system",
   language: "en",
 };
 
-export const useConfigStore = create<ConfigStore>()(
+export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
-      current: DEFAULT_CONFIG,
+      current: DEFAULT_SETTINGS,
       setPartial(partialConfig) {
         const current = get().current;
         set({ current: { ...current, ...partialConfig } });
       },
       restoreDefault() {
-        set({ current: DEFAULT_CONFIG });
+        set({ current: DEFAULT_SETTINGS });
       },
     }),
-    { name: "app-config" }
+    { name: "app-settings" }
   )
 );

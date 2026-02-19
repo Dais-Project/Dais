@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { applyTheme } from "@/lib/apply-theme";
-import { useConfigStore } from "@/stores/config-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { Layout } from "./features/Layout";
 
 function App() {
-  const { current: config } = useConfigStore();
-  const { theme } = config;
-
+  const {
+    current: { theme },
+  } = useSettingsStore();
   useEffect(() => applyTheme(theme), [theme]);
 
   return (
