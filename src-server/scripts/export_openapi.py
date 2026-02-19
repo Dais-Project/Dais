@@ -3,9 +3,8 @@ from pathlib import Path
 from typing import Any
 from openapi_pydantic import DataType, OpenAPI, Components, Schema
 from pydantic import TypeAdapter
-from dais_sdk import ToolSchema
 from src.main import app
-from src.db.schemas.extra import EXTRA_SCHEMA_TYPES
+from src.schemas.extra import EXTRA_SCHEMA_TYPES
 
 def custom_openapi() -> dict[str, Any]:
     raw = app.openapi()

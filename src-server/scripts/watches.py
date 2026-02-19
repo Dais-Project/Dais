@@ -13,7 +13,8 @@ def schema():
     from scripts.export_openapi import main
     watches = [
         "./src/api",
-        "./src/db/schemas",
+        "./src/schemas",
+        "./src/settings.py",
         "./scripts/export_openapi.py",
     ]
     path_filter = PythonFilter(

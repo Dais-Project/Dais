@@ -1,6 +1,6 @@
 from dais_sdk import LocalServerParams, RemoteServerParams
 from . import DTOBase
-from ..models.toolset import ToolsetType
+from ..db.models.toolset import ToolsetType
 
 class ToolBase(DTOBase):
     name: str

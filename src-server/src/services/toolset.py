@@ -5,7 +5,7 @@ from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteS
 from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError, ConflictError, BadRequestError
 from ..db.models import toolset as toolset_models
-from ..db.schemas import toolset as toolset_schemas
+from ..schemas import toolset as toolset_schemas
 
 
 class ToolsetNotFoundError(NotFoundError):

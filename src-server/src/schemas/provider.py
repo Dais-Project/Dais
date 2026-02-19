@@ -1,5 +1,5 @@
 from . import DTOBase
-from ..models.provider import Provider, LlmProviders, LlmModelCapability
+from ..db.models.provider import Provider, LlmProviders, LlmModelCapability
 
 class LlmModelBase(DTOBase):
     name: str

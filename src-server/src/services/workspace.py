@@ -4,7 +4,7 @@ from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import workspace as workspace_models
 from ..db.models import agent as agent_models
-from ..db.schemas import workspace as workspace_schemas
+from ..schemas import workspace as workspace_schemas
 
 class WorkspaceNotFoundError(NotFoundError):
     """Raised when a workspace is not found."""

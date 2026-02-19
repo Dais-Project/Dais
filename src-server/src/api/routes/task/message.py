@@ -17,7 +17,7 @@ from dais_sdk.types.message import (
     ChatCompletionImageURL, 
     LiteLlmUsage
 )
-from ....db.schemas import DTOBase
+from ....schemas import DTOBase
 from ....db.models.task import TaskType, TaskUsage
 
 class BaseMessage(DTOBase):

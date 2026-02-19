@@ -1,5 +1,5 @@
 from . import DTOBase
-from ..models.task import TaskMessage, TaskType, TaskUsage
+from ..db.models.task import TaskMessage, TaskType, TaskUsage
 
 class TaskBase(DTOBase):
     title: str

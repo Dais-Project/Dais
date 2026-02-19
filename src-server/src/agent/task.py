@@ -3,7 +3,6 @@ import time
 import uuid
 from types import MethodType
 from collections.abc import AsyncGenerator
-from typing import Literal, cast
 from loguru import logger
 from dais_sdk import (
     ToolLike,
@@ -33,7 +32,7 @@ from .types import (
 )
 from ..services.task import TaskService
 from ..db.models import task as task_models
-from ..db.schemas import task as task_schemas
+from ..schemas import task as task_schemas
 
 class ToolCallNotFoundError(Exception):
     tool_call_id: str

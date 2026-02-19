@@ -1,11 +1,10 @@
-from typing import TypedDict
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import agent as agent_models
 from ..db.models import workspace as workspace_models
-from ..db.schemas import agent as agent_schemas
+from ..schemas import agent as agent_schemas
 
 class AgentNotFoundError(NotFoundError):
     """Raised when an agent is not found."""

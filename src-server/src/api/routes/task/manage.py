@@ -8,7 +8,7 @@ from .message import (
     TaskCreate as ApiTaskCreate
 )
 from ....services.task import TaskService
-from ....db.schemas import task as task_schemas
+from ....schemas import task as task_schemas
 
 task_manage_router = APIRouter(tags=["task"])
 

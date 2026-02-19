@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from ...services.workspace import WorkspaceService
-from ...db.schemas import workspace as workspace_schemas
+from ...schemas import workspace as workspace_schemas
 
 workspaces_router = APIRouter(tags=["workspace"])
 

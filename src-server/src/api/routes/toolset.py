@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from ...agent.tool import McpToolset, McpToolsetStatus
 from ...agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ...services.toolset import ToolsetService
-from ...db.schemas import toolset as toolset_schemas
+from ...schemas import toolset as toolset_schemas
 
 toolset_router = APIRouter(tags=["toolset"])
 

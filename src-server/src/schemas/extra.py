@@ -1,6 +1,6 @@
 from typing import TypeAliasType
 from dais_sdk import ToolSchema
-from ...agent.tool import get_builtin_tool_enum, get_builtin_tool_arg_schemas
+from ..agent.tool import get_builtin_tool_enum, get_builtin_tool_arg_schemas
 
 EXTRA_SCHEMA_TYPES: list[type | TypeAliasType | ToolSchema] = [
     get_builtin_tool_enum(),

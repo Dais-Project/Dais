@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from ...services.agent import AgentService
-from ...db.schemas import agent as agent_schemas
+from ...schemas import agent as agent_schemas
 
 agents_router = APIRouter(tags=["agent"])
 

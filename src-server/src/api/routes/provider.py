@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from ...services.provider import ProviderService
-from ...db.schemas import provider as provider_schemas
+from ...schemas import provider as provider_schemas
 
 providers_router = APIRouter(tags=["provider"])
 
