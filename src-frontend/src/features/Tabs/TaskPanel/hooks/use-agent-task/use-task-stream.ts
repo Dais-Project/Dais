@@ -1,12 +1,5 @@
 import { useUnmount } from "ahooks";
-import {
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
 import type { TaskState } from ".";
@@ -33,20 +26,13 @@ export type TaskStreamFn<Body extends { agent_id: number }> = (
   callbacks: TaskSseCallbacks
 ) => AbortController;
 
-export function useTaskStream({
-  taskId,
-  agentId,
-  sseCallbacksRef,
-}: TaskStreamProps): TaskStreamResult {
+export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
   const abortController = useRef<AbortController | null>(null);
   useUnmount(() => abortController.current?.abort());
 
   const startStream = useCallback(
-    <Body extends Record<string, unknown>>(
-      streamApi: TaskStreamFn<Body & { agent_id: number }>,
-      body: Body
-    ) => {
+    <Body extends Record<string, unknown>>(streamApi: TaskStreamFn<Body & { agent_id: number }>, body: Body) => {
       const overrideCallbacks: TaskSseCallbacks = {
         ...sseCallbacksRef.current,
         onClose: () => {
@@ -62,7 +48,7 @@ export function useTaskStream({
       }
       setState("waiting");
       if (abortController.current) {
-        console.log("Aborting previous stream...");
+        console.warn("Aborting previous stream...");
         abortController.current?.abort();
       }
       abortController.current = streamApi(

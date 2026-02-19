@@ -19,7 +19,7 @@ import {
   toolReview,
   useGetTaskSuspense,
 } from "@/api/task";
-import { TodoListSchema } from "@/api/tool-schema";
+import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import type {
   MessageChunkEventData,
@@ -76,9 +76,9 @@ function handleToolCallAccumulated(
 function findLatestTodoList(messages: Message[]): TodoItem[] | null {
   for (const message of messages.reverseIter()) {
     if (isToolMessage(message) && message.name === BuiltInTools.ExecutionControl__update_todos) {
-      const todoList = tryParseSchema(TodoListSchema, message.arguments);
+      const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
       if (todoList) {
-        return todoList;
+        return todoList.todos;
       }
     }
   }
@@ -124,7 +124,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const [agentId, setAgentId] = useState(data.agent_id);
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
-  const [todos, setTodos] = useState<TodoItem[] | null>(findLatestTodoList(data.messages));
+  const todo = findLatestTodoList(data.messages);
+  const [todos, setTodos] = useState<TodoItem[] | null>(todo);
 
   const setData = useCallback(
     (updater: (draft: TaskRead) => void) => {
@@ -208,9 +209,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       });
       // refresh todo list
       if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
-        const todoList = tryParseSchema(TodoListSchema, eventData.message.arguments);
+        const todoList = tryParseSchema(UpdateTodosSchema, eventData.message.arguments);
         if (todoList) {
-          setTodos(todoList);
+          setTodos(todoList.todos);
         }
       }
     },

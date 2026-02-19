@@ -12,16 +12,10 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import {
-  type TaskState,
-  useAgentTaskAction,
-  useAgentTaskState,
-} from "../../hooks/use-agent-task";
-import {
-  AgentSelectDialog,
-  AgentSelectErrorFallback,
-} from "./AgentSelectDialog";
+import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
+import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
+import { TaskProgress } from "./TaskProgress";
 
 export type PromptInputHandle = {
   agentId: number | null;
@@ -42,11 +36,7 @@ type PromptInputAgentStateProps = {
   onChange: (agentId: number) => void;
 };
 
-function PromptInputAgentState({
-  taskType,
-  agentId,
-  onChange,
-}: PromptInputAgentStateProps) {
+function PromptInputAgentState({ taskType, agentId, onChange }: PromptInputAgentStateProps) {
   switch (taskType) {
     case "agent":
       return (
@@ -78,10 +68,7 @@ type PromptInputDraftProps = {
   onSubmit: (message: PromptInputMessage, agentId: number) => void;
 };
 
-export function PromptInputDraft({
-  taskType,
-  onSubmit,
-}: PromptInputDraftProps) {
+export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
   const ableToSubmit = agentId !== null;
   return (
@@ -98,11 +85,7 @@ export function PromptInputDraft({
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>
-          <PromptInputAgentState
-            taskType={taskType}
-            agentId={agentId}
-            onChange={setAgentId}
-          />
+          <PromptInputAgentState taskType={taskType} agentId={agentId} onChange={setAgentId} />
         </PromptInputTools>
         <PromptInputSubmit disabled={!ableToSubmit} />
       </PromptInputFooter>
@@ -111,7 +94,7 @@ export function PromptInputDraft({
 }
 
 export function PromptInput() {
-  const { agentId, data, usage, state } = useAgentTaskState();
+  const { agentId, data, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
 
   const [prompt, setPrompt] = useState("");
@@ -135,19 +118,14 @@ export function PromptInput() {
       }}
     >
       <PromptInputBody>
-        <PromptInputTextarea
-          onChange={(e) => setPrompt(e.target.value)}
-          value={prompt}
-        />
+        <PromptInputTextarea onChange={(e) => setPrompt(e.target.value)} value={prompt} />
       </PromptInputBody>
-      <PromptInputFooter>
-        <PromptInputTools>
-          <PromptInputAgentState
-            taskType={data.type}
-            agentId={agentId}
-            onChange={setAgentId}
-          />
-          {usage && <ContextUsage usage={usage} />}
+      <PromptInputFooter className="gap-16">
+        <PromptInputTools className="min-w-0">
+          <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
+          <div className="w-1" />
+          <ContextUsage />
+          <TaskProgress className="min-w-0 flex-1" />
         </PromptInputTools>
         <PromptInputSubmit
           status={PROMPTINPUT_STATE_MAPPING[state]}

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { TaskUsage } from "@/api/generated/schemas";
 import {
   Context,
@@ -11,6 +12,7 @@ import {
   ContextReasoningUsage,
   ContextTrigger,
 } from "@/components/ai-elements/context";
+import { useAgentTaskState } from "../../hooks/use-agent-task";
 
 function createUiUsage(usage: TaskUsage): ContextProps["usage"] {
   return {
@@ -29,20 +31,14 @@ function createUiUsage(usage: TaskUsage): ContextProps["usage"] {
   };
 }
 
-type ContextUsageProps = {
-  usage: TaskUsage;
-};
-
-export function ContextUsage({ usage }: ContextUsageProps) {
+export function ContextUsage() {
+  const { usage } = useAgentTaskState();
+  const uiUsage = useMemo(() => createUiUsage(usage), [usage]);
   if (usage.total_tokens === 0 || usage.max_tokens === 0) {
     return null;
   }
   return (
-    <Context
-      maxTokens={usage.max_tokens}
-      usage={createUiUsage(usage)}
-      usedTokens={usage.total_tokens}
-    >
+    <Context maxTokens={usage.max_tokens} usage={uiUsage} usedTokens={usage.total_tokens}>
       <ContextTrigger />
       <ContextContent>
         <ContextContentHeader />

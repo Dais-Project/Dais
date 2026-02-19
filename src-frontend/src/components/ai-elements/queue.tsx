@@ -1,6 +1,13 @@
 "use client";
 
-import { ChevronDownIcon, CircleCheckBigIcon, CircleOffIcon, Loader2Icon, PaperclipIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  CircleCheckBigIcon,
+  CircleIcon,
+  CircleOffIcon,
+  Loader2Icon,
+  PaperclipIcon,
+} from "lucide-react";
 import type { ComponentProps } from "react";
 import type { ExecutionControlUpdateTodosTodosItemStatus as TodoItemStatus } from "@/api/generated/schemas/execution-control-update-todos-todos-item-status";
 import { Button } from "@/components/ui/button";
@@ -42,35 +49,27 @@ export type QueueItemIndicatorProps = Omit<ComponentProps<"span">, "children"> &
 };
 
 export const QueueItemIndicator = ({ status, className, ...props }: QueueItemIndicatorProps) => {
-  if (status === "completed") {
-    return (
-      <span className={cn("mt-0.5 inline-flex size-4 items-center justify-center", className)} {...props}>
-        <CircleCheckBigIcon className="size-4 text-muted-foreground/60" />
-      </span>
-    );
+  let Icon: React.ReactNode = null;
+  switch (status) {
+    case "pending":
+      Icon = <CircleIcon className="size-3.5 text-muted-foreground/50" />;
+      break;
+    case "in_progress":
+      Icon = <Loader2Icon className="size-3.5 animate-spin text-muted-foreground" />;
+      break;
+    case "completed":
+      Icon = <CircleCheckBigIcon className="size-3.5 text-muted-foreground" />;
+      break;
+    case "cancelled":
+      Icon = <CircleOffIcon className="size-3.5 text-muted-foreground/50" />;
+      break;
+    default:
+      throw new Error(`Unknown todo status: ${status}`);
   }
-
-  if (status === "cancelled") {
-    return (
-      <span className={cn("mt-0.5 inline-flex size-4 items-center justify-center", className)} {...props}>
-        <CircleOffIcon className="size-4 text-muted-foreground/50" />
-      </span>
-    );
-  }
-
-  if (status === "in_progress") {
-    return (
-      <span className={cn("mt-0.5 inline-flex size-4 items-center justify-center", className)} {...props}>
-        <Loader2Icon className="size-4 animate-spin text-muted-foreground/70" />
-      </span>
-    );
-  }
-
   return (
-    <span
-      className={cn("mt-1 inline-block size-2.5 rounded-full border border-muted-foreground/50", className)}
-      {...props}
-    />
+    <span className={cn("mt-0.5 inline-flex size-4 items-center justify-center", className)} {...props}>
+      {Icon}
+    </span>
   );
 };
 
