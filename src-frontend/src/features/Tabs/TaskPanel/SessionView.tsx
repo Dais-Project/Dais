@@ -46,9 +46,13 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
   return (
     <div className="flex h-full flex-col p-4 pt-0">
       <TaskConversation />
-      {state === "idle" && <ContinueTask />}
-      {state === "error" && <ErrorRetry />}
-      <PromptInput />
+      <div className="relative">
+        <div className="absolute top-0 flex w-full -translate-y-full justify-center">
+          {state === "idle" && <ContinueTask />}
+          {state === "error" && <ErrorRetry />}
+        </div>
+        <PromptInput />
+      </div>
     </div>
   );
 }
