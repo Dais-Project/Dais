@@ -3,7 +3,6 @@ import { produce } from "immer";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  type AssistantMessage,
   BuiltInTools,
   type TaskRead,
   type TaskUsage,
@@ -25,15 +24,15 @@ import { tryParseSchema } from "@/lib/utils";
 import type {
   MessageChunkEventData,
   MessageEndEventData,
-  MessageReplaceEventData,
   MessageStartEventData,
   ToolCallEndEventData,
 } from "@/types/agent-stream";
 import { isToolMessage, type Message } from "@/types/message";
+import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { assistantMessageFactory, toolMessageFactory } from "./utils";
+import { toolMessageFactory } from "./utils";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -151,16 +150,16 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     sseCallbacksRef,
   });
 
+  const messageLifecycle = useMessageLifecycle({
+    setData,
+  });
+
   const onMessageStart = useCallback(
     (eventData: MessageStartEventData) => {
       setState("running");
-      setData((draft) => {
-        const newMessage = assistantMessageFactory() as AssistantMessage;
-        newMessage.id = eventData.message_id;
-        draft.messages.push(newMessage);
-      });
+      messageLifecycle.handleMessageStart(eventData);
     },
-    [setState, setData]
+    [setState, messageLifecycle.handleMessageStart]
   );
 
   const onMessageChunk = useCallback(
@@ -188,31 +187,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     (eventData: MessageEndEventData) => {
       textBuffer.clear();
       toolCallsBuffer.clear();
-      setData((draft) => {
-        const index = draft.messages.findIndex((m) => m.id === eventData.message.id);
-        if (index === -1) {
-          console.warn(`Message not found for replacement: ${eventData.message.id}`);
-          return;
-        }
-        draft.messages[index] = eventData.message as Message;
-      });
+      messageLifecycle.handleMessageEnd(eventData);
     },
-    [textBuffer, toolCallsBuffer, setData]
+    [textBuffer, toolCallsBuffer, messageLifecycle.handleMessageEnd]
   );
 
-  const onMessageReplace = useCallback(
-    (eventData: MessageReplaceEventData) => {
-      setData((draft) => {
-        const index = draft.messages.findIndex((m) => m.id === eventData.message.id);
-        if (index === -1) {
-          console.warn(`Message not found for replacement: ${eventData.message.id}`);
-          return;
-        }
-        draft.messages[index] = eventData.message;
-      });
-    },
-    [setData]
-  );
+  const onMessageReplace = messageLifecycle.handleMessageReplace;
 
   const onToolCallEnd = useCallback(
     (eventData: ToolCallEndEventData) => {
@@ -226,6 +206,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
         }
         draft.messages[index] = eventData.message as ToolMessage;
       });
+      // refresh todo list
       if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
         const todoList = tryParseSchema(TodoListSchema, eventData.message.arguments);
         if (todoList) {
@@ -233,7 +214,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
         }
       }
     },
-    [setData]
+    [setData, setTodos]
   );
 
   const onError = useCallback(
@@ -247,17 +228,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   );
 
   const onClose = useCallback(() => {
-    setData((draft) => {
-      draft.messages = draft.messages.filter((m) => {
-        const isDeterminedMessage = m.id !== undefined;
-        if (!isDeterminedMessage) {
-          console.warn(`Undetermined message found and removed: ${m}`);
-        }
-        return isDeterminedMessage;
-      });
-    });
+    messageLifecycle.handleClose();
     setState("idle");
-  }, [setState]);
+  }, [messageLifecycle.handleClose, setState]);
 
   sseCallbacksRef.current = {
     onMessageStart,
