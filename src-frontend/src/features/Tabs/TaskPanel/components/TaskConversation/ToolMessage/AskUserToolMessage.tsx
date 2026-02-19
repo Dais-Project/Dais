@@ -56,7 +56,7 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
         </div>
       )}
       {!options && (
-        <div className="flex items-center gap-2 px-2 pb-2">
+        <div className="flex items-center gap-2 px-4 pb-4">
           <Input
             type="text"
             disabled={hasResult || disabled}

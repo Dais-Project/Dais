@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { Toaster } from "@/components/ui/sonner";
 import App from "./App";
 import "./index.css";
+import "./lib";
 
 const queryClient = new QueryClient({
   defaultOptions: {

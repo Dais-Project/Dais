@@ -75,7 +75,7 @@ function handleToolCallAccumulated(
 }
 
 function findLatestTodoList(messages: Message[]): TodoItem[] | null {
-  for (const message of messages.reverse()) {
+  for (const message of messages.reverseIter()) {
     if (isToolMessage(message) && message.name === BuiltInTools.ExecutionControl__update_todos) {
       const todoList = tryParseSchema(TodoListSchema, message.arguments);
       if (todoList) {
