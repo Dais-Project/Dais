@@ -15,6 +15,7 @@ dependencies = [
     "pathspec==1.0.4",
     "platformdirs==4.5.1",
     "pydantic==2.12.5",
+    "pydantic-settings==2.13.0",
     "sqlalchemy==2.0.46",
     "sse-starlette==3.2.0",
     "uvicorn==0.40.0",

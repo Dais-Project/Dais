@@ -8,10 +8,9 @@ from .models import (
     workspace as workspace_models,
     toolset as toolset_models
 )
-# this unused import is necessary to alembic
 from . import models
-
-APP_NAME = "org.dais.desktop"
+from ..common import APP_NAME
+# this unused import is necessary to alembic
 
 data_dir = Path(user_data_dir(APP_NAME, appauthor=False, ensure_exists=True))
 db_path = data_dir / "sqlite.db"
