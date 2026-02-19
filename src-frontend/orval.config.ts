@@ -46,11 +46,12 @@ export default defineConfig({
           useSuspenseInfiniteQuery: true,
           useInfiniteQueryParam: "page",
         },
+
         operations: operationSpecificConfig,
       },
     },
     hooks: {
-      afterAllFilesWrite: ["biome format --write --config-path biome.format.jsonc"],
+      afterAllFilesWrite: ["biome format --write --config-path config/biome.format.jsonc"],
     },
   },
 });
