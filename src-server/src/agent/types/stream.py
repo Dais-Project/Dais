@@ -59,7 +59,7 @@ class ToolDeniedEvent:
 @dataclass(frozen=True)
 class ToolRequireUserResponseEvent:
     """Event for tools that require user response"""
-    tool_name: Literal["ask_user", "finish_task"]
+    tool_name: str
     event_id: Literal["TOOL_REQUIRE_USER_RESPONSE"] = "TOOL_REQUIRE_USER_RESPONSE"
 
 @dataclass(frozen=True)

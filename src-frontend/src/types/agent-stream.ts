@@ -36,7 +36,7 @@ export type ToolExecutedEventData = {
 };
 
 export type ToolRequireUserResponseEventData = {
-  tool_name: "ask_user" | "finish_task";
+  tool_name: string;
 };
 
 export type ToolRequirePermissionEventData = {

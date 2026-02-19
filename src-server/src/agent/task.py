@@ -118,8 +118,7 @@ class AgentTask:
 
         if (isinstance(tool.execute, MethodType) and
             tool.execute.__func__ in [UserInteractionToolset.ask_user, ExecutionControlToolset.finish_task]):
-            return ToolRequireUserResponseEvent(
-                tool_name=cast(Literal["ask_user", "finish_task"], message.name))
+            return ToolRequireUserResponseEvent(tool_name=message.name)
 
         # use TypeGuards to assert the type of metadata
         assert is_tool_metadata(tool.metadata)

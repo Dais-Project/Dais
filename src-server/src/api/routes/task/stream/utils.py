@@ -42,15 +42,7 @@ def agent_event_format(task: AgentTask, event: AgentEvent) -> ServerSentEvent | 
                         "type": "tool_call",
                         "data": asdict(chunk),
                     })
-        case MessageEndEvent(message):
-            return JSONServerSentEvent(event=event.event_id, data={
-                "message": message.model_dump(),
-            })
-        case MessageReplaceEvent(message):
-            return JSONServerSentEvent(event=event.event_id, data={
-                "message": message.model_dump(),
-            })
-        case ToolCallEndEvent(message):
+        case MessageEndEvent(message) | MessageReplaceEvent(message) | ToolCallEndEvent(message):
             return JSONServerSentEvent(event=event.event_id, data={
                 "message": message.model_dump(),
             })
@@ -67,9 +59,7 @@ def agent_event_format(task: AgentTask, event: AgentEvent) -> ServerSentEvent | 
             return JSONServerSentEvent(event=event.event_id, data={
                 "tool_call_id": tool_call_id,
             })
-        case TaskDoneEvent():
-            return EmptyServerSentEvent(event=event.event_id)
-        case TaskInterruptedEvent():
+        case TaskDoneEvent() | TaskInterruptedEvent() as event:
             return EmptyServerSentEvent(event=event.event_id)
         case ErrorEvent(error):
             return JSONServerSentEvent(event=event.event_id, data={
