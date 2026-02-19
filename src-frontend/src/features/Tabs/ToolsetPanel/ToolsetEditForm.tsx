@@ -2,21 +2,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import type { ToolsetRead } from "@/api/generated/schemas";
-import {
-  getGetToolsetQueryKey,
-  getGetToolsetsBriefQueryKey,
-  useUpdateToolset,
-} from "@/api/toolset";
+import { getGetToolsetQueryKey, getGetToolsetsBriefQueryKey, useUpdateToolset } from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import { NameField, SwitchField } from "@/components/custom/form/fields";
+import { CheckboxField, NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { DynamicConfigFields } from "./fields/DynamicConfigFields";
 import { ToolsetTypeSelectField } from "./fields/ToolsetTypeSelectField";
-import {
-  editFormValuesToPayload,
-  type ToolsetEditFormValues,
-  toolsetToEditFormValues,
-} from "./form-types";
+import { editFormValuesToPayload, type ToolsetEditFormValues, toolsetToEditFormValues } from "./form-types";
 import { ToolList } from "./ToolList";
 
 type ToolsetEditFormProps = {
@@ -55,17 +47,13 @@ export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
     const payload = editFormValuesToPayload(data);
     updateMutation.mutate({ toolsetId: toolset.id, data: payload });
   }
-
   return (
-    <FormShell<ToolsetEditFormValues>
-      values={formValues}
-      onSubmit={handleSubmit}
-    >
+    <FormShell<ToolsetEditFormValues> values={formValues} onSubmit={handleSubmit}>
       <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ToolsetTypeSelectField />
 
-      <SwitchField fieldName="is_enabled" fieldProps={{ label: "启用" }} />
+      <CheckboxField fieldName="is_enabled" fieldProps={{ label: "启用" }} />
 
       <DynamicConfigFields />
 

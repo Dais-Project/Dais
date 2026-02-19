@@ -9,6 +9,7 @@ export type FieldProps<Component extends React.ElementType, Extra = {}> = {
   fieldProps?: Omit<FieldItemProps, "fieldState" | "children">;
 } & Extra;
 
+export { CheckboxField } from "./CheckboxField";
 export { DirectoryField } from "./DirectoryField";
 export { NameField } from "./NameField";
 export { RichTextField } from "./RichTextField";
