@@ -10,6 +10,7 @@ from .routes import (
     llm_models_router,
     agents_router,
     toolset_router,
+    settings_router,
     task_manage_router,
     task_stream_router,
 )
@@ -56,6 +57,7 @@ app.include_router(providers_router, prefix="/api/providers")
 app.include_router(llm_models_router, prefix="/api/llm_models")
 app.include_router(llm_api_router, prefix="/api/llm")
 app.include_router(toolset_router, prefix="/api/toolsets")
+app.include_router(settings_router, prefix="/api/settings")
 app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 
