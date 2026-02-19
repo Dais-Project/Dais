@@ -2,7 +2,7 @@ import { BuiltInTools, type ToolMessage as ToolMessageType } from "@/api/generat
 import { AskUserToolMessage } from "./AskUserToolMessage";
 import { FinishTaskToolMessage } from "./FinishTaskToolMessage";
 import { GeneralToolMessage } from "./GeneralToolMessage";
-import { UpdateTodoToolMessage } from "./UpdateTodoToolMessage";
+import { UpdateTodosToolMessage } from "./UpdateTodosToolMessage";
 
 type ToolMessageProps = {
   message: ToolMessageType;
@@ -15,7 +15,7 @@ export function ToolMessage({ message }: ToolMessageProps) {
     case BuiltInTools.ExecutionControl__finish_task:
       return <FinishTaskToolMessage message={message} />;
     case BuiltInTools.ExecutionControl__update_todos:
-      return <UpdateTodoToolMessage message={message} />;
+      return <UpdateTodosToolMessage message={message} />;
     default:
       return <GeneralToolMessage message={message} />;
   }

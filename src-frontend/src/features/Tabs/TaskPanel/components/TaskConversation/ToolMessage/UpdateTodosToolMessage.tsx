@@ -5,11 +5,11 @@ import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 
-export type UpdateTodoToolMessageProps = {
+export type UpdateTodosToolMessageProps = {
   message: ToolMessageType;
 };
 
-export function UpdateTodoToolMessage({ message }: UpdateTodoToolMessageProps) {
+export function UpdateTodosToolMessage({ message }: UpdateTodosToolMessageProps) {
   const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message.arguments, UpdateTodosSchema);
   const todos = toolArguments?.todos ?? [];
 
