@@ -1,20 +1,10 @@
-import {
-  BotMessageSquareIcon,
-  FoldersIcon,
-  LayoutListIcon,
-  SettingsIcon,
-  ToolCaseIcon,
-} from "lucide-react";
+import { BotMessageSquareIcon, FoldersIcon, LayoutListIcon, SettingsIcon, ToolCaseIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useSidebarStore, type View } from "@/stores/sidebar-store";
+import { type SideBarView, useSidebarStore } from "@/stores/sidebar-store";
 
-const topViews: { id: View; title: string; icon: React.ReactNode }[] = [
+const topViews: { id: SideBarView; title: string; icon: React.ReactNode }[] = [
   {
     id: "tasks",
     title: "Tasks",
@@ -42,7 +32,7 @@ const topViews: { id: View; title: string; icon: React.ReactNode }[] = [
   // },
 ];
 
-const bottomViews: { id: View; title: string; icon: React.ReactNode }[] = [
+const bottomViews: { id: SideBarView; title: string; icon: React.ReactNode }[] = [
   {
     id: "settings",
     title: "Settings",
@@ -51,7 +41,7 @@ const bottomViews: { id: View; title: string; icon: React.ReactNode }[] = [
 ];
 
 type ActivityBarItemProps = {
-  id: View;
+  id: SideBarView;
   icon: React.ReactNode;
 } & React.ComponentProps<typeof Button>;
 
@@ -77,12 +67,7 @@ function ActivityBarItem({ id, icon, ...props }: ActivityBarItemProps) {
 export function ActivityBar() {
   const isOpen = useSidebarStore((state) => state.isOpen);
   return (
-    <div
-      className={cn(
-        "flex flex-col justify-between bg-muted",
-        isOpen && "border-r"
-      )}
-    >
+    <div className={cn("flex flex-col justify-between bg-muted", isOpen && "border-r")}>
       <div className="flex flex-col items-center">
         {topViews.map(({ id, title, icon }) => (
           <Tooltip key={id}>
