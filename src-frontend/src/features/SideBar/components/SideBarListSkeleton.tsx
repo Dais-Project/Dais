@@ -1,11 +1,11 @@
 import { Item, ItemContent, ItemMedia } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function ToolsetListSkeleton() {
+export function SideBarListSkeleton() {
   return (
-    <div className="space-y-2">
+    <>
       {Array.from({ length: 3 }).map((_, index) => (
-        <Item key={index} variant="outline" size="sm">
+        <Item key={`skeleton-${index}`} className="rounded-none border-x-0 border-t-0" variant="outline" size="sm">
           <ItemMedia variant="icon">
             <Skeleton className="size-4" />
           </ItemMedia>
@@ -17,6 +17,6 @@ export function ToolsetListSkeleton() {
           </ItemContent>
         </Item>
       ))}
-    </div>
+    </>
   );
 }
