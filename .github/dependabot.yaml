@@ -1,22 +1,49 @@
 version: 2
 updates:
+
 - package-ecosystem: pip
-  directory: "/"
+  directory: "/src-server"
   schedule:
     interval: daily
     time: "13:00"
   open-pull-requests-limit: 10
   reviewers:
-  - dciborow
+  - BHznJNs
   allow:
   - dependency-type: direct
-  - dependency-type: indirect
   commit-message:
-    prefix: "fix: "
+    prefix: "[DEPENDABOT]"
+
+- package-ecosystem: pnpm
+  directory: "/src-frontend"
+  schedule:
+    interval: daily
+    time: "13:00"
+  open-pull-requests-limit: 10
+  reviewers:
+  - BHznJNs
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: "[DEPENDABOT]"
+
+- package-ecosystem: "cargo"
+  directory: "/src-tauri"
+  schedule:
+    interval: daily
+    time: "13:00"
+  open-pull-requests-limit: 10
+  reviewers:
+  - BHznJNs
+  allow:
+  - dependency-type: direct
+  commit-message:
+    prefix: "[DEPENDABOT]"
+
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
     interval: daily
     time: "13:00"
   commit-message:
-    prefix: "fix: "
+    prefix: "[DEPENDABOT]"
