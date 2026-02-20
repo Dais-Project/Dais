@@ -1,5 +1,8 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 from collections.abc import AsyncIterator
+from typing import Annotated
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -29,6 +32,7 @@ AsyncSessionLocal = async_sessionmaker(engine,
                                        autocommit=False,
                                        expire_on_commit=False)
 
+@asynccontextmanager
 async def get_db_session() -> AsyncIterator[AsyncSession]:
     async with AsyncSessionLocal() as session:
         try:
@@ -37,6 +41,7 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
         except Exception:
             await session.rollback()
             raise
+DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 
 async def init_initial_data() -> None:
     async with AsyncSessionLocal.begin() as session:

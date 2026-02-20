@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from ..message import UserMessage as ApiUserMessage
 from .....agent.task import AgentTask
 from .....agent.types import MessageReplaceEvent
+from .....db import get_db_session
 from .....services.task import TaskService
 from .utils import AgentGenerator, agent_event_format, agent_stream
 
@@ -25,9 +26,9 @@ class ToolReviewBody(TaskStreamBody):
     status: Literal["approved", "denied"]
     auto_approve: bool = False
 
-def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
-    with TaskService() as task_service:
-        task = task_service.get_task_by_id(task_id)
+async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
+    async with get_db_session() as session:
+        task = await TaskService(session).get_task_by_id(task_id)
         task.agent_id = agent_id
     return AgentTask(task)
 
@@ -45,7 +46,7 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
     This endpoint is used to directly continue the existing task,
     or continue with a new UserMessage
     """
-    task = retrieve_task(task_id, body.agent_id)
+    task = await retrieve_task(task_id, body.agent_id)
 
     async def temp_stream() -> AgentGenerator:
         if body.message is not None:
@@ -61,7 +62,7 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> E
     This endpoint is used for the HumanInTheLoop tool calls.
     The frontend should send the tool call id and the answer to this endpoint.
     """
-    task = retrieve_task(task_id, body.agent_id)
+    task = await retrieve_task(task_id, body.agent_id)
     changed_message = task.set_tool_call_result(body.tool_call_id, body.answer)
 
     async def temp_stream() -> AgentGenerator:
@@ -76,7 +77,7 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> 
     """
     This endpoint is used to submit the tool call permissions.
     """
-    task = retrieve_task(task_id, body.agent_id)
+    task = await retrieve_task(task_id, body.agent_id)
 
     async def temp_stream() -> AgentGenerator:
         tool_event, replace_event = await task.approve_tool_call(

@@ -22,4 +22,4 @@ async def lifespan(_: FastAPI) -> AsyncIterator[AppState]:
                        mcp_toolset_manager=mcp_toolset_manager)
     finally:
         await mcp_toolset_manager.disconnect_mcp_servers()
-        database_engine.dispose()
+        await database_engine.dispose()
