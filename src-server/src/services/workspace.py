@@ -15,7 +15,7 @@ class WorkspaceService(ServiceBase):
     def get_workspaces_query(self):
         return (
             select(workspace_models.Workspace)
-            .order_by(workspace_models.Workspace.id.desc())
+            .order_by(workspace_models.Workspace.id.asc())
         )
 
     def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:

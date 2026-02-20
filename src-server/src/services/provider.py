@@ -17,7 +17,7 @@ class ProviderService(ServiceBase):
     def get_providers_query(self):
         return (
             select(provider_models.Provider)
-            .order_by(provider_models.Provider.id.desc())
+            .order_by(provider_models.Provider.id.asc())
         )
 
     def get_providers(self) -> list[provider_models.Provider]:

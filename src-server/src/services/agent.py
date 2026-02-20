@@ -3,7 +3,6 @@ from sqlalchemy.orm import selectinload
 from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import agent as agent_models
-from ..db.models import workspace as workspace_models
 from ..schemas import agent as agent_schemas
 
 class AgentNotFoundError(NotFoundError):
@@ -15,7 +14,7 @@ class AgentService(ServiceBase):
     def get_agents_query(self):
         return (
             select(agent_models.Agent)
-            .order_by(agent_models.Agent.id.desc())
+            .order_by(agent_models.Agent.id.asc())
         )
 
     def get_agent_by_id(self, id: int) -> agent_models.Agent:
