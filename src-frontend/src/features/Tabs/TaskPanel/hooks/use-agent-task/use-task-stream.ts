@@ -1,15 +1,7 @@
 import { useUnmount } from "ahooks";
-import {
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
-import type { TaskUsage } from "@/types/task";
 import type { TaskState } from ".";
 
 type TaskStreamProps = {
@@ -21,8 +13,6 @@ type TaskStreamProps = {
 type TaskStreamResult = {
   state: TaskState;
   setState: Dispatch<SetStateAction<TaskState>>;
-  usage: TaskUsage;
-  setUsage: Dispatch<SetStateAction<TaskUsage>>;
   startStream: <Body extends Record<string, unknown>>(
     streamApi: TaskStreamFn<Body & { agent_id: number }>,
     body: Body
@@ -36,26 +26,13 @@ export type TaskStreamFn<Body extends { agent_id: number }> = (
   callbacks: TaskSseCallbacks
 ) => AbortController;
 
-export function useTaskStream({
-  taskId,
-  agentId,
-  sseCallbacksRef,
-}: TaskStreamProps): TaskStreamResult {
+export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
-  const [usage, setUsage] = useState<TaskUsage>({
-    input_tokens: 0,
-    output_tokens: 0,
-    total_tokens: 0,
-    max_tokens: 0,
-  });
   const abortController = useRef<AbortController | null>(null);
   useUnmount(() => abortController.current?.abort());
 
   const startStream = useCallback(
-    <Body extends Record<string, unknown>>(
-      streamApi: TaskStreamFn<Body & { agent_id: number }>,
-      body: Body
-    ) => {
+    <Body extends Record<string, unknown>>(streamApi: TaskStreamFn<Body & { agent_id: number }>, body: Body) => {
       const overrideCallbacks: TaskSseCallbacks = {
         ...sseCallbacksRef.current,
         onClose: () => {
@@ -71,7 +48,7 @@ export function useTaskStream({
       }
       setState("waiting");
       if (abortController.current) {
-        console.log("Aborting previous stream...");
+        console.warn("Aborting previous stream...");
         abortController.current?.abort();
       }
       abortController.current = streamApi(
@@ -95,8 +72,6 @@ export function useTaskStream({
   return {
     state,
     setState,
-    usage,
-    setUsage,
     startStream,
     cancel,
   };

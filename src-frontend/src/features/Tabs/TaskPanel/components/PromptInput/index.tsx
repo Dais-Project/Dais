@@ -1,5 +1,7 @@
 import type { ChatStatus } from "ai";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import type { TaskType, UserMessage } from "@/api/generated/schemas";
 import {
   PromptInput as BasePromptInput,
   PromptInputBody,
@@ -10,15 +12,10 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import type { UserMessage } from "@/types/message";
-import type { TaskType } from "@/types/task";
-import {
-  type TaskState,
-  useAgentTaskAction,
-  useAgentTaskState,
-} from "../../hooks/use-agent-task";
-import { AgentSelectDialog } from "./AgentSelectDialog";
+import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
+import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
+import { TaskProgress } from "./TaskProgress";
 
 export type PromptInputHandle = {
   agentId: number | null;
@@ -33,15 +30,45 @@ const PROMPTINPUT_STATE_MAPPING: Record<TaskState, ChatStatus> = {
   error: "error",
 };
 
+type PromptInputAgentStateProps = {
+  taskType: TaskType;
+  agentId: number | null;
+  onChange: (agentId: number) => void;
+};
+
+function PromptInputAgentState({ taskType, agentId, onChange }: PromptInputAgentStateProps) {
+  switch (taskType) {
+    case "agent":
+      return (
+        <ErrorBoundary fallbackRender={AgentSelectErrorFallback}>
+          <Suspense
+            fallback={
+              <Button variant="outline" disabled>
+                Loading...
+              </Button>
+            }
+          >
+            <AgentSelectDialog agentId={agentId} onChange={onChange} />
+          </Suspense>
+        </ErrorBoundary>
+      );
+    case "orchestration":
+      return (
+        <Button variant="outline" disabled>
+          Orchestrator
+        </Button>
+      );
+    default:
+      return null;
+  }
+}
+
 type PromptInputDraftProps = {
   taskType: TaskType;
   onSubmit: (message: PromptInputMessage, agentId: number) => void;
 };
 
-export function PromptInputDraft({
-  taskType,
-  onSubmit,
-}: PromptInputDraftProps) {
+export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
   const ableToSubmit = agentId !== null;
   return (
@@ -58,14 +85,7 @@ export function PromptInputDraft({
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools>
-          {taskType === "agent" && (
-            <AgentSelectDialog agentId={agentId} onChange={setAgentId} />
-          )}
-          {taskType === "orchestration" && (
-            <Button variant="outline" disabled>
-              Orchestrator
-            </Button>
-          )}
+          <PromptInputAgentState taskType={taskType} agentId={agentId} onChange={setAgentId} />
         </PromptInputTools>
         <PromptInputSubmit disabled={!ableToSubmit} />
       </PromptInputFooter>
@@ -74,7 +94,7 @@ export function PromptInputDraft({
 }
 
 export function PromptInput() {
-  const { agentId, data, usage, state } = useAgentTaskState();
+  const { agentId, data, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
 
   const [prompt, setPrompt] = useState("");
@@ -85,9 +105,10 @@ export function PromptInput() {
       className="rounded-md bg-background"
       onSubmit={(message) => {
         const userMessage = {
+          id: crypto.randomUUID(),
           role: "user",
           content: message.text,
-        } as UserMessage;
+        } satisfies UserMessage;
         if (ableToSubmit) {
           setPrompt("");
           continueTask(userMessage);
@@ -97,22 +118,14 @@ export function PromptInput() {
       }}
     >
       <PromptInputBody>
-        <PromptInputTextarea
-          onChange={(e) => setPrompt(e.target.value)}
-          value={prompt}
-        />
+        <PromptInputTextarea onChange={(e) => setPrompt(e.target.value)} value={prompt} />
       </PromptInputBody>
-      <PromptInputFooter>
-        <PromptInputTools>
-          {data.type === "agent" && (
-            <AgentSelectDialog agentId={agentId} onChange={setAgentId} />
-          )}
-          {data.type === "orchestration" && (
-            <Button variant="outline" disabled>
-              Orchestrator
-            </Button>
-          )}
-          {usage && <ContextUsage usage={usage} />}
+      <PromptInputFooter className="gap-16">
+        <PromptInputTools className="min-w-0">
+          <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
+          <div className="w-1" />
+          <ContextUsage />
+          <TaskProgress className="min-w-0 flex-1" />
         </PromptInputTools>
         <PromptInputSubmit
           status={PROMPTINPUT_STATE_MAPPING[state]}

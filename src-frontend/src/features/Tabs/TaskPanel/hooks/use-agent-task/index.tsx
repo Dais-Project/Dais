@@ -1,39 +1,38 @@
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { produce } from "immer";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  continueTask,
-  fetchTaskById,
-  type MessageChunkEventData,
-  type MessageEndEventData,
-  type MessageReplaceEventData,
-  type MessageStartEventData,
-  type TaskSseCallbacks,
-  type ToolCallEndEventData,
+  BuiltInTools,
+  type TaskRead,
+  type TaskUsage,
+  type ExecutionControlUpdateTodosTodosItem as TodoItem,
+  type ToolMessage,
   type ToolReviewBody,
+  type UserMessage,
+} from "@/api/generated/schemas";
+import {
+  continueTask,
+  getGetTaskQueryKey,
+  type TaskSseCallbacks,
   toolAnswer,
   toolReview,
+  useGetTaskSuspense,
 } from "@/api/task";
-import {
-  type AssistantMessage,
-  isToolMessage,
-  type Message,
-  type ToolMessage,
-  type UserMessage,
-} from "@/types/message";
-import type { TaskRead, TaskUsage } from "@/types/task";
+import { UpdateTodosSchema } from "@/api/tool-schema";
+import { tryParseSchema } from "@/lib/utils";
+import type {
+  MessageChunkEventData,
+  MessageEndEventData,
+  MessageStartEventData,
+  ToolCallEndEventData,
+} from "@/types/agent-stream";
+import { isToolMessage, type Message } from "@/types/message";
+import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { assistantMessageFactory, toolMessageFactory } from "./utils";
+import { toolMessageFactory } from "./utils";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -45,19 +44,14 @@ export type TaskStream<Body extends { agent_id: number }> = (
 
 // --- --- --- --- --- ---
 
-function handleTextAccumulated(
-  allText: string,
-  setData: (updater: (draft: TaskRead) => void) => void
-) {
+function handleTextAccumulated(allText: string, setData: (updater: (draft: TaskRead) => void) => void) {
   setData((draft) => {
     const lastMessage = draft.messages.at(-1);
     if (lastMessage?.role === "assistant") {
       lastMessage.content = allText;
       return;
     }
-    console.warn(
-      "Last message is not assistant when text chunk is accumulated"
-    );
+    console.warn("Last message is not assistant when text chunk is accumulated");
   });
 }
 
@@ -67,17 +61,11 @@ function handleToolCallAccumulated(
   setData: (updater: (draft: TaskRead) => void) => void
 ) {
   setData((draft) => {
-    const toolMessage = draft.messages.find(
-      (m) => isToolMessage(m) && m.tool_call_id === toolCallId
-    ) as ToolMessage | undefined;
+    const toolMessage = draft.messages.find((m) => isToolMessage(m) && m.tool_call_id === toolCallId) as
+      | ToolMessage
+      | undefined;
     if (toolMessage === undefined) {
-      draft.messages.push(
-        toolMessageFactory(
-          toolCallId,
-          toolCall.name,
-          toolCall.arguments
-        ) as ToolMessage
-      );
+      draft.messages.push(toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments) as ToolMessage);
       return;
     }
     toolMessage.name = toolCall.name;
@@ -85,10 +73,23 @@ function handleToolCallAccumulated(
   });
 }
 
+function findLatestTodoList(messages: Message[]): TodoItem[] | null {
+  for (const message of messages.reverseIter()) {
+    if (isToolMessage(message) && message.name === BuiltInTools.ExecutionControl__update_todos) {
+      const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
+      if (todoList) {
+        return todoList.todos;
+      }
+    }
+  }
+  return null;
+}
+
 // --- --- --- --- --- ---
 
 export type AgentTaskState = {
   state: TaskState;
+  todos: TodoItem[] | null;
   usage: TaskUsage;
   data: TaskRead;
   agentId: number | null;
@@ -98,11 +99,7 @@ export type AgentTaskActions = {
   setAgentId: (agentId: number) => void;
   continue: (message?: UserMessage | null) => void;
   answerTool: (toolCallId: string, answer: string) => void;
-  reviewTool: (
-    toolCallId: string,
-    status: ToolReviewBody["status"],
-    autoApprove: boolean
-  ) => void;
+  reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
   cancel: () => void;
 };
 
@@ -114,25 +111,25 @@ type AgentTaskProviderProps = {
   children: React.ReactNode;
 };
 
-export function AgentTaskProvider({
-  taskId,
-  children,
-}: AgentTaskProviderProps) {
+export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
   const queryClient = useQueryClient();
-  const { data } = useSuspenseQuery({
-    queryKey: ["task", taskId],
-    queryFn: async () => await fetchTaskById(taskId),
-    staleTime: Number.POSITIVE_INFINITY,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+  const { data } = useGetTaskSuspense(taskId, {
+    query: {
+      staleTime: Number.POSITIVE_INFINITY,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+    },
   });
 
   const [agentId, setAgentId] = useState(data.agent_id);
+  const [usage, setUsage] = useState<TaskUsage>(data.usage);
+  const todo = findLatestTodoList(data.messages);
+  const [todos, setTodos] = useState<TodoItem[] | null>(todo);
 
   const setData = useCallback(
     (updater: (draft: TaskRead) => void) => {
-      queryClient.setQueryData<TaskRead>(["task", taskId], (old) =>
+      queryClient.setQueryData<TaskRead>(getGetTaskQueryKey(taskId), (old) =>
         produce(old, (draft) => draft && updater(draft))
       );
     },
@@ -144,24 +141,26 @@ export function AgentTaskProvider({
   });
 
   const toolCallsBuffer = useToolCallBuffer({
-    onAccumulated: (toolCallId, toolCall) =>
-      handleToolCallAccumulated(toolCallId, toolCall, setData),
+    onAccumulated: (toolCallId, toolCall) => handleToolCallAccumulated(toolCallId, toolCall, setData),
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
-  const { state, setState, usage, setUsage, startStream, cancel } =
-    useTaskStream({ taskId, agentId, sseCallbacksRef });
+  const { state, setState, startStream, cancel } = useTaskStream({
+    taskId,
+    agentId,
+    sseCallbacksRef,
+  });
+
+  const messageLifecycle = useMessageLifecycle({
+    setData,
+  });
 
   const onMessageStart = useCallback(
     (eventData: MessageStartEventData) => {
       setState("running");
-      setData((draft) => {
-        const newMessage = assistantMessageFactory() as AssistantMessage;
-        newMessage.id = eventData.message_id;
-        draft.messages.push(newMessage);
-      });
+      messageLifecycle.handleMessageStart(eventData);
     },
-    [setState, setData]
+    [setState, messageLifecycle.handleMessageStart]
   );
 
   const onMessageChunk = useCallback(
@@ -189,47 +188,18 @@ export function AgentTaskProvider({
     (eventData: MessageEndEventData) => {
       textBuffer.clear();
       toolCallsBuffer.clear();
-      setData((draft) => {
-        const index = draft.messages.findIndex(
-          (m) => m.id === eventData.message.id
-        );
-        if (index === -1) {
-          console.warn(
-            `Message not found for replacement: ${eventData.message.id}`
-          );
-          return;
-        }
-        draft.messages[index] = eventData.message as Message;
-      });
+      messageLifecycle.handleMessageEnd(eventData);
     },
-    [textBuffer, toolCallsBuffer, setData]
+    [textBuffer, toolCallsBuffer, messageLifecycle.handleMessageEnd]
   );
 
-  const onMessageReplace = useCallback(
-    (eventData: MessageReplaceEventData) => {
-      setData((draft) => {
-        const index = draft.messages.findIndex(
-          (m) => m.id === eventData.message.id
-        );
-        if (index === -1) {
-          console.warn(
-            `Message not found for replacement: ${eventData.message.id}`
-          );
-          return;
-        }
-        draft.messages[index] = eventData.message as Message;
-      });
-    },
-    [setData]
-  );
+  const onMessageReplace = messageLifecycle.handleMessageReplace;
 
   const onToolCallEnd = useCallback(
     (eventData: ToolCallEndEventData) => {
       setData((draft) => {
         const index = draft.messages.findIndex(
-          (m) =>
-            isToolMessage(m) &&
-            m.tool_call_id === eventData.message.tool_call_id
+          (m) => isToolMessage(m) && m.tool_call_id === eventData.message.tool_call_id
         );
         if (index === -1) {
           draft.messages.push(eventData.message as ToolMessage);
@@ -237,8 +207,15 @@ export function AgentTaskProvider({
         }
         draft.messages[index] = eventData.message as ToolMessage;
       });
+      // refresh todo list
+      if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
+        const todoList = tryParseSchema(UpdateTodosSchema, eventData.message.arguments);
+        if (todoList) {
+          setTodos(todoList.todos);
+        }
+      }
     },
-    [setData]
+    [setData, setTodos]
   );
 
   const onError = useCallback(
@@ -252,17 +229,9 @@ export function AgentTaskProvider({
   );
 
   const onClose = useCallback(() => {
-    setData((draft) => {
-      draft.messages = draft.messages.filter((m) => {
-        const isDeterminedMessage = m.id !== undefined;
-        if (!isDeterminedMessage) {
-          console.warn(`Undetermined message found and removed: ${m}`);
-        }
-        return isDeterminedMessage;
-      });
-    });
+    messageLifecycle.handleClose();
     setState("idle");
-  }, [setState]);
+  }, [messageLifecycle.handleClose, setState]);
 
   sseCallbacksRef.current = {
     onMessageStart,
@@ -296,11 +265,7 @@ export function AgentTaskProvider({
   );
 
   const reviewTool = useCallback(
-    (
-      toolCallId: string,
-      status: ToolReviewBody["status"],
-      autoApprove: boolean
-    ) => {
+    (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
       setState("waiting");
       startStream(toolReview, {
         tool_call_id: toolCallId,
@@ -314,11 +279,12 @@ export function AgentTaskProvider({
   const stateValue = useMemo(
     () => ({
       state,
+      todos,
       usage,
       data,
       agentId,
     }),
-    [state, usage, data, agentId]
+    [state, todos, usage, data, agentId]
   );
 
   const actionValue = useMemo(
@@ -334,9 +300,7 @@ export function AgentTaskProvider({
 
   return (
     <AgentTaskActionContext value={actionValue}>
-      <AgentTaskStateContext value={stateValue}>
-        {children}
-      </AgentTaskStateContext>
+      <AgentTaskStateContext value={stateValue}>{children}</AgentTaskStateContext>
     </AgentTaskActionContext>
   );
 }

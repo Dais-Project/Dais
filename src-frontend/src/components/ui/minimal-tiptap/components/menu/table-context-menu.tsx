@@ -1,7 +1,7 @@
 import type { Editor } from "@tiptap/react";
 import type { VariantProps } from "class-variance-authority";
 import { ColumnsIcon, MinusIcon, RowsIcon, Trash2Icon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,21 +20,42 @@ export function TableContextMenu({ editor, children }: TableContextMenuProps) {
   const [isInHeaderRow, setIsInHeaderRow] = useState(false);
   const [isInTable, setIsInTable] = useState(false);
 
-  useEffect(() => {
-    const updateTableState = () => {
-      setIsInTable(editor.isActive("table"));
-      // 检查是否在表头行
+  const updateTableState = useCallback(() => {
+    const inTable = editor.isActive("table");
+    setIsInTable(inTable);
+
+    if (!inTable) {
+      setIsInHeaderRow(false);
+      return;
+    }
+
+    // 在事务过渡期做防御，避免读取到不完整节点导致崩溃。
+    let isHeaderRow = false;
+
+    try {
       const { $anchor } = editor.state.selection;
-      const tableNode = $anchor.node(-1);
-      setIsInHeaderRow(tableNode.type.name === "tableHeader");
-    };
+      const parentNode = $anchor.parent;
+      const ancestorNode = $anchor.depth > 0 ? $anchor.node(-1) : undefined;
+
+      isHeaderRow =
+        parentNode.type.name === "tableHeader" ||
+        ancestorNode?.type?.name === "tableHeader";
+    } catch {
+      isHeaderRow = false;
+    }
+
+    setIsInHeaderRow(isHeaderRow);
+  }, [editor, setIsInTable, setIsInHeaderRow]);
+
+  useEffect(() => {
     editor.on("selectionUpdate", updateTableState);
     editor.on("transaction", updateTableState);
+    updateTableState();
     return () => {
       editor.off("selectionUpdate", updateTableState);
       editor.off("transaction", updateTableState);
     };
-  }, [editor]);
+  }, [editor, updateTableState]);
 
   return (
     <ContextMenu>

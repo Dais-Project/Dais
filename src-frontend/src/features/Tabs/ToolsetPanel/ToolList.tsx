@@ -59,7 +59,7 @@ function ToolItem({ tool, index, control }: ToolItemProps) {
           name={`tools.${index}.is_enabled`}
           control={control}
           render={({ field: { value, onChange }, fieldState }) => (
-            <FieldItem title="启用" fieldState={fieldState}>
+            <FieldItem label="启用" fieldState={fieldState}>
               <Checkbox checked={value} onCheckedChange={onChange} />
             </FieldItem>
           )}
@@ -68,7 +68,7 @@ function ToolItem({ tool, index, control }: ToolItemProps) {
           name={`tools.${index}.auto_approve`}
           control={control}
           render={({ field: { value, onChange }, fieldState }) => (
-            <FieldItem title="自动批准" fieldState={fieldState}>
+            <FieldItem label="自动批准" fieldState={fieldState}>
               <Checkbox checked={value} onCheckedChange={onChange} />
             </FieldItem>
           )}
@@ -96,29 +96,6 @@ export function ToolList() {
             index={index}
             control={control}
           />
-          // <div
-          //   key={field.id}
-          //   className="rounded-lg border border-border bg-muted/30 p-4"
-          // >
-          //   <Controller
-          //     name={`tools.${index}.is_enabled`}
-          //     control={control}
-          //     render={({ field: { value, onChange }, fieldState }) => (
-          //       <FieldItem title="启用" fieldState={fieldState}>
-          //         <Switch checked={value} onCheckedChange={onChange} />
-          //       </FieldItem>
-          //     )}
-          //   />
-          //   <Controller
-          //     name={`tools.${index}.auto_approve`}
-          //     control={control}
-          //     render={({ field: { value, onChange }, fieldState }) => (
-          //       <FieldItem title="自动批准" fieldState={fieldState}>
-          //         <Switch checked={value} onCheckedChange={onChange} />
-          //       </FieldItem>
-          //     )}
-          //   />
-          // </div>
         ))}
       </FieldGroup>
     </FieldSet>

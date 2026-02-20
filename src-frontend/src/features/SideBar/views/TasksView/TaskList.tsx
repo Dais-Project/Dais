@@ -1,14 +1,17 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import React from "react";
+import type React from "react";
 import { toast } from "sonner";
-import { deleteTask, fetchTasks } from "@/api/task";
+import type { TaskBrief } from "@/api/generated/schemas";
+import {
+  getGetTaskQueryKey,
+  getGetTasksInfiniteQueryKey,
+  useDeleteTask,
+  useGetTasksSuspenseInfinite,
+} from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
+import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -17,24 +20,17 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { TaskRead } from "@/types/task";
 import { TaskIcon } from "./TaskIcon";
 
-function openTaskTab(task: TaskRead) {
-  const { tabs, addTab, setActiveTab } = useTabsStore.getState();
-  const existingTab = tabs.find(
-    (t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id
-  );
+function openTaskTab(task: TaskBrief) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find((t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id);
 
   if (existingTab) {
     setActiveTab(existingTab.id);
@@ -53,20 +49,13 @@ function openTaskTab(task: TaskRead) {
 }
 
 function removeTaskTab(taskId: number) {
-  const { tabs, removeTab } = useTabsStore.getState();
-  const tabsToRemove = tabs.filter(
-    (tab) =>
-      tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId
-  );
-
-  for (const tab of tabsToRemove) {
-    removeTab(tab.id);
-  }
+  const removeTabsPattern = useTabsStore.getState().removePattern;
+  removeTabsPattern((tab) => tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId);
 }
 
 type TaskItemProps = {
-  task: TaskRead;
-  onDelete: (task: TaskRead) => void;
+  task: TaskBrief;
+  onDelete: (task: TaskBrief) => void;
 };
 
 function TaskItem({ task, onDelete }: TaskItemProps) {
@@ -100,10 +89,7 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
           <PencilIcon className="mr-2 size-4" />
           <span>编辑任务名称</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem
-          className="text-destructive"
-          onClick={() => onDelete(task)}
-        >
+        <ActionableItemMenuItem className="text-destructive" onClick={() => onDelete(task)}>
           <TrashIcon className="mr-2 size-4" />
           <span>删除任务</span>
         </ActionableItemMenuItem>
@@ -112,26 +98,23 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
   );
 }
 
-const MemoizedTaskItem = React.memo(
-  TaskItem,
-  (prev, next) =>
-    prev.task.id === next.task.id &&
-    prev.task.title === next.task.title &&
-    prev.task.last_run_at === next.task.last_run_at
-);
-
 type TaskListProps = {
   workspaceId: number;
 };
 
 export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
+  const deleteTaskMutation = useDeleteTask();
 
-  const asyncConfirm = useAsyncConfirm<TaskRead>({
+  const asyncConfirm = useAsyncConfirm<TaskBrief>({
     onConfirm: async (task) => {
-      await deleteTaskMutation.mutateAsync(task.id);
-      queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
-      queryClient.removeQueries({ queryKey: ["task", task.id] });
+      await deleteTaskMutation.mutateAsync({ taskId: task.id });
+      queryClient.invalidateQueries({
+        queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }),
+      });
+      queryClient.removeQueries({
+        queryKey: getGetTaskQueryKey(task.id),
+      });
       removeTaskTab(task.id);
       toast.success("删除成功", {
         description: "已成功删除任务。",
@@ -144,14 +127,16 @@ export function TaskList({ workspaceId }: TaskListProps) {
     },
   });
 
-  const { data } = useSuspenseQuery({
-    queryKey: ["tasks", workspaceId],
-    queryFn: async () => await fetchTasks(workspaceId),
-  });
+  const query = useGetTasksSuspenseInfinite(
+    {
+      workspace_id: workspaceId,
+    },
+    {
+      query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+    }
+  );
 
-  const deleteTaskMutation = useMutation({ mutationFn: deleteTask });
-
-  if (data.items.length === 0) {
+  if (query.data.pages.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -165,13 +150,11 @@ export function TaskList({ workspaceId }: TaskListProps) {
   return (
     <>
       <ScrollArea className="h-full">
-        {data.items.map((task) => (
-          <MemoizedTaskItem
-            key={task.id}
-            task={task}
-            onDelete={asyncConfirm.trigger}
-          />
-        ))}
+        <InfiniteScroll
+          query={query}
+          selectItems={(page) => page.items}
+          itemRender={(task) => <TaskItem key={task.id} task={task} onDelete={asyncConfirm.trigger} />}
+        />
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}

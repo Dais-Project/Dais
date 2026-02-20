@@ -1,21 +1,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { FetchError } from "@/api";
-import { fetchWorkspaceById } from "@/api/workspace";
-import type { WorkspaceRead } from "@/types/workspace";
+import type { WorkspaceRead } from "@/api/generated/schemas";
+import type {
+  ErrorResponse,
+  FetchError,
+} from "@/api/orval-mutator/custom-fetch";
+import { getWorkspace } from "@/api/workspace";
 
 type WorkspaceState = {
-  currentWorkspace: WorkspaceRead | null;
+  current: WorkspaceRead | null;
+  currentPromise: Promise<WorkspaceRead> | null;
   isLoading: boolean;
 };
 
 type WorkspaceActions = {
-  setCurrentWorkspace: (workspaceId: number | null) => Promise<void>;
-  syncCurrentWorkspace: (workspaceId?: number) => Promise<void>;
+  setCurrent: (workspaceId: number | null) => Promise<void>;
+  syncCurrent: (workspaceId?: number) => Promise<void>;
 };
 
 type PersistedWorkspaceState = {
-  currentWorkspace: WorkspaceRead | null;
+  current: WorkspaceRead | null;
 };
 
 type WorkspaceStore = WorkspaceState & WorkspaceActions;
@@ -23,30 +27,37 @@ type WorkspaceStore = WorkspaceState & WorkspaceActions;
 export const useWorkspaceStore = create<WorkspaceStore>()(
   persist(
     (set, get) => ({
-      currentWorkspace: null,
+      current: null,
+      currentPromise: null,
       isLoading: false,
-      async setCurrentWorkspace(workspaceId) {
+      async setCurrent(workspaceId) {
         if (workspaceId === null) {
-          set({ currentWorkspace: null });
+          set({
+            current: null,
+            currentPromise: null,
+            isLoading: false,
+          });
           return;
         }
-        await get().syncCurrentWorkspace(workspaceId);
+        await get().syncCurrent(workspaceId);
       },
-      async syncCurrentWorkspace(workspaceId_) {
-        const workspaceId = workspaceId_ ?? get().currentWorkspace?.id;
+      async syncCurrent(workspaceId_) {
+        const workspaceId = workspaceId_ ?? get().current?.id;
         if (!workspaceId) {
           return;
         }
 
-        set({ isLoading: true });
+        const promise = getWorkspace(workspaceId);
+        const isLatestRequest = () => get().currentPromise === promise;
+        set({ isLoading: true, currentPromise: promise });
         try {
-          const workspace = await fetchWorkspaceById(workspaceId);
-          set({ currentWorkspace: workspace });
+          const workspace = await promise;
+          isLatestRequest() && set({ current: workspace });
         } catch (error) {
-          console.error("Failed to fetch workspace:", error);
+          console.error(`Failed to fetch workspace ${workspaceId}:`, error);
           throw error;
         } finally {
-          set({ isLoading: false });
+          isLatestRequest() && set({ isLoading: false });
         }
       },
     }),
@@ -54,22 +65,24 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       name: "workspace",
       partialize: (state) =>
         ({
-          currentWorkspace: state.currentWorkspace,
+          current: state.current,
         }) satisfies PersistedWorkspaceState,
       onRehydrateStorage: () => (hydratedState, error) => {
         if (error) {
           console.error("Failed to load workspace from storage:", error);
           return;
         }
-        if (!hydratedState?.currentWorkspace) {
+        if (!hydratedState?.current) {
           return;
         }
-        hydratedState.syncCurrentWorkspace().catch((syncError: FetchError) => {
-          if (syncError.statusCode === 404) {
-            hydratedState.setCurrentWorkspace(null);
-            return;
-          }
-        });
+        hydratedState
+          .syncCurrent()
+          .catch((syncError: FetchError<ErrorResponse>) => {
+            if (syncError.statusCode === 404) {
+              hydratedState.setCurrent(null);
+              return;
+            }
+          });
       },
     }
   )

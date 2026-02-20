@@ -1,4 +1,4 @@
-import type { AgentCreate } from "@/types/agent";
+import type { AgentCreate } from "@/api/generated/schemas";
 
 export const DEFAULT_AGENT = {
   name: "",

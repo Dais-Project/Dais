@@ -1,50 +1,39 @@
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import isURL from "validator/lib/isURL";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
+import type { FieldProps } from ".";
 
-type UrlFieldProps = {
-  fieldName?: string;
-  label?: string;
-  placeholder?: string;
-  required?: boolean;
-  description?: string;
-  align?: "start" | "center" | "end";
-};
+type UrlFieldProps = FieldProps<
+  typeof Input,
+  {
+    required?: boolean;
+  }
+>;
 
 export function UrlField({
   fieldName = "url",
-  label = "URL",
-  placeholder,
   required = true,
-  description,
-  align = "center",
+  fieldProps = { label: "URL", align: "center" },
+  controlProps = { placeholder: "请输入 URL" },
 }: UrlFieldProps) {
-  const { control } = useFormContext();
+  const { register, getFieldState } = useFormContext();
 
   return (
-    <Controller
-      name={fieldName}
-      control={control}
-      rules={{
-        required: required ? "请输入 URL" : false,
-        validate: (value) => {
-          if (isURL(value)) {
-            return true;
-          }
-          return "请输入有效的 HTTP 或 HTTPS URL";
-        },
-      }}
-      render={({ field, fieldState }) => (
-        <FieldItem
-          title={label}
-          description={description}
-          fieldState={fieldState}
-          align={align}
-        >
-          <Input {...field} type="url" placeholder={placeholder} />
-        </FieldItem>
-      )}
-    />
+    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+      <Input
+        {...register(fieldName, {
+          required: required ? "请输入 URL" : false,
+          validate: (value) => {
+            if (isURL(value)) {
+              return true;
+            }
+            return "请输入有效的 HTTP 或 HTTPS URL";
+          },
+        })}
+        type="url"
+        {...controlProps}
+      />
+    </FieldItem>
   );
 }

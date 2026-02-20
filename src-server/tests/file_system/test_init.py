@@ -7,16 +7,16 @@ from src.agent.types import ContextUsage
 
 class TestFileSystemToolInit:
     def test_init_with_absolute_path(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         assert tool._ctx.cwd == temp_workspace
         assert hasattr(tool, "_md")
 
     def test_init_with_tilde(self):
-        tool = FileSystemToolset(BuiltInToolsetContext("~", ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext("~", ContextUsage.default()))
         assert tool._ctx.cwd == Path.home()
 
     def test_markitdown_instance(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         assert tool._md is not None
 
 

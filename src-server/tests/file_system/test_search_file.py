@@ -1,10 +1,8 @@
-from pathlib import Path
-
 import pytest
+from pathlib import Path
 from src.agent.tool.builtin_tools import file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
-from src.agent.types import ContextUsage
 
 
 class TestSearchFile:
@@ -13,7 +11,7 @@ class TestSearchFile:
             yield directory / f"file_{index}.txt"
 
     def test_search_file_basic_matches(self, temp_workspace, nested_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.search_file("*.txt")
 
         assert result["total"] == 5
@@ -26,31 +24,31 @@ class TestSearchFile:
         }
 
     def test_search_file_limit(self, temp_workspace, nested_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.search_file("*.txt", limit=2)
 
         assert result["total"] == 2
         assert len(result["matches"]) == 2
 
     def test_search_file_relative_paths(self, temp_workspace, nested_directory):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         result = tool.search_file("file3.txt")
 
         assert result["matches"] == ["dir1/file3.txt"]
 
     def test_search_file_nonexistent_directory(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         with pytest.raises(FileNotFoundError):
             tool.search_file("*.txt", path="nonexistent")
 
     def test_search_file_path_is_file(self, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         with pytest.raises(NotADirectoryError):
             tool.search_file("*.txt", path=filename)
 
     def test_search_file_stops_at_max_scan_limit(self, temp_workspace, monkeypatch):
-        tool = FileSystemToolset(BuiltInToolsetContext(temp_workspace, ContextUsage()))
+        tool = FileSystemToolset(BuiltInToolsetContext.default())
         max_scan_limit = 200_000
         total_entries = max_scan_limit + 10
 

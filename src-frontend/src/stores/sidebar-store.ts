@@ -1,35 +1,29 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type View =
-  | "tasks"
-  | "workspaces"
-  | "agents"
-  | "toolsets"
-  | "plugins"
-  | "settings";
+export type SideBarView = "tasks" | "workspaces" | "agents" | "toolsets" | "plugins" | "settings";
+
+const DEFAULT_VIEW: SideBarView = "tasks";
 
 type SidebarState = {
   isOpen: boolean;
-  activeView: View | null;
+  activeView: SideBarView | null;
 };
 
 type SidebarActions = {
-  openSidebar: (view?: View) => void;
-  closeSidebar: () => void;
-  toggleSidebar: (view?: View) => void;
+  open: (view?: SideBarView) => void;
+  close: () => void;
+  toggle: (view?: SideBarView) => void;
 };
 
 type SidebarStore = SidebarState & SidebarActions;
-
-const DEFAULT_VIEW: View = "tasks";
 
 export const useSidebarStore = create<SidebarStore>()(
   persist(
     (set, get) => ({
       isOpen: false,
       activeView: null,
-      toggleSidebar: (view: View | null = null) => {
+      toggle: (view: SideBarView | null = null) => {
         const { isOpen, activeView } = get();
         if (activeView !== null && view !== null && view !== activeView) {
           set({ isOpen: true, activeView: view });
@@ -40,11 +34,11 @@ export const useSidebarStore = create<SidebarStore>()(
           activeView: view ?? activeView ?? DEFAULT_VIEW,
         });
       },
-      openSidebar: (view: View | null = null) => {
+      open: (view: SideBarView | null = null) => {
         const { activeView } = get();
         set({ isOpen: true, activeView: view ?? activeView ?? DEFAULT_VIEW });
       },
-      closeSidebar: () => {
+      close: () => {
         set({ isOpen: false });
       },
     }),

@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { SideBarHeader } from "../../components/SideBarHeader";
 import { GeneralSettings } from "./GeneralSettings";
+import { HelperModelSettings } from "./HelperModelSettings";
 import { ProviderSettings } from "./ProviderSettings";
 
 export function SettingsView() {
@@ -17,6 +18,11 @@ export function SettingsView() {
       title: "模型服务",
       content: <ProviderSettings />,
     },
+    {
+      id: "helper-model",
+      title: "助手模型",
+      content: <HelperModelSettings />,
+    },
   ];
 
   const tabsTriggerClasses = cn(
@@ -27,17 +33,10 @@ export function SettingsView() {
   return (
     <div className="flex h-full flex-col">
       <SideBarHeader title="设置" />
-      <Tabs
-        defaultValue={settingItems[0].id}
-        className="flex min-h-0 w-full flex-1 flex-row gap-0"
-      >
+      <Tabs defaultValue={settingItems[0].id} className="flex min-h-0 w-full flex-1 flex-row gap-0">
         <TabsList className="flex h-full flex-col items-stretch gap-2 rounded-none border-r bg-transparent p-0">
           {settingItems.map((item) => (
-            <TabsTrigger
-              key={item.id}
-              value={item.id}
-              className={tabsTriggerClasses}
-            >
+            <TabsTrigger key={item.id} value={item.id} className={tabsTriggerClasses}>
               {item.title}
             </TabsTrigger>
           ))}

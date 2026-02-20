@@ -1,12 +1,12 @@
-from typing import Annotated, cast
+from typing import Annotated, Literal, cast
 from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
-from ...agent.tool import use_mcp_toolset_manager, McpToolset
+from ...agent.tool import McpToolset, McpToolsetStatus
 from ...agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ...services.toolset import ToolsetService
-from ...db.schemas import toolset as toolset_schemas
+from ...schemas import toolset as toolset_schemas
 
-toolset_router = APIRouter()
+toolset_router = APIRouter(tags=["toolset"])
 
 def get_toolset_service():
     with ToolsetService() as service:
@@ -21,9 +21,9 @@ McpToolsetManagerDep = Annotated[McpToolsetManager, Depends(get_mcp_toolset_mana
 class ToolsetBrief(BaseModel):
     id: int
     name: str
-    type: str
-    # only available for MCP toolsets
-    status: str | None = None
+    type: toolset_schemas.ToolsetType
+    # "connected" for built-in toolsets, McpToolsetStatus for MCP toolsets
+    status: Literal["connected"] | McpToolsetStatus
 
 @toolset_router.get("/brief", response_model=list[ToolsetBrief])
 def get_toolsets_brief(
@@ -40,7 +40,7 @@ def get_toolsets_brief(
         result.append(ToolsetBrief(id=toolset.id,
                                    name=toolset.name,
                                    type=toolset.type,
-                                   status=None))
+                                   status="connected"))
     for toolset in cast(list[McpToolset], mcp_toolset_manager.toolsets):
         ent = mcp_toolset_map[toolset.name]
         result.append(ToolsetBrief(id=ent.id,
@@ -60,7 +60,7 @@ async def create_mcp_toolset(
     service: ToolsetServiceDep,
     mcp_toolset_manager: McpToolsetManagerDep,
 ):
-    new_toolset = service.create_toolset(body)
+    new_toolset = await service.create_toolset(body)
     await mcp_toolset_manager.refresh_toolset_metadata()
     return toolset_schemas.ToolsetRead.model_validate(new_toolset)
 

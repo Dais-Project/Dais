@@ -1,6 +1,5 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { fetchToolsetById } from "@/api/toolset";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { useGetToolsetSuspense } from "@/api/toolset";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToolsetEditForm } from "@/features/Tabs/ToolsetPanel/ToolsetEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -10,7 +9,7 @@ import { TabPanelFrame } from "../TabPanelFrame";
 import { ToolsetCreateForm } from "./ToolsetCreateForm";
 
 function ToolsetCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
 
   const handleComplete = () => {
     removeTab(tabId);
@@ -26,16 +25,9 @@ function ToolsetEditPanel({
   tabId: string;
   toolsetId: number;
 }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
-
-  const { data: toolset } = useSuspenseQuery({
-    queryKey: ["toolset", toolsetId],
-    queryFn: async () => await fetchToolsetById(toolsetId),
-  });
-
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
+  const removeTab = useTabsStore((state) => state.remove);
+  const { data: toolset } = useGetToolsetSuspense(toolsetId);
+  const handleComplete = () => removeTab(tabId);
 
   return <ToolsetEditForm toolset={toolset} onConfirm={handleComplete} />;
 }
@@ -54,12 +46,7 @@ export function ToolsetPanel({
 
   return (
     <TabPanelFrame
-      fallbackChildren={
-        <div className="flex h-full items-center justify-center p-4">
-          <p className="text-muted-foreground">加载中...</p>
-        </div>
-      }
-      fallbackRender={({ resetErrorBoundary }) => (
+      errorRender={({ resetErrorBoundary }) => (
         <div className="flex h-full items-center justify-center p-4">
           <FailedToLoad
             refetch={resetErrorBoundary}

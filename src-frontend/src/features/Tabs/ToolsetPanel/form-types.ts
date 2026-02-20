@@ -7,7 +7,7 @@ import type {
   ToolsetType,
   ToolsetUpdate,
   ToolUpdate,
-} from "@/types/toolset";
+} from "@/api/generated/schemas";
 
 export type ToolFormValues = Omit<ToolRead, "toolset_id" | "internal_key">;
 
@@ -116,7 +116,7 @@ function transformFormToApiParams(
 
   // case 2: Remote MCP
   if (values.type === "mcp_remote") {
-    let httpHeaders: Record<string, string> | undefined;
+    let httpHeaders: Record<string, string> = {};
     // JSON string -> object
     if (values.params.http_headers?.trim()) {
       try {
@@ -128,6 +128,8 @@ function transformFormToApiParams(
     return {
       url: values.params.url || "",
       http_headers: httpHeaders,
+      bearer_token: null,
+      oauth_params: null,
     } satisfies RemoteServerParams;
   }
   // case 3: Built-in (no params)

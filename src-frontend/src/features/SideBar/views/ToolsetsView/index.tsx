@@ -1,19 +1,13 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import {
-  SideBarHeader,
-  SideBarHeaderAction,
-} from "../../components/SideBarHeader";
+import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
+import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { ToolsetList } from "./ToolsetList";
-import { ToolsetListSkeleton } from "./ToolsetListSkeleton";
 
 function openToolsetCreateTab() {
-  const addTab = useTabsStore.getState().addTab;
+  const addTab = useTabsStore.getState().add;
   addTab({
     id: tabIdFactory(),
     type: "toolset",
@@ -26,30 +20,12 @@ export function ToolsetsView() {
   return (
     <div className="flex h-full flex-col">
       <SideBarHeader title="Toolsets">
-        <SideBarHeaderAction
-          Icon={PlusIcon}
-          tooltip="Connect to MCP server"
-          onClick={openToolsetCreateTab}
-        />
+        <SideBarHeaderAction Icon={PlusIcon} tooltip="Connect to MCP server" onClick={openToolsetCreateTab} />
       </SideBarHeader>
       <div className="flex-1">
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary
-              onReset={reset}
-              fallbackRender={({ resetErrorBoundary }) => (
-                <FailedToLoad
-                  refetch={resetErrorBoundary}
-                  description="无法加载 Toolset 列表，请稍后重试。"
-                />
-              )}
-            >
-              <Suspense fallback={<ToolsetListSkeleton />}>
-                <ToolsetList />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
+        <AsyncBoundary skeleton={<SideBarListSkeleton />} errorDescription="无法加载 Toolset 列表，请稍后重试。">
+          <ToolsetList />
+        </AsyncBoundary>
       </div>
     </div>
   );

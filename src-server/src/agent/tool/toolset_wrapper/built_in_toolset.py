@@ -1,10 +1,11 @@
-from dataclasses import replace, dataclass
+from dataclasses import replace
 from pathlib import Path
 from typing import override
 from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ...types import ContextUsage
 from ....services import ToolsetService
+from ....db.models import toolset as toolset_models
 
 built_in_tool = python_tool
 
@@ -15,7 +16,7 @@ class BuiltInToolsetContext:
 
     @classmethod
     def default(cls):
-        return cls(Path.cwd(), ContextUsage())
+        return cls(Path.cwd(), ContextUsage.default())
 
     @staticmethod
     def resolve_cwd(cwd: str | Path) -> Path:
@@ -37,9 +38,7 @@ class BuiltInToolset(PythonToolset):
     def __init__(self, ctx: BuiltInToolsetContext) -> None:
         self._ctx = ctx
         self._tools_cache = super().get_tools(namespaced_tool_name=False)
-        with ToolsetService() as toolset_service:
-            toolset_ent = toolset_service.get_toolset_by_internal_key(self.internal_key)
-        self._toolset_ent_map = {tool.internal_key: tool for tool in toolset_ent.tools}
+        self._toolset_ent_map: dict[str, toolset_models.Tool] | None = None
 
     @property
     def internal_key(self) -> str:
@@ -59,8 +58,16 @@ class BuiltInToolset(PythonToolset):
                                             description=tool.description)
                                         for tool in raw_tools])
 
+    def get_original_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
+        return super().get_tools(namespaced_tool_name=namespaced_tool_name)
+
     @override
     def get_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
+        if self._toolset_ent_map is None:
+            with ToolsetService() as toolset_service:
+                toolset_ent = toolset_service.get_toolset_by_internal_key(self.internal_key)
+            self._toolset_ent_map = {tool.internal_key: tool for tool in toolset_ent.tools}
+
         result = []
         for tool in self._tools_cache:
             tool_ent = self._toolset_ent_map[tool.name]

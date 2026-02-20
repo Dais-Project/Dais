@@ -1,2 +1,2 @@
-from ._manage import *
-from ._stream import *
+from .manage import *
+from .stream import *

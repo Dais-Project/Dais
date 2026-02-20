@@ -27,7 +27,10 @@ class DataClassJSON(TypeDecorator):
         self.dataclass_type = dataclass_type
 
     def process_bind_param(self, value, dialect):
-        if value is not None:
+        if value is None: return None
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, self.dataclass_type):
             return dataclasses.asdict(value)
         return value
 

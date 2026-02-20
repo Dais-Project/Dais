@@ -1,39 +1,28 @@
-import { Controller, useFormContext } from "react-hook-form";
+import { useController, useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Switch } from "@/components/ui/switch";
+import type { FieldProps } from ".";
 
-type SwitchFieldProps = {
-  fieldName: string;
-  label: string;
-  description?: string;
-  disabled?: boolean;
-};
+type SwitchFieldProps = FieldProps<typeof Switch>;
 
-export function SwitchField({
-  fieldName,
-  label,
-  description,
-  disabled = false,
-}: SwitchFieldProps) {
-  const { control } = useFormContext();
+export function SwitchField({ fieldName, fieldProps = { label: "启用" }, controlProps }: SwitchFieldProps) {
+  const { control, getFieldState } = useFormContext<Record<string, boolean>>();
+  const { field } = useController({
+    name: fieldName,
+    control,
+  });
 
   return (
-    <Controller
-      name={fieldName}
-      control={control}
-      render={({ field, fieldState }) => (
-        <FieldItem
-          title={label}
-          description={description}
-          fieldState={fieldState}
-        >
-          <Switch
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            disabled={disabled}
-          />
-        </FieldItem>
-      )}
-    />
+    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+      <Switch
+        checked={field.value}
+        onCheckedChange={field.onChange}
+        onBlur={field.onBlur}
+        name={field.name}
+        disabled={controlProps?.disabled}
+        required={controlProps?.required}
+        {...controlProps}
+      />
+    </FieldItem>
   );
 }

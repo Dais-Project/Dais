@@ -19,25 +19,22 @@
       ]
     },
     "dev": {
-      "command": "uv run watchfiles \"uv run python entry.py\" src --ignore-paths __pycache__",
+      "command": "uv run python -m scripts.watches dev",
+      "continuous": true,
+      "dependsOn": [
+        "install",
+        "watch-schema"
+      ]
+    },
+    "watch-schema": {
+      "command": "uv run python -m scripts.watches schema",
       "continuous": true,
       "dependsOn": [
         "install"
-      ]
-    },
-    "generate-migration": {
-      "executor": "nx:run-commands",
-      "dependsOn": [
-        "install"
       ],
-      "options": {
-        "commands": [
-          "uv run alembic upgrade head",
-          "uv run alembic revision --autogenerate"
-        ],
-        "parallel": false,
-        "cwd": "src-server"
-      }
+      "outputs": [
+        "{workspaceRoot}/openapi.json"
+      ]
     },
     "build": {
       "executor": "nx:run-commands",
@@ -54,7 +51,7 @@
       "options": {
         "commands": [
           "uv run pyinstaller --noconfirm --name server entry.py",
-          "uv run python scripts/rename_python_sidecar.py --name=server --output-dir=../src-tauri/"
+          "uv run python -m scripts.rename_python_sidecar --name=server --output-dir=../src-tauri/"
         ],
         "parallel": false
       },
@@ -66,6 +63,26 @@
         "{projectRoot}/dist",
         "{workspaceRoot}/src-tauri/server*"
       ]
+    },
+    "export-openapi": {
+      "command": "uv run python -m scripts.export_openapi",
+      "cache": true,
+      "inputs": ["{projectRoot}/src/api/**/*.py"],
+      "outputs": ["{workspaceRoot}/openapi.json"]
+    },
+    "generate-migration": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "install"
+      ],
+      "options": {
+        "commands": [
+          "uv run alembic upgrade head",
+          "uv run alembic revision --autogenerate"
+        ],
+        "parallel": false,
+        "cwd": "src-server"
+      }
     }
   }
 }

@@ -1,18 +1,14 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
-import { updateToolset } from "@/api/toolset";
+import type { ToolsetRead } from "@/api/generated/schemas";
+import { getGetToolsetQueryKey, getGetToolsetsBriefQueryKey, useUpdateToolset } from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import { NameField, SwitchField } from "@/components/custom/form/fields";
+import { CheckboxField, NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
-import type { ToolsetRead, ToolsetUpdate } from "@/types/toolset";
 import { DynamicConfigFields } from "./fields/DynamicConfigFields";
 import { ToolsetTypeSelectField } from "./fields/ToolsetTypeSelectField";
-import {
-  editFormValuesToPayload,
-  type ToolsetEditFormValues,
-  toolsetToEditFormValues,
-} from "./form-types";
+import { editFormValuesToPayload, type ToolsetEditFormValues, toolsetToEditFormValues } from "./form-types";
 import { ToolList } from "./ToolList";
 
 type ToolsetEditFormProps = {
@@ -25,41 +21,39 @@ export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
 
   const formValues = useMemo(() => toolsetToEditFormValues(toolset), [toolset]);
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ToolsetUpdate }) =>
-      updateToolset(id, data),
-    onSuccess: (updatedToolset) => {
-      queryClient.invalidateQueries({ queryKey: ["toolsets"] });
-      queryClient.invalidateQueries({
-        queryKey: ["toolset", updatedToolset.id],
-      });
-      toast.success("更新成功", {
-        description: `已成功更新 ${updatedToolset.name} Toolset。`,
-      });
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("更新失败", {
-        description: error.message || "更新 Toolset 时发生错误，请稍后重试。",
-      });
+  const updateMutation = useUpdateToolset({
+    mutation: {
+      onSuccess: (updatedToolset) => {
+        queryClient.invalidateQueries({
+          queryKey: getGetToolsetsBriefQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetToolsetQueryKey(updatedToolset.id),
+        });
+        toast.success("更新成功", {
+          description: `已成功更新 ${updatedToolset.name} Toolset。`,
+        });
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("更新失败", {
+          description: error.message || "更新 Toolset 时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
   function handleSubmit(data: ToolsetEditFormValues) {
     const payload = editFormValuesToPayload(data);
-    updateMutation.mutate({ id: toolset.id, data: payload });
+    updateMutation.mutate({ toolsetId: toolset.id, data: payload });
   }
-
   return (
-    <FormShell<ToolsetEditFormValues>
-      values={formValues}
-      onSubmit={handleSubmit}
-    >
-      <NameField fieldName="name" label="名称" />
+    <FormShell<ToolsetEditFormValues> values={formValues} onSubmit={handleSubmit}>
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ToolsetTypeSelectField />
 
-      <SwitchField fieldName="is_enabled" label="启用" />
+      <CheckboxField fieldName="is_enabled" fieldProps={{ label: "启用" }} />
 
       <DynamicConfigFields />
 

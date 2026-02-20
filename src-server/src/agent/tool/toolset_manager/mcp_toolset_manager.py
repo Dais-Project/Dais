@@ -29,19 +29,22 @@ class McpToolsetManager(ToolsetManager):
     async def refresh_toolset_metadata(self):
         with ToolsetService() as toolset_service:
             toolset_ents = toolset_service.get_all_mcp_toolsets()
+        toolsets = []
         toolset_connect_tasks = []
         with self._lock:
             for toolset in toolset_ents:
-                existing_toolset = self._toolset_map.pop(toolset.id, None)
+                existing_toolset = self._toolset_map.get(toolset.id)
                 if existing_toolset is None:
                     new_toolset = McpToolset(toolset)
                     self._toolset_map[toolset.id] = new_toolset
+                    toolsets.append(new_toolset)
                     toolset_connect_tasks.append(new_toolset.connect())
                     continue
+                toolsets.append(existing_toolset)
                 existing_toolset.refresh_metadata(toolset.tools)
 
         results = await asyncio.gather(*toolset_connect_tasks, return_exceptions=True)
-        for toolset, result in zip(self._toolset_map.values(), results):
+        for toolset, result in zip(toolsets, results):
             if not isinstance(result, BaseException): continue
             _logger.exception(f"Failed to connect to MCP server {toolset.name}")
             toolset.error = result
@@ -51,10 +54,10 @@ class McpToolsetManager(ToolsetManager):
             if self._connected or self._connecting: return
             self._connecting = True
 
-        toolsets_iter = self._toolset_map.values()
-        tasks = [toolset.connect() for toolset in toolsets_iter]
+        toolsets = list(self._toolset_map.values())
+        tasks = [toolset.connect() for toolset in toolsets]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        for toolset, result in zip(toolsets_iter, results):
+        for toolset, result in zip(toolsets, results):
             if not isinstance(result, BaseException): continue
             _logger.exception(f"Failed to connect to MCP server {toolset.name}")
             toolset.error = result

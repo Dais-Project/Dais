@@ -1,15 +1,12 @@
 import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { BuiltInTools, type TaskRead } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { isToolMessageCompleted } from "@/types/message";
-import type { TaskRead } from "@/types/task";
 import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
 
-function shouldShow(state: string, data: TaskRead): boolean {
-  if (state === "waiting" || state === "running") {
-    return false;
-  }
+function shouldShow(data: TaskRead): boolean {
   const lastMessage = data.messages.at(-1);
   if (!lastMessage || lastMessage.role === "system") {
     return false;
@@ -18,30 +15,30 @@ function shouldShow(state: string, data: TaskRead): boolean {
     return true;
   }
   // assertion: lastMessage.role === "tool"
-  if (lastMessage.name === "finish_task") {
+  if (lastMessage.name === BuiltInTools.ExecutionControl__finish_task) {
     return false;
   }
   if (isToolMessageCompleted(lastMessage)) {
     return true;
   }
-  const { user_approval } = lastMessage.metadata;
-  if (user_approval === "pending") {
+  const userApproval = lastMessage.metadata?.user_approval;
+  if (userApproval === "pending") {
     return false;
   }
-  if (user_approval === "approved" || user_approval === "denied") {
+  if (userApproval === "approved" || userApproval === "denied") {
     return true;
   }
   return false;
 }
 
 export function ContinueTask() {
-  const { state, data } = useAgentTaskState();
+  const { data } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setShow(shouldShow(state, data));
-  }, [state, data]);
+    setShow(shouldShow(data));
+  }, [data]);
 
   if (!show) {
     return null;
@@ -53,7 +50,7 @@ export function ContinueTask() {
         <InfoIcon className="size-4" />
       </div>
       <AlertTitle className="flex flex-1 items-center justify-between">
-        <div className="">任务已暂停，点击继续执行</div>
+        <div>任务已暂停，点击继续执行</div>
         <Button onClick={() => continueTask()} size="sm">
           <PlayIcon />
           继续任务

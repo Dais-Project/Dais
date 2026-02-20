@@ -1,4 +1,4 @@
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import {
   Select,
@@ -7,58 +7,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { FieldProps } from ".";
 
-type SelectFieldProps<S extends Record<string, string>> = {
-  fieldName?: string;
-  label?: string;
-  placeholder?: string;
-  selections: S;
-  disabled?: boolean;
-  required?: boolean;
-  errorMessage?: string;
-};
+type SelectFieldProps<S extends Record<string, string>> = FieldProps<
+  typeof Select,
+  {
+    placeholder?: string;
+    required?: boolean;
+    errorMessage?: string;
+  } & MustOneOf<{
+    selections: S;
+    children: React.ReactNode;
+  }>
+>;
+
+export { SelectItem };
 
 export function SelectField<S extends Record<string, string>>({
-  fieldName = "type",
-  label = "类型",
-  placeholder = "请选择类型",
   selections,
-  disabled = false,
+  children,
+  fieldName = "type",
+  placeholder = "请选择类型",
   required = true,
   errorMessage = "请选择类型",
+  fieldProps = { label: "类型" },
+  controlProps,
 }: SelectFieldProps<S>) {
-  const { control } = useFormContext();
-
+  const { register, getFieldState } = useFormContext();
   return (
-    <Controller
-      name={fieldName}
-      control={control}
-      rules={{ required: required ? errorMessage : false }}
-      render={({ field, fieldState }) => (
-        <FieldItem title={label} fieldState={fieldState}>
-          <Select
-            value={field.value}
-            onValueChange={field.onChange}
-            disabled={disabled}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(selections).map(
-                ([selectionLabel, selectionValue]) => (
-                  <SelectItem
-                    key={selectionValue as string}
-                    value={selectionValue as string}
-                  >
-                    {selectionLabel}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
-        </FieldItem>
-      )}
-    />
+    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+      <Select
+        {...register(fieldName, { required: required ? errorMessage : false })}
+        {...controlProps}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {children ??
+            // biome-ignore lint/style/noNonNullAssertion: selections is guaranteed to be defined if we reach this line
+            Object.entries(selections!).map(
+              ([selectionLabel, selectionValue]) => (
+                <SelectItem
+                  key={selectionValue as string}
+                  value={selectionValue as string}
+                >
+                  {selectionLabel}
+                </SelectItem>
+              )
+            )}
+        </SelectContent>
+      </Select>
+    </FieldItem>
   );
 }

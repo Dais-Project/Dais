@@ -1,39 +1,17 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import { deleteProvider, fetchProviders } from "@/api/provider";
+import { getGetProviderBriefQueryKey } from "@/api/generated/endpoints/provider/provider";
+import type { ProviderBrief } from "@/api/generated/schemas";
+import { useDeleteProvider, useGetProviderBriefSuspense } from "@/api/provider";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@/components/ui/item";
-import { PROVIDER_TYPE_LABELS } from "@/constants/provider";
+import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { tabIdFactory } from "@/lib/tab";
-import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { LlmProviders, ProviderRead } from "@/types/provider";
 import type { ProviderTabMetadata, Tab } from "@/types/tab";
-
-const PROVIDER_TYPE_COLORS: Record<LlmProviders, string> = {
-  openai: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  anthropic: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  gemini:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-};
+import { ProviderBadge } from "./ProviderBadge";
 
 function createProviderEditTab(providerId: number, providerName: string): Tab {
   return {
@@ -46,7 +24,7 @@ function createProviderEditTab(providerId: number, providerName: string): Tab {
 }
 
 function openProviderEditTab(providerId: number, providerName: string) {
-  const { tabs, addTab, setActiveTab } = useTabsStore.getState();
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "provider" &&
@@ -63,97 +41,53 @@ function openProviderEditTab(providerId: number, providerName: string) {
 }
 
 function removeProviderTab(providerId: number) {
-  const { tabs, removeTab } = useTabsStore.getState();
-  const tabsToRemove = tabs.filter(
-    (tab) =>
-      tab.type === "provider" &&
-      tab.metadata.mode === "edit" &&
-      tab.metadata.id === providerId
-  );
-
-  for (const tab of tabsToRemove) {
-    removeTab(tab.id);
-  }
+  const { removePattern } = useTabsStore.getState();
+  removePattern((tab) => tab.type === "provider" && tab.metadata.mode === "edit" && tab.metadata.id === providerId);
 }
 
 type ProviderItemProps = {
-  provider: ProviderRead;
+  provider: ProviderBrief;
+  onEdit: (provider: ProviderBrief) => void;
+  onDelete: (provider: ProviderBrief) => void;
+  isDeleting: boolean;
 };
 
-function ProviderItem({ provider }: ProviderItemProps) {
-  const queryClient = useQueryClient();
-
-  const handleEdit = (e: React.MouseEvent) => {
+function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemProps) {
+  const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    openProviderEditTab(provider.id, provider.name);
+    onEdit(provider);
   };
 
-  const deleteProviderMutation = useMutation({
-    mutationFn: deleteProvider,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["providers"] });
-      removeProviderTab(provider.id);
-
-      toast.success("删除成功", {
-        description: "已成功删除服务提供商。",
-      });
-    },
-    onError: (error: Error) => {
-      toast.error("删除失败", {
-        description: error.message || "删除服务提供商时发生错误，请稍后重试。",
-      });
-    },
-  });
-
   const handleDeleteConfirm = () => {
-    deleteProviderMutation.mutate(provider.id);
+    onDelete(provider);
   };
 
   return (
-    <Item
-      variant="outline"
-      size="sm"
-      className="flex flex-nowrap rounded-none border-t-0 border-r-0 border-l-0"
-    >
+    <Item variant="outline" size="sm" className="flex flex-nowrap rounded-none border-t-0 border-r-0 border-l-0">
       <ItemContent>
         <ItemTitle>
           {provider.name}
-          <Badge
-            className={cn(
-              PROVIDER_TYPE_COLORS[provider.type],
-              "px-1.5 text-[0.6rem]"
-            )}
-          >
-            {PROVIDER_TYPE_LABELS[provider.type]}
-          </Badge>
+          <ProviderBadge type={provider.type} />
         </ItemTitle>
         <ItemDescription className="space-x-1">
-          <span className="text-muted-foreground text-sm">
-            {provider.models.length} 个模型
-          </span>
+          <span className="text-muted-foreground text-sm">{provider.model_count} 个模型</span>
         </ItemDescription>
       </ItemContent>
       <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8"
-          onClick={handleEdit}
-          title="编辑服务提供商"
-        >
+        <Button variant="ghost" size="icon" className="size-8" onClick={handleEditClick} title="编辑服务提供商">
           <PencilIcon className="size-4" />
         </Button>
         <ConfirmDeleteDialog
           description={`确定要删除服务提供商 "${provider.name}" 吗？此操作无法撤销。`}
           onConfirm={handleDeleteConfirm}
-          isDeleting={deleteProviderMutation.isPending}
+          isDeleting={isDeleting}
         >
           <Button
             variant="ghost"
             size="icon"
             className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
             title="删除服务提供商"
-            disabled={deleteProviderMutation.isPending}
+            disabled={isDeleting}
             onClick={(e) => e.stopPropagation()}
           >
             <TrashIcon className="size-4" />
@@ -165,12 +99,36 @@ function ProviderItem({ provider }: ProviderItemProps) {
 }
 
 export function ProviderList() {
-  const { data: providers = [] } = useSuspenseQuery({
-    queryKey: ["providers"],
-    queryFn: async () => await fetchProviders(),
+  const queryClient = useQueryClient();
+  const { data } = useGetProviderBriefSuspense();
+
+  const deleteProviderMutation = useDeleteProvider({
+    mutation: {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({ queryKey: getGetProviderBriefQueryKey() });
+        removeProviderTab(variables.providerId);
+
+        toast.success("删除成功", {
+          description: "已成功删除服务提供商。",
+        });
+      },
+      onError: (error: Error) => {
+        toast.error("删除失败", {
+          description: error.message || "删除服务提供商时发生错误，请稍后重试。",
+        });
+      },
+    },
   });
 
-  if (providers.length === 0) {
+  const handleEdit = (provider: ProviderBrief) => {
+    openProviderEditTab(provider.id, provider.name);
+  };
+
+  const handleDelete = (provider: ProviderBrief) => {
+    deleteProviderMutation.mutate({ providerId: provider.id });
+  };
+
+  if (data.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -183,8 +141,14 @@ export function ProviderList() {
 
   return (
     <div className="flex-1 space-y-2">
-      {providers.map((provider) => (
-        <ProviderItem key={provider.id} provider={provider} />
+      {data.map((provider) => (
+        <ProviderItem
+          key={provider.id}
+          provider={provider}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isDeleting={deleteProviderMutation.isPending}
+        />
       ))}
     </div>
   );

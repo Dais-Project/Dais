@@ -1,22 +1,21 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { fetchAgentById } from "@/api/agent";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { useGetAgentSuspense } from "@/api/agent";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { DEFAULT_AGENT } from "@/constants/agent";
-import { AgentEdit } from "@/features/Tabs/AgentPanel/AgentEdit";
+import { AgentCreateForm } from "@/features/Tabs/AgentPanel/AgentCreateForm";
+import { AgentEditForm } from "@/features/Tabs/AgentPanel/AgentEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../TabPanelFrame";
 
 function AgentCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
 
   const handleComplete = () => {
     removeTab(tabId);
   };
 
-  return <AgentEdit agent={DEFAULT_AGENT} onConfirm={handleComplete} />;
+  return <AgentCreateForm onConfirm={handleComplete} />;
 }
 
 function AgentEditPanel({
@@ -26,18 +25,15 @@ function AgentEditPanel({
   tabId: string;
   agentId: number;
 }) {
-  const removeTab = useTabsStore((state) => state.removeTab);
+  const removeTab = useTabsStore((state) => state.remove);
 
-  const { data: agent } = useSuspenseQuery({
-    queryKey: ["agent", agentId],
-    queryFn: async () => await fetchAgentById(agentId),
-  });
+  const { data: agent } = useGetAgentSuspense(agentId);
 
   const handleComplete = () => {
     removeTab(tabId);
   };
 
-  return <AgentEdit agent={agent} onConfirm={handleComplete} />;
+  return <AgentEditForm agent={agent} onConfirm={handleComplete} />;
 }
 
 export function AgentPanel({
@@ -55,12 +51,7 @@ export function AgentPanel({
 
   return (
     <TabPanelFrame
-      fallbackChildren={
-        <div className="flex h-full items-center justify-center p-4">
-          <p className="text-muted-foreground">加载中...</p>
-        </div>
-      }
-      fallbackRender={({ resetErrorBoundary }) => (
+      errorRender={({ resetErrorBoundary }) => (
         <div className="flex h-full items-center justify-center p-4">
           <FailedToLoad
             refetch={resetErrorBoundary}

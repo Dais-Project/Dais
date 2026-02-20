@@ -1,11 +1,11 @@
 from typing import NamedTuple
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .ServiceBase import ServiceBase
 from .exceptions import NotFoundError, ConflictError, BadRequestError
 from ..db.models import toolset as toolset_models
-from ..db.schemas import toolset as toolset_schemas
+from ..schemas import toolset as toolset_schemas
 
 
 class ToolsetNotFoundError(NotFoundError):
@@ -33,29 +33,6 @@ class ToolsetService(ServiceBase):
         name: str
         internal_key: str
         description: str
-
-    def get_toolsets(self, page: int = 1, per_page: int = 10) -> dict:
-        if page < 1: page = 1
-        if per_page < 5 or per_page > 100: per_page = 10
-
-        count_stmt = select(func.count(toolset_models.Toolset.id))
-        total = self._db_session.execute(count_stmt).scalar() or 0
-
-        offset = (page - 1) * per_page
-        total_pages = (total + per_page - 1) // per_page if total > 0 else 0
-
-        stmt = select(toolset_models.Toolset).options(
-            selectinload(toolset_models.Toolset.tools)
-        ).limit(per_page).offset(offset)
-        toolsets = self._db_session.execute(stmt).scalars().all()
-
-        return {
-            "items": list(toolsets),
-            "total": total,
-            "page": page,
-            "per_page": per_page,
-            "total_pages": total_pages
-        }
 
     def get_all_mcp_toolsets(self) -> list[toolset_models.Toolset]:
         stmt = select(toolset_models.Toolset).where(
@@ -135,9 +112,7 @@ class ToolsetService(ServiceBase):
         return new_toolset
 
     def update_toolset(self, id: int, data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
-        stmt = select(toolset_models.Toolset).where(
-            toolset_models.Toolset.id == id)
-        toolset = self._db_session.execute(stmt).scalar_one_or_none()
+        toolset = self._db_session.get(toolset_models.Toolset, id)
         if not toolset:
             raise ToolsetNotFoundError(id)
 
@@ -145,8 +120,9 @@ class ToolsetService(ServiceBase):
             for tool_data in data.tools:
                 self.update_tool(id, tool_data.id, tool_data)
 
-        for key, value in data.model_dump(exclude={"tools"}, exclude_unset=True).items():
-            if value is not None:
+        update_data = data.model_dump(exclude={"tools"}, exclude_unset=True)
+        for key, value in update_data.items():
+            if hasattr(toolset, key) and value is not None:
                 setattr(toolset, key, value)
 
         try:

@@ -1,6 +1,6 @@
 import { useFormContext, useWatch } from "react-hook-form";
+import type { ToolsetType } from "@/api/generated/schemas";
 import { SelectField } from "@/components/custom/form/fields";
-import type { ToolsetType } from "@/types/toolset";
 import type { ToolsetCreateFormValues } from "../form-types";
 
 export function ToolsetTypeSelectField() {
@@ -11,7 +11,6 @@ export function ToolsetTypeSelectField() {
   });
 
   const isBuiltIn = type === "built_in";
-
   const selections: Record<string, ToolsetType> = isBuiltIn
     ? { "Built-in": "built_in" }
     : {
@@ -22,10 +21,10 @@ export function ToolsetTypeSelectField() {
   return (
     <SelectField
       fieldName="type"
-      label="类型"
       placeholder="选择 Toolset 类型"
       selections={selections}
-      disabled={isBuiltIn}
+      fieldProps={{ label: "类型" }}
+      controlProps={{ disabled: isBuiltIn, value: type }}
     />
   );
 }

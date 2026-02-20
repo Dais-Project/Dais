@@ -1,6 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createToolset } from "@/api/toolset";
+import {
+  getGetToolsetsBriefQueryKey,
+  useCreateMcpToolset,
+} from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -18,30 +21,33 @@ type ToolsetCreateProps = {
 export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
   const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
-    mutationFn: createToolset,
-    onSuccess: (newToolset) => {
-      queryClient.invalidateQueries({ queryKey: ["toolsets"] });
-      toast.success("创建成功", {
-        description: `已成功创建 ${newToolset.name} Toolset。`,
-      });
-      onConfirm?.();
-    },
-    onError: (error: Error) => {
-      toast.error("创建失败", {
-        description: error.message || "创建 Toolset 时发生错误，请稍后重试。",
-      });
+  const createMutation = useCreateMcpToolset({
+    mutation: {
+      onSuccess: (newToolset) => {
+        queryClient.invalidateQueries({
+          queryKey: getGetToolsetsBriefQueryKey(),
+        });
+        toast.success("创建成功", {
+          description: `已成功创建 ${newToolset.name} Toolset。`,
+        });
+        onConfirm?.();
+      },
+      onError: (error: Error) => {
+        toast.error("创建失败", {
+          description: error.message || "创建 Toolset 时发生错误，请稍后重试。",
+        });
+      },
     },
   });
 
   function handleSubmit(data: ToolsetCreateFormValues) {
     const payload = createFormValuesToPayload(data);
-    createMutation.mutate(payload);
+    createMutation.mutate({ data: payload });
   }
 
   return (
     <FormShell<ToolsetCreateFormValues> onSubmit={handleSubmit}>
-      <NameField fieldName="name" label="名称" />
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
 
       <ToolsetTypeSelectField />
 

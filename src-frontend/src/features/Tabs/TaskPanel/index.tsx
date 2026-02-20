@@ -1,7 +1,5 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
-import { Suspense, useRef } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { useRef } from "react";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import type { TaskTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 import { CreateView } from "./CreateView";
@@ -18,24 +16,13 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
   }
 
   return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ resetErrorBoundary }) => (
-            <FailedToLoad
-              refetch={resetErrorBoundary}
-              description="无法加载任务，请稍后重试。"
-            />
-          )}
-        >
-          <Suspense fallback={<SessionViewSkeleton />}>
-            <AgentTaskProvider taskId={metadata.id}>
-              <SessionView shouldStartStream={isInitialDraft.current} />
-            </AgentTaskProvider>
-          </Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
+    <AsyncBoundary
+      skeleton={<SessionViewSkeleton />}
+      errorDescription="无法加载任务，请稍后重试。"
+    >
+      <AgentTaskProvider taskId={metadata.id}>
+        <SessionView shouldStartStream={isInitialDraft.current} />
+      </AgentTaskProvider>
+    </AsyncBoundary>
   );
 }

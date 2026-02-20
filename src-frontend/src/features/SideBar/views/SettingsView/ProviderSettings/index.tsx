@@ -1,36 +1,11 @@
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { FailedToLoad } from "@/components/FailedToLoad";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { ProviderList } from "./ProviderList";
-
-function ProviderListSkeleton() {
-  return (
-    <div className="space-y-4">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div
-          key={`provider-skeleton-loading-${Date.now()}-${index}`}
-          className="flex items-center justify-between rounded-lg border p-4"
-        >
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-8 rounded-md" />
-            <Skeleton className="h-8 w-8 rounded-md" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+import { ProviderListSkeleton } from "./ProviderListSkeleton";
 
 function createProviderCreateTab(): Tab {
   return {
@@ -43,7 +18,7 @@ function createProviderCreateTab(): Tab {
 }
 
 export function ProviderSettings() {
-  const addTab = useTabsStore((state) => state.addTab);
+  const addTab = useTabsStore((state) => state.add);
 
   const handleAddProvider = () => {
     const newTab = createProviderCreateTab();
@@ -52,23 +27,12 @@ export function ProviderSettings() {
 
   return (
     <div className="flex flex-col">
-      <QueryErrorResetBoundary>
-        {({ reset }) => (
-          <ErrorBoundary
-            onReset={reset}
-            fallbackRender={({ resetErrorBoundary }) => (
-              <FailedToLoad
-                refetch={resetErrorBoundary}
-                description="无法加载服务提供商列表，请稍后重试。"
-              />
-            )}
-          >
-            <Suspense fallback={<ProviderListSkeleton />}>
-              <ProviderList />
-            </Suspense>
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
+      <AsyncBoundary
+        skeleton={<ProviderListSkeleton />}
+        errorDescription="无法加载服务提供商列表，请稍后重试。"
+      >
+        <ProviderList />
+      </AsyncBoundary>
 
       <div className="w-full p-4">
         <Button

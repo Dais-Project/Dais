@@ -1,9 +1,28 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import type { ControllerFieldState } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
+const fieldItemVariants = cva("flex justify-between py-2", {
+  variants: {
+    orientation: {
+      vertical: "flex-col",
+      horizontal: "flex-row",
+    },
+    align: {
+      start: "items-start",
+      center: "items-center",
+      end: "items-end",
+    },
+  },
+  defaultVariants: {
+    orientation: "horizontal",
+    align: "center",
+  },
+});
+
 export type FieldItemProps = {
-  title: React.ReactNode;
+  label: React.ReactNode;
   description?: React.ReactNode;
   children: React.ReactNode;
   fieldState: ControllerFieldState;
@@ -11,12 +30,10 @@ export type FieldItemProps = {
   titleClassName?: string;
   descriptionClassName?: string;
   contentClassName?: string;
-  align?: "start" | "center" | "end";
-  orientation?: "vertical" | "horizontal";
-};
+} & VariantProps<typeof fieldItemVariants>;
 
 export function FieldItem({
-  title,
+  label,
   description,
   children,
   fieldState,
@@ -24,32 +41,19 @@ export function FieldItem({
   titleClassName,
   descriptionClassName,
   contentClassName,
-  align = "center",
-  orientation = "horizontal",
+  align,
+  orientation,
 }: FieldItemProps) {
-  const alignClassName = {
-    start: "items-start",
-    center: "items-center",
-    end: "items-end",
-  }[align];
   return (
     <Field
-      className={cn(
-        "flex justify-between py-2 pr-1.5",
-        {
-          "flex-col": orientation === "vertical",
-          "flex-row": orientation === "horizontal",
-        },
-        className,
-        alignClassName
-      )}
+      className={cn(fieldItemVariants({ orientation, align }), className)}
       data-invalid={fieldState.invalid}
     >
       <div className="space-y-1 pr-4">
         <FieldLabel
           className={cn("whitespace-nowrap leading-none", titleClassName)}
         >
-          {title}
+          {label}
         </FieldLabel>
         {description && (
           <div

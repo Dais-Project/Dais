@@ -1,12 +1,14 @@
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import { deleteWorkspace, fetchWorkspaces } from "@/api/workspace";
+import type { WorkspaceBrief } from "@/api/generated/schemas";
+import {
+  getGetWorkspacesInfiniteQueryKey,
+  useDeleteWorkspace,
+  useGetWorkspacesSuspenseInfinite,
+} from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
+import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -15,24 +17,16 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab, WorkspaceTabMetadata } from "@/types/tab";
-import type { WorkspaceRead } from "@/types/workspace";
 
-function createWorkspaceEditTab(
-  workspaceId: number,
-  workspaceName: string
-): Tab {
+function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "workspace",
@@ -50,19 +44,12 @@ type OpenWorkspaceEditTabParams = {
   setActiveTab: (tabId: string) => void;
 };
 
-function openWorkspaceEditTab({
-  tabs,
-  workspaceId,
-  workspaceName,
-  addTab,
-  setActiveTab,
-}: OpenWorkspaceEditTabParams) {
+function openWorkspaceEditTab({ tabs, workspaceId, workspaceName, addTab, setActiveTab }: OpenWorkspaceEditTabParams) {
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "workspace" &&
       tab.metadata.mode === "edit" &&
-      (tab.metadata as WorkspaceTabMetadata & { mode: "edit" }).id ===
-        workspaceId
+      (tab.metadata as WorkspaceTabMetadata & { mode: "edit" }).id === workspaceId
   );
 
   if (existingTab) {
@@ -74,21 +61,17 @@ function openWorkspaceEditTab({
 }
 
 type WorkspaceItemProps = {
-  workspace: WorkspaceRead;
+  workspace: WorkspaceBrief;
   disabled: boolean;
   isSelected: boolean;
   onSelect: (workspaceId: number) => void;
-  onDelete: (workspace: WorkspaceRead) => void;
+  onDelete: (workspace: WorkspaceBrief) => void;
 };
 
-function WorkspaceItem({
-  workspace,
-  disabled,
-  isSelected,
-  onSelect,
-  onDelete,
-}: WorkspaceItemProps) {
-  const { tabs, addTab, setActiveTab } = useTabsStore();
+function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: WorkspaceItemProps) {
+  const tabs = useTabsStore((state) => state.tabs);
+  const addTab = useTabsStore((state) => state.add);
+  const setActiveTab = useTabsStore((state) => state.setActive);
 
   const handleSelect = (e: React.MouseEvent) => {
     if (disabled) {
@@ -114,21 +97,13 @@ function WorkspaceItem({
       <ActionableItemTrigger>
         <ActionableItemIcon
           role="button"
-          className={
-            disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-          }
+          className={disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
           onClick={handleSelect}
           aria-disabled={disabled}
         >
-          <FolderIcon
-            fill={isSelected ? "currentColor" : "none"}
-            className="size-4"
-          />
+          <FolderIcon fill={isSelected ? "currentColor" : "none"} className="size-4" />
         </ActionableItemIcon>
-        <ActionableItemInfo
-          title={workspace.name}
-          description={workspace.directory}
-        />
+        <ActionableItemInfo title={workspace.name} description={workspace.directory} />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
@@ -150,31 +125,19 @@ function WorkspaceItem({
 
 export function WorkspaceList() {
   const queryClient = useQueryClient();
-  const tabs = useTabsStore((state) => state.tabs);
-  const removeTab = useTabsStore((state) => state.removeTab);
-  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
-  const setCurrentWorkspace = useWorkspaceStore(
-    (state) => state.setCurrentWorkspace
-  );
-  const isCurrentWorkspaceLoading = useWorkspaceStore(
-    (state) => state.isLoading
-  );
+  const removeTabsPattern = useTabsStore((state) => state.removePattern);
+  const currentWorkspace = useWorkspaceStore((state) => state.current);
+  const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
+  const isCurrentWorkspaceLoading = useWorkspaceStore((state) => state.isLoading);
 
-  const asyncConfirm = useAsyncConfirm<WorkspaceRead>({
+  const asyncConfirm = useAsyncConfirm<WorkspaceBrief>({
     onConfirm: async (workspace) => {
-      await deleteWorkspaceMutation.mutateAsync(workspace.id);
-      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
+      queryClient.invalidateQueries({ queryKey: getGetWorkspacesInfiniteQueryKey() });
 
-      const tabsToRemove = tabs.filter(
-        (tab) =>
-          tab.type === "workspace" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === workspace.id
+      removeTabsPattern(
+        (tab) => tab.type === "workspace" && tab.metadata.mode === "edit" && tab.metadata.id === workspace.id
       );
-
-      for (const tab of tabsToRemove) {
-        removeTab(tab.id);
-      }
 
       // clear current workspace if deleted
       if (workspace.id === currentWorkspace?.id) {
@@ -192,14 +155,12 @@ export function WorkspaceList() {
     },
   });
 
-  const { data } = useSuspenseQuery({
-    queryKey: ["workspaces"],
-    queryFn: async () => await fetchWorkspaces(1, 20),
+  const query = useGetWorkspacesSuspenseInfinite(undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
+  const deleteWorkspaceMutation = useDeleteWorkspace();
 
-  const deleteWorkspaceMutation = useMutation({ mutationFn: deleteWorkspace });
-
-  if (data?.items.length === 0) {
+  if (query.data.pages.length === 0) {
     return (
       <Empty>
         <EmptyContent>
@@ -213,16 +174,20 @@ export function WorkspaceList() {
   return (
     <>
       <ScrollArea className="flex-1">
-        {data?.items.map((workspace) => (
-          <WorkspaceItem
-            key={workspace.id}
-            workspace={workspace}
-            disabled={isCurrentWorkspaceLoading}
-            isSelected={workspace.id === currentWorkspace?.id}
-            onSelect={setCurrentWorkspace}
-            onDelete={asyncConfirm.trigger}
-          />
-        ))}
+        <InfiniteScroll
+          query={query}
+          selectItems={(page) => page.items}
+          itemRender={(workspace) => (
+            <WorkspaceItem
+              key={workspace.id}
+              workspace={workspace}
+              disabled={isCurrentWorkspaceLoading}
+              isSelected={workspace.id === currentWorkspace?.id}
+              onSelect={setCurrentWorkspace}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
+        />
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}

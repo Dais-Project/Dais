@@ -3,12 +3,12 @@ import ReactDOM from "react-dom/client";
 import { Toaster } from "@/components/ui/sonner";
 import App from "./App";
 import "./index.css";
+import "./lib";
 
-// 创建 QueryClient 实例
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 分钟
+      staleTime: 5 * 60 * 1000,
       retry: 1,
     },
   },

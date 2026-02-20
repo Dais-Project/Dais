@@ -10,8 +10,7 @@ from .models import (
 )
 # this unused import is necessary to alembic
 from . import models
-
-APP_NAME = "org.dais.desktop"
+from src.common import APP_NAME
 
 data_dir = Path(user_data_dir(APP_NAME, appauthor=False, ensure_exists=True))
 db_path = data_dir / "sqlite.db"

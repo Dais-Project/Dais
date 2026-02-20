@@ -9,12 +9,13 @@ type TabsState = {
 };
 
 type TabsActions = {
-  addTab: (tab: Tab) => void;
-  setTabs: (tabs: Tab[]) => void;
-  setActiveTab: (tabId: string) => void;
-  updateTab: (tabId: string, tabData: Partial<TabBase>) => void;
-  updateTabMetadata: (tabId: string, metadata: Tab["metadata"]) => void;
-  removeTab: (tabId: string) => void;
+  add: (tab: Tab) => void;
+  replace: (tabs: Tab[]) => void;
+  setActive: (id: string) => void;
+  update: (id: string, data: Partial<TabBase>) => void;
+  updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
+  remove: (id: string) => void;
+  removePattern: (pattern: (tab: Tab) => boolean) => void;
 };
 
 type TabsStore = TabsState & TabsActions;
@@ -24,7 +25,7 @@ export const useTabsStore = create<TabsStore>()(
     immer((set, get) => ({
       tabs: [],
       activeTabId: null,
-      addTab(tab) {
+      add(tab) {
         set((state: TabsState) => {
           const exists = state.tabs.some((t) => t.id === tab.id);
           if (exists) {
@@ -35,7 +36,7 @@ export const useTabsStore = create<TabsStore>()(
           state.activeTabId = tab.id;
         });
       },
-      setTabs(tabs) {
+      replace(tabs) {
         const currentActive = get().activeTabId;
         const activeStillExists = tabs.some((t) => t.id === currentActive);
         set({
@@ -45,42 +46,42 @@ export const useTabsStore = create<TabsStore>()(
             : (tabs[0]?.id ?? null),
         });
       },
-      setActiveTab(tabId) {
+      setActive(id) {
         set((state) => {
-          const exists = state.tabs.some((t) => t.id === tabId);
+          const exists = state.tabs.some((t) => t.id === id);
           if (!exists) {
             return {};
           }
-          return { activeTabId: tabId };
+          return { activeTabId: id };
         });
       },
-      updateTab(tabId, tabData) {
+      update(id, data) {
         set((state: TabsState) => {
-          const tab = state.tabs.find((t) => t.id === tabId);
+          const tab = state.tabs.find((t) => t.id === id);
           if (!tab) {
             return;
           }
-          Object.assign(tab, tabData);
+          Object.assign(tab, data);
         });
       },
-      updateTabMetadata(tabId, metadata) {
+      updateMetadata(id, metadata) {
         set((state: TabsState) => {
-          const tab = state.tabs.find((t) => t.id === tabId);
+          const tab = state.tabs.find((t) => t.id === id);
           if (!tab) {
             return;
           }
           tab.metadata = metadata;
         });
       },
-      removeTab(tabId) {
+      remove(id) {
         set((state: TabsState) => {
-          const idx = state.tabs.findIndex((t) => t.id === tabId);
+          const idx = state.tabs.findIndex((t) => t.id === id);
           if (idx === -1) {
             // passed in tabId does not exist
             return;
           }
           state.tabs.splice(idx, 1);
-          if (state.activeTabId !== tabId) {
+          if (state.activeTabId !== id) {
             return;
           }
           if (state.tabs.length === 0) {
@@ -91,6 +92,11 @@ export const useTabsStore = create<TabsStore>()(
           state.activeTabId = hasTabOnRight
             ? state.tabs[idx].id
             : state.tabs[idx - 1].id;
+        });
+      },
+      removePattern(pattern) {
+        set((state: TabsState) => {
+          state.tabs = state.tabs.filter((t) => !pattern(t));
         });
       },
     })),

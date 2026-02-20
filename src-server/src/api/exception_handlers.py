@@ -3,6 +3,7 @@ from typing import Any, Callable, Coroutine, TypedDict
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
+from pydantic import BaseModel
 from loguru import logger
 from ..services.exceptions import ServiceError, ServiceErrorCode
 
@@ -13,6 +14,10 @@ SERVICE_ERROR_STATUS_CODES: dict[ServiceErrorCode, int] = {
 }
 
 class ErrorResponseContent(TypedDict):
+    error_code: str
+    message: str
+
+class ErrorResponseSchema(BaseModel):
     error_code: str
     message: str
 

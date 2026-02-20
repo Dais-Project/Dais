@@ -73,8 +73,8 @@ function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
     isDragging,
   } = useSortable({ id: tab.id });
   const activeTabId = useTabsStore((state) => state.activeTabId);
-  const removeTab = useTabsStore((state) => state.removeTab);
-  const setActiveTab = useTabsStore((state) => state.setActiveTab);
+  const removeTab = useTabsStore((state) => state.remove);
+  const setActiveTab = useTabsStore((state) => state.setActive);
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -186,7 +186,11 @@ function TabPanelRenderer({ tab }: { tab: Tab }) {
 }
 
 export function Tabs() {
-  const { tabs, activeTabId, setActiveTab, setTabs } = useTabsStore();
+  const tabs = useTabsStore((state) => state.tabs);
+  const activeTabId = useTabsStore((state) => state.activeTabId);
+  const setActiveTab = useTabsStore((state) => state.setActive);
+  const replaceTabs = useTabsStore((state) => state.replace);
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -233,7 +237,7 @@ export function Tabs() {
       const oldIndex = tabs.findIndex((tab) => tab.id === active.id);
       const newIndex = tabs.findIndex((tab) => tab.id === over.id);
       const newTabs = arrayMove(tabs, oldIndex, newIndex);
-      setTabs(newTabs);
+      replaceTabs(newTabs);
     }
   };
 

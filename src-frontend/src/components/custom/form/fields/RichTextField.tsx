@@ -5,42 +5,42 @@ import {
 } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
+import type { FieldProps } from ".";
 
-type RichTextFieldProps = {
-  fieldName: string;
-  label: string;
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  className?: string;
-  editorClassName?: string;
-};
+type RichTextFieldProps = FieldProps<
+  typeof MinimalTiptapEditor,
+  {
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    editorClassName?: string;
+  }
+>;
 
 export function RichTextField({
   fieldName,
-  label,
   required = false,
   minLength = 1,
   maxLength,
-  className,
-  editorClassName = "min-h-[8em]",
+  fieldProps = { label: "内容" },
+  controlProps = { editorClassName: "min-h-[8em]" },
 }: RichTextFieldProps) {
   const { control } = useFormContext();
 
   const rules: RegisterOptions = {};
   if (required) {
-    rules.required = `请输入${label}`;
+    rules.required = `请输入${fieldProps.label}`;
   }
   if (minLength !== undefined) {
     rules.minLength = {
       value: minLength,
-      message: `${label}不能少于 ${minLength} 个字符`,
+      message: `${fieldProps.label}不能少于 ${minLength} 个字符`,
     };
   }
   if (maxLength !== undefined) {
     rules.maxLength = {
       value: maxLength,
-      message: `${label}不能超过 ${maxLength} 个字符`,
+      message: `${fieldProps.label}不能超过 ${maxLength} 个字符`,
     };
   }
 
@@ -51,16 +51,11 @@ export function RichTextField({
       rules={rules}
       render={({ field, fieldState }) => (
         <FieldItem
-          title={label}
           fieldState={fieldState}
-          className={className}
           orientation="vertical"
+          {...fieldProps}
         >
-          <MinimalTiptapEditor
-            {...field}
-            className="mt-2"
-            editorClassName={editorClassName}
-          />
+          <MinimalTiptapEditor {...field} className="mt-2" {...controlProps} />
         </FieldItem>
       )}
     />

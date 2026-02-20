@@ -3,7 +3,6 @@ import time
 import uuid
 from types import MethodType
 from collections.abc import AsyncGenerator
-from typing import Literal, cast
 from loguru import logger
 from dais_sdk import (
     ToolLike,
@@ -18,7 +17,7 @@ from .exception_handlers import (
     handle_tool_argument_decode_error,
     handle_tool_execution_error
 )
-from .tool import ExecutionControlToolset
+from .tool import ExecutionControlToolset, UserInteractionToolset
 from .tool.types import is_tool_metadata
 from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
@@ -33,7 +32,7 @@ from .types import (
 )
 from ..services.task import TaskService
 from ..db.models import task as task_models
-from ..db.schemas import task as task_schemas
+from ..schemas import task as task_schemas
 
 class ToolCallNotFoundError(Exception):
     tool_call_id: str
@@ -117,9 +116,8 @@ class AgentTask:
         assert isinstance(tool, ToolDef)
 
         if (isinstance(tool.execute, MethodType) and
-            tool.execute.__func__ in [ExecutionControlToolset.ask_user, ExecutionControlToolset.finish_task]):
-            return ToolRequireUserResponseEvent(
-                tool_name=cast(Literal["ask_user", "finish_task"], message.name))
+            tool.execute.__func__ in [UserInteractionToolset.ask_user, ExecutionControlToolset.finish_task]):
+            return ToolRequireUserResponseEvent(tool_name=message.name)
 
         # use TypeGuards to assert the type of metadata
         assert is_tool_metadata(tool.metadata)
@@ -272,6 +270,8 @@ class AgentTask:
     def persist(self):
         with TaskService() as task_service:
             task_service.update_task(self.task_id, task_schemas.TaskUpdate(
+                title=None,
+                agent_id=self._ctx.agent.id,
                 messages=self._messages,
                 usage=self._ctx.usage,
                 last_run_at=int(time.time())
