@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import select
-from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.asyncio import AsyncSession
 from . import Base
 from .relationships import workspace_agent_association_table
 
@@ -21,21 +22,18 @@ class Workspace(Base):
                                              cascade="all, delete-orphan",
                                              viewonly=True)
 
-def init(session: Session):
+async def init(session: AsyncSession):
     user_directory_workspace = Workspace(
         name="User Directory",
         directory="~",
         workspace_background="")
 
-    stmt = select(Workspace).where(
+    stmt = select(Workspace.id).where(
         (Workspace.name == user_directory_workspace.name) |
-        (Workspace.directory == user_directory_workspace.directory))
-    exists = session.execute(stmt).scalars().first()
+        (Workspace.directory == user_directory_workspace.directory)
+    ).limit(1)
+    exists = await session.scalar(stmt)
     if exists: return
 
-    try:
-        session.add(user_directory_workspace)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        raise e
+    session.add(user_directory_workspace)
+    await session.flush()

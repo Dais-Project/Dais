@@ -1,8 +1,9 @@
 import dataclasses
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.asyncio import AsyncSession
 from dais_sdk import LlmProviders
 from . import Base
 from .utils import DataClassJSON
@@ -41,7 +42,7 @@ class Provider(Base):
     models: Mapped[list[LlmModel]] = relationship(back_populates="provider",
                                                   cascade="all, delete-orphan")
 
-def init(session: Session):
+async def init(session: AsyncSession):
     default_provider = Provider(
         name="OpenAI",
         type=LlmProviders.OPENAI,
@@ -53,13 +54,9 @@ def init(session: Session):
                 context_size=128_000,
                 capability=LlmModelCapability())])
 
-    stmt = select(Provider)
-    exists = session.execute(stmt).scalars().first()
+    stmt = select(Provider.id).limit(1)
+    exists = await session.scalar(stmt)
     if exists: return
 
-    try:
-        session.add(default_provider)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        raise e
+    session.add(default_provider)
+    await session.flush()
