@@ -4,6 +4,7 @@ from typing import TypedDict
 from fastapi import FastAPI
 from ..settings import AppSettingManager
 from ..agent.tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
+from ..db import engine as database_engine
 
 class AppState(TypedDict):
     app_setting_manager: AppSettingManager
@@ -21,3 +22,4 @@ async def lifespan(_: FastAPI) -> AsyncIterator[AppState]:
                        mcp_toolset_manager=mcp_toolset_manager)
     finally:
         await mcp_toolset_manager.disconnect_mcp_servers()
+        database_engine.dispose()
