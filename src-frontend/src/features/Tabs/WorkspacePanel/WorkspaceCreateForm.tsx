@@ -1,12 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getGetWorkspacesQueryKey, useCreateWorkspace } from "@/api/workspace";
+import { getGetWorkspacesInfiniteQueryKey, useCreateWorkspace } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import {
-  DirectoryField,
-  NameField,
-  RichTextField,
-} from "@/components/custom/form/fields";
+import { DirectoryField, NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_WORKSPACE } from "@/constants/workspace";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
@@ -22,7 +18,7 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
   const createMutation = useCreateWorkspace({
     mutation: {
       onSuccess: (newWorkspace) => {
-        queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetWorkspacesInfiniteQueryKey() });
         toast.success("创建成功", {
           description: `已成功创建工作区 "${newWorkspace.name}"。`,
         });
@@ -41,21 +37,10 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
   }
 
   return (
-    <FormShell<WorkspaceCreateFormValues>
-      values={DEFAULT_WORKSPACE}
-      onSubmit={handleSubmit}
-      className="h-full"
-    >
-      <NameField
-        fieldName="name"
-        fieldProps={{ label: "名称" }}
-        controlProps={{ placeholder: "请输入工作区名称" }}
-      />
+    <FormShell<WorkspaceCreateFormValues> values={DEFAULT_WORKSPACE} onSubmit={handleSubmit} className="h-full">
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} controlProps={{ placeholder: "请输入工作区名称" }} />
 
-      <DirectoryField
-        fieldName="directory"
-        fieldProps={{ label: "目录路径" }}
-      />
+      <DirectoryField fieldName="directory" fieldProps={{ label: "目录路径" }} />
 
       <RichTextField
         fieldName="workspace_background"

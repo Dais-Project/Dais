@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getGetAgentsQueryKey, useCreateAgent } from "@/api/agent";
+import { getGetAgentsInfiniteQueryKey, useCreateAgent } from "@/api/agent";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
   const createMutation = useCreateAgent({
     mutation: {
       onSuccess: (newAgent) => {
-        queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey() });
         toast.success("创建成功", {
           description: `已成功创建 ${newAgent.name} Agent。`,
         });
@@ -38,15 +38,8 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
   }
 
   return (
-    <FormShell<AgentCreateFormValues>
-      values={DEFAULT_AGENT}
-      onSubmit={handleSubmit}
-    >
-      <NameField
-        fieldName="name"
-        fieldProps={{ label: "名称" }}
-        controlProps={{ placeholder: "请输入 Agent 名称" }}
-      />
+    <FormShell<AgentCreateFormValues> values={DEFAULT_AGENT} onSubmit={handleSubmit}>
+      <NameField fieldName="name" fieldProps={{ label: "名称" }} controlProps={{ placeholder: "请输入 Agent 名称" }} />
 
       <AgentIconField />
 

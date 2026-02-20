@@ -21,10 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type {
-  WorkspaceCreateFormValues,
-  WorkspaceEditFormValues,
-} from "../form-types";
+import type { WorkspaceCreateFormValues, WorkspaceEditFormValues } from "../form-types";
 
 function AgentQueryList() {
   const query = useGetAgentsSuspenseInfinite(undefined, {
@@ -43,14 +40,8 @@ function AgentQueryList() {
   );
 }
 
-function AgentSelectedList({
-  selectedAgentIds,
-}: {
-  selectedAgentIds: number[];
-}) {
-  const usableAgents = useWorkspaceStore(
-    (state) => state.current?.usable_agents
-  );
+function AgentSelectedList({ selectedAgentIds }: { selectedAgentIds: number[] }) {
+  const usableAgents = useWorkspaceStore((state) => state.current?.usable_agents);
   const { data } = useGetAgentsSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -86,7 +77,7 @@ function AgentSelectedList({
       }
     }
     return agents;
-  }, [usableAgents, data]);
+  }, [selectedAgentIds, usableAgentMap, fetchedAgentMap]);
   return (
     <div className="mt-2 space-y-2">
       {selectedAgents.map((agent) => (
@@ -101,9 +92,7 @@ function AgentSelectedList({
 }
 
 export function AgentMultiSelectField() {
-  const { control } = useFormContext<
-    WorkspaceCreateFormValues | WorkspaceEditFormValues
-  >();
+  const { control } = useFormContext<WorkspaceCreateFormValues | WorkspaceEditFormValues>();
   const {
     field: { value, onChange },
     fieldState,
@@ -126,19 +115,12 @@ export function AgentMultiSelectField() {
             <SelectDialogList>
               <SelectDialogEmpty>未找到匹配的 Agent</SelectDialogEmpty>
               <SelectDialogGroup>
-                <AsyncBoundary
-                  skeleton={<SelectDialogSkeleton />}
-                  errorDescription="无法加载 Agent 列表，请稍后重试。"
-                >
+                <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription="无法加载 Agent 列表，请稍后重试。">
                   <AgentQueryList />
                 </AsyncBoundary>
               </SelectDialogGroup>
             </SelectDialogList>
-            <SelectDialogFooter
-              onConfirm={onChange}
-              confirmText="确定"
-              cancelText="取消"
-            />
+            <SelectDialogFooter onConfirm={onChange} confirmText="确定" cancelText="取消" />
           </SelectDialogContent>
         </SelectDialog>
       </FieldItem>

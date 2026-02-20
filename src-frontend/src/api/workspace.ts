@@ -1,5 +1,6 @@
 export {
   getGetWorkspaceQueryKey,
+  getGetWorkspacesInfiniteQueryKey,
   getGetWorkspacesQueryKey,
   getWorkspace,
   useCreateWorkspace,

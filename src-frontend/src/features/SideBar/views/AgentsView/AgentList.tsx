@@ -3,11 +3,7 @@ import { PencilIcon, TrashIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import type React from "react";
 import { toast } from "sonner";
-import {
-  getGetAgentsQueryKey,
-  useDeleteAgent,
-  useGetAgentsSuspenseInfinite,
-} from "@/api/agent";
+import { getGetAgentsInfiniteQueryKey, useDeleteAgent, useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
@@ -45,13 +41,7 @@ type OpenAgentEditTabParams = {
   setActiveTab: (tabId: string) => void;
 };
 
-function openAgentEditTab({
-  tabs,
-  agentId,
-  agentName,
-  addTab,
-  setActiveTab,
-}: OpenAgentEditTabParams) {
+function openAgentEditTab({ tabs, agentId, agentName, addTab, setActiveTab }: OpenAgentEditTabParams) {
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "agent" &&
@@ -93,20 +83,14 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
         <ActionableItemIcon seed={agent.name}>
           <DynamicIcon name={agent.icon_name as IconName} />
         </ActionableItemIcon>
-        <ActionableItemInfo
-          title={agent.name}
-          description={agent.model?.name ?? "无模型"}
-        />
+        <ActionableItemInfo title={agent.name} description={agent.model?.name ?? "无模型"} />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon className="mr-2 size-4" />
           <span>编辑 Agent</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem
-          className="text-destructive hover:text-destructive!"
-          onClick={() => onDelete(agent)}
-        >
+        <ActionableItemMenuItem className="text-destructive hover:text-destructive!" onClick={() => onDelete(agent)}>
           <TrashIcon className="mr-2 size-4 text-destructive" />
           <span>删除 Agent</span>
         </ActionableItemMenuItem>
@@ -122,14 +106,9 @@ export function AgentList() {
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     onConfirm: async (agent) => {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
-      queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey() });
 
-      removePattern(
-        (tab) =>
-          tab.type === "agent" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === agent.id
-      );
+      removePattern((tab) => tab.type === "agent" && tab.metadata.mode === "edit" && tab.metadata.id === agent.id);
 
       toast.success("删除成功", {
         description: "已成功删除 Agent。",
@@ -154,13 +133,7 @@ export function AgentList() {
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}
-          itemRender={(agent) => (
-            <AgentItem
-              key={agent.id}
-              agent={agent}
-              onDelete={asyncConfirm.trigger}
-            />
-          )}
+          itemRender={(agent) => <AgentItem key={agent.id} agent={agent} onDelete={asyncConfirm.trigger} />}
         />
       </ScrollArea>
       <ConfirmDeleteDialog

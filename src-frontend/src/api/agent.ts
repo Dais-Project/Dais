@@ -1,5 +1,6 @@
 export {
   getGetAgentQueryKey,
+  getGetAgentsInfiniteQueryKey,
   getGetAgentsQueryKey,
   useCreateAgent,
   useDeleteAgent,
