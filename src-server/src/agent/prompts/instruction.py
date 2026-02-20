@@ -62,6 +62,7 @@ Workspace Directory: {workspace_directory}
 
 [START OF AGENT INSTRUCTIONS]
 
+Agent Role: {agent_role}
 {agent_instruction}
 
 [END OF AGENT INSTRUCTIONS]

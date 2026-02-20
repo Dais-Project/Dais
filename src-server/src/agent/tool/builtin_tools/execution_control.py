@@ -27,6 +27,13 @@ class ExecutionControlToolset(BuiltInToolset):
         The list of subtasks helps you keep track of the current task, organize complex queries and help ensure that you don't miss any steps.
         With this list, the user can also see the current progress you are making in executing a given task.
 
+        When to use:
+            - At the start of a complex task, after clarifying any ambiguities with the user, to outline all the subtasks required to complete the request.
+            - When the scope of the task changes (e.g. user adds or removes requirements), to update the list accordingly.
+            - When the status of a subtask changes, to reflect the latest progress.
+
+        IMPORTANT: Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items.
+
         Args:
             todos: The complete and up-to-date list of all todo items. Each call to this tool replaces the previous list entirely, so always include all existing items along with any changes.
                    Each item contains:

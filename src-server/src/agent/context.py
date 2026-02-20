@@ -42,6 +42,7 @@ class AgentContext:
             workspace_name=self.workspace.name,
             workspace_directory=self.workspace.directory,
             workspace_instruction=self.workspace.workspace_background,
+            agent_role=self.agent.name,
             agent_instruction=self.agent.system_prompt
         ).strip()
 
