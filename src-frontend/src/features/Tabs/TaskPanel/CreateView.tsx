@@ -1,18 +1,11 @@
 import logo from "@shared/icon-square.png";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TaskType, UserMessage } from "@/api/generated/schemas";
-import {
-  getGetTaskQueryKey,
-  getGetTasksQueryKey,
-  useNewTask,
-} from "@/api/task";
+import { getGetTaskQueryKey, getGetTasksInfiniteQueryKey, useNewTask } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { DEFAULT_TAB_TITLE } from ".";
-import {
-  PromptInputDraft,
-  type PromptInputMessage,
-} from "./components/PromptInput";
+import { PromptInputDraft, type PromptInputMessage } from "./components/PromptInput";
 
 type CreateViewProps = {
   tabId: string;
@@ -28,7 +21,7 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
       onSuccess: (taskRead) => {
         if (currentWorkspace) {
           queryClient.invalidateQueries({
-            queryKey: getGetTasksQueryKey({
+            queryKey: getGetTasksInfiniteQueryKey({
               workspace_id: currentWorkspace.id,
             }),
           });
@@ -73,12 +66,8 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
         <div className="mb-6 overflow-hidden rounded-2xl shadow-sm ring-1 ring-primary/20">
           <img src={logo} alt="Logo" width="96" height="96" />
         </div>
-        <h1 className="mb-2 font-bold text-4xl text-foreground tracking-tight">
-          What can I help you with?
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Start a new task with your AI agent.
-        </p>
+        <h1 className="mb-2 font-bold text-4xl text-foreground tracking-tight">What can I help you with?</h1>
+        <p className="text-lg text-muted-foreground">Start a new task with your AI agent.</p>
       </div>
       <PromptInputDraft taskType={taskType} onSubmit={handleSubmit} />
     </div>

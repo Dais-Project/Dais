@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import type { TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
-  getGetTasksQueryKey,
+  getGetTasksInfiniteQueryKey,
   useDeleteTask,
   useGetTasksSuspenseInfinite,
 } from "@/api/task";
@@ -20,12 +20,7 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
@@ -34,14 +29,8 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { TaskIcon } from "./TaskIcon";
 
 function openTaskTab(task: TaskBrief) {
-  const {
-    tabs,
-    add: addTab,
-    setActive: setActiveTab,
-  } = useTabsStore.getState();
-  const existingTab = tabs.find(
-    (t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id
-  );
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find((t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id);
 
   if (existingTab) {
     setActiveTab(existingTab.id);
@@ -61,10 +50,7 @@ function openTaskTab(task: TaskBrief) {
 
 function removeTaskTab(taskId: number) {
   const removeTabsPattern = useTabsStore.getState().removePattern;
-  removeTabsPattern(
-    (tab) =>
-      tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId
-  );
+  removeTabsPattern((tab) => tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId);
 }
 
 type TaskItemProps = {
@@ -103,10 +89,7 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
           <PencilIcon className="mr-2 size-4" />
           <span>编辑任务名称</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem
-          className="text-destructive"
-          onClick={() => onDelete(task)}
-        >
+        <ActionableItemMenuItem className="text-destructive" onClick={() => onDelete(task)}>
           <TrashIcon className="mr-2 size-4" />
           <span>删除任务</span>
         </ActionableItemMenuItem>
@@ -127,7 +110,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
     onConfirm: async (task) => {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
       queryClient.invalidateQueries({
-        queryKey: getGetTasksQueryKey({ workspace_id: workspaceId }),
+        queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }),
       });
       queryClient.removeQueries({
         queryKey: getGetTaskQueryKey(task.id),
@@ -170,13 +153,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}
-          itemRender={(task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onDelete={asyncConfirm.trigger}
-            />
-          )}
+          itemRender={(task) => <TaskItem key={task.id} task={task} onDelete={asyncConfirm.trigger} />}
         />
       </ScrollArea>
       <ConfirmDeleteDialog

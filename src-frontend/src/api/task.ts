@@ -1,5 +1,6 @@
 export {
   getGetTaskQueryKey,
+  getGetTasksInfiniteQueryKey,
   getGetTasksQueryKey,
   useDeleteTask,
   useGetTaskSuspense,
@@ -24,11 +25,7 @@ import type {
   ToolRequireUserResponseEventData,
 } from "../types/agent-stream";
 import { API_BASE } from ".";
-import type {
-  ContinueTaskBody,
-  ToolAnswerBody,
-  ToolReviewBody,
-} from "./generated/schemas";
+import type { ContinueTaskBody, ToolAnswerBody, ToolReviewBody } from "./generated/schemas";
 
 const TASK_STREAM_BASE_URL = new URL("api/tasks/", API_BASE);
 
@@ -54,11 +51,7 @@ export type TaskSseCallbacks = {
   onClose?: () => void;
 };
 
-function createTaskSseStream(
-  url: URL | string,
-  body: object,
-  callbacks: TaskSseCallbacks
-): AbortController {
+function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSseCallbacks): AbortController {
   const abortController = new AbortController();
 
   fetchEventSource(new Request(url), {
@@ -102,11 +95,7 @@ message data: ${event.data}
 `,
           error
         );
-        callbacks.onError?.(
-          error instanceof Error
-            ? error
-            : new Error("Failed to parse SSE message")
-        );
+        callbacks.onError?.(error instanceof Error ? error : new Error("Failed to parse SSE message"));
         return;
       }
 
@@ -136,15 +125,11 @@ message data: ${event.data}
           break;
 
         case "TOOL_REQUIRE_USER_RESPONSE":
-          callbacks.onToolRequireUserResponse?.(
-            data as ToolRequireUserResponseEventData
-          );
+          callbacks.onToolRequireUserResponse?.(data as ToolRequireUserResponseEventData);
           break;
 
         case "TOOL_REQUIRE_PERMISSION":
-          callbacks.onToolRequirePermission?.(
-            data as ToolRequirePermissionEventData
-          );
+          callbacks.onToolRequirePermission?.(data as ToolRequirePermissionEventData);
           break;
 
         case "TASK_DONE":
@@ -169,9 +154,7 @@ message data: ${event.data}
     },
 
     onerror(error) {
-      callbacks.onError?.(
-        error instanceof Error ? error : new Error("SSE connection error")
-      );
+      callbacks.onError?.(error instanceof Error ? error : new Error("SSE connection error"));
       throw error;
     },
 
@@ -183,38 +166,14 @@ message data: ${event.data}
   return abortController;
 }
 
-export function continueTask(
-  taskId: number,
-  body: ContinueTaskBody,
-  callbacks: TaskSseCallbacks
-): AbortController {
-  return createTaskSseStream(
-    new URL(`${taskId}/continue`, TASK_STREAM_BASE_URL),
-    body,
-    callbacks
-  );
+export function continueTask(taskId: number, body: ContinueTaskBody, callbacks: TaskSseCallbacks): AbortController {
+  return createTaskSseStream(new URL(`${taskId}/continue`, TASK_STREAM_BASE_URL), body, callbacks);
 }
 
-export function toolAnswer(
-  taskId: number,
-  body: ToolAnswerBody,
-  callbacks: TaskSseCallbacks
-): AbortController {
-  return createTaskSseStream(
-    new URL(`${taskId}/tool_answer`, TASK_STREAM_BASE_URL),
-    body,
-    callbacks
-  );
+export function toolAnswer(taskId: number, body: ToolAnswerBody, callbacks: TaskSseCallbacks): AbortController {
+  return createTaskSseStream(new URL(`${taskId}/tool_answer`, TASK_STREAM_BASE_URL), body, callbacks);
 }
 
-export function toolReview(
-  taskId: number,
-  body: ToolReviewBody,
-  callbacks: TaskSseCallbacks
-): AbortController {
-  return createTaskSseStream(
-    new URL(`${taskId}/tool_reviews`, TASK_STREAM_BASE_URL),
-    body,
-    callbacks
-  );
+export function toolReview(taskId: number, body: ToolReviewBody, callbacks: TaskSseCallbacks): AbortController {
+  return createTaskSseStream(new URL(`${taskId}/tool_reviews`, TASK_STREAM_BASE_URL), body, callbacks);
 }
