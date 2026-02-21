@@ -9,6 +9,7 @@ from dais_sdk import (
 )
 from ..types import ToolMetadata
 from ....services import ToolsetService
+from ....db import db_context
 from ....db.models import toolset as toolset_models
 
 class McpToolsetStatus(str, Enum):
@@ -54,15 +55,14 @@ class McpToolset(Toolset):
         self._error = error
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
-        def sync_in_thread():
+        async with db_context() as session:
+            toolset_service = ToolsetService(session)
             tools = [ToolsetService.ToolLike(
                         name=tool.name,
                         internal_key=tool.name,
                         description=tool.description)
                      for tool in latest_tool_list]
-            with ToolsetService() as service:
-                return service.sync_toolset(self._toolset_id, tools)
-        merged_toolset_ent = await asyncio.to_thread(sync_in_thread)
+            merged_toolset_ent = await toolset_service.sync_toolset(self._toolset_id, tools)
         return merged_toolset_ent.tools
 
     @override

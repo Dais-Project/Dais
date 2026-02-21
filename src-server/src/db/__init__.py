@@ -1,12 +1,20 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from collections.abc import AsyncIterator
+from typing import Annotated
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from platformdirs import user_data_dir
+
 from .models import (
     provider as provider_models,
     agent as agent_models,
     workspace as workspace_models,
-    toolset as toolset_models
+    toolset as toolset_models,
 )
 # this unused import is necessary to alembic
 from . import models
@@ -15,20 +23,38 @@ from src.common import APP_NAME
 data_dir = Path(user_data_dir(APP_NAME, appauthor=False, ensure_exists=True))
 db_path = data_dir / "sqlite.db"
 
-engine = create_engine(f"sqlite:///{db_path}")
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+DB_ASYNC_URL = f"sqlite+aiosqlite:///{db_path}"
+DB_SYNC_URL = f"sqlite:///{db_path}"
 
-def init_initial_data():
-    with SessionLocal() as session:
-        provider_models.init(session)
-        agent_models.init(session)
-        workspace_models.init(session)
-        toolset_models.init(session)
+engine = create_async_engine(DB_ASYNC_URL)
+AsyncSessionLocal = async_sessionmaker(engine,
+                                       autoflush=False,
+                                       autocommit=False,
+                                       expire_on_commit=False)
 
-def migrate_db():
+async def get_db_session() -> AsyncIterator[AsyncSession]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
+db_context = asynccontextmanager(get_db_session)
+
+async def init_initial_data() -> None:
+    async with AsyncSessionLocal.begin() as session:
+        await provider_models.init(session)
+        await agent_models.init(session)
+        await workspace_models.init(session)
+        await toolset_models.init(session)
+
+async def migrate_db() -> None:
     from alembic.config import Config
     from alembic import command
+
     alembic_cfg = Config("alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite:///{db_path}")
+    alembic_cfg.set_main_option("sqlalchemy.url", DB_SYNC_URL)
     command.upgrade(alembic_cfg, "head")
-    init_initial_data()
+    await init_initial_data()

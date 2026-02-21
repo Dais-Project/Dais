@@ -34,8 +34,8 @@ def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, includ
     return False
 
 class FileSystemToolset(BuiltInToolset):
-    def __init__(self, ctx: BuiltInToolsetContext):
-        super().__init__(ctx)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self._md = MarkItDown()
 
