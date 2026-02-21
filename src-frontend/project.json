@@ -51,9 +51,8 @@
       ]
     },
     "watch-api": {
-      "command": "pnpm nodemon --watch ../openapi.json --watch orval.config.ts --exec pnpm orval",
+      "command": "pnpm nodemon --on-change-only --watch ../openapi.json --watch orval.config.ts --exec pnpm orval",
       "continuous": true,
-      "cache": false,
       "dependsOn": [
         "install",
         {
