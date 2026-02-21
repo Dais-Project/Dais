@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Annotated, Literal
 from ..toolset_wrapper import built_in_tool, BuiltInToolset
 
 @dataclass
@@ -12,16 +12,32 @@ class ExecutionControlToolset(BuiltInToolset):
     def name(self) -> str: return "ExecutionControl"
 
     @built_in_tool
-    def finish_task(self, task_summary: str):
+    def finish_task(self,
+                    task_summary: Annotated[str,
+                        "The summary of the task." \
+                        "Formulate this summary in a way that is final and does not require further input from the user." \
+                        "Don't end your summary with questions or offers for further assistance."]
+                    ):
         """
         Once you've received the results of tool uses and can confirm that the task is complete, use this tool to present the result of your work to the user.
-        Args:
-            task_summary: The summary of the task. Formulate this summary in a way that is final and does not require further input from the user. Don't end your summary with questions or offers for further assistance.
         """
         ...
 
     @built_in_tool
-    def update_todos(self, todos: list[TodoItem]) -> str:
+    def update_todos(self,
+                     todos: Annotated[list[TodoItem],
+                        """
+                        The complete and up-to-date list of all todo items.
+                        Each call to this tool replaces the previous list entirely, so always include all existing items along with any changes.
+                        Each item contains:
+                        - description: A concise description of the subtask.
+                        - status: The current status of the subtask. Must be one of:
+                            - "pending": The task has not been started yet.
+                            - "in_progress": The task is currently being worked on.
+                            - "completed": The task has been successfully finished.
+                            - "cancelled": The task is no longer needed.
+                        """]
+                    ) -> str:
         """
         This tool can help you list out the current subtasks that are required to be completed for a given user request.
         The list of subtasks helps you keep track of the current task, organize complex queries and help ensure that you don't miss any steps.
@@ -34,14 +50,7 @@ class ExecutionControlToolset(BuiltInToolset):
 
         IMPORTANT: Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items.
 
-        Args:
-            todos: The complete and up-to-date list of all todo items. Each call to this tool replaces the previous list entirely, so always include all existing items along with any changes.
-                   Each item contains:
-                - description: A concise description of the subtask.
-                - status: The current status of the subtask. Must be one of:
-                    - "pending": The task has not been started yet.
-                    - "in_progress": The task is currently being worked on.
-                    - "completed": The task has been successfully finished.
-                    - "cancelled": The task is no longer needed.
+        Returns:
+            A confirmation message that the todo list has been updated.
         """
         return "[System] Todo list updated"
