@@ -32,7 +32,7 @@
       "executor": "nx:run-commands",
       "dependsOn": [
         "install",
-        "watch-api"
+        "generate-api"
       ],
       "cache": true,
       "options": {
@@ -48,6 +48,21 @@
       ],
       "outputs": [
         "{projectRoot}/dist"
+      ]
+    },
+    "generate-api": {
+      "command": "pnpm orval",
+      "inputs": [
+        "{workspaceRoot}/openapi.json",
+        "{projectRoot}/orval.config.ts"
+      ],
+      "dependsOn": [
+        {
+          "target": "export-openapi",
+          "projects": [
+            "server"
+          ]
+        }
       ]
     },
     "watch-api": {
