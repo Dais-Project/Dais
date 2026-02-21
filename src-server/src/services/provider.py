@@ -20,13 +20,14 @@ class ProviderService(ServiceBase):
     def get_providers_query(self):
         return (
             select(provider_models.Provider)
+            .options(selectinload(provider_models.Provider.models))
             .order_by(provider_models.Provider.id.asc())
         )
 
     async def get_providers(self) -> list[provider_models.Provider]:
         stmt = self.get_providers_query()
-        providers = (await self._db_session.scalars(stmt)).all()
-        return list(providers)
+        providers = await self._db_session.scalars(stmt)
+        return list(providers.all())
 
     async def get_provider_by_id(self, provider_id: int) -> provider_models.Provider:
         provider = await self._db_session.get(
