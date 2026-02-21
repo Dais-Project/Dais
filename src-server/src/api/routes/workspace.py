@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from ...db import DbSessionDep
 from ...services.workspace import WorkspaceService
 from ...schemas import workspace as workspace_schemas
@@ -11,7 +11,7 @@ workspaces_router = APIRouter(tags=["workspace"])
 @workspaces_router.get("/", response_model=Page[workspace_schemas.WorkspaceBrief])
 async def get_workspaces(db_session: DbSessionDep):
     query = WorkspaceService(db_session).get_workspaces_query()
-    return paginate(db_session, query)
+    return await apaginate(db_session, query)
 
 @workspaces_router.get("/{workspace_id}", response_model=workspace_schemas.WorkspaceRead)
 async def get_workspace(workspace_id: int, db_session: DbSessionDep):

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from .message import (
     TaskBrief as ApiTaskBrief,
     TaskRead as ApiTaskRead,
@@ -16,7 +16,7 @@ task_manage_router = APIRouter(tags=["task"])
 @task_manage_router.get("/", response_model=Page[ApiTaskBrief])
 async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
     query = TaskService(db_session).get_tasks_query(workspace_id)
-    return paginate(db_session, query)
+    return await apaginate(db_session, query)
 
 @task_manage_router.get("/{task_id}", response_model=ApiTaskRead)
 async def get_task(task_id: int, db_session: DbSessionDep):

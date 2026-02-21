@@ -30,9 +30,6 @@ from .types import (
     ErrorEvent,
     UserApprovalStatus, is_agent_metadata
 )
-from ..services.task import TaskService
-from ..db.models import task as task_models
-from ..schemas import task as task_schemas
 
 class ToolCallNotFoundError(Exception):
     tool_call_id: str
@@ -40,16 +37,12 @@ class ToolCallNotFoundError(Exception):
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
 
-    def __init__(self, task: task_models.Task):
+    def __init__(self, ctx: AgentContext):
         self._lock = asyncio.Lock()
-        assert task.agent_id is not None
-        ctx = self._ctx = AgentContext(task)
-        self.llm = self._llm_factory()
-        self.task_id = task.id
-        self.model_id = ctx.model.name
+        self._ctx = ctx
+        self._llm = self._llm_factory()
         self._is_running = True
         self._current_task: asyncio.Task | None = None
-        self._messages = task.messages
 
     def _llm_factory(self) -> LLM:
         llm = LLM(provider=self._ctx.provider.type,
@@ -63,10 +56,10 @@ class AgentTask:
 
     def _request_param_factory(self) -> LlmRequestParams:
         return LlmRequestParams(
-            model=self.model_id,
+            model=self._ctx.model.name,
             messages=[
                 SystemMessage(content=self._ctx.system_instruction),
-                *self._messages,
+                *self._ctx.messages,
             ],
             toolsets=self._ctx.toolsets,
             tool_choice="required")
@@ -85,7 +78,7 @@ class AgentTask:
         assistant_message_id = str(uuid.uuid4())
         assistant_message: AssistantMessage | None = None
         try:
-            self._current_task = asyncio.create_task(self.llm.stream_text(request_params))
+            self._current_task = asyncio.create_task(self._llm.stream_text(request_params))
             stream, message_queue = await self._current_task
             yield MessageStartEvent(message_id=assistant_message_id)
             async for chunk in stream:
@@ -137,7 +130,7 @@ class AgentTask:
                     # continue to execute
                     pass
 
-        result, error = await self.llm.execute_tool_call(tool, message.arguments)
+        result, error = await self._llm.execute_tool_call(tool, message.arguments)
         message.result = result
         message.error = error
 
@@ -147,7 +140,7 @@ class AgentTask:
 
     def append_message(self, message: UserMessage):
         try:
-            last_message = self._messages[-1]
+            last_message = self._ctx.messages[-1]
         except IndexError:
             last_message = None
 
@@ -160,7 +153,7 @@ class AgentTask:
             last_message.result = USER_IGNORED_TOOL_CALL_RESULT
             last_message.metadata.clear()
 
-        self._messages.append(message)
+        self._ctx.messages.append(message)
 
     def set_tool_call_result(self, tool_call_id: str, result: str) -> ToolMessage:
         """
@@ -169,7 +162,7 @@ class AgentTask:
         Raises:
             ToolCallNotFoundError
         """
-        for message in reversed(self._messages):
+        for message in reversed(self._ctx.messages):
             if (message.role         == "tool" and
                 message.tool_call_id == tool_call_id):
                 message.result = result
@@ -191,7 +184,7 @@ class AgentTask:
             ToolCallNotFoundError
         """
         target_message = None
-        for message in reversed(self._messages):
+        for message in reversed(self._ctx.messages):
             if message.role == "tool" and message.tool_call_id == tool_call_id:
                 target_message = message
                 break
@@ -241,7 +234,7 @@ class AgentTask:
                     break
 
                 assistant_message = last_chunk.message
-                self._messages.append(assistant_message)
+                self._ctx.messages.append(assistant_message)
                 tool_call_messages = assistant_message.get_incomplete_tool_messages()
                 if (assistant_message.tool_calls is None or
                     tool_call_messages is None or len(tool_call_messages) == 0):
@@ -249,7 +242,7 @@ class AgentTask:
                     break
 
                 tool_call_message = tool_call_messages[0] # Only keep the first tool call
-                self._messages.append(tool_call_message)
+                self._ctx.messages.append(tool_call_message)
                 assistant_message.tool_calls = assistant_message.tool_calls[:1]
                 yield ToolCallEndEvent(message=tool_call_message)
 
@@ -267,15 +260,8 @@ class AgentTask:
             # ensure TaskDoneEvent is yielded
             yield TaskDoneEvent()
 
-    def persist(self):
-        with TaskService() as task_service:
-            task_service.update_task(self.task_id, task_schemas.TaskUpdate(
-                title=None,
-                agent_id=self._ctx.agent.id,
-                messages=self._messages,
-                usage=self._ctx.usage,
-                last_run_at=int(time.time())
-            ))
+    async def persist(self):
+        await self._ctx.persist()
 
     def stop(self):
         self._is_running = False

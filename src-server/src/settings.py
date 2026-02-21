@@ -1,10 +1,12 @@
+import asyncio
 import json
 from pathlib import Path
 from typing import Any
 from platformdirs import user_data_dir
-from pydantic import GetJsonSchemaHandler, model_validator
+from pydantic import GetJsonSchemaHandler
 from pydantic_core import core_schema
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from .db import db_context
 from .services.llm_model import LlmModelService
 from .common import APP_NAME
 
@@ -71,26 +73,43 @@ class AppSettings(JsonSettings):
     reply_language: str = "zh_CN"
     flash_model: int | None = None
 
-    @model_validator(mode="after")
-    def validate_flash_model(self) -> AppSettings:
+    async def validate_self(self):
         if self.flash_model is not None:
-            with LlmModelService() as service:
+            async with db_context() as session:
+                service = LlmModelService(session)
                 try:
-                    service.get_model_by_id(self.flash_model)
+                    await service.get_model_by_id(self.flash_model)
                 except:
                     self.flash_model = None
-        return self
 
 class AppSettingManager:
     def __init__(self):
-        self._settings = AppSettings()
+        self._settings: AppSettings | None = None
+
+    async def initialize(self):
+        settings = AppSettings()
+        await settings.validate_self()
+        self._settings = settings
 
     @property
     def settings(self) -> AppSettings:
-        return self._settings
+        if self._settings is None:
+            raise ValueError("AppSettingManager not initialized")
+        return self._settings.model_copy()
 
-    def update(self, new_settings: AppSettings):
+    async def update(self, new_settings: AppSettings):
+        await new_settings.validate_self()
         self._settings = new_settings
 
-    def persist(self):
-        self._settings.save()
+    async def persist(self):
+        if self._settings is None:
+            raise ValueError("AppSettingManager not initialized")
+        await asyncio.to_thread(self._settings.save)
+
+__instance: AppSettingManager | None = None
+
+def use_app_setting_manager() -> AppSettingManager:
+    global __instance
+    if __instance is None:
+        __instance = AppSettingManager()
+    return __instance

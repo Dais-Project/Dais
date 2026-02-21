@@ -32,7 +32,6 @@ AsyncSessionLocal = async_sessionmaker(engine,
                                        autocommit=False,
                                        expire_on_commit=False)
 
-@asynccontextmanager
 async def get_db_session() -> AsyncIterator[AsyncSession]:
     async with AsyncSessionLocal() as session:
         try:
@@ -42,6 +41,7 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
             await session.rollback()
             raise
 DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
+db_context = asynccontextmanager(get_db_session)
 
 async def init_initial_data() -> None:
     async with AsyncSessionLocal.begin() as session:

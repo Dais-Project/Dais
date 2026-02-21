@@ -5,6 +5,7 @@ from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ...types import ContextUsage
 from ....services import ToolsetService
+from ....db import db_context
 from ....db.models import toolset as toolset_models
 
 built_in_tool = python_tool
@@ -35,42 +36,46 @@ class BuiltInToolsetContext:
         return cwd.resolve()
 
 class BuiltInToolset(PythonToolset):
-    def __init__(self, ctx: BuiltInToolsetContext) -> None:
+    def __init__(self,
+                 ctx: BuiltInToolsetContext,
+                 toolset_ent: toolset_models.Toolset | None = None) -> None:
         self._ctx = ctx
         self._tools_cache = super().get_tools(namespaced_tool_name=False)
-        self._toolset_ent_map: dict[str, toolset_models.Tool] | None = None
-
-    @property
-    def internal_key(self) -> str:
-        return self.__class__.__name__
+        if toolset_ent:
+            self._tool_ent_map = {tool.internal_key: tool for tool in toolset_ent.tools}
+        else:
+            self._tool_ent_map = None
 
     @classmethod
-    def sync(cls):
-        internal_key = cls.__name__
+    def internal_key(cls) -> str:
+        return cls.__name__
+
+    @classmethod
+    async def sync(cls):
         temp_instance = cls(BuiltInToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
-        with ToolsetService() as toolset_service:
-            toolset_ent = toolset_service.get_toolset_by_internal_key(internal_key)
-            toolset_service.sync_toolset(toolset_ent.id,
-                                        [ToolsetService.ToolLike(
-                                            name=tool.name,
-                                            internal_key=tool.name,
-                                            description=tool.description)
-                                        for tool in raw_tools])
+        async with db_context() as session:
+            toolset_service = ToolsetService(session)
+            toolset_ent = await toolset_service.get_toolset_by_internal_key(cls.internal_key())
+            await toolset_service.sync_toolset(toolset_ent.id,
+                                              [ToolsetService.ToolLike(
+                                                  name=tool.name,
+                                                  internal_key=tool.name,
+                                                  description=tool.description)
+                                               for tool in raw_tools])
 
     def get_original_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
         return super().get_tools(namespaced_tool_name=namespaced_tool_name)
 
     @override
     def get_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
-        if self._toolset_ent_map is None:
-            with ToolsetService() as toolset_service:
-                toolset_ent = toolset_service.get_toolset_by_internal_key(self.internal_key)
-            self._toolset_ent_map = {tool.internal_key: tool for tool in toolset_ent.tools}
+        if self._tool_ent_map is None:
+            raise ValueError("Toolset not initialized")
 
         result = []
         for tool in self._tools_cache:
-            tool_ent = self._toolset_ent_map[tool.name]
+            # name of tooldef is the internal_key of the tool entity
+            tool_ent = self._tool_ent_map[tool.name]
             if not tool_ent.is_enabled: continue
 
             normalized_name = (self.format_tool_name(tool.name)

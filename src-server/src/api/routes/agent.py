@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from ...db import DbSessionDep
 from ...services.agent import AgentService
 from ...schemas import agent as agent_schemas
@@ -10,7 +10,7 @@ agents_router = APIRouter(tags=["agent"])
 @agents_router.get("/", response_model=Page[agent_schemas.AgentBrief])
 async def get_agents(db_session: DbSessionDep):
     query = AgentService(db_session).get_agents_query()
-    return paginate(db_session, query)
+    return await apaginate(db_session, query)
 
 @agents_router.get("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def get_agent(agent_id: int, db_session: DbSessionDep):

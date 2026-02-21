@@ -18,8 +18,8 @@ class ShellResult(TypedDict):
     duration: str
 
 class OsInteractionsToolset(BuiltInToolset):
-    def __init__(self, ctx: BuiltInToolsetContext):
-        super().__init__(ctx)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._shell = AgentShell()
 
     @property

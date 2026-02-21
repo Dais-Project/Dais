@@ -4,9 +4,10 @@ from sse_starlette import EventSourceResponse
 from dais_sdk import UserMessage as SdkUserMessage
 from pydantic import BaseModel
 from ..message import UserMessage as ApiUserMessage
+from .....agent.context import AgentContext
 from .....agent.task import AgentTask
 from .....agent.types import MessageReplaceEvent
-from .....db import get_db_session
+from .....db import db_context
 from .....services.task import TaskService
 from .utils import AgentGenerator, agent_event_format, agent_stream
 
@@ -27,10 +28,11 @@ class ToolReviewBody(TaskStreamBody):
     auto_approve: bool = False
 
 async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
-    async with get_db_session() as session:
+    async with db_context() as session:
         task = await TaskService(session).get_task_by_id(task_id)
         task.agent_id = agent_id
-    return AgentTask(task)
+    ctx = await AgentContext.create(task)
+    return AgentTask(ctx)
 
 def create_stream_response(stream: AgentGenerator) -> EventSourceResponse:
     gen = (item async for item in stream if item is not None)

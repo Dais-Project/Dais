@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from ...db import DbSessionDep
 from ...services.provider import ProviderService
 from ...schemas import provider as provider_schemas
@@ -11,7 +11,7 @@ providers_router = APIRouter(tags=["provider"])
 @providers_router.get("/", response_model=Page[provider_schemas.ProviderRead])
 async def get_providers(db_session: DbSessionDep):
     query = ProviderService(db_session).get_providers_query()
-    return paginate(db_session, query)
+    return await apaginate(db_session, query)
 
 @providers_router.get("/brief", response_model=list[provider_schemas.ProviderBrief])
 async def get_provider_brief(db_session: DbSessionDep):
