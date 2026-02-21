@@ -1,29 +1,28 @@
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
-from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
 
 
 class TestEdgeCases:
-    def test_unicode_filename(self, temp_workspace):
+    def test_unicode_filename(self, built_in_toolset_context, temp_workspace):
         filename = "测试文件.txt"
         file_path = temp_workspace / filename
         content = "Unicode content: 你好世界"
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
         result = tool.read_file(filename)
         assert result == content
 
-    def test_special_characters_in_content(self, temp_workspace):
+    def test_special_characters_in_content(self, built_in_toolset_context, temp_workspace):
         filename = "special.txt"
         content = "Special chars: <>&\"'\n\t"
         file_path = temp_workspace / filename
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
         result = tool.read_file(filename)
         assert "<>&\"'" in result
 
-    def test_list_directory_sorting(self, temp_workspace):
+    def test_list_directory_sorting(self, built_in_toolset_context, temp_workspace):
         base = temp_workspace
 
         (base / "zebra.txt").write_text("", encoding="utf-8")
@@ -31,7 +30,7 @@ class TestEdgeCases:
         (base / "zoo_dir").mkdir()
         (base / "alpha_dir").mkdir()
 
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".")
 
         lines = result.split("\n")

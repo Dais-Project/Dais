@@ -6,8 +6,8 @@ from src.agent.types import ContextUsage
 
 
 class TestFileSystemToolInit:
-    def test_init_with_absolute_path(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_init_with_absolute_path(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
         assert tool._ctx.cwd == temp_workspace
         assert hasattr(tool, "_md")
 
@@ -15,8 +15,8 @@ class TestFileSystemToolInit:
         tool = FileSystemToolset(BuiltInToolsetContext("~", ContextUsage.default()))
         assert tool._ctx.cwd == Path.home()
 
-    def test_markitdown_instance(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_markitdown_instance(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
         assert tool._md is not None
 
 
@@ -37,6 +37,6 @@ class TestIsMarkitdownConvertableBinary:
             ("test.md", False),
         ],
     )
-    def test_format_detection(self, temp_workspace, filename, expected):
+    def test_format_detection(self, built_in_toolset_context, temp_workspace, filename, expected):
         tool = FileSystemToolset(temp_workspace)
         assert tool._is_markitdown_convertable_binary(filename) == expected
