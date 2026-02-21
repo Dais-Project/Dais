@@ -5,8 +5,9 @@ from typing import Iterator, TypedDict
 from pathlib import Path
 from markitdown import MarkItDown
 from binaryornot.check import is_binary
-from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
 from .utils import scandir_recursive
+from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ....db.models import toolset as toolset_models
 
 def load_gitignore_spec(cwd: Path) -> pathspec.PathSpec | None:
     gitignore_path = cwd / ".gitignore"
@@ -34,8 +35,10 @@ def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, includ
     return False
 
 class FileSystemToolset(BuiltInToolset):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self,
+                 ctx: BuiltInToolsetContext,
+                 toolset_ent: toolset_models.Toolset | None = None):
+        super().__init__(ctx, toolset_ent)
 
         self._md = MarkItDown()
 

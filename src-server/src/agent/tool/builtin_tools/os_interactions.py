@@ -7,6 +7,7 @@ from dais_shell import (
 )
 from dais_shell.iostream_reader import IOStreamBuffer
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ....db.models import toolset as toolset_models
 
 class ShellResult(TypedDict):
     stdout: str
@@ -18,8 +19,10 @@ class ShellResult(TypedDict):
     duration: str
 
 class OsInteractionsToolset(BuiltInToolset):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self,
+                 ctx: BuiltInToolsetContext,
+                 toolset_ent: toolset_models.Toolset | None = None):
+        super().__init__(ctx, toolset_ent)
         self._shell = AgentShell()
 
     @property
