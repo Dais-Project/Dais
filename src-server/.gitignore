@@ -7,3 +7,4 @@ wheels/
 *.db
 
 .coverage
+tool_schema.json

@@ -74,6 +74,9 @@
         "{workspaceRoot}/openapi.json"
       ]
     },
+    "export-tool-schema": {
+      "command": "uv run python -m scripts.export_tool_specs"
+    },
     "generate-migration": {
       "executor": "nx:run-commands",
       "dependsOn": [
