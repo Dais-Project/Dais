@@ -1,9 +1,9 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
 import type { ToolMessage as ToolMessageType, UserInteractionAskUser } from "@/api/generated/schemas";
-import { CustomTool } from "@/components/custom/ai-components/CustomTool";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 
