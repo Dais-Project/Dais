@@ -14,7 +14,7 @@ async def get_providers(db_session: DbSessionDep):
     return await apaginate(db_session, query)
 
 @providers_router.get("/brief", response_model=list[provider_schemas.ProviderBrief])
-async def get_provider_brief(db_session: DbSessionDep):
+async def get_providers_brief(db_session: DbSessionDep):
     providers = await ProviderService(db_session).get_providers()
     return [provider_schemas.ProviderBrief.from_provider(provider) for provider in providers]
 

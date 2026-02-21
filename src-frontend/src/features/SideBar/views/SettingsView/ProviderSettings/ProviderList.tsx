@@ -1,9 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
-import { getGetProviderBriefQueryKey } from "@/api/generated/endpoints/provider/provider";
+import { getGetProvidersBriefQueryKey } from "@/api/generated/endpoints/provider/provider";
 import type { ProviderBrief } from "@/api/generated/schemas";
-import { useDeleteProvider, useGetProviderBriefSuspense } from "@/api/provider";
+import { useDeleteProvider, useGetProvidersBriefSuspense } from "@/api/provider";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
@@ -100,12 +100,12 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
 
 export function ProviderList() {
   const queryClient = useQueryClient();
-  const { data } = useGetProviderBriefSuspense();
+  const { data } = useGetProvidersBriefSuspense();
 
   const deleteProviderMutation = useDeleteProvider({
     mutation: {
       onSuccess: (_, variables) => {
-        queryClient.invalidateQueries({ queryKey: getGetProviderBriefQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetProvidersBriefQueryKey() });
         removeProviderTab(variables.providerId);
 
         toast.success("删除成功", {

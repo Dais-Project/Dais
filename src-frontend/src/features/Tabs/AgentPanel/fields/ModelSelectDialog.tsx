@@ -48,9 +48,7 @@ function ModelQueryList({ onModelsReady }: ModelQueryListProps) {
   return (
     <>
       <SelectDialogEmpty>
-        {providers.length === 0
-          ? "暂无供应商，请先添加 LLM 供应商以使用模型。"
-          : "未找到模型"}
+        {providers.length === 0 ? "暂无供应商，请先添加 LLM 供应商以使用模型。" : "未找到模型"}
       </SelectDialogEmpty>
       <InfiniteScroll
         query={query}
@@ -77,10 +75,7 @@ type ModelSelectDialogProps = {
   onSelect: (model: LlmModelRead) => void;
 };
 
-export function ModelSelectDialog({
-  selectedModel,
-  onSelect,
-}: ModelSelectDialogProps) {
+export function ModelSelectDialog({ selectedModel, onSelect }: ModelSelectDialogProps) {
   const modelMapRef = useRef<Map<string, LlmModelRead>>(new Map());
 
   const handleValueChange = (value: string) => {
@@ -91,23 +86,15 @@ export function ModelSelectDialog({
   };
 
   return (
-    <SelectDialog<string>
-      value={selectedModel?.id.toString()}
-      onValueChange={handleValueChange}
-    >
+    <SelectDialog<string> value={selectedModel?.id.toString()} onValueChange={handleValueChange}>
       <SelectDialogTrigger>
-        <Button variant="outline">
-          {selectedModel ? selectedModel.name : "选择模型"}
-        </Button>
+        <Button variant="outline">{selectedModel ? selectedModel.name : "选择模型"}</Button>
       </SelectDialogTrigger>
 
       <SelectDialogContent>
         <SelectDialogSearch placeholder="搜索模型..." />
         <SelectDialogList className="max-h-96">
-          <AsyncBoundary
-            skeleton={<SelectDialogSkeleton />}
-            errorDescription="无法加载模型列表，请稍后重试。"
-          >
+          <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription="无法加载模型列表，请稍后重试。">
             <ModelQueryList
               onModelsReady={(models) => {
                 modelMapRef.current = models;
