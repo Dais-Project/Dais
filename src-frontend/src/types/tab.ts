@@ -1,5 +1,5 @@
 import type { dynamicIconImports } from "lucide-react/dynamic";
-import type { TaskType } from "./task";
+import type { TaskType } from "@/api/generated/schemas";
 
 export type TabBase = {
   id: string;

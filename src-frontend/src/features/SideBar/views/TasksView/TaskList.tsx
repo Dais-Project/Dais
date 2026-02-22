@@ -3,7 +3,7 @@ import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { toast } from "sonner";
-import type { TaskBrief } from "@/api/generated/schemas";
+import type { PageTaskBrief, TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
   getGetTasksInfiniteQueryKey,
@@ -27,6 +27,9 @@ import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { TaskIcon } from "./TaskIcon";
+import { useEffect } from "react";
+import SseDispatcher from "@/lib/sse-dispatcher";
+import { produce } from "immer";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -105,6 +108,25 @@ type TaskListProps = {
 export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
+
+  useEffect(() => {
+    return SseDispatcher.on("task_title_updated", (data) => {
+      const queryKey = getGetTasksInfiniteQueryKey({ workspace_id: workspaceId });
+      queryClient.setQueryData<PageTaskBrief>(
+        queryKey, produce((draft) => {
+          if (!draft) {
+            return;
+          }
+          for (const item of draft.items) {
+            if (item.id === data.task_id) {
+              item.title = data.title;
+              return;
+            }
+          }
+        })
+      );
+    });
+  }, [queryClient, workspaceId]);
 
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     onConfirm: async (task) => {

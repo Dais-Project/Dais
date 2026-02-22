@@ -16,22 +16,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  BotIcon,
-  FolderCogIcon,
-  type LucideIcon,
-  PlugIcon,
-  ToolCaseIcon,
-  XIcon,
-} from "lucide-react";
+import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef } from "react";
-import {
-  Tab as ReactTab,
-  TabList as ReactTabList,
-  TabPanel as ReactTabPanel,
-  Tabs as ReactTabs,
-} from "react-tabs";
+import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -64,14 +52,7 @@ export type TabPanelProps<Metadata> = {
 };
 
 function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: tab.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id });
   const activeTabId = useTabsStore((state) => state.activeTabId);
   const removeTab = useTabsStore((state) => state.remove);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -81,10 +62,7 @@ function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
     transition,
   };
 
-  const handleTabClose = (
-    e: React.MouseEvent<SVGSVGElement>,
-    tabId: string
-  ) => {
+  const handleTabClose = (e: React.MouseEvent<SVGSVGElement>, tabId: string) => {
     e.stopPropagation();
     removeTab(tabId);
   };
@@ -123,8 +101,7 @@ function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
           "group flex min-w-24 shrink-0 cursor-pointer items-center justify-between gap-2 text-nowrap border-r border-b p-2 pl-3 text-muted-foreground text-sm outline-0 transition-colors duration-200 ease-in-out",
           "hover:bg-card/60 hover:text-primary",
           {
-            "border-b-transparent bg-card! text-primary!":
-              tab.id === activeTabId,
+            "border-b-transparent bg-card! text-primary!": tab.id === activeTabId,
           }
         )}
       >
@@ -132,10 +109,9 @@ function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
         <span>{tab.title}</span>
         <XIcon
           size="1em"
-          className={cn(
-            "rounded-sm opacity-0 transition-opacity duration-200 ease-in-out group-hover:opacity-100",
-            { "opacity-100": tab.id === activeTabId }
-          )}
+          className={cn("rounded-sm opacity-0 transition-opacity duration-200 ease-in-out group-hover:opacity-100", {
+            "opacity-100": tab.id === activeTabId,
+          })}
           onClick={(e) => handleTabClose(e, tab.id)}
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
@@ -149,37 +125,15 @@ SortableTab.tabsRole = "Tab";
 function TabPanelRenderer({ tab }: { tab: Tab }) {
   switch (tab.type) {
     case "task":
-      return (
-        <TaskPanel tabId={tab.id} metadata={tab.metadata as TaskTabMetadata} />
-      );
+      return <TaskPanel tabId={tab.id} metadata={tab.metadata as TaskTabMetadata} />;
     case "workspace":
-      return (
-        <WorkspacePanel
-          tabId={tab.id}
-          metadata={tab.metadata as WorkspaceTabMetadata}
-        />
-      );
+      return <WorkspacePanel tabId={tab.id} metadata={tab.metadata as WorkspaceTabMetadata} />;
     case "agent":
-      return (
-        <AgentPanel
-          tabId={tab.id}
-          metadata={tab.metadata as AgentTabMetadata}
-        />
-      );
+      return <AgentPanel tabId={tab.id} metadata={tab.metadata as AgentTabMetadata} />;
     case "provider":
-      return (
-        <ProviderPanel
-          tabId={tab.id}
-          metadata={tab.metadata as ProviderTabMetadata}
-        />
-      );
+      return <ProviderPanel tabId={tab.id} metadata={tab.metadata as ProviderTabMetadata} />;
     case "toolset":
-      return (
-        <ToolsetPanel
-          tabId={tab.id}
-          metadata={tab.metadata as ToolsetTabMetadata}
-        />
-      );
+      return <ToolsetPanel tabId={tab.id} metadata={tab.metadata as ToolsetTabMetadata} />;
     default:
       return null;
   }
@@ -205,9 +159,8 @@ export function Tabs() {
       return;
     }
 
-    const viewport = scrollArea.querySelector(
-      "div[data-radix-scroll-area-viewport]"
-    ) as HTMLElement | null;
+    // support horizontal scrolling with mouse wheel
+    const viewport = scrollArea.querySelector("div[data-radix-scroll-area-viewport]") as HTMLElement | null;
     if (!viewport) {
       return;
     }
@@ -222,7 +175,7 @@ export function Tabs() {
 
     viewport.addEventListener("wheel", handleWheel);
     return () => viewport.removeEventListener("wheel", handleWheel);
-  }, [tabs]);
+  }, []);
 
   const handleTabSelect = (index: number) => {
     if (tabs[index]) {
@@ -258,10 +211,7 @@ export function Tabs() {
         selectedTabPanelClassName="!block"
       >
         <ScrollArea ref={scrollAreaRef}>
-          <SortableContext
-            items={tabs.map((tab) => tab.id)}
-            strategy={horizontalListSortingStrategy}
-          >
+          <SortableContext items={tabs.map((tab) => tab.id)} strategy={horizontalListSortingStrategy}>
             <ReactTabList className="shink-0 flex bg-muted/40 dark:bg-muted/75">
               {tabs.map((tab) => (
                 // @ts-expect-error

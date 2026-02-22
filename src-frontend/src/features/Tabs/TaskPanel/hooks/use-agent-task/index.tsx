@@ -129,8 +129,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const setData = useCallback(
     (updater: (draft: TaskRead) => void) => {
-      queryClient.setQueryData<TaskRead>(getGetTaskQueryKey(taskId), (old) =>
-        produce(old, (draft) => draft && updater(draft))
+      queryClient.setQueryData<TaskRead>(
+        getGetTaskQueryKey(taskId),
+        produce((draft) => draft && updater(draft))
       );
     },
     [queryClient, taskId]
