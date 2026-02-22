@@ -1,5 +1,5 @@
 from sqlalchemy.orm import selectinload
-from .ServiceBase import ServiceBase
+from .service_base import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import provider as provider_models
 

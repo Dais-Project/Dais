@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from .ServiceBase import ServiceBase
+from .service_base import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import task as task_models
 from ..schemas import task as task_schemas
