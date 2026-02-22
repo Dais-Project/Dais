@@ -58,7 +58,7 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
 
       <AgentIconField />
 
-      <AgentModelField initialModel={agent.model} />
+      <AgentModelField />
 
       <RichTextField
         fieldName="system_prompt"
