@@ -4,7 +4,7 @@ from loguru import logger
 from fastapi import Request
 from sse_starlette import ServerSentEvent, JSONServerSentEvent
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk
-from ...types import EmptyServerSentEvent
+from ....types import EmptyServerSentEvent
 from .....agent.task import AgentTask
 from .....agent.types import (
     AgentEvent,
