@@ -1,11 +1,18 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod";
 import type { ToolMessage as ToolMessageType, UserInteractionAskUser } from "@/api/generated/schemas";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
+
+const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
+  question: z.string(),
+  options: z.string().array().optional(),
+});
 
 export type AskUserToolMessageProps = {
   message: ToolMessageType;
@@ -14,7 +21,7 @@ export type AskUserToolMessageProps = {
 export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
   const { answerTool } = useAgentTaskAction();
   const [disabled, setDisabled] = useState(false);
-  const toolArguments = useToolArgument<UserInteractionAskUser>(message.arguments);
+  const toolArguments = useToolArgument<UserInteractionAskUser>(message.arguments, AskUserToolSchema);
   const { question, options } = toolArguments ?? {};
   const selectedOption = options && (message.result as string);
 
@@ -42,18 +49,17 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
     >
       {question && <p className="px-4 pb-2 font-medium text-sm">{question}</p>}
       {options && (
-        <div className="flex flex-col items-start justify-center gap-y-2 px-4 pt-2 pb-4">
+        <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
           {options.map((option) => (
-            <Button
+            <Suggestion
               key={option}
-              disabled={hasResult || disabled}
+              suggestion={option}
+              onClick={handleSelectOption}
               variant={option === selectedOption ? "default" : "outline"}
-              onClick={() => handleSelectOption(option)}
-            >
-              {option}
-            </Button>
+              disabled={hasResult || disabled}
+            />
           ))}
-        </div>
+        </Suggestions>
       )}
       {!options && (
         <div className="flex items-center gap-2 px-4 pb-4">
