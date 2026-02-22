@@ -1,11 +1,6 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { ProviderRead } from "@/api/generated/schemas";
-import {
-  getGetProviderQueryKey,
-  getGetProvidersQueryKey,
-  useUpdateProvider,
-} from "@/api/provider";
+import { useUpdateProvider, invalidateProviderQueries } from "@/api/provider";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, UrlField } from "@/components/custom/form/fields";
 import { PasswordField } from "@/components/custom/form/fields/PasswordField";
@@ -23,22 +18,18 @@ export function ProviderEditForm({
   provider,
   onConfirm,
 }: ProviderEditFormProps) {
-  const queryClient = useQueryClient();
   const formValues: ProviderEditFormValues = provider;
 
   const updateMutation = useUpdateProvider({
     mutation: {
-      onSuccess: (updatedProvider) => {
-        queryClient.invalidateQueries({ queryKey: getGetProvidersQueryKey() });
-        queryClient.invalidateQueries({
-          queryKey: getGetProviderQueryKey(updatedProvider.id),
-        });
+      async onSuccess(updatedProvider) {
+        await invalidateProviderQueries(updatedProvider.id);
         toast.success("更新成功", {
           description: `已成功更新 ${updatedProvider.name} 服务提供商。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("更新失败", {
           description:
             error.message || "更新服务提供商时发生错误，请稍后重试。",

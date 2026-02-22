@@ -1,18 +1,13 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
-import { z } from "zod";
 import type { ToolMessage as ToolMessageType, UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
+import { AskUserToolSchema } from "@/api/tool-schema";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
-
-const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
-  question: z.string(),
-  options: z.string().array().optional(),
-});
 
 export type AskUserToolMessageProps = {
   message: ToolMessageType;

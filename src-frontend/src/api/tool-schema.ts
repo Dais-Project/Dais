@@ -1,5 +1,13 @@
 import { z } from "zod";
-import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
+import type {
+  ExecutionControlUpdateTodos,
+  UserInteractionAskUser,
+} from "@/api/generated/schemas";
+
+export const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
+  question: z.string(),
+  options: z.array(z.string()).optional(),
+});
 
 export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.object({
   todos: z.array(

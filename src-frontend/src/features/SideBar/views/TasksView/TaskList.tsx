@@ -10,6 +10,7 @@ import {
   useDeleteTask,
   useGetTasksSuspenseInfinite,
 } from "@/api/task";
+import { invalidateTaskQueries } from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import {
@@ -129,11 +130,9 @@ export function TaskList({ workspaceId }: TaskListProps) {
   }, [queryClient, workspaceId]);
 
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
-    onConfirm: async (task) => {
+    async onConfirm(task) {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
-      queryClient.invalidateQueries({
-        queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }),
-      });
+      await invalidateTaskQueries({ workspaceId, taskId: task.id });
       queryClient.removeQueries({
         queryKey: getGetTaskQueryKey(task.id),
       });
@@ -142,7 +141,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
         description: "已成功删除任务。",
       });
     },
-    onError: (error: Error) => {
+    onError(error: Error) {
       toast.error("删除失败", {
         description: error.message || "删除任务时发生错误，请稍后重试。",
       });
