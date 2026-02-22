@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, BackgroundTasks, Request, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from .message import (
@@ -6,12 +6,12 @@ from .message import (
     TaskRead as ApiTaskRead,
     TaskCreate as ApiTaskCreate,
 )
+from .background_task import summarize_title_in_background
 from ....db import DbSessionDep
 from ....services.task import TaskService
 from ....schemas import task as task_schemas
 
 task_manage_router = APIRouter(tags=["task"])
-
 
 @task_manage_router.get("/", response_model=Page[ApiTaskBrief])
 async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
@@ -24,10 +24,17 @@ async def get_task(task_id: int, db_session: DbSessionDep):
     return ApiTaskRead.model_validate(task)
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=ApiTaskRead)
-async def new_task(db_session: DbSessionDep, body: ApiTaskCreate):
+async def new_task(
+    db_session: DbSessionDep,
+    body: ApiTaskCreate,
+    request: Request,
+    background_tasks: BackgroundTasks,
+):
     created_task = await TaskService(db_session).create_task(
         task_schemas.TaskCreate.model_validate(body, from_attributes=True)
     )
+    background_tasks.add_task(summarize_title_in_background,
+                              created_task.id, body.messages, request.app.state)
     return ApiTaskRead.model_validate(created_task)
 
 @task_manage_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)

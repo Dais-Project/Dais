@@ -13,6 +13,7 @@ async def sse_stream(sse_dispatcher: SseDispatcher):
     async for event in sse_dispatcher.listen():
         yield event
 
+@sse_router.post("/")
 async def sse_endpoint(sse_dispatcher: SseDispatcherDep):
     return EventSourceResponse(
         sse_stream(sse_dispatcher),
