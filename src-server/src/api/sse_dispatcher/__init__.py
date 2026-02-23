@@ -1,5 +1,7 @@
 import asyncio
 from collections.abc import AsyncGenerator
+from typing import Annotated
+from fastapi import Depends, Request
 from sse_starlette import ServerSentEvent, JSONServerSentEvent
 from .types import DispatcherEvent, DispatcherEventData
 from ..types import EmptyServerSentEvent
@@ -23,3 +25,7 @@ class SseDispatcher:
     async def close(self):
         self._is_running = False
         await self._queue.join()
+
+def get_sse_dispatcher(request: Request) -> SseDispatcher:
+    return request.state.sse_dispatcher
+type SseDispatcherDep = Annotated[SseDispatcher, Depends(get_sse_dispatcher)]

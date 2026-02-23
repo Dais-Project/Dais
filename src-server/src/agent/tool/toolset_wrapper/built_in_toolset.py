@@ -1,12 +1,13 @@
 from dataclasses import replace
 from pathlib import Path
-from typing import override
+from typing import override, TYPE_CHECKING
 from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ...types import ContextUsage
-from ....services import ToolsetService
 from ....db import db_context
-from ....db.models import toolset as toolset_models
+
+if TYPE_CHECKING:
+    from ....db.models import toolset as toolset_models
 
 built_in_tool = python_tool
 
@@ -52,6 +53,8 @@ class BuiltInToolset(PythonToolset):
 
     @classmethod
     async def sync(cls):
+        from ....services import ToolsetService
+
         temp_instance = cls(BuiltInToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
         async with db_context() as session:

@@ -11,7 +11,6 @@ class FetchModelsParams(BaseModel):
     api_key: str
     type: LlmProviders
 
-
 class FetchModelsResponse(BaseModel):
     models: list[str]
 

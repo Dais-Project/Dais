@@ -14,16 +14,14 @@ async def get_agents(db_session: DbSessionDep):
 
 @agents_router.get("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def get_agent(agent_id: int, db_session: DbSessionDep):
-    agent = await AgentService(db_session).get_agent_by_id(agent_id)
-    return agent_schemas.AgentRead.model_validate(agent)
+    return await AgentService(db_session).get_agent_by_id(agent_id)
 
 @agents_router.post("/", status_code=status.HTTP_201_CREATED, response_model=agent_schemas.AgentRead)
 async def create_agent(
     db_session: DbSessionDep,
     body: agent_schemas.AgentCreate,
 ):
-    new_agent = await AgentService(db_session).create_agent(body)
-    return agent_schemas.AgentRead.model_validate(new_agent)
+    return await AgentService(db_session).create_agent(body)
 
 @agents_router.put("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def update_agent(
@@ -31,8 +29,7 @@ async def update_agent(
     body: agent_schemas.AgentUpdate,
     db_session: DbSessionDep,
 ):
-    updated_agent = await AgentService(db_session).update_agent(agent_id, body)
-    return agent_schemas.AgentRead.model_validate(updated_agent)
+    return await AgentService(db_session).update_agent(agent_id, body)
 
 @agents_router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_agent(agent_id: int, db_session: DbSessionDep):

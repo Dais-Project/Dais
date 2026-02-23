@@ -1,5 +1,5 @@
 from . import DTOBase
-from .agent import AgentRead
+from .agent import AgentBrief
 from .toolset import ToolRead
 
 class WorkspaceBase(DTOBase):
@@ -12,7 +12,7 @@ class WorkspaceBrief(WorkspaceBase):
 class WorkspaceRead(WorkspaceBase):
     id: int
     workspace_background: str
-    usable_agents: list[AgentRead]
+    usable_agents: list[AgentBrief]
     usable_tools: list[ToolRead]
 
 class WorkspaceCreate(WorkspaceBase):

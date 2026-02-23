@@ -1,7 +1,6 @@
-from typing import Annotated, Literal, cast
+from typing import Annotated, cast
 from fastapi import APIRouter, Depends, Request, status
-from pydantic import BaseModel
-from ...agent.tool import McpToolset, McpToolsetStatus
+from ...agent.tool import McpToolset
 from ...agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ...db import DbSessionDep
 from ...services.toolset import ToolsetService
@@ -13,14 +12,7 @@ def get_mcp_toolset_manager(request: Request) -> McpToolsetManager:
     return request.state.mcp_toolset_manager
 type McpToolsetManagerDep = Annotated[McpToolsetManager, Depends(get_mcp_toolset_manager)]
 
-class ToolsetBrief(BaseModel):
-    id: int
-    name: str
-    type: toolset_schemas.ToolsetType
-    # "connected" for built-in toolsets, McpToolsetStatus for MCP toolsets
-    status: Literal["connected"] | McpToolsetStatus
-
-@toolset_router.get("/brief", response_model=list[ToolsetBrief])
+@toolset_router.get("/brief", response_model=list[toolset_schemas.ToolsetBrief])
 async def get_toolsets_brief(
     db_session: DbSessionDep,
     mcp_toolset_manager: McpToolsetManagerDep,
@@ -33,7 +25,7 @@ async def get_toolsets_brief(
     result = []
     for toolset in built_in_toolsets:
         result.append(
-            ToolsetBrief(
+            toolset_schemas.ToolsetBrief(
                 id=toolset.id,
                 name=toolset.name,
                 type=toolset.type,
@@ -43,7 +35,7 @@ async def get_toolsets_brief(
     for toolset in cast(list[McpToolset], mcp_toolset_manager.toolsets):
         ent = mcp_toolset_map[toolset.name]
         result.append(
-            ToolsetBrief(
+            toolset_schemas.ToolsetBrief(
                 id=ent.id,
                 name=ent.name,
                 type=ent.type,
@@ -52,10 +44,16 @@ async def get_toolsets_brief(
         )
     return result
 
+@toolset_router.get("/", response_model=list[toolset_schemas.ToolsetRead])
+async def get_toolsets(db_session: DbSessionDep):
+    service = ToolsetService(db_session)
+    built_in_toolsets = await service.get_all_built_in_toolsets()
+    mcp_toolsets = await service.get_all_mcp_toolsets()
+    return built_in_toolsets + mcp_toolsets
+
 @toolset_router.get("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)
 async def get_toolset(toolset_id: int, db_session: DbSessionDep):
-    toolset = await ToolsetService(db_session).get_toolset_by_id(toolset_id)
-    return toolset_schemas.ToolsetRead.model_validate(toolset)
+    return await ToolsetService(db_session).get_toolset_by_id(toolset_id)
 
 @toolset_router.post("/", status_code=status.HTTP_201_CREATED, response_model=toolset_schemas.ToolsetRead)
 async def create_mcp_toolset(
@@ -64,8 +62,10 @@ async def create_mcp_toolset(
     mcp_toolset_manager: McpToolsetManagerDep,
 ):
     new_toolset = await ToolsetService(db_session).create_toolset(body)
-    await mcp_toolset_manager.refresh_toolset_metadata()
-    return toolset_schemas.ToolsetRead.model_validate(new_toolset)
+    if (body.type == toolset_schemas.ToolsetType.MCP_LOCAL or
+        body.type == toolset_schemas.ToolsetType.MCP_REMOTE):
+        await mcp_toolset_manager.refresh_toolset_metadata()
+    return new_toolset
 
 @toolset_router.put("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)
 async def update_toolset(
@@ -75,8 +75,10 @@ async def update_toolset(
     mcp_toolset_manager: McpToolsetManagerDep,
 ):
     updated_toolset = await ToolsetService(db_session).update_toolset(toolset_id, body)
-    await mcp_toolset_manager.refresh_toolset_metadata()
-    return toolset_schemas.ToolsetRead.model_validate(updated_toolset)
+    if (updated_toolset.type == toolset_schemas.ToolsetType.MCP_LOCAL or
+        updated_toolset.type == toolset_schemas.ToolsetType.MCP_REMOTE):
+        await mcp_toolset_manager.refresh_toolset_metadata()
+    return updated_toolset
 
 @toolset_router.delete("/{toolset_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_toolset(
