@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 from loguru import logger
 from .message import TaskMessage, UserMessage
 from ....db import db_context
@@ -8,23 +8,18 @@ from ....schemas import task as task_schemas
 from ....agent.prompts import TITLE_SUMMARIZATION_INSTRUCTION
 from ....agent.temp_generation import TempGeneration
 from ....settings import use_app_setting_manager
+from ....api.sse_dispatcher.types import DispatcherEvent, TaskTitleUpdatedEvent
 
 if TYPE_CHECKING:
     from ....api.sse_dispatcher import SseDispatcher
 
 _logger = logger.bind(name="TaskBackgroundRoute")
 
-class TaskTitleUpdatedEvent(TypedDict):
-    task_id: int
-    title: str
-
 async def summarize_title_in_background(
     task_id: int,
     context: list[TaskMessage],
     sse_dispatcher: SseDispatcher,
 ):
-    from ....api.sse_dispatcher import DispatcherEvent
-
     settings = use_app_setting_manager().settings
     if settings.flash_model is None: return
     try:

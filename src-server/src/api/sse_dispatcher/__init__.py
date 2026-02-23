@@ -1,14 +1,8 @@
 import asyncio
-from enum import Enum
 from collections.abc import AsyncGenerator
 from sse_starlette import ServerSentEvent, JSONServerSentEvent
-from .types import EmptyServerSentEvent
-from .routes.task.background_task import TaskTitleUpdatedEvent
-
-class DispatcherEvent(str, Enum):
-    TASK_TITLE_UPDATED = "task_title_updated"
-
-type DispatcherEventData = TaskTitleUpdatedEvent
+from .types import DispatcherEvent, DispatcherEventData
+from ..types import EmptyServerSentEvent
 
 class SseDispatcher:
     def __init__(self):
