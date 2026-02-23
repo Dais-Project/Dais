@@ -1,17 +1,33 @@
 export {
   getGetTaskQueryKey,
   getGetTasksInfiniteQueryKey,
-  getGetTasksQueryKey,
   useDeleteTask,
   useGetTaskSuspense,
-  useGetTasksSuspense,
   useGetTasksSuspenseInfinite,
   useNewTask,
 } from "./generated/endpoints/task/task";
 
+import queryClient from "@/query-client";
+import { getGetTaskQueryKey, getGetTasksInfiniteQueryKey } from "./generated/endpoints/task/task";
+
+type InvalidateTaskQueriesOptions = {
+  workspaceId: number;
+  taskId?: number;
+};
+
+export async function invalidateTaskQueries({
+  workspaceId,
+  taskId,
+}: InvalidateTaskQueriesOptions) {
+  await queryClient.invalidateQueries({ queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }) });
+  if (taskId !== undefined) {
+    await queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+  }
+}
+
 // --- --- --- --- --- ---
 
-import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { createSseStream } from "../lib/sse";
 import type {
   AgentEventType,
   ErrorEventData,
@@ -52,54 +68,10 @@ export type TaskSseCallbacks = {
 };
 
 function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSseCallbacks): AbortController {
-  const abortController = new AbortController();
-
-  fetchEventSource(new Request(url), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-    signal: abortController.signal,
-
-    async onopen(response) {
-      if (response.ok) {
-        return;
-      }
-
-      let errorMessage: string;
-      try {
-        const responseBody = await response.json();
-        errorMessage = responseBody?.error ?? `HTTP_${response.status}`;
-      } catch {
-        errorMessage = response.statusText || `HTTP_${response.status}`;
-      }
-
-      throw new Error(errorMessage);
-    },
-
-    onmessage(event) {
-      let data: unknown;
-      try {
-        if (event.data.length) {
-          data = JSON.parse(event.data);
-        } else {
-          data = null;
-        }
-      } catch (error) {
-        console.error(
-          `\
-Failed to parse SSE message
-message type: ${event.event}
-message data: ${event.data}
-`,
-          error
-        );
-        callbacks.onError?.(error instanceof Error ? error : new Error("Failed to parse SSE message"));
-        return;
-      }
-
-      switch (event.event as AgentEventType) {
+  const abortController = createSseStream(url, {
+    body,
+    onMessage: ({ event, data }) => {
+      switch (event as AgentEventType) {
         case "MESSAGE_CHUNK":
           callbacks.onMessageChunk?.(data as MessageChunkEventData);
           break;
@@ -149,20 +121,12 @@ message data: ${event.data}
           break;
 
         default:
-          console.warn("Unknown SSE event type:", event.event);
+          console.warn("Unknown SSE event type:", event);
       }
     },
-
-    onerror(error) {
-      callbacks.onError?.(error instanceof Error ? error : new Error("SSE connection error"));
-      throw error;
-    },
-
-    onclose() {
-      callbacks.onClose?.();
-    },
+    onError: callbacks.onError,
+    onClose: callbacks.onClose,
   });
-
   return abortController;
 }
 

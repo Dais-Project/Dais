@@ -1,9 +1,8 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import type React from "react";
 import { toast } from "sonner";
-import { getGetAgentsInfiniteQueryKey, useDeleteAgent, useGetAgentsSuspenseInfinite } from "@/api/agent";
+import { invalidateAgentQueries, useDeleteAgent, useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
@@ -100,13 +99,12 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 }
 
 export function AgentList() {
-  const queryClient = useQueryClient();
   const removePattern = useTabsStore((state) => state.removePattern);
 
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
-    onConfirm: async (agent) => {
+    async onConfirm(agent) {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
-      queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey() });
+      await invalidateAgentQueries(agent.id);
 
       removePattern((tab) => tab.type === "agent" && tab.metadata.mode === "edit" && tab.metadata.id === agent.id);
 
@@ -114,7 +112,7 @@ export function AgentList() {
         description: "已成功删除 Agent。",
       });
     },
-    onError: (error: Error) => {
+    onError(error: Error) {
       toast.error("删除失败", {
         description: error.message || "删除 Agent 时发生错误，请稍后重试。",
       });
@@ -125,7 +123,21 @@ export function AgentList() {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
 
-  const deleteAgentMutation = useDeleteAgent();
+  const deleteAgentMutation = useDeleteAgent({
+    mutation: {
+      async onSuccess(_, variables) {
+        await invalidateAgentQueries(variables.agentId);
+        toast.success("删除成功", {
+          description: "已成功删除 Agent。",
+        });
+      },
+      onError(error: Error) {
+        toast.error("删除失败", {
+          description: error.message || "删除 Agent 时发生错误，请稍后重试。",
+        });
+      },
+    },
+  });
 
   return (
     <>

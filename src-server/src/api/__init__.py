@@ -4,6 +4,7 @@ from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.routing import APIRoute
 from fastapi_pagination import add_pagination
 from .routes import (
+    sse_router,
     workspaces_router,
     providers_router,
     llm_api_router,
@@ -51,6 +52,7 @@ app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(Exception, handle_unexpected_exception)
 
+app.include_router(sse_router, prefix="/api/events")
 app.include_router(workspaces_router, prefix="/api/workspaces")
 app.include_router(agents_router, prefix="/api/agents")
 app.include_router(providers_router, prefix="/api/providers")

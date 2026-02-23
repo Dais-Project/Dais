@@ -1,7 +1,7 @@
 import logo from "@shared/icon-square.png";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TaskType, UserMessage } from "@/api/generated/schemas";
-import { getGetTaskQueryKey, getGetTasksInfiniteQueryKey, useNewTask } from "@/api/task";
+import { getGetTaskQueryKey, invalidateTaskQueries, useNewTask } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { DEFAULT_TAB_TITLE } from ".";
@@ -18,13 +18,9 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
   const createTaskMutation = useNewTask({
     mutation: {
-      onSuccess: (taskRead) => {
+      async onSuccess(taskRead) {
         if (currentWorkspace) {
-          queryClient.invalidateQueries({
-            queryKey: getGetTasksInfiniteQueryKey({
-              workspace_id: currentWorkspace.id,
-            }),
-          });
+          await invalidateTaskQueries({ workspaceId: currentWorkspace.id });
         }
         queryClient.removeQueries({
           queryKey: getGetTaskQueryKey(taskRead.id),

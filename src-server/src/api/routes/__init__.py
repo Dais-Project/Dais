@@ -1,3 +1,4 @@
+from .sse import sse_router
 from .task import task_manage_router, task_stream_router
 from .workspace import workspaces_router
 from .agent import agents_router

@@ -1,6 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getGetAgentsInfiniteQueryKey, useCreateAgent } from "@/api/agent";
+import { invalidateAgentQueries, useCreateAgent } from "@/api/agent";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -14,18 +13,17 @@ type AgentCreateFormProps = {
 };
 
 export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
-  const queryClient = useQueryClient();
 
   const createMutation = useCreateAgent({
     mutation: {
-      onSuccess: (newAgent) => {
-        queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey() });
+      async onSuccess(newAgent) {
+        await invalidateAgentQueries();
         toast.success("创建成功", {
           description: `已成功创建 ${newAgent.name} Agent。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("创建失败", {
           description: error.message || "创建 Agent 时发生错误，请稍后重试。",
         });

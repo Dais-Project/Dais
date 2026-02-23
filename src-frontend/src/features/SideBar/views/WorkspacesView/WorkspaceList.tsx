@@ -1,9 +1,8 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
 import {
-  getGetWorkspacesInfiniteQueryKey,
+  invalidateWorkspaceQueries,
   useDeleteWorkspace,
   useGetWorkspacesSuspenseInfinite,
 } from "@/api/workspace";
@@ -124,16 +123,15 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
 }
 
 export function WorkspaceList() {
-  const queryClient = useQueryClient();
   const removeTabsPattern = useTabsStore((state) => state.removePattern);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore((state) => state.isLoading);
 
   const asyncConfirm = useAsyncConfirm<WorkspaceBrief>({
-    onConfirm: async (workspace) => {
+    async onConfirm(workspace) {
       await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
-      queryClient.invalidateQueries({ queryKey: getGetWorkspacesInfiniteQueryKey() });
+      await invalidateWorkspaceQueries(workspace.id);
 
       removeTabsPattern(
         (tab) => tab.type === "workspace" && tab.metadata.mode === "edit" && tab.metadata.id === workspace.id
@@ -148,7 +146,7 @@ export function WorkspaceList() {
         description: "已成功删除工作区。",
       });
     },
-    onError: (error: Error) => {
+    onError(error: Error) {
       toast.error("删除失败", {
         description: error.message || "删除工作区时发生错误，请稍后重试。",
       });
