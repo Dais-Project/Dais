@@ -5,6 +5,7 @@ import { DirectoryField, NameField, RichTextField } from "@/components/custom/fo
 import { Button } from "@/components/ui/button";
 import { DEFAULT_WORKSPACE } from "@/constants/workspace";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import type { WorkspaceCreateFormValues } from "./form-types";
 
 type WorkspaceCreateFormProps = {
@@ -50,6 +51,8 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
       />
 
       <AgentMultiSelectField />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

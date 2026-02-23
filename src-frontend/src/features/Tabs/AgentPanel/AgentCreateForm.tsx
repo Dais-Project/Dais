@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_AGENT } from "@/constants/agent";
 import { AgentIconField } from "./fields/AgentIconField";
 import { AgentModelField } from "./fields/AgentModelField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import type { AgentCreateFormValues } from "./form-types";
 
 type AgentCreateFormProps = {
@@ -52,6 +53,8 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
           editorClassName: "min-h-[8em]",
         }}
       />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

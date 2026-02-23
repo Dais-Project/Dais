@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useController, useFormContext } from "react-hook-form";
 import { useGetAgentsSuspenseInfinite } from "@/api/agent";
-import type { AgentBrief, AgentRead } from "@/api/generated/schemas";
+import type { AgentBrief } from "@/api/generated/schemas";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   SelectDialog,
@@ -46,7 +46,7 @@ function AgentSelectedList({ selectedAgentIds }: { selectedAgentIds: number[] })
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
   const usableAgentMap = useMemo(() => {
-    const map = new Map<number, AgentRead>();
+    const map = new Map<number, AgentBrief>();
     for (const agent of usableAgents ?? []) {
       map.set(agent.id, agent);
     }

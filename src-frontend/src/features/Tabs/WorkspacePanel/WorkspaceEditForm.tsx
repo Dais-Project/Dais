@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import {
   type WorkspaceEditFormValues,
   workspaceToEditFormValues,
@@ -86,6 +87,8 @@ export function WorkspaceEditForm({
       />
 
       <AgentMultiSelectField />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>
