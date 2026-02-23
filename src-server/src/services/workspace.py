@@ -23,9 +23,11 @@ class WorkspaceService(ServiceBase):
 
     async def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = await self._db_session.get(
-            workspace_models.Workspace,
-            id,
-            options=[selectinload(workspace_models.Workspace.usable_agents)],
+            workspace_models.Workspace, id,
+            options=[
+                selectinload(workspace_models.Workspace.usable_agents),
+                selectinload(workspace_models.Workspace.usable_tools),
+            ],
         )
         if not workspace:
             raise WorkspaceNotFoundError(id)

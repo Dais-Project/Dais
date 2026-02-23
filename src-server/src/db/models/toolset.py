@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -7,6 +8,11 @@ from pydantic import TypeAdapter
 from dais_sdk import LocalServerParams, RemoteServerParams, McpTool
 from . import Base
 from .utils import PydanticJSON
+from .relationships import workspace_tool_association_table, agent_tool_association_table
+
+if TYPE_CHECKING:
+    from .workspace import Workspace
+    from .agent import Agent
 
 mcp_params_adapter = TypeAdapter(LocalServerParams | RemoteServerParams)
 
@@ -32,6 +38,11 @@ class Tool(Base):
     def toolset_id(self) -> int: return self._toolset_id
     toolset: Mapped[Toolset] = relationship(back_populates="tools",
                                             viewonly=True)
+
+    _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_tool_association_table,
+                                                        back_populates="usable_tools")
+    _agents: Mapped[list[Agent]] = relationship(secondary=agent_tool_association_table,
+                                                back_populates="usable_tools")
 
     @staticmethod
     def from_mcp_tool(tool: McpTool) -> Tool:

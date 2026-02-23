@@ -23,7 +23,10 @@ class AgentService(ServiceBase):
     async def get_agent_by_id(self, id: int) -> agent_models.Agent:
         agent = await self._db_session.get(
             agent_models.Agent, id,
-            options=[selectinload(agent_models.Agent.model)],
+            options=[
+                selectinload(agent_models.Agent.model),
+                selectinload(agent_models.Agent.usable_tools),
+            ],
         )
         if not agent:
             raise AgentNotFoundError(id)
