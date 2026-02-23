@@ -3,6 +3,7 @@ from pathlib import Path
 from collections.abc import AsyncIterator
 from typing import Annotated
 from fastapi import Depends
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -42,6 +43,11 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
             raise
 DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 db_context = asynccontextmanager(get_db_session)
+
+@event.listens_for(engine.sync_engine, "connect")
+def on_connect(dbapi_conn, _):
+    dbapi_conn.execute("PRAGMA journal_mode=WAL")
+    dbapi_conn.execute("PRAGMA busy_timeout=3000")
 
 async def init_initial_data() -> None:
     async with AsyncSessionLocal.begin() as session:

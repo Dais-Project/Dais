@@ -4,7 +4,7 @@ Customized message types for HTTP response.
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Literal, TypedDict, Self
+from typing import Annotated, Literal, TypedDict, Self
 from dais_sdk.types.message import (
     ChatMessage as SdkMessage,
     UserMessage as SdkUserMessage,
@@ -17,6 +17,7 @@ from dais_sdk.types.message import (
     ChatCompletionImageURL, 
     LiteLlmUsage
 )
+from pydantic import Discriminator
 from ....schemas import DTOBase
 from ....db.models.task import TaskType, TaskUsage
 
@@ -81,7 +82,10 @@ class ToolMessage(BaseMessage):
     def _origin_type(self) -> type[SdkMessage]:
         return SdkToolMessage
 
-TaskMessage = UserMessage | AssistantMessage | SystemMessage | ToolMessage
+TaskMessage = Annotated[
+    UserMessage | AssistantMessage | SystemMessage | ToolMessage,
+    Discriminator("role")
+]
 
 class TaskBase(DTOBase):
     title: str

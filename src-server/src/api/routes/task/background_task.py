@@ -10,7 +10,7 @@ from ....agent.temp_generation import TempGeneration
 from ....settings import use_app_setting_manager
 
 if TYPE_CHECKING:
-    from ....api.lifespan import AppState
+    from ....api.sse_dispatcher import SseDispatcher
 
 _logger = logger.bind(name="TaskBackgroundRoute")
 
@@ -21,7 +21,7 @@ class TaskTitleUpdatedEvent(TypedDict):
 async def summarize_title_in_background(
     task_id: int,
     context: list[TaskMessage],
-    app_state: AppState,
+    sse_dispatcher: SseDispatcher,
 ):
     from ....api.sse_dispatcher import DispatcherEvent
 
@@ -43,7 +43,7 @@ async def summarize_title_in_background(
     except Exception:
         _logger.exception("Failed to update task {} with title '{}'", task_id, title)
 
-    await app_state["sse_dispatcher"].send(
+    await sse_dispatcher.send(
         event=DispatcherEvent.TASK_TITLE_UPDATED,
         data=TaskTitleUpdatedEvent(task_id=task_id, title=title),
     )

@@ -32,6 +32,10 @@ class _SseDispatcher {
   connect(url: URL | string) {
     this.abortController = createSseStream(url, {
       onMessage: ({ event, data }) => {
+        if (event.length === 0 && data === null) {
+          // keepalive message
+          return;
+        }
         const listeners = this.listeners.get(event as DispatcherEvent);
         if (!listeners) {
           return;

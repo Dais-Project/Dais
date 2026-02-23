@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
@@ -30,7 +30,7 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { TaskIcon } from "./TaskIcon";
 import { useEffect } from "react";
 import SseDispatcher from "@/lib/sse-dispatcher";
-import { produce } from "immer";
+import { produce, current } from "immer";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -110,24 +110,26 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
 
-  useEffect(() => {
-    return SseDispatcher.on("task_title_updated", (data) => {
+  useEffect(() => 
+    SseDispatcher.subscribe("task_title_updated", ({ task_id, title}) => {
       const queryKey = getGetTasksInfiniteQueryKey({ workspace_id: workspaceId });
-      queryClient.setQueryData<PageTaskBrief>(
+      queryClient.setQueryData<InfiniteData<PageTaskBrief>>(
         queryKey, produce((draft) => {
           if (!draft) {
             return;
           }
-          for (const item of draft.items) {
-            if (item.id === data.task_id) {
-              item.title = data.title;
-              return;
+          for (const page of draft.pages) {
+            for (const item of page.items) {
+              if (item.id === task_id) {
+                item.title = title;
+                return;
+              }
             }
           }
         })
       );
-    });
-  }, [queryClient, workspaceId]);
+    })
+  , [queryClient, workspaceId]);
 
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     async onConfirm(task) {

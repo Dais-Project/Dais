@@ -1,10 +1,12 @@
 import asyncio
+from typing import TYPE_CHECKING
 from enum import Enum
 from collections.abc import AsyncGenerator
-from typing import Any
-from sse_starlette import ServerSentEvent
+from sse_starlette import ServerSentEvent, JSONServerSentEvent
 from .types import EmptyServerSentEvent
-from .routes.task.background_task import TaskTitleUpdatedEvent
+
+if TYPE_CHECKING:
+    from .routes.task.background_task import TaskTitleUpdatedEvent
 
 class DispatcherEvent(str, Enum):
     TASK_TITLE_UPDATED = "task_title_updated"
@@ -20,7 +22,7 @@ class SseDispatcher:
         if data is None:
             await self._queue.put(EmptyServerSentEvent(event=event.value))
             return
-        await self._queue.put(ServerSentEvent(event=event.value, data=data))
+        await self._queue.put(JSONServerSentEvent(event=event.value, data=data))
 
     async def listen(self) -> AsyncGenerator[ServerSentEvent, None]:
         while self._is_running:

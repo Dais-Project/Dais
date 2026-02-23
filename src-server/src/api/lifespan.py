@@ -15,9 +15,10 @@ class AppState(TypedDict):
 async def lifespan(_: FastAPI) -> AsyncIterator[AppState]:
     sse_dispatcher = SseDispatcher()
 
-    await BuiltinToolsetManager.sync_toolsets()
     app_setting_manager = use_app_setting_manager()
     await app_setting_manager.initialize()
+
+    await BuiltinToolsetManager.sync_toolsets()
     mcp_toolset_manager = use_mcp_toolset_manager()
     await mcp_toolset_manager.initialize()
     await mcp_toolset_manager.connect_mcp_servers()

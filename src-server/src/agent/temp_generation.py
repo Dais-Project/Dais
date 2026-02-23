@@ -28,7 +28,6 @@ class TempGeneration:
                 SystemMessage(content=self._instruction),
                 UserMessage(content=input),
             ],
-            toolsets=[],
             tool_choice="none")
 
     async def generate(self, input: OpenAIMessageContent) -> str:
