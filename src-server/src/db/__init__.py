@@ -41,7 +41,7 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
         except Exception:
             await session.rollback()
             raise
-DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
+type DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 db_context = asynccontextmanager(get_db_session)
 
 @event.listens_for(engine.sync_engine, "connect")

@@ -11,7 +11,7 @@ toolset_router = APIRouter(tags=["toolset"])
 
 def get_mcp_toolset_manager(request: Request) -> McpToolsetManager:
     return request.state.mcp_toolset_manager
-McpToolsetManagerDep = Annotated[McpToolsetManager, Depends(get_mcp_toolset_manager)]
+type McpToolsetManagerDep = Annotated[McpToolsetManager, Depends(get_mcp_toolset_manager)]
 
 class ToolsetBrief(BaseModel):
     id: int
