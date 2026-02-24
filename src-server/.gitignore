@@ -3,7 +3,6 @@ dist/
 __pycache__/
 wheels/
 .venv/
-*.spec
 *.db
 
 .coverage

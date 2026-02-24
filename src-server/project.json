@@ -50,7 +50,7 @@
       "cache": true,
       "options": {
         "commands": [
-          "uv run pyinstaller --noconfirm --name server entry.py",
+          "uv run pyinstaller --noconfirm entry.spec",
           "uv run python -m scripts.rename_python_sidecar --name=server --output-dir=../src-tauri/"
         ],
         "parallel": false
