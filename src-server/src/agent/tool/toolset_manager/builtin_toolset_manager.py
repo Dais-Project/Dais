@@ -8,7 +8,6 @@ from ..builtin_tools import (
 )
 from ...types import ContextUsage
 from ....db import db_context
-from ....services import ToolsetService
 from ....db.models import toolset as toolset_models
 
 class BuiltinToolsetManager(ToolsetManager):
@@ -18,6 +17,8 @@ class BuiltinToolsetManager(ToolsetManager):
         self._toolsets: list[BuiltInToolset] | None = None
 
     async def initialize(self):
+        from ....services import ToolsetService
+
         toolset_types: list[type[BuiltInToolset]] = [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]
         async with db_context() as session:
             toolset_ents = await ToolsetService(session).get_all_built_in_toolsets()

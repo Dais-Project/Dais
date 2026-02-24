@@ -5,4 +5,5 @@ export const DEFAULT_AGENT = {
   icon_name: "bot",
   system_prompt: "",
   model_id: null,
+  usable_tool_ids: [],
 } satisfies AgentCreate;

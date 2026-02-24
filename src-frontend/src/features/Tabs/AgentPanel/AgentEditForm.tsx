@@ -7,6 +7,7 @@ import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { AgentIconField } from "./fields/AgentIconField";
 import { AgentModelField } from "./fields/AgentModelField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import { type AgentEditFormValues, agentToEditFormValues } from "./form-types";
 
 type AgentEditFormProps = {
@@ -59,6 +60,8 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
           editorClassName: "min-h-[8em]",
         }}
       />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>

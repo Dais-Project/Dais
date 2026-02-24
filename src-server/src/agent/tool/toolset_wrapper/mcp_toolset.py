@@ -1,4 +1,3 @@
-import asyncio
 from dataclasses import replace
 from enum import Enum
 from typing import cast, override
@@ -8,7 +7,6 @@ from dais_sdk import (
     LocalServerParams, RemoteServerParams,
 )
 from ..types import ToolMetadata
-from ....services import ToolsetService
 from ....db import db_context
 from ....db.models import toolset as toolset_models
 
@@ -55,6 +53,8 @@ class McpToolset(Toolset):
         self._error = error
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
+        from ....services import ToolsetService
+
         async with db_context() as session:
             toolset_service = ToolsetService(session)
             tools = [ToolsetService.ToolLike(
@@ -74,7 +74,9 @@ class McpToolset(Toolset):
             if tool_ent is None: continue
             if not tool_ent.is_enabled: continue
             result.append(replace(tool,
-                                  metadata=ToolMetadata(auto_approve=tool_ent.auto_approve)))
+                                  metadata=ToolMetadata(
+                                    id=tool_ent.id,
+                                    auto_approve=tool_ent.auto_approve)))
         return result
 
     def refresh_metadata(self, tools: list[toolset_models.Tool]):

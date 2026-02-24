@@ -6,6 +6,12 @@ class TaskBase(DTOBase):
     type: TaskType
     messages: list[TaskMessage]
 
+class TaskBrief(TaskBase):
+    id: int
+    usage: TaskUsage
+    last_run_at: int
+    agent_id: int | None
+
 class TaskRead(TaskBase):
     id: int
     usage: TaskUsage

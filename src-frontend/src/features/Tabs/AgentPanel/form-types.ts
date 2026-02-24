@@ -10,5 +10,6 @@ export function agentToEditFormValues(agent: AgentRead): AgentEditFormValues {
     icon_name: agent.icon_name,
     system_prompt: agent.system_prompt,
     model_id: agent.model?.id ?? null,
+    usable_tool_ids: agent.usable_tools.map((tool) => tool.id),
   };
 }

@@ -73,6 +73,28 @@ export const getStatusBadge = (status: ToolState) => {
   );
 };
 
+export type ToolBreadcrumbProps = {
+  toolsetName?: string;
+  toolName: string;
+};
+
+export const ToolBreadcrumb = ({
+  toolsetName,
+  toolName,
+}: ToolBreadcrumbProps) => (
+  <>
+    {toolsetName && (
+      <>
+        <span className="font-medium text-muted-foreground text-sm">
+          {toolsetName}
+        </span>
+        <span className="text-muted-foreground/40">/</span>
+      </>
+    )}
+    <span className="font-medium text-sm">{toolName}</span>
+  </>
+);
+
 export const ToolHeader = ({
   className,
   toolsetName,
@@ -89,15 +111,7 @@ export const ToolHeader = ({
   >
     <div className="flex items-center gap-2">
       <WrenchIcon className="size-4 text-muted-foreground" />
-      {toolsetName && (
-        <>
-          <span className="font-medium text-muted-foreground text-sm">
-            {toolsetName}
-          </span>
-          <span className="text-muted-foreground/40">/</span>
-        </>
-      )}
-      <span className="font-medium text-sm">{toolName}</span>
+      <ToolBreadcrumb toolsetName={toolsetName} toolName={toolName} />
       {getStatusBadge(state)}
     </div>
     <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />

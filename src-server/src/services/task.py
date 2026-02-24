@@ -45,6 +45,8 @@ class TaskService(ServiceBase):
         return new_task
 
     async def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:
+        print("Updating task:", data.model_dump())
+        
         task = await self.get_task_by_id(id)
 
         if data.messages is not None:

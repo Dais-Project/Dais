@@ -6,7 +6,6 @@ from dais_sdk import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
 from ....db import db_context
-from ....services import ToolsetService
 
 _logger = logger.bind(name="McpToolsetManager")
 
@@ -25,12 +24,16 @@ class McpToolsetManager(ToolsetManager):
         return list(self._toolset_map.values())
 
     async def initialize(self):
+        from ....services import ToolsetService
+
         async with db_context() as session:
             toolset_ents = await ToolsetService(session).get_all_mcp_toolsets()
         with self._lock:
             self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
     async def refresh_toolset_metadata(self):
+        from ....services import ToolsetService
+
         if self._toolset_map is None:
             raise ValueError("Toolset manager not initialized")
 

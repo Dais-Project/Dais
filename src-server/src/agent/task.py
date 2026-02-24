@@ -1,6 +1,6 @@
 import asyncio
-import time
 import uuid
+from dais_sdk.types.tool import ToolDef
 from types import MethodType
 from collections.abc import AsyncGenerator
 from loguru import logger
@@ -55,14 +55,26 @@ class AgentTask:
         return llm
 
     def _request_param_factory(self) -> LlmRequestParams:
-        return LlmRequestParams(
+        params = LlmRequestParams(
             model=self._ctx.model.name,
             messages=[
                 SystemMessage(content=self._ctx.system_instruction),
                 *self._ctx.messages,
-            ],
-            toolsets=self._ctx.toolsets,
-            tool_choice="required")
+            ])
+        usable_tool_ids = self._ctx.usable_tool_ids
+        if usable_tool_ids is None:
+            params.tool_choice = "none"
+        elif len(usable_tool_ids) == 0:
+            params.toolsets = self._ctx.toolsets
+            params.tool_choice = "required"
+        else:
+            params.tools = [tool
+                            for toolset in self._ctx.toolsets
+                            for tool in toolset.get_tools()
+                            if tool.metadata["id"] in usable_tool_ids]
+            params.tool_choice = "required"
+
+        return params
 
     async def _create_llm_call(self,
                                request_params: LlmRequestParams

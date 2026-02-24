@@ -15,16 +15,14 @@ async def get_workspaces(db_session: DbSessionDep):
 
 @workspaces_router.get("/{workspace_id}", response_model=workspace_schemas.WorkspaceRead)
 async def get_workspace(workspace_id: int, db_session: DbSessionDep):
-    workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
-    return workspace_schemas.WorkspaceRead.model_validate(workspace)
+    return await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
 
 @workspaces_router.post("/", status_code=status.HTTP_201_CREATED, response_model=workspace_schemas.WorkspaceRead)
 async def create_workspace(
     db_session: DbSessionDep,
     body: workspace_schemas.WorkspaceCreate,
 ):
-    new_workspace = await WorkspaceService(db_session).create_workspace(body)
-    return workspace_schemas.WorkspaceRead.model_validate(new_workspace)
+    return await WorkspaceService(db_session).create_workspace(body)
 
 @workspaces_router.put("/{workspace_id}", response_model=workspace_schemas.WorkspaceRead)
 async def update_workspace(
@@ -32,8 +30,7 @@ async def update_workspace(
     body: workspace_schemas.WorkspaceUpdate,
     db_session: DbSessionDep,
 ):
-    updated_workspace = await WorkspaceService(db_session).update_workspace(workspace_id, body)
-    return workspace_schemas.WorkspaceRead.model_validate(updated_workspace)
+    return await WorkspaceService(db_session).update_workspace(workspace_id, body)
 
 @workspaces_router.delete("/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workspace(workspace_id: int, db_session: DbSessionDep):

@@ -4,12 +4,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
 from . import Base
-from .relationships import workspace_agent_association_table
+from .relationships import workspace_agent_association_table, agent_tool_association_table
 
 if TYPE_CHECKING:
     from .provider import LlmModel
     from .workspace import Workspace
     from .task import Task
+    from .toolset import Tool
 
 class Agent(Base):
     __tablename__ = "agents"
@@ -25,11 +26,15 @@ class Agent(Base):
                                                    lazy="joined")
     @hybrid_property
     def model(self) -> LlmModel | None: return self._model
+
     workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_agent_association_table,
                                                        back_populates="usable_agents",
                                                        viewonly=True)
     tasks: Mapped[list[Task]] = relationship(back_populates="_agent",
                                              viewonly=True)
+    
+    usable_tools: Mapped[list[Tool]] = relationship(secondary=agent_tool_association_table,
+                                                    back_populates="_agents")
 
 async def init(session: AsyncSession):
     orchestration_agent = Agent(

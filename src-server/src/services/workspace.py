@@ -4,6 +4,7 @@ from .service_base import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import workspace as workspace_models
 from ..db.models import agent as agent_models
+from ..db.models import toolset as toolset_models
 from ..schemas import workspace as workspace_schemas
 
 
@@ -23,9 +24,11 @@ class WorkspaceService(ServiceBase):
 
     async def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = await self._db_session.get(
-            workspace_models.Workspace,
-            id,
-            options=[selectinload(workspace_models.Workspace.usable_agents)],
+            workspace_models.Workspace, id,
+            options=[
+                selectinload(workspace_models.Workspace.usable_agents),
+                selectinload(workspace_models.Workspace.usable_tools),
+            ],
         )
         if not workspace:
             raise WorkspaceNotFoundError(id)
@@ -54,19 +57,25 @@ class WorkspaceService(ServiceBase):
         if not workspace:
             raise WorkspaceNotFoundError(id)
 
-        usable_agent_ids = data.usable_agent_ids
-
-        update_data = data.model_dump(exclude_unset=True, exclude={"usable_agent_ids"})
+        update_data = data.model_dump(exclude_unset=True,
+                                                      exclude={"usable_agent_ids", "usable_tool_ids"})
         for key, value in update_data.items():
             if hasattr(workspace, key) and value is not None:
                 setattr(workspace, key, value)
 
-        if usable_agent_ids is not None:
+        if data.usable_agent_ids is not None:
             stmt = select(agent_models.Agent).where(
-                agent_models.Agent.id.in_(usable_agent_ids)
+                agent_models.Agent.id.in_(data.usable_agent_ids)
             )
             agents = (await self._db_session.execute(stmt)).scalars().all()
             workspace.usable_agents = list(agents)
+
+        if data.usable_tool_ids is not None:
+            stmt = select(toolset_models.Tool).where(
+                toolset_models.Tool.id.in_(data.usable_tool_ids)
+            )
+            tools = (await self._db_session.execute(stmt)).scalars().all()
+            workspace.usable_tools = list(tools)
 
         await self._db_session.flush()
         await self._db_session.refresh(workspace)

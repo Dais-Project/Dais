@@ -1,13 +1,8 @@
-from typing import Annotated
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter
 from sse_starlette import EventSourceResponse
-from ..sse_dispatcher import SseDispatcher
+from ..sse_dispatcher import SseDispatcher, SseDispatcherDep
 
 sse_router = APIRouter(tags=["stream"])
-
-def get_sse_dispatcher(request: Request) -> SseDispatcher:
-    return request.state.sse_dispatcher
-SseDispatcherDep = Annotated[SseDispatcher, Depends(get_sse_dispatcher)]
 
 async def sse_stream(sse_dispatcher: SseDispatcher):
     async for event in sse_dispatcher.listen():

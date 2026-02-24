@@ -6,12 +6,14 @@ from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetMana
 from .prompts.instruction import BASE_INSTRUCTION
 from .types import ContextUsage
 from ..db import db_context
-from ..db.models import (
-    agent as agent_models,
-    provider as provider_models,
-    workspace as workspace_models,
-    task as task_models
+from ..db.models import task as task_models
+from ..schemas import (
+    agent as agent_schemas,
+    workspace as workspace_schemas,
+    provider as provider_schemas
 )
+from ..services.agent import AgentService
+from ..services.workspace import WorkspaceService
 from ..services.llm_model import LlmModelService
 from ..services.provider import ProviderService
 from ..services.task import TaskService
@@ -22,10 +24,10 @@ class AgentContext:
     def __init__(self,
                  task_id: int,
                  messages: list[task_models.TaskMessage],
-                 workspace: workspace_models.Workspace,
-                 agent: agent_models.Agent,
-                 provider: provider_models.Provider,
-                 model: provider_models.LlmModel,
+                 workspace: workspace_schemas.WorkspaceRead,
+                 agent: agent_schemas.AgentRead,
+                 provider: provider_schemas.ProviderRead,
+                 model: provider_schemas.LlmModelRead,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
         self.task_id = task_id
@@ -42,14 +44,14 @@ class AgentContext:
         self._mcp_toolset_manager = mcp_toolset_manager
 
     @classmethod
-    async def create(cls, task: task_models.Task) -> Self:
-        assert task.agent is not None
+    async def create(cls, task: task_schemas.TaskRead) -> Self:
         assert task.agent_id is not None
 
-        agent = task.agent
-        workspace = task.workspace
         messages = task.messages
         async with db_context() as session:
+            agent = await AgentService(session).get_agent_by_id(task.agent_id)
+            workspace = await WorkspaceService(session).get_workspace_by_id(task.workspace_id)
+
             assert agent.model_id is not None
             model = await LlmModelService(session).get_model_by_id(agent.model_id)
             provider = await ProviderService(session).get_provider_by_id(model.provider_id)
@@ -84,16 +86,25 @@ class AgentContext:
                 *self._mcp_toolset_manager.toolsets]
 
     @property
-    def provider(self) -> provider_models.Provider:
+    def provider(self) -> provider_schemas.ProviderRead:
         return self._provider
 
     @property
-    def model(self) -> provider_models.LlmModel:
+    def model(self) -> provider_schemas.LlmModelRead:
         return self._model
 
     @property
     def messages(self) -> list[task_models.TaskMessage]:
         return self._messages
+
+    @property
+    def usable_tool_ids(self) -> set[int] | None:
+        workspace_usable_tool_ids = {tool.id for tool in self._workspace.usable_tools}
+        agent_usable_tool_ids = {tool.id for tool in self._agent.usable_tools}
+        if len(workspace_usable_tool_ids) == 0 or len(agent_usable_tool_ids) == 0:
+            # No usable tool ids configured, do not filter
+            return None
+        return workspace_usable_tool_ids & agent_usable_tool_ids
 
     async def persist(self):
         async with db_context() as session:
