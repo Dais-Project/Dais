@@ -4,12 +4,16 @@ import litellm
 
 litellm_path = os.path.dirname(litellm.__file__)
 tokenizer_path = os.path.join(litellm_path, "litellm_core_utils", "tokenizers")
+endpoints_path = os.path.join(litellm_path, "containers", "endpoints.json")
 
 a = Analysis(
     ["entry.py"],
     pathex=[],
     binaries=[],
-    datas=[(tokenizer_path, "litellm/litellm_core_utils/tokenizers")],
+    datas=[
+        (tokenizer_path, "litellm/litellm_core_utils/tokenizers"),
+        (endpoints_path, "litellm/containers/endpoints.json"),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
