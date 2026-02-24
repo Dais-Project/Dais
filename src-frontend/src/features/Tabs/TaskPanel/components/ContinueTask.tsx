@@ -1,6 +1,6 @@
 import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BuiltInTools, type TaskRead } from "@/api/generated/schemas";
+import { BuiltInTools, type TaskRead, type ToolMessageMetadata } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { isToolMessageCompleted } from "@/types/message";
@@ -21,7 +21,7 @@ function shouldShow(data: TaskRead): boolean {
   if (isToolMessageCompleted(lastMessage)) {
     return true;
   }
-  const userApproval = lastMessage.metadata?.user_approval;
+  const userApproval = (lastMessage.metadata as ToolMessageMetadata)?.user_approval;
   if (userApproval === "pending") {
     return false;
   }

@@ -1,4 +1,4 @@
-import type { ToolMessage } from "@/api/generated/schemas";
+import type { ToolMessage, ToolMessageMetadata } from "@/api/generated/schemas";
 import type { ToolState } from "@/components/ai-elements/tool";
 
 function getToolState(message: ToolMessage): ToolState {
@@ -8,7 +8,7 @@ function getToolState(message: ToolMessage): ToolState {
   if (message.result) {
     return "output-available";
   }
-  switch (message.metadata.user_approval) {
+  switch ((message.metadata as ToolMessageMetadata).user_approval) {
     case "pending":
       return "approval-requested";
     case "approved":
