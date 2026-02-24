@@ -1,10 +1,9 @@
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
-from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
 
 
 class TestIntegration:
-    def test_write_edit_workflow(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_write_edit_workflow(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
         filename = "workflow_test.txt"
 
         initial_content = "Initial content\nSecond line"
@@ -18,9 +17,9 @@ class TestIntegration:
         assert "Modified content" in final_content
         assert "Initial content" not in final_content
 
-    def test_read_write_edit_delete_workflow(self, temp_workspace, sample_text_file):
+    def test_read_write_edit_delete_workflow(self, built_in_toolset_context, temp_workspace, sample_text_file):
         filename, original_content = sample_text_file
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
 
         read_content = tool.read_file(filename)
         assert original_content in read_content
@@ -37,8 +36,8 @@ class TestIntegration:
         assert "deleted successfully" in result
         assert not file_path.exists()
 
-    def test_read_file_set_consistency_across_operations(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_read_file_set_consistency_across_operations(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
 
         filename1 = "file1.txt"
         file1_path = temp_workspace / filename1

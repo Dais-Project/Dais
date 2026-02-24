@@ -5,7 +5,7 @@ from loguru import logger
 from dais_sdk import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
-from ....services import ToolsetService
+from ....db import db_context
 
 _logger = logger.bind(name="McpToolsetManager")
 
@@ -14,21 +14,32 @@ class McpToolsetManager(ToolsetManager):
         self._lock = threading.Lock()
         self._connecting = False
         self._connected = False
-
-        with ToolsetService() as toolset_service:
-            toolset_ents = toolset_service.get_all_mcp_toolsets()
-
-        with self._lock:
-            self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
+        self._toolset_map: dict[int, McpToolset] | None = None
 
     @property
     @override
     def toolsets(self) -> Sequence[Toolset]:
+        if self._toolset_map is None:
+            raise ValueError("Toolset manager not initialized")
         return list(self._toolset_map.values())
 
+    async def initialize(self):
+        from ....services import ToolsetService
+
+        async with db_context() as session:
+            toolset_ents = await ToolsetService(session).get_all_mcp_toolsets()
+        with self._lock:
+            self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
+
     async def refresh_toolset_metadata(self):
-        with ToolsetService() as toolset_service:
-            toolset_ents = toolset_service.get_all_mcp_toolsets()
+        from ....services import ToolsetService
+
+        if self._toolset_map is None:
+            raise ValueError("Toolset manager not initialized")
+
+        async with db_context() as session:
+            toolset_ents = await ToolsetService(session).get_all_mcp_toolsets()
+
         toolsets = []
         toolset_connect_tasks = []
         with self._lock:
@@ -50,6 +61,9 @@ class McpToolsetManager(ToolsetManager):
             toolset.error = result
 
     async def connect_mcp_servers(self):
+        if self._toolset_map is None:
+            raise ValueError("Toolset manager not initialized")
+
         with self._lock:
             if self._connected or self._connecting: return
             self._connecting = True
@@ -67,6 +81,9 @@ class McpToolsetManager(ToolsetManager):
             self._connected = True
 
     async def disconnect_mcp_servers(self):
+        if self._toolset_map is None:
+            raise ValueError("Toolset manager not initialized")
+
         with self._lock:
             if not self._connected or self._connecting: return
             self._connecting = False

@@ -1,5 +1,5 @@
 import time
-from typing import TypedDict
+from typing import Annotated, TypedDict
 from itertools import islice
 from dais_shell import (
     AgentShell, CommandStep,
@@ -7,6 +7,7 @@ from dais_shell import (
 )
 from dais_shell.iostream_reader import IOStreamBuffer
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ....db.models import toolset as toolset_models
 
 class ShellResult(TypedDict):
     stdout: str
@@ -18,8 +19,10 @@ class ShellResult(TypedDict):
     duration: str
 
 class OsInteractionsToolset(BuiltInToolset):
-    def __init__(self, ctx: BuiltInToolsetContext):
-        super().__init__(ctx)
+    def __init__(self,
+                 ctx: BuiltInToolsetContext,
+                 toolset_ent: toolset_models.Toolset | None = None):
+        super().__init__(ctx, toolset_ent)
         self._shell = AgentShell()
 
     @property
@@ -27,10 +30,14 @@ class OsInteractionsToolset(BuiltInToolset):
 
     @built_in_tool
     async def shell(self,
-                    command: str,
-                    args: list[str] | None = None,
-                    cwd: str = ".",
-                    timeout: int = 30
+                    command: Annotated[str,
+                        "The command to execute. Do not pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd)."],
+                    args: Annotated[list[str] | None,
+                        "(Default: None) The arguments for the command."] = None,
+                    cwd: Annotated[str,
+                        "(Default: \".\") The working directory to execute the command in, relative to the current working directory."] = ".",
+                    timeout: Annotated[int,
+                        "(Default: 30) Timeout for command execution in seconds."] = 30
                     ) -> ShellResult:
         """
         Request to execute a shell command.
@@ -40,12 +47,6 @@ class OsInteractionsToolset(BuiltInToolset):
         IMPORTANT:
             1. DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons.
             2. DO NOT use shell operators such as `&&`, `||`, `|`, `;`, `>`, `>>`, `<`, `2>&1`.
-
-        Args:
-            command: (required) The command to execute.
-            args: (optional, default: []) The arguments of the command.
-            cwd: (optional, default: ".") The current working directory to execute the command in.
-            timeout: (optional, default: 30) The timeout of the command execution in seconds.
 
         Returns:
             A JSON object containing the output of the command.

@@ -1,34 +1,67 @@
 import platform
+import time
+from typing import Self
 from dais_sdk import Toolset
-from .tool import use_mcp_toolset_manager, BuiltinToolsetManager
+from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
 from .types import ContextUsage
-from ..db.models import (
-    agent as agent_models,
-    provider as provider_models,
-    workspace as workspace_models,
-    task as task_models
+from ..db import db_context
+from ..db.models import task as task_models
+from ..schemas import (
+    agent as agent_schemas,
+    workspace as workspace_schemas,
+    provider as provider_schemas
 )
+from ..services.agent import AgentService
+from ..services.workspace import WorkspaceService
+from ..services.llm_model import LlmModelService
 from ..services.provider import ProviderService
+from ..services.task import TaskService
+from ..schemas import task as task_schemas
+from ..settings import use_app_setting_manager
 
 class AgentContext:
-    def __init__(self, task: task_models.Task):
-        assert task.agent_id is not None
-        assert task.agent is not None
-        self._workspace = task.workspace
-        self._agent = task.agent
-        self._model = self._agent.model
-        if self._model is None:
-            raise ValueError(f"Agent {self._agent.id} has no model")
-        
-        with ProviderService() as provider_service:
-            self._provider = provider_service.get_provider_by_id(self._model.provider_id)
+    def __init__(self,
+                 task_id: int,
+                 messages: list[task_models.TaskMessage],
+                 workspace: workspace_schemas.WorkspaceRead,
+                 agent: agent_schemas.AgentRead,
+                 provider: provider_schemas.ProviderRead,
+                 model: provider_schemas.LlmModelRead,
+                 builtin_toolset_manager: BuiltinToolsetManager,
+                 mcp_toolset_manager: McpToolsetManager):
+        self.task_id = task_id
+        self._workspace = workspace
+        self._agent = agent
+        self._provider = provider
+        self._model = model
+        self._messages = messages
 
         self._usage = ContextUsage.default()
         self._usage.max_tokens = self._model.context_size
 
-        self._builtin_toolset_manager = BuiltinToolsetManager(self._workspace.directory, self._usage)
-        self._mcp_toolset_manager = use_mcp_toolset_manager()
+        self._builtin_toolset_manager = builtin_toolset_manager
+        self._mcp_toolset_manager = mcp_toolset_manager
+
+    @classmethod
+    async def create(cls, task: task_schemas.TaskRead) -> Self:
+        assert task.agent_id is not None
+
+        messages = task.messages
+        async with db_context() as session:
+            agent = await AgentService(session).get_agent_by_id(task.agent_id)
+            workspace = await WorkspaceService(session).get_workspace_by_id(task.workspace_id)
+
+            assert agent.model_id is not None
+            model = await LlmModelService(session).get_model_by_id(agent.model_id)
+            provider = await ProviderService(session).get_provider_by_id(model.provider_id)
+
+        builtin_toolset_manager = BuiltinToolsetManager(workspace.directory, ContextUsage.default())
+        await builtin_toolset_manager.initialize()
+        mcp_toolset_manager = use_mcp_toolset_manager()
+        return cls(task.id,
+                   messages, workspace, agent, provider, model,
+                   builtin_toolset_manager, mcp_toolset_manager)
 
     @property
     def usage(self) -> ContextUsage:
@@ -36,14 +69,15 @@ class AgentContext:
 
     @property
     def system_instruction(self) -> str:
+        settings = use_app_setting_manager().settings
         return BASE_INSTRUCTION.format(
             os_platform=platform.system(),
-            user_language="zh-CN", # TODO: Get from system settings
-            workspace_name=self.workspace.name,
-            workspace_directory=self.workspace.directory,
-            workspace_instruction=self.workspace.workspace_background,
-            agent_role=self.agent.name,
-            agent_instruction=self.agent.system_prompt
+            user_language=settings.reply_language,
+            workspace_name=self._workspace.name,
+            workspace_directory=self._workspace.directory,
+            workspace_instruction=self._workspace.workspace_background,
+            agent_role=self._agent.name,
+            agent_instruction=self._agent.system_prompt
         ).strip()
 
     @property
@@ -52,17 +86,31 @@ class AgentContext:
                 *self._mcp_toolset_manager.toolsets]
 
     @property
-    def workspace(self) -> workspace_models.Workspace:
-        return self._workspace
-
-    @property
-    def agent(self) -> agent_models.Agent:
-        return self._agent
-
-    @property
-    def provider(self) -> provider_models.Provider:
+    def provider(self) -> provider_schemas.ProviderRead:
         return self._provider
 
     @property
-    def model(self) -> provider_models.LlmModel:
+    def model(self) -> provider_schemas.LlmModelRead:
         return self._model
+
+    @property
+    def messages(self) -> list[task_models.TaskMessage]:
+        return self._messages
+
+    @property
+    def usable_tool_ids(self) -> set[int] | None:
+        workspace_usable_tool_ids = {tool.id for tool in self._workspace.usable_tools}
+        agent_usable_tool_ids = {tool.id for tool in self._agent.usable_tools}
+        if len(workspace_usable_tool_ids) == 0 or len(agent_usable_tool_ids) == 0:
+            # No usable tool ids configured, do not filter
+            return None
+        return workspace_usable_tool_ids & agent_usable_tool_ids
+
+    async def persist(self):
+        async with db_context() as session:
+            await TaskService(session).update_task(self.task_id, task_schemas.TaskUpdate(
+                title=None, agent_id=None,
+                messages=self._messages,
+                usage=self._usage,
+                last_run_at=int(time.time())
+            ))

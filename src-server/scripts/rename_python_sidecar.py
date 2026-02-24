@@ -53,7 +53,7 @@ def main():
     # prepare dest path
     dest_dir = Path(output_dir) / "bin"
     dest_executable = dest_dir / f"{name}-{target}{ext}"
-    dest_dependency_dir = dest_dir / "_internal"
+    dest_dependency_dir = Path(output_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     src_dir = Path("dist/" + name)

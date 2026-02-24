@@ -15,11 +15,11 @@ type ToolConfirmationProps = {
   onReject?: () => void;
 };
 
-export function ToolConfirmation({
-  state,
-  onAccept,
-  onReject,
-}: ToolConfirmationProps) {
+export function shouldShowConfirmation(state: ToolState): boolean {
+  return ["approval-requested", "approval-responded", "output-denied"].includes(state);
+}
+
+export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmationProps) {
   let approved: boolean | undefined;
   if (state === "approval-responded") {
     approved = true;
@@ -35,6 +35,7 @@ export function ToolConfirmation({
         approved,
       }}
       state={state}
+      className="border-none"
     >
       <ConfirmationAccepted>
         <div className="flex items-center gap-1">

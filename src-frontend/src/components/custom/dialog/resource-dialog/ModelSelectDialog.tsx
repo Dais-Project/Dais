@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import type { LlmModelRead } from "@/api/generated/schemas";
+import { useMemo } from "react";
+import { useGetModelById } from "@/api/llm-model";
 import { useGetProvidersSuspenseInfinite } from "@/api/provider";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
@@ -18,11 +18,22 @@ import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { Button } from "@/components/ui/button";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 
-type ModelQueryListProps = {
-  onModelsReady: (models: Map<string, LlmModelRead>) => void;
-};
+type ModelSelectTriggerProps = {
+  model_id: number;
+} & React.ComponentProps<typeof Button>;
 
-function ModelQueryList({ onModelsReady }: ModelQueryListProps) {
+function ModelSelectTrigger({ model_id, ...props }: ModelSelectTriggerProps) {
+  const { data, isLoading } = useGetModelById(model_id);
+  if (isLoading) {
+    return <Button variant="outline" {...props} disabled>加载中...</Button>;
+  }
+  if (!data) {
+    return <Button variant="outline" {...props}>模型已被删除</Button>;
+  }
+  return <Button variant="outline" {...props}>{data.name}</Button>;
+}
+
+function ModelQueryList() {
   const query = useGetProvidersSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -31,26 +42,10 @@ function ModelQueryList({ onModelsReady }: ModelQueryListProps) {
     return query.data.pages.flatMap((page) => page.items);
   }, [query.data.pages]);
 
-  const modelMap = useMemo(() => {
-    const map = new Map<string, LlmModelRead>();
-    for (const provider of providers) {
-      for (const model of provider.models) {
-        map.set(model.id.toString(), model);
-      }
-    }
-    return map;
-  }, [providers]);
-
-  useEffect(() => {
-    onModelsReady(modelMap);
-  }, [modelMap, onModelsReady]);
-
   return (
     <>
       <SelectDialogEmpty>
-        {providers.length === 0
-          ? "暂无供应商，请先添加 LLM 供应商以使用模型。"
-          : "未找到模型"}
+        {providers.length === 0 ? "暂无供应商，请先添加 LLM 供应商以使用模型。" : "未找到模型"}
       </SelectDialogEmpty>
       <InfiniteScroll
         query={query}
@@ -73,46 +68,23 @@ function ModelQueryList({ onModelsReady }: ModelQueryListProps) {
 }
 
 type ModelSelectDialogProps = {
-  selectedModel: LlmModelRead | null;
-  onSelect: (model: LlmModelRead) => void;
+  /** the selected model id */
+  value: number | null;
+  onChange: (model_id: number) => void;
 };
 
-export function ModelSelectDialog({
-  selectedModel,
-  onSelect,
-}: ModelSelectDialogProps) {
-  const modelMapRef = useRef<Map<string, LlmModelRead>>(new Map());
-
-  const handleValueChange = (value: string) => {
-    const model = modelMapRef.current.get(value);
-    if (model) {
-      onSelect(model);
-    }
-  };
-
+export function ModelSelectDialog({ value, onChange: onSelect }: ModelSelectDialogProps) {
   return (
-    <SelectDialog<string>
-      value={selectedModel?.id.toString()}
-      onValueChange={handleValueChange}
-    >
+    <SelectDialog<number> value={value ?? undefined} onValueChange={onSelect}>
       <SelectDialogTrigger>
-        <Button variant="outline">
-          {selectedModel ? selectedModel.name : "选择模型"}
-        </Button>
+        {value ? <ModelSelectTrigger model_id={value} /> : <Button variant="outline">选择模型</Button>}
       </SelectDialogTrigger>
 
       <SelectDialogContent>
         <SelectDialogSearch placeholder="搜索模型..." />
         <SelectDialogList className="max-h-96">
-          <AsyncBoundary
-            skeleton={<SelectDialogSkeleton />}
-            errorDescription="无法加载模型列表，请稍后重试。"
-          >
-            <ModelQueryList
-              onModelsReady={(models) => {
-                modelMapRef.current = models;
-              }}
-            />
+          <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription="无法加载模型列表，请稍后重试。">
+            <ModelQueryList />
           </AsyncBoundary>
         </SelectDialogList>
       </SelectDialogContent>

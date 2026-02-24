@@ -1,5 +1,5 @@
 import { CpuIcon, GlobeIcon, TerminalIcon, ToolCaseIcon } from "lucide-react";
-import type { ToolsetType } from "@/types/toolset";
+import type { ToolsetType } from "@/api/generated/schemas";
 
 type ToolsetIconProps = {
   type: ToolsetType;

@@ -1,17 +1,13 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
-import {
-  getGetAgentQueryKey,
-  getGetAgentsQueryKey,
-  useUpdateAgent,
-} from "@/api/agent";
+import { invalidateAgentQueries, useUpdateAgent } from "@/api/agent";
 import type { AgentRead } from "@/api/generated/schemas";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { AgentIconField } from "./fields/AgentIconField";
 import { AgentModelField } from "./fields/AgentModelField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import { type AgentEditFormValues, agentToEditFormValues } from "./form-types";
 
 type AgentEditFormProps = {
@@ -20,23 +16,18 @@ type AgentEditFormProps = {
 };
 
 export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
-  const queryClient = useQueryClient();
-
   const formValues = useMemo(() => agentToEditFormValues(agent), [agent]);
 
   const updateMutation = useUpdateAgent({
     mutation: {
-      onSuccess: (updatedAgent) => {
-        queryClient.invalidateQueries({ queryKey: getGetAgentsQueryKey() });
-        queryClient.invalidateQueries({
-          queryKey: getGetAgentQueryKey(updatedAgent.id),
-        });
+      async onSuccess(updatedAgent) {
+        await invalidateAgentQueries(updatedAgent.id);
         toast.success("更新成功", {
           description: `已成功更新 ${updatedAgent.name} Agent。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("更新失败", {
           description: error.message || "更新 Agent 时发生错误，请稍后重试。",
         });
@@ -58,7 +49,7 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
 
       <AgentIconField />
 
-      <AgentModelField initialModel={agent.model} />
+      <AgentModelField />
 
       <RichTextField
         fieldName="system_prompt"
@@ -69,6 +60,8 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
           editorClassName: "min-h-[8em]",
         }}
       />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>

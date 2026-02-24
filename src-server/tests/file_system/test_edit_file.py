@@ -1,13 +1,11 @@
 import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
-from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
-from src.agent.types import ContextUsage
 
 
 class TestEditFile:
-    def test_edit_file_single_line(self, temp_workspace, file_with_content):
+    def test_edit_file_single_line(self, built_in_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
 
         result = tool.edit_file(filename, "Second line", "Modified second line")
 
@@ -22,9 +20,9 @@ class TestEditFile:
         assert "Modified second line" in new_content
         assert "Second line" not in new_content
 
-    def test_edit_file_multiple_lines(self, temp_workspace, file_with_content):
+    def test_edit_file_multiple_lines(self, built_in_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
 
         old_content = "Second line\nThird line"
         new_content = "New second line\nNew third line"
@@ -38,9 +36,9 @@ class TestEditFile:
         assert "New second line" in final_content
         assert "New third line" in final_content
 
-    def test_edit_file_returns_valid_diff(self, temp_workspace, file_with_content):
+    def test_edit_file_returns_valid_diff(self, built_in_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
 
         result = tool.edit_file(filename, "Original content", "Updated content")
 
@@ -49,8 +47,8 @@ class TestEditFile:
         assert any(line.startswith("+++") for line in lines)
         assert any(line.startswith("@@") for line in lines)
 
-    def test_edit_file_with_unicode(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_edit_file_with_unicode(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
         filename = "unicode_edit.txt"
         original = "原始内容\n第二行"
 
@@ -63,34 +61,34 @@ class TestEditFile:
         assert "修改后的内容" in new_content
         assert "原始内容" not in new_content
 
-    def test_edit_nonexistent_file(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_edit_nonexistent_file(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
 
         with pytest.raises(FileNotFoundError) as exc_info:
             tool.edit_file("nonexistent.txt", "old", "new")
 
         assert "File not found at nonexistent.txt" in str(exc_info.value)
 
-    def test_edit_file_content_not_found(self, temp_workspace, file_with_content):
+    def test_edit_file_content_not_found(self, built_in_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
 
         with pytest.raises(ValueError) as exc_info:
             tool.edit_file(filename, "This content does not exist", "new content")
 
         assert "Content not found in file" in str(exc_info.value)
 
-    def test_edit_file_content_found_multiple_times(self, temp_workspace, file_with_duplicate_content):
+    def test_edit_file_content_found_multiple_times(self, built_in_toolset_context, temp_workspace, file_with_duplicate_content):
         filename, _ = file_with_duplicate_content
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+        tool = FileSystemToolset(built_in_toolset_context)
 
         with pytest.raises(ValueError) as exc_info:
             tool.edit_file(filename, "Duplicate line", "new content")
 
         assert "Content found multiple times in file" in str(exc_info.value)
 
-    def test_edit_file_with_whitespace_sensitivity(self, temp_workspace):
-        tool = FileSystemToolset(BuiltInToolsetContext.default())
+    def test_edit_file_with_whitespace_sensitivity(self, built_in_toolset_context, temp_workspace):
+        tool = FileSystemToolset(built_in_toolset_context)
         filename = "whitespace.txt"
         content = "Line with spaces\n  Indented line\nNormal line"
 

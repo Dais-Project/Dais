@@ -1,12 +1,12 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getGetAgentsInfiniteQueryKey, useCreateAgent } from "@/api/agent";
+import { invalidateAgentQueries, useCreateAgent } from "@/api/agent";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_AGENT } from "@/constants/agent";
 import { AgentIconField } from "./fields/AgentIconField";
 import { AgentModelField } from "./fields/AgentModelField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import type { AgentCreateFormValues } from "./form-types";
 
 type AgentCreateFormProps = {
@@ -14,18 +14,17 @@ type AgentCreateFormProps = {
 };
 
 export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
-  const queryClient = useQueryClient();
 
   const createMutation = useCreateAgent({
     mutation: {
-      onSuccess: (newAgent) => {
-        queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey() });
+      async onSuccess(newAgent) {
+        await invalidateAgentQueries();
         toast.success("创建成功", {
           description: `已成功创建 ${newAgent.name} Agent。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("创建失败", {
           description: error.message || "创建 Agent 时发生错误，请稍后重试。",
         });
@@ -54,6 +53,8 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
           editorClassName: "min-h-[8em]",
         }}
       />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

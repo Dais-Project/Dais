@@ -5,7 +5,7 @@
   "sourceRoot": "src-server",
   "targets": {
     "install": {
-      "command": "uv sync --group dev",
+      "command": "uv sync --all-groups",
       "cache": true,
       "inputs": [
         "{projectRoot}/pyproject.toml",
@@ -67,8 +67,15 @@
     "export-openapi": {
       "command": "uv run python -m scripts.export_openapi",
       "cache": true,
-      "inputs": ["{projectRoot}/src/api/**/*.py"],
-      "outputs": ["{workspaceRoot}/openapi.json"]
+      "inputs": [
+        "{projectRoot}/src/api/**/*.py"
+      ],
+      "outputs": [
+        "{workspaceRoot}/openapi.json"
+      ]
+    },
+    "export-tool-schema": {
+      "command": "uv run python -m scripts.export_tool_specs"
     },
     "generate-migration": {
       "executor": "nx:run-commands",

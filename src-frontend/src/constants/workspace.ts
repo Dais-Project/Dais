@@ -5,4 +5,5 @@ export const DEFAULT_WORKSPACE = {
   directory: "",
   workspace_background: "",
   usable_agent_ids: [],
+  usable_tool_ids: [],
 } satisfies WorkspaceCreate;

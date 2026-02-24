@@ -1,11 +1,18 @@
 from enum import Enum
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import TypeAdapter
 from dais_sdk import LocalServerParams, RemoteServerParams, McpTool
 from . import Base
 from .utils import PydanticJSON
+from .relationships import workspace_tool_association_table, agent_tool_association_table
+
+if TYPE_CHECKING:
+    from .workspace import Workspace
+    from .agent import Agent
 
 mcp_params_adapter = TypeAdapter(LocalServerParams | RemoteServerParams)
 
@@ -32,6 +39,11 @@ class Tool(Base):
     toolset: Mapped[Toolset] = relationship(back_populates="tools",
                                             viewonly=True)
 
+    _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_tool_association_table,
+                                                        back_populates="usable_tools")
+    _agents: Mapped[list[Agent]] = relationship(secondary=agent_tool_association_table,
+                                                back_populates="usable_tools")
+
     @staticmethod
     def from_mcp_tool(tool: McpTool) -> Tool:
         return Tool(name=tool.name, description=tool.description, internal_key=tool.name)
@@ -46,7 +58,7 @@ class Toolset(Base):
     is_enabled: Mapped[bool] = mapped_column(default=True)
     tools: Mapped[list[Tool]] = relationship(back_populates="toolset", cascade="all, delete-orphan")
 
-def init(session: Session):
+async def init(session: AsyncSession):
     from ...agent.tool import (
         FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset
     )
@@ -58,19 +70,14 @@ def init(session: Session):
         ("Execution Control", ExecutionControlToolset.__name__, ToolsetType.BUILT_IN),
     ]
 
-    try:
-        for name, internal_key, type in toolsets_to_init:
-            stmt = select(Toolset).where(Toolset.internal_key == internal_key)
-            exists = session.execute(stmt).scalars().first()
-            if exists: continue
-            session.add(Toolset(
-                name=name,
-                internal_key=internal_key,
-                type=type,
-                params=None,
-                is_enabled=True,
-                tools=[]))
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        raise e
+    for name, internal_key, type in toolsets_to_init:
+        stmt = select(Toolset).where(Toolset.internal_key == internal_key).limit(1)
+        exists = await session.scalar(stmt)
+        if exists: continue
+        session.add(Toolset(name=name,
+                            internal_key=internal_key,
+                            type=type,
+                            params=None,
+                            is_enabled=True,
+                            tools=[]))
+    await session.flush()

@@ -4,7 +4,7 @@ from loguru import logger
 from fastapi import Request
 from sse_starlette import ServerSentEvent, JSONServerSentEvent
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk
-from ...types import EmptyServerSentEvent
+from ....types import EmptyServerSentEvent
 from .....agent.task import AgentTask
 from .....agent.types import (
     AgentEvent,
@@ -83,10 +83,10 @@ async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
             if isinstance(event, ErrorEvent):
                 _logger.error(f"Task failed: {event.error}")
                 _logger.debug("Task openai messages: {}",
-                             [m.to_litellm_message() for m in task._messages])
+                             [m.to_litellm_message() for m in task._ctx.messages])
                 break
     except Exception as e:
         _logger.exception("Error in agent stream")
         yield JSONServerSentEvent(event="error", data={"message": str(e)})
     finally:
-        task.persist()
+        await task.persist()

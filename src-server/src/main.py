@@ -1,3 +1,4 @@
+import asyncio
 import argparse
 import uvicorn
 from loguru import logger
@@ -37,7 +38,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=1460)
     args = parser.parse_args()
-    migrate_db()
+    asyncio.run(migrate_db())
 
     if IS_DEV:
         prevent_port_occupancy(args.port)

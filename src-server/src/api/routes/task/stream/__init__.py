@@ -1,12 +1,14 @@
 from typing import Literal, cast
 from fastapi import APIRouter, Request
 from sse_starlette import EventSourceResponse
-from dais_sdk import UserMessage as SdkUserMessage
+from dais_sdk import UserMessage
 from pydantic import BaseModel
-from ..message import UserMessage as ApiUserMessage
+from .....agent.context import AgentContext
 from .....agent.task import AgentTask
 from .....agent.types import MessageReplaceEvent
+from .....db import db_context
 from .....services.task import TaskService
+from .....schemas import task as task_schemas
 from .utils import AgentGenerator, agent_event_format, agent_stream
 
 class TaskStreamBody(BaseModel):
@@ -14,7 +16,7 @@ class TaskStreamBody(BaseModel):
     agent_id: int
 
 class ContinueTaskBody(TaskStreamBody):
-    message: ApiUserMessage | None = None
+    message: UserMessage | None = None
 
 class ToolAnswerBody(TaskStreamBody):
     tool_call_id: str
@@ -25,11 +27,13 @@ class ToolReviewBody(TaskStreamBody):
     status: Literal["approved", "denied"]
     auto_approve: bool = False
 
-def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
-    with TaskService() as task_service:
-        task = task_service.get_task_by_id(task_id)
+async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
+    async with db_context() as session:
+        task = await TaskService(session).get_task_by_id(task_id)
         task.agent_id = agent_id
-    return AgentTask(task)
+    task_read = task_schemas.TaskRead.model_validate(task)
+    ctx = await AgentContext.create(task_read)
+    return AgentTask(ctx)
 
 def create_stream_response(stream: AgentGenerator) -> EventSourceResponse:
     gen = (item async for item in stream if item is not None)
@@ -45,11 +49,11 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
     This endpoint is used to directly continue the existing task,
     or continue with a new UserMessage
     """
-    task = retrieve_task(task_id, body.agent_id)
+    task = await retrieve_task(task_id, body.agent_id)
 
     async def temp_stream() -> AgentGenerator:
         if body.message is not None:
-            task.append_message(cast(SdkUserMessage, body.message.to_sdk_message()))
+            task.append_message(body.message)
         async for event in agent_stream(task, request):
             yield event
 
@@ -61,7 +65,7 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> E
     This endpoint is used for the HumanInTheLoop tool calls.
     The frontend should send the tool call id and the answer to this endpoint.
     """
-    task = retrieve_task(task_id, body.agent_id)
+    task = await retrieve_task(task_id, body.agent_id)
     changed_message = task.set_tool_call_result(body.tool_call_id, body.answer)
 
     async def temp_stream() -> AgentGenerator:
@@ -76,7 +80,7 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> 
     """
     This endpoint is used to submit the tool call permissions.
     """
-    task = retrieve_task(task_id, body.agent_id)
+    task = await retrieve_task(task_id, body.agent_id)
 
     async def temp_stream() -> AgentGenerator:
         tool_event, replace_event = await task.approve_tool_call(

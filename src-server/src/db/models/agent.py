@@ -1,14 +1,16 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import Session, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
 from . import Base
-from .relationships import workspace_agent_association_table
+from .relationships import workspace_agent_association_table, agent_tool_association_table
 
 if TYPE_CHECKING:
     from .provider import LlmModel
     from .workspace import Workspace
     from .task import Task
+    from .toolset import Tool
 
 class Agent(Base):
     __tablename__ = "agents"
@@ -24,25 +26,25 @@ class Agent(Base):
                                                    lazy="joined")
     @hybrid_property
     def model(self) -> LlmModel | None: return self._model
+
     workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_agent_association_table,
                                                        back_populates="usable_agents",
                                                        viewonly=True)
     tasks: Mapped[list[Task]] = relationship(back_populates="_agent",
                                              viewonly=True)
+    
+    usable_tools: Mapped[list[Tool]] = relationship(secondary=agent_tool_association_table,
+                                                    back_populates="_agents")
 
-def init(session: Session):
+async def init(session: AsyncSession):
     orchestration_agent = Agent(
         name="Orchestrator",
         model_id=1,
         system_prompt="You are a helpful assistant.")
 
-    stmt = select(Agent).where(Agent.name == orchestration_agent.name)
-    exists = session.execute(stmt).scalars().first()
+    stmt = select(Agent).where(Agent.name == orchestration_agent.name).limit(1)
+    exists = await session.scalar(stmt)
     if exists: return
 
-    try:
-        session.add(orchestration_agent)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        raise e
+    session.add(orchestration_agent)
+    await session.flush()

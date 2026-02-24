@@ -20,6 +20,7 @@ tags: ["desktop", "LLM", "agent"]
 状态管理：zustand
 组件库：Shadcn-ui + Vercel AI Elements
 TypeScript Schema 生成和 API 请求函数生成：orval
+数据校验：zod
 
 ### Python Sidecar
 

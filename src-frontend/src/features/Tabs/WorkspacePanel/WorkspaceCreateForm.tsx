@@ -1,11 +1,11 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getGetWorkspacesInfiniteQueryKey, useCreateWorkspace } from "@/api/workspace";
+import { invalidateWorkspaceQueries, useCreateWorkspace } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { DirectoryField, NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_WORKSPACE } from "@/constants/workspace";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import type { WorkspaceCreateFormValues } from "./form-types";
 
 type WorkspaceCreateFormProps = {
@@ -13,18 +13,16 @@ type WorkspaceCreateFormProps = {
 };
 
 export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
-  const queryClient = useQueryClient();
-
   const createMutation = useCreateWorkspace({
     mutation: {
-      onSuccess: (newWorkspace) => {
-        queryClient.invalidateQueries({ queryKey: getGetWorkspacesInfiniteQueryKey() });
+      async onSuccess(newWorkspace) {
+        await invalidateWorkspaceQueries();
         toast.success("创建成功", {
           description: `已成功创建工作区 "${newWorkspace.name}"。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("创建失败", {
           description: error.message || "创建工作区时发生错误，请稍后重试。",
         });
@@ -53,6 +51,8 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
       />
 
       <AgentMultiSelectField />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

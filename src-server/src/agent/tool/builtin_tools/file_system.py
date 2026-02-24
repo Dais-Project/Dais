@@ -1,12 +1,13 @@
 import difflib
 import shutil
 import pathspec
-from typing import Iterator, TypedDict
+from typing import Annotated, Iterator, TypedDict
 from pathlib import Path
 from markitdown import MarkItDown
 from binaryornot.check import is_binary
-from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
 from .utils import scandir_recursive
+from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ....db.models import toolset as toolset_models
 
 def load_gitignore_spec(cwd: Path) -> pathspec.PathSpec | None:
     gitignore_path = cwd / ".gitignore"
@@ -34,8 +35,10 @@ def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, includ
     return False
 
 class FileSystemToolset(BuiltInToolset):
-    def __init__(self, ctx: BuiltInToolsetContext):
-        super().__init__(ctx)
+    def __init__(self,
+                 ctx: BuiltInToolsetContext,
+                 toolset_ent: toolset_models.Toolset | None = None):
+        super().__init__(ctx, toolset_ent)
 
         self._md = MarkItDown()
 
@@ -49,17 +52,18 @@ class FileSystemToolset(BuiltInToolset):
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
     @built_in_tool
-    def read_file(self, path: str, enable_line_numbers: bool = False) -> str:
+    def read_file(self,
+                  path: Annotated[str,
+                    "The path of the file to read (relative to the current working directory)."],
+                  enable_line_numbers: Annotated[bool,
+                    "(Default: False) Whether to add line numbers to the file content, if you want to edit the read file later, you may need to enable this option."] = False
+                 ) -> str:
         """
         Request to read the contents of a file at the specified path.
         For text files, this tool will directly return the file content;
         for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
         Use this when you need to examine the contents of an existing file you do not know the contents of,\
         for example to analyze code, review text files, or extract information from configuration files.
-
-        Args:
-            path: (required) The path of the file to read (relative to the current working directory).
-            enable_line_numbers: (optional, default: False) Whether to add line numbers to the file content, if you want to edit the read file later, you may need to enable this option.
 
         Raises:
             FileNotFoundError: If the specified path does not exist            
@@ -89,17 +93,18 @@ class FileSystemToolset(BuiltInToolset):
             return "\n".join(lines)
 
     @built_in_tool
-    def read_file_batch(self, paths: list[str], enable_line_numbers: bool = False) -> str:
+    def read_file_batch(self,
+                        paths: Annotated[list[str],
+                            "The paths of the files to read (relative to the current working directory)."],
+                        enable_line_numbers: Annotated[bool,
+                            "(Default: False) Whether to add line numbers to the file content. Enable this if you may edit the file later."] = False
+                        ) -> str:
         """
         Request to read the contents of multiple files at the specified paths.
         This tool will directly return the file content for text files;
         for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
         Use this when you need to examine the contents of multiple existing files you do not know the contents of,
         for example to analyze code, review text files, or extract information from configuration files.
-
-        Args:
-            paths: (required) The paths of the files to read (relative to the current working directory).
-            enable_line_numbers: (optional, default: False) Whether to add line numbers to the file content, if you want to edit the read file later, you may need to enable this option.
 
         Returns:
             The contents of the files with XML wrapper, with optional line numbers added.
@@ -151,10 +156,22 @@ class FileSystemToolset(BuiltInToolset):
 
     @built_in_tool
     def list_directory(self,
-                       path: str = ".",
-                       recursive: bool = False,
-                       max_depth: int | None = None,
-                       show_all: bool = False,
+                       path: Annotated[str,
+                        "(Default: \".\") The path of the directory to list contents for (relative to the current working directory)."] = ".",
+                       recursive: Annotated[bool,
+                        "(Default: False) Whether to list files recursively. Use True for recursive listing, False for top-level only."] = False,
+                       max_depth: Annotated[int | None,
+                        """
+                        (Default: None) Maximum depth for recursive listing.
+                        - None: No limit (list all nested directories)
+                        - 1: Only direct children (equivalent to recursive=False)
+                        - 2: List up to 2 levels deep
+                        - n: List up to n levels deep
+                        This parameter is only effective when recursive=True.
+                        """] = None,
+                       show_all: Annotated[bool,
+                        "(Default: False) Whether to include hidden files and files ignored by .gitignore."\
+                        "Use this if you can't find a specific file you're looking for."] = False,
                        ) -> str:
         """
         Request to list files and directories within the specified directory.
@@ -163,20 +180,6 @@ class FileSystemToolset(BuiltInToolset):
         or find specific files. The tool provides a numbered list with type indicators ([file], [dir], or [symlink])
         for easy reference. Directories are listed before files, and items are sorted alphabetically
         within their type.
-
-        Args:
-            path: (optional, default: ".") The path of the directory to list contents for
-                  (relative to the current working directory).
-            recursive: (optional, default: False) Whether to list files recursively.
-                       Use True for recursive listing, False for top-level only.
-            max_depth: (optional, default: None) Maximum depth for recursive listing.
-                       - None: No limit (list all nested directories)
-                       - 1: Only direct children (equivalent to recursive=False)
-                       - 2: List up to 2 levels deep
-                       - n: List up to n levels deep
-                       This parameter is only effective when recursive=True.
-            show_all: (optional, default: False) If True, includes hidden files (.) and files ignored by .gitignore.
-                       Use this if you can't find a specific file you're looking for.
 
         Returns:
             A formatted string containing:
@@ -338,15 +341,16 @@ class FileSystemToolset(BuiltInToolset):
         return "\n".join(result_lines)
 
     @built_in_tool
-    def write_file(self, path: str, content: str) -> str:
+    def write_file(self,
+                   path: Annotated[str,
+                    "The path of the file to write (relative to the current working directory)."],
+                   content: Annotated[str,
+                    "The content to write to the file."]
+                   ) -> str:
         """
         Request to write content to a file at the specified path.
         Use this when you need to create a new file or overwrite an existing file with new content.
         **WARNING**: It will raise an error when overwriting existing files that are not read before.
-
-        Args:
-            path: (required) The path of the file to write (relative to the current working directory).
-            content: (required) The content to write to the file.
 
         Returns:
             A success message if the file was written successfully.
@@ -365,16 +369,18 @@ class FileSystemToolset(BuiltInToolset):
         return "File written successfully."
 
     @built_in_tool
-    def edit_file(self, path: str, old_content: str, new_content: str) -> str:
+    def edit_file(self,
+                  path: Annotated[str,
+                    "The path of the file to edit (relative to the current working directory)."],
+                  old_content: Annotated[str,
+                    "The exact old content to replace. It must match exactly once in the target file."],
+                  new_content: Annotated[str,
+                    "The new content that will replace old_content."]
+                  ) -> str:
         """
         Request to edit the content of a file at the specified path.
         Use this when you need to edit an existing file with existing content you have read before.
         If the passed in old_content does not match the actual content or match in multiple places, it will raise an error.
-
-        Args:
-            path: (required) The path of the file to edit (relative to the current working directory).
-            old_content: (required) The old content to replace.
-            new_content: (required) The new content to replace with.
 
         Returns:
             The diff of the old content and the new content.
@@ -409,12 +415,12 @@ class FileSystemToolset(BuiltInToolset):
         return generate_diff(old_file_content, new_file_content, path)
 
     @built_in_tool
-    def delete(self, path: str) -> str:
+    def delete(self,
+               path: Annotated[str,
+                "The path of the file or directory to delete (relative to the current working directory)."]
+               ) -> str:
         """
         Request to delete a file or directory at the specified path.
-
-        Args:
-            path: (required) The path of the file or directory to delete (relative to the current working directory).
 
         Returns:
             A success message if the target was deleted successfully.
@@ -439,22 +445,29 @@ class FileSystemToolset(BuiltInToolset):
 
     @built_in_tool
     def search_file(self,
-                    pattern: str,
-                    path: str=".",
-                    limit: int=125) -> SearchFileResult:
+                    pattern: Annotated[str,
+                        """
+                        The glob pattern used to match files.
+                        Pattern examples:
+                        - "*.py" matches all Python files
+                        - "main.*" matches files like "main.py" and "main.txt"
+                        - "docs/*.md" matches all Markdown files in the "docs" directory
+                        """],
+                    path: Annotated[str,
+                        "(Default: \".\") The path of the directory to search in (relative to the current working directory)."] = ".",
+                    limit: Annotated[int,
+                        "(Default: 125) The maximum number of matching file paths to return."] = 125
+                   ) -> SearchFileResult:
         """
         Request to search for files matching the specified pattern within the specified directory.
         Use this when you need to find specific files in the project directory.
 
-        Pattern examples:
-            - "*.py" matches all Python files
-            - "main.*" matches files like "main.py" and "main.txt"
-            - "docs/*.md" matches all Markdown files in the "docs" directory
-
-        Args:
-            pattern: (required) The pattern to match.
-            path: (optional, default: ".") The path of the directory to search in (relative to the current working directory).
-            limit: (optional, default: 125) The maximum number of matches to return.
+        Returns:
+            A JSON object containing the search results.
+            The object has the following properties:
+            - search_root: The root directory for the search.
+            - total: The total number of matching files found.
+            - matches: A list of relative file paths that match the pattern.
         """
 
         def scan_collect(directory: Path) -> list[str]:

@@ -1,9 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  getGetToolsetsBriefQueryKey,
-  useCreateMcpToolset,
-} from "@/api/toolset";
+import { invalidateToolsetQueries, useCreateMcpToolset } from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -19,20 +15,16 @@ type ToolsetCreateProps = {
 };
 
 export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
-  const queryClient = useQueryClient();
-
   const createMutation = useCreateMcpToolset({
     mutation: {
-      onSuccess: (newToolset) => {
-        queryClient.invalidateQueries({
-          queryKey: getGetToolsetsBriefQueryKey(),
-        });
+      async onSuccess(newToolset) {
+        await invalidateToolsetQueries();
         toast.success("创建成功", {
           description: `已成功创建 ${newToolset.name} Toolset。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("创建失败", {
           description: error.message || "创建 Toolset 时发生错误，请稍后重试。",
         });

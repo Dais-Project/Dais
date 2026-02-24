@@ -338,6 +338,7 @@ type SelectDialogFooterProps<V extends Selection> = {
   cancelText?: string;
   onConfirm?: (keys: V[]) => void;
   onCancel?: () => void;
+  children?: React.ReactNode;
 };
 
 export function SelectDialogFooter<V extends Selection>({
@@ -345,6 +346,7 @@ export function SelectDialogFooter<V extends Selection>({
   cancelText = "Cancel",
   onConfirm,
   onCancel,
+  children,
 }: SelectDialogFooterProps<V>) {
   const { mode, selectedKeys, setOpen } = useSelectDialog<V>();
 
@@ -364,13 +366,35 @@ export function SelectDialogFooter<V extends Selection>({
   };
 
   return (
-    <DialogFooter className="px-2 py-2">
-      <Button variant="outline" size="sm" onClick={handleCancel}>
-        {cancelText}
-      </Button>
-      <Button size="sm" onClick={handleConfirm}>
-        {confirmText}
-      </Button>
+    <DialogFooter className="flex justify-between! px-2 py-2">
+      <div className="space-x-2">
+        {children}
+      </div>
+      <div className="space-x-2">
+        <Button variant="outline" size="sm" onClick={handleCancel}>
+          {cancelText}
+        </Button>
+        <Button size="sm" onClick={handleConfirm}>
+          {confirmText}
+        </Button>
+      </div>
     </DialogFooter>
+  );
+}
+
+export function SelectDialogFooterAction({
+  children,
+  onClick,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  const { setOpen } = useSelectDialog();
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(e);
+    setOpen(false);
+  };
+  return (
+    <Button variant="outline" size="sm" onClick={handleClick} {...props}>
+      {children}
+    </Button>
   );
 }

@@ -1,7 +1,7 @@
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
-import { useAgentTaskState } from "../../hooks/use-agent-task";
-import { TextMessage } from "./TextMessage";
-import { ToolMessage } from "./ToolMessage";
+import { useAgentTaskState } from "../hooks/use-agent-task";
+import { ToolMessage } from "./messages/BuiltInToolMessage";
+import { TextMessage } from "./messages/TextMessage";
 
 export function TaskConversation() {
   const { data } = useAgentTaskState();

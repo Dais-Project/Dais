@@ -1,7 +1,7 @@
 import { BuiltInTools, type ToolMessage as ToolMessageType } from "@/api/generated/schemas";
+import { GeneralToolMessage } from "../GeneralToolMessage";
 import { AskUserToolMessage } from "./AskUserToolMessage";
 import { FinishTaskToolMessage } from "./FinishTaskToolMessage";
-import { GeneralToolMessage } from "./GeneralToolMessage";
 import { UpdateTodosToolMessage } from "./UpdateTodosToolMessage";
 
 type ToolMessageProps = {

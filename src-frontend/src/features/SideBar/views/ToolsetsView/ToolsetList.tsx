@@ -1,10 +1,9 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { toast } from "sonner";
 import type { McpToolsetStatus, ToolsetBrief } from "@/api/generated/schemas";
 import {
-  getGetToolsetsBriefQueryKey,
+  invalidateToolsetQueries,
   useDeleteToolset,
   useGetToolsetsBriefSuspense,
 } from "@/api/toolset";
@@ -171,16 +170,13 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 }
 
 export function ToolsetList() {
-  const queryClient = useQueryClient();
   const removeTabsPattern = useTabsStore((state) => state.removePattern);
 
   const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
-    onConfirm: async (toolset) => {
+    async onConfirm(toolset) {
       await deleteToolsetMutation.mutateAsync({ toolsetId: toolset.id });
-      queryClient.invalidateQueries({
-        queryKey: getGetToolsetsBriefQueryKey(),
-      });
+      await invalidateToolsetQueries(toolset.id);
 
       removeTabsPattern(
         (tab) =>
@@ -193,7 +189,7 @@ export function ToolsetList() {
         description: "已成功删除 Toolset。",
       });
     },
-    onError: (error: Error) => {
+    onError(error: Error) {
       toast.error("删除失败", {
         description: error.message || "删除 Toolset 时发生错误，请稍后重试。",
       });

@@ -1,8 +1,4 @@
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message";
+import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 
 type TextMessageProps = {
   text: string | null;
@@ -16,11 +12,7 @@ export function TextMessage({ text, from }: TextMessageProps) {
   return (
     <Message className="selectable-text" from={from}>
       <MessageContent>
-        {from === "assistant" ? (
-          <MessageResponse>{text}</MessageResponse>
-        ) : (
-          (text as string)
-        )}
+        <MessageResponse>{text}</MessageResponse>
       </MessageContent>
     </Message>
   );

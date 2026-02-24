@@ -1,15 +1,16 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { toast } from "sonner";
-import type { TaskBrief } from "@/api/generated/schemas";
+import type { PageTaskBrief, TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
   getGetTasksInfiniteQueryKey,
   useDeleteTask,
   useGetTasksSuspenseInfinite,
 } from "@/api/task";
+import { invalidateTaskQueries } from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import {
@@ -27,6 +28,9 @@ import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { TaskIcon } from "./TaskIcon";
+import { useEffect } from "react";
+import SseDispatcher from "@/lib/sse-dispatcher";
+import { produce, current } from "immer";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -106,12 +110,31 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
 
+  useEffect(() => 
+    SseDispatcher.subscribe("task_title_updated", ({ task_id, title}) => {
+      const queryKey = getGetTasksInfiniteQueryKey({ workspace_id: workspaceId });
+      queryClient.setQueryData<InfiniteData<PageTaskBrief>>(
+        queryKey, produce((draft) => {
+          if (!draft) {
+            return;
+          }
+          for (const page of draft.pages) {
+            for (const item of page.items) {
+              if (item.id === task_id) {
+                item.title = title;
+                return;
+              }
+            }
+          }
+        })
+      );
+    })
+  , [queryClient, workspaceId]);
+
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
-    onConfirm: async (task) => {
+    async onConfirm(task) {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
-      queryClient.invalidateQueries({
-        queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }),
-      });
+      await invalidateTaskQueries({ workspaceId, taskId: task.id });
       queryClient.removeQueries({
         queryKey: getGetTaskQueryKey(task.id),
       });
@@ -120,7 +143,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
         description: "已成功删除任务。",
       });
     },
-    onError: (error: Error) => {
+    onError(error: Error) {
       toast.error("删除失败", {
         description: error.message || "删除任务时发生错误，请稍后重试。",
       });

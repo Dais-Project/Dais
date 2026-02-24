@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import type { z } from "zod";
 
 export function useToolArgument<T extends Record<string, unknown>>(
   rawArguments: string,
   schema?: z.ZodType<T>
 ): T | null {
-  const [toolArguments, setToolArguments] = useState<T | null>(null);
-  useEffect(() => {
+  return useMemo(() => {
     try {
-      const parsedArguments = JSON.parse(rawArguments);
-      schema?.parse(parsedArguments);
-      setToolArguments(parsedArguments as T);
+      const parsed = JSON.parse(rawArguments);
+      schema?.parse(parsed);
+      return parsed as T;
     } catch {
-      setToolArguments(null);
-      console.warn("Failed to parse tool arguments:", rawArguments);
+      return null;
     }
-  }, [rawArguments]);
-  return toolArguments;
+  }, [rawArguments, schema]);
 }

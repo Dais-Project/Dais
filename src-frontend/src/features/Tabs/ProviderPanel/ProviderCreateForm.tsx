@@ -1,7 +1,6 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { ProviderCreate } from "@/api/generated/schemas";
-import { getGetProvidersQueryKey, useCreateProvider } from "@/api/provider";
+import { useCreateProvider, invalidateProviderQueries } from "@/api/provider";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, UrlField } from "@/components/custom/form/fields";
 import { PasswordField } from "@/components/custom/form/fields/PasswordField";
@@ -16,18 +15,16 @@ type ProviderCreateFormProps = {
 };
 
 export function ProviderCreateForm({ onConfirm }: ProviderCreateFormProps) {
-  const queryClient = useQueryClient();
-
   const createMutation = useCreateProvider({
     mutation: {
-      onSuccess: (newProvider) => {
-        queryClient.invalidateQueries({ queryKey: getGetProvidersQueryKey() });
+      async onSuccess(newProvider) {
+        await invalidateProviderQueries();
         toast.success("创建成功", {
           description: `已成功创建 ${newProvider.name} 服务提供商。`,
         });
         onConfirm?.();
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("创建失败", {
           description:
             error.message || "创建服务提供商时发生错误，请稍后重试。",

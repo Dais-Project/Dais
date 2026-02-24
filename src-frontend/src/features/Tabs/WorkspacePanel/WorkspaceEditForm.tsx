@@ -1,12 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import type { WorkspaceRead } from "@/api/generated/schemas";
-import {
-  getGetWorkspaceQueryKey,
-  getGetWorkspacesQueryKey,
-  useUpdateWorkspace,
-} from "@/api/workspace";
+import { invalidateWorkspaceQueries, useUpdateWorkspace } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import {
   DirectoryField,
@@ -16,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
+import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
 import {
   type WorkspaceEditFormValues,
   workspaceToEditFormValues,
@@ -30,7 +26,6 @@ export function WorkspaceEditForm({
   workspace,
   onConfirm,
 }: WorkspaceEditFormProps) {
-  const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const syncCurrentWorkspace = useWorkspaceStore((state) => state.syncCurrent);
 
@@ -41,11 +36,8 @@ export function WorkspaceEditForm({
 
   const updateMutation = useUpdateWorkspace({
     mutation: {
-      onSuccess: async (updatedWorkspace) => {
-        queryClient.invalidateQueries({ queryKey: getGetWorkspacesQueryKey() });
-        queryClient.invalidateQueries({
-          queryKey: getGetWorkspaceQueryKey(updatedWorkspace.id),
-        });
+      async onSuccess(updatedWorkspace) {
+        await invalidateWorkspaceQueries(updatedWorkspace.id);
         toast.success("更新成功", {
           description: `已成功更新工作区 "${updatedWorkspace.name}"。`,
         });
@@ -55,7 +47,7 @@ export function WorkspaceEditForm({
           await syncCurrentWorkspace();
         }
       },
-      onError: (error: Error) => {
+      onError(error: Error) {
         toast.error("更新失败", {
           description: error.message || "更新工作区时发生错误，请稍后重试。",
         });
@@ -95,6 +87,8 @@ export function WorkspaceEditForm({
       />
 
       <AgentMultiSelectField />
+
+      <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>

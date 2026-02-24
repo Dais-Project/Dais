@@ -35,7 +35,7 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
     <Body extends Record<string, unknown>>(streamApi: TaskStreamFn<Body & { agent_id: number }>, body: Body) => {
       const overrideCallbacks: TaskSseCallbacks = {
         ...sseCallbacksRef.current,
-        onClose: () => {
+        onClose() {
           abortController.current = null;
           sseCallbacksRef.current.onClose?.();
         },
