@@ -12,7 +12,7 @@ a = Analysis(
     binaries=[],
     datas=[
         (tokenizer_path, "litellm/litellm_core_utils/tokenizers"),
-        (endpoints_path, "litellm/containers/endpoints.json"),
+        (endpoints_path, "litellm/containers"),
     ],
     hiddenimports=[],
     hookspath=[],
