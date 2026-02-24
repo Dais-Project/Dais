@@ -54,7 +54,7 @@ class McpToolset(Toolset):
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
         from ....services import ToolsetService
-        
+
         async with db_context() as session:
             toolset_service = ToolsetService(session)
             tools = [ToolsetService.ToolLike(
@@ -74,7 +74,9 @@ class McpToolset(Toolset):
             if tool_ent is None: continue
             if not tool_ent.is_enabled: continue
             result.append(replace(tool,
-                                  metadata=ToolMetadata(auto_approve=tool_ent.auto_approve)))
+                                  metadata=ToolMetadata(
+                                    id=tool_ent.id,
+                                    auto_approve=tool_ent.auto_approve)))
         return result
 
     def refresh_metadata(self, tools: list[toolset_models.Tool]):

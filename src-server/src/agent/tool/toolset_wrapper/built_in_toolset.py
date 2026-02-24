@@ -86,6 +86,8 @@ class BuiltInToolset(PythonToolset):
                                else tool.name)
             tool_with_metadata = replace(tool,
                                          name=normalized_name,
-                                         metadata=ToolMetadata(auto_approve=tool_ent.auto_approve))
+                                         metadata=ToolMetadata(
+                                            id=tool_ent.id,
+                                            auto_approve=tool_ent.auto_approve))
             result.append(tool_with_metadata)
         return result

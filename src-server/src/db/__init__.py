@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 from collections.abc import AsyncIterator
@@ -38,6 +39,8 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
         try:
             yield session
             await session.commit()
+        except asyncio.CancelledError:
+            pass
         except Exception:
             await session.rollback()
             raise

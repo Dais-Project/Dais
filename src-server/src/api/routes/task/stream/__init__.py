@@ -9,6 +9,7 @@ from .....agent.task import AgentTask
 from .....agent.types import MessageReplaceEvent
 from .....db import db_context
 from .....services.task import TaskService
+from .....schemas import task as task_schemas
 from .utils import AgentGenerator, agent_event_format, agent_stream
 
 class TaskStreamBody(BaseModel):
@@ -31,7 +32,8 @@ async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
     async with db_context() as session:
         task = await TaskService(session).get_task_by_id(task_id)
         task.agent_id = agent_id
-    ctx = await AgentContext.create(task)
+    task_read = task_schemas.TaskRead.model_validate(task)
+    ctx = await AgentContext.create(task_read)
     return AgentTask(ctx)
 
 def create_stream_response(stream: AgentGenerator) -> EventSourceResponse:

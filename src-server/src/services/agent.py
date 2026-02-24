@@ -3,6 +3,7 @@ from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
 from .exceptions import NotFoundError
 from ..db.models import agent as agent_models
+from ..db.models import toolset as toolset_models
 from ..schemas import agent as agent_schemas
 
 
@@ -42,10 +43,18 @@ class AgentService(ServiceBase):
     async def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
         agent = await self.get_agent_by_id(id)
 
-        update_data = data.model_dump(exclude_unset=True)
+        update_data = data.model_dump(exclude_unset=True,
+                                                      exclude={"usable_tool_ids"})
         for key, value in update_data.items():
             if hasattr(agent, key) and value is not None:
                 setattr(agent, key, value)
+        
+        if data.usable_tool_ids is not None:
+            stmt = select(toolset_models.Tool).where(
+                toolset_models.Tool.id.in_(data.usable_tool_ids)
+            )
+            tools = (await self._db_session.execute(stmt)).scalars().all()
+            agent.usable_tools = list(tools)
 
         await self._db_session.flush()
         await self._db_session.refresh(agent)
