@@ -1,7 +1,8 @@
 import time
 from typing import TYPE_CHECKING
 from loguru import logger
-from .message import TaskMessage, UserMessage
+from dais_sdk import UserMessage
+from ....db.models.task import TaskMessage
 from ....db import db_context
 from ....services.task import TaskService
 from ....schemas import task as task_schemas

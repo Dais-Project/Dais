@@ -1,9 +1,8 @@
 from typing import Literal, cast
 from fastapi import APIRouter, Request
 from sse_starlette import EventSourceResponse
-from dais_sdk import UserMessage as SdkUserMessage
+from dais_sdk import UserMessage
 from pydantic import BaseModel
-from ..message import UserMessage as ApiUserMessage
 from .....agent.context import AgentContext
 from .....agent.task import AgentTask
 from .....agent.types import MessageReplaceEvent
@@ -17,7 +16,7 @@ class TaskStreamBody(BaseModel):
     agent_id: int
 
 class ContinueTaskBody(TaskStreamBody):
-    message: ApiUserMessage | None = None
+    message: UserMessage | None = None
 
 class ToolAnswerBody(TaskStreamBody):
     tool_call_id: str
@@ -54,7 +53,7 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
 
     async def temp_stream() -> AgentGenerator:
         if body.message is not None:
-            task.append_message(cast(SdkUserMessage, body.message.to_sdk_message()))
+            task.append_message(body.message)
         async for event in agent_stream(task, request):
             yield event
 
