@@ -72,7 +72,7 @@ export function ToolMultiSelectField() {
   return (
     <div>
       <FieldItem label="可用的工具" fieldState={fieldState}>
-        <ToolMultiSelectDialog selectedToolIds={selectedToolIds} onConfirm={onChange} />
+        <ToolMultiSelectDialog value={selectedToolIds} onChange={onChange} />
       </FieldItem>
 
       <AsyncBoundary errorDescription="无法加载工具列表，请稍后重试。">

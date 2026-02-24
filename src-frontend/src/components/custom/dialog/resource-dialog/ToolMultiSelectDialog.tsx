@@ -1,3 +1,4 @@
+import { ToolsetRead } from "@/api/generated/schemas";
 import { useGetToolsetsSuspense } from "@/api/toolset";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
@@ -5,6 +6,7 @@ import {
   SelectDialogContent,
   SelectDialogEmpty,
   SelectDialogFooter,
+  SelectDialogFooterAction,
   SelectDialogGroup,
   SelectDialogItem,
   SelectDialogList,
@@ -13,14 +15,14 @@ import {
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef } from "react";
 
-type ToolMultiSelectDialogProps = {
-  selectedToolIds: number[];
-  onConfirm: (selectedToolIds: number[]) => void;
-};
-
-function ToolQueryList() {
+function ToolQueryList({ onFetched }: { onFetched: (toolsets: ToolsetRead[]) => void }) {
   const { data: toolsets } = useGetToolsetsSuspense();
+
+  useEffect(() => {
+    onFetched(toolsets);
+  }, [toolsets]);
 
   return (
     <>
@@ -37,12 +39,25 @@ function ToolQueryList() {
   );
 }
 
-export function ToolMultiSelectDialog({
-  selectedToolIds,
-  onConfirm,
-}: ToolMultiSelectDialogProps) {
+type ToolMultiSelectDialogProps = {
+  value: number[];
+  onChange: (selectedToolIds: number[]) => void;
+};
+
+export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialogProps) {
+  const allToolIdsRef = useRef<number[]>([]);
+
+  const handleFetched = (toolsets: ToolsetRead[]) => {
+    const allToolIds = toolsets.flatMap((toolset) => toolset.tools.map((tool) => tool.id));
+    allToolIdsRef.current = allToolIds;
+  };
+
+  const handleSelectAll = () => {
+    onChange(allToolIdsRef.current);
+  };
+
   return (
-    <SelectDialog<number> mode="multi" value={selectedToolIds}>
+    <SelectDialog<number> mode="multi" value={value}>
       <SelectDialogTrigger>
         <Button type="button" variant="outline">
           选择
@@ -57,15 +72,19 @@ export function ToolMultiSelectDialog({
               skeleton={<SelectDialogSkeleton />}
               errorDescription="无法加载工具列表，请稍后重试。"
             >
-              <ToolQueryList />
+              <ToolQueryList onFetched={handleFetched} />
             </AsyncBoundary>
           </SelectDialogGroup>
         </SelectDialogList>
         <SelectDialogFooter
-          onConfirm={onConfirm}
+          onConfirm={onChange}
           confirmText="确定"
           cancelText="取消"
-        />
+        >
+          <SelectDialogFooterAction onClick={handleSelectAll}>
+            全选
+          </SelectDialogFooterAction>
+        </SelectDialogFooter>
       </SelectDialogContent>
     </SelectDialog>
   );
