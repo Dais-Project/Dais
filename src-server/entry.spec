@@ -14,7 +14,10 @@ a = Analysis(
         (tokenizer_path, "litellm/litellm_core_utils/tokenizers"),
         (endpoints_path, "litellm/containers"),
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        "aiosqlite",
+        "sqlalchemy.dialects.sqlite.aiosqlite",
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
