@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from platformdirs import user_data_dir
-
 from .models import (
     provider as provider_models,
     agent as agent_models,
@@ -20,10 +18,9 @@ from .models import (
 )
 # this unused import is necessary to alembic
 from . import models
-from src.common import APP_NAME
+from src.common import DATA_DIR
 
-data_dir = Path(user_data_dir(APP_NAME, appauthor=False, ensure_exists=True))
-db_path = data_dir / "sqlite.db"
+db_path = DATA_DIR / "sqlite.db"
 
 DB_ASYNC_URL = f"sqlite+aiosqlite:///{db_path}"
 DB_SYNC_URL = f"sqlite:///{db_path}"
