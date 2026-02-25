@@ -24,7 +24,7 @@ messages_adapter = TypeAdapter(list[TaskMessage])
 class TaskType(str, Enum):
     Agent = "agent"
     Orchestration = "orchestration"
-    CodeExecution = "code_execution"
+    CodeWorkflow = "code_workflow"
 
 @dataclass
 class TaskUsage:
