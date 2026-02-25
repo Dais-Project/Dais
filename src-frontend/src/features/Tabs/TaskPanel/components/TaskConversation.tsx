@@ -6,8 +6,8 @@ import { TextMessage } from "./messages/TextMessage";
 export function TaskConversation() {
   const { data } = useAgentTaskState();
   return (
-    <Conversation id="conversation" className="conversation-container">
-      <ConversationContent className="gap-y-4 pb-20">
+    <Conversation id="conversation" className="conversation-container min-h-0">
+      <ConversationContent className="mx-auto w-full max-w-3xl gap-y-4 pb-52">
         {data.messages.map((message) => {
           if (message.role === "system") {
             return null;

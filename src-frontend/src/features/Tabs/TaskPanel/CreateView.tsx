@@ -43,6 +43,7 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
       id: crypto.randomUUID(),
       role: "user",
       content: message.text,
+      attachments: null,
     };
 
     createTaskMutation.mutateAsync({

@@ -4,9 +4,12 @@ import { ErrorBoundary } from "react-error-boundary";
 import type { TaskType, UserMessage } from "@/api/generated/schemas";
 import {
   PromptInput as BasePromptInput,
+  PromptInputActionAddAttachmentsButton,
   PromptInputBody,
   PromptInputFooter,
+  PromptInputHeader,
   type PromptInputMessage,
+  PromptInputProvider,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
@@ -16,6 +19,7 @@ import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hoo
 import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
+import { AttachmentsDisplay } from "./AttachmentsDisplay";
 
 export type PromptInputHandle = {
   agentId: number | null;
@@ -72,24 +76,34 @@ export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) 
   const [agentId, setAgentId] = useState<number | null>(null);
   const ableToSubmit = agentId !== null;
   return (
-    <BasePromptInput
-      className="max-w-2xl rounded-md bg-background"
-      onSubmit={(message) => {
-        if (ableToSubmit) {
-          onSubmit(message, agentId);
-        }
-      }}
-    >
-      <PromptInputBody>
-        <PromptInputTextarea />
-      </PromptInputBody>
-      <PromptInputFooter>
-        <PromptInputTools>
-          <PromptInputAgentState taskType={taskType} agentId={agentId} onChange={setAgentId} />
-        </PromptInputTools>
-        <PromptInputSubmit disabled={!ableToSubmit} />
-      </PromptInputFooter>
-    </BasePromptInput>
+    <PromptInputProvider>
+      <BasePromptInput
+        globalDrop
+        multiple
+        className="max-w-2xl rounded-md bg-background"
+        onSubmit={(message) => {
+          if (ableToSubmit) {
+            onSubmit(message, agentId);
+          }
+        }}
+      >
+        <PromptInputHeader className="py-0.5">
+          <AttachmentsDisplay />
+        </PromptInputHeader>
+        <PromptInputBody>
+          <PromptInputTextarea />
+        </PromptInputBody>
+        <PromptInputFooter>
+          <PromptInputTools>
+            <PromptInputAgentState taskType={taskType} agentId={agentId} onChange={setAgentId} />
+          </PromptInputTools>
+          <div className="flex gap-2">
+            <PromptInputActionAddAttachmentsButton />
+            <PromptInputSubmit disabled={!ableToSubmit} />
+          </div>
+        </PromptInputFooter>
+      </BasePromptInput>
+    </PromptInputProvider>
   );
 }
 
@@ -101,45 +115,56 @@ export function PromptInput() {
   const ableToSubmit = prompt.length && state === "idle" && agentId !== null;
 
   return (
-    <BasePromptInput
-      className="rounded-md bg-background"
-      onSubmit={(message) => {
-        const userMessage = {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: message.text,
-        } satisfies UserMessage;
-        if (ableToSubmit) {
-          setPrompt("");
-          continueTask(userMessage);
-        } else if (state === "running") {
-          cancel();
-        }
-      }}
-    >
-      <PromptInputBody>
-        <PromptInputTextarea onChange={(e) => setPrompt(e.target.value)} value={prompt} />
-      </PromptInputBody>
-      <PromptInputFooter className="gap-16">
-        <PromptInputTools className="min-w-0">
-          <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
-          <div className="w-1" />
-          <ContextUsage />
-          <TaskProgress className="min-w-0 flex-1" />
-        </PromptInputTools>
-        <PromptInputSubmit
-          status={PROMPTINPUT_STATE_MAPPING[state]}
-          disabled={(() => {
-            if (state === "running") {
-              return false;
-            }
-            if (state === "waiting") {
-              return true;
-            }
-            return !ableToSubmit;
-          })()}
-        />
-      </PromptInputFooter>
-    </BasePromptInput>
+    <PromptInputProvider>
+      <BasePromptInput
+        globalDrop
+        multiple
+        className="rounded-md bg-background"
+        onSubmit={(message) => {
+          const userMessage = {
+            id: crypto.randomUUID(),
+            role: "user",
+            content: message.text,
+            attachments: null,
+          } satisfies UserMessage;
+          if (ableToSubmit) {
+            setPrompt("");
+            continueTask(userMessage);
+          } else if (state === "running") {
+            cancel();
+          }
+        }}
+      >
+        <PromptInputHeader className="py-0.5">
+          <AttachmentsDisplay />
+        </PromptInputHeader>
+        <PromptInputBody>
+          <PromptInputTextarea onChange={(e) => setPrompt(e.target.value)} value={prompt} />
+        </PromptInputBody>
+        <PromptInputFooter className="gap-16">
+          <PromptInputTools className="min-w-0">
+            <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
+            <div className="w-1" />
+            <ContextUsage />
+            <TaskProgress className="min-w-0 flex-1" />
+          </PromptInputTools>
+          <div className="flex gap-2">
+            <PromptInputActionAddAttachmentsButton />
+            <PromptInputSubmit
+              status={PROMPTINPUT_STATE_MAPPING[state]}
+              disabled={(() => {
+                if (state === "running") {
+                  return false;
+                }
+                if (state === "waiting") {
+                  return true;
+                }
+                return !ableToSubmit;
+              })()}
+            />
+          </div>
+        </PromptInputFooter>
+      </BasePromptInput>
+    </PromptInputProvider>
   );
 }
