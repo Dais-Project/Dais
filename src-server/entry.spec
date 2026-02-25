@@ -1,10 +1,24 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 import litellm
+import magika
 
+# litellm resources
 litellm_path = os.path.dirname(litellm.__file__)
 tokenizer_path = os.path.join(litellm_path, "litellm_core_utils", "tokenizers")
 endpoints_path = os.path.join(litellm_path, "containers", "endpoints.json")
+
+project_root = SPECPATH
+# alembic resources
+alembic_ini_path = os.path.join(project_root, "alembic.ini")
+alembic_dir = os.path.join(project_root, "src", "db", "alembic")
+alembic_env_path = os.path.join(alembic_dir, "env.py")
+alembic_migrations_dir = os.path.join(alembic_dir, "versions")
+
+# magika resources
+magika_pkg_dir = os.path.dirname(magika.__file__)
+magika_config_dir = os.path.join(magika_pkg_dir, "config")
+magika_models_dir = os.path.join(magika_pkg_dir, "models")
 
 a = Analysis(
     ["entry.py"],
@@ -13,6 +27,13 @@ a = Analysis(
     datas=[
         (tokenizer_path, "litellm/litellm_core_utils/tokenizers"),
         (endpoints_path, "litellm/containers"),
+
+        (alembic_ini_path, "."),
+        (alembic_env_path, "src/db/alembic"),
+        (alembic_migrations_dir, "src/db/alembic/versions"),
+
+        (magika_config_dir, "magika/config"),
+        (magika_models_dir, "magika/models"),
     ],
     hiddenimports=[
         "aiosqlite",
