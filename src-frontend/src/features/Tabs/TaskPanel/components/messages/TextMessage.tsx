@@ -5,6 +5,14 @@ type TextMessageProps = {
   from: "user" | "assistant";
 };
 
+function normalizeText(text: string, from: "user" | "assistant") {
+  let _text = text.trim();
+  if (from === "user") {
+    _text = _text.replace("\n", "<br>");
+  }
+  return _text;
+}
+
 export function TextMessage({ text, from }: TextMessageProps) {
   if (text === null || text.trim() === "") {
     return null;
@@ -12,7 +20,12 @@ export function TextMessage({ text, from }: TextMessageProps) {
   return (
     <Message className="selectable-text" from={from}>
       <MessageContent>
-        <MessageResponse>{text}</MessageResponse>
+        <MessageResponse
+          mode={from === "user" ? "static" : "streaming"}
+          parseIncompleteMarkdown={from !== "user"}
+        >
+          {normalizeText(text, from)}
+        </MessageResponse>
       </MessageContent>
     </Message>
   );
