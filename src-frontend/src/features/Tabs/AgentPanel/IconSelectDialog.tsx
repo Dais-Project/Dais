@@ -9,7 +9,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeaderSrOnly,
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 export type { IconName } from "lucide-react/dynamic";
 
@@ -266,6 +271,8 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      <DialogHeaderSrOnly title="选择图标" description="搜索图标..." />
+
       <DialogTrigger asChild>
         <Button variant="outline" size={value ? "icon" : "default"}>
           {value ? <DynamicIcon name={value} /> : "选择图标"}

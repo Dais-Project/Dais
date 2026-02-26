@@ -23,6 +23,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+  DialogHeaderSrOnly,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,6 +66,8 @@ function useSelectDialog<V extends Selection>() {
 // ============================================================
 
 export type SelectDialogProps<V extends Selection> = {
+  title?: string;
+  description?: string;
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -82,6 +85,8 @@ export type SelectDialogProps<V extends Selection> = {
 );
 
 export function SelectDialog<V extends Selection>({
+  title,
+  description,
   children,
   open: controlledOpen,
   onOpenChange,
@@ -174,6 +179,7 @@ export function SelectDialog<V extends Selection>({
   return (
     <SelectDialogContext.Provider value={ctx}>
       <Dialog open={open} onOpenChange={setOpen}>
+        <DialogHeaderSrOnly title={title} description={description} />
         {children}
       </Dialog>
     </SelectDialogContext.Provider>
