@@ -54,7 +54,11 @@ function ModelQueryList() {
           <div key={provider.id}>
             <SelectDialogGroup heading={provider.name}>
               {provider.models.map((model) => (
-                <SelectDialogItem key={model.id} value={model.id.toString()}>
+                <SelectDialogItem
+                  key={model.id}
+                  value={model.id}
+                  keywords={[provider.name, model.name]}
+                >
                   {model.name}
                 </SelectDialogItem>
               ))}

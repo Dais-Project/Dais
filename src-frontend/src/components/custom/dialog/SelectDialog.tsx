@@ -271,14 +271,18 @@ export function SelectDialogEmpty({
 
 type SelectDialogGroupProps = {
   heading?: string;
+  value?: string;
   children: React.ReactNode;
 };
 
 export function SelectDialogGroup({
   heading,
+  value,
   children,
 }: SelectDialogGroupProps) {
-  return <CommandGroup heading={heading}>{children}</CommandGroup>;
+  return (
+    <CommandGroup heading={heading} value={value}>{children}</CommandGroup>
+  );
 }
 
 // ============================================================
@@ -287,12 +291,14 @@ export function SelectDialogGroup({
 
 type SelectDialogItemProps<V extends Selection> = {
   value: V;
+  keywords?: string[];
   children?: React.ReactNode;
   className?: string;
 };
 
 export function SelectDialogItem<V extends Selection>({
   value,
+  keywords,
   children,
   className,
 }: SelectDialogItemProps<V>) {
@@ -302,6 +308,7 @@ export function SelectDialogItem<V extends Selection>({
   return (
     <CommandItem
       value={value.toString()}
+      keywords={keywords}
       onSelect={() => toggle(value)}
       className={className}
     >
