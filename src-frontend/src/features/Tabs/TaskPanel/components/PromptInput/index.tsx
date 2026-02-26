@@ -20,6 +20,7 @@ import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
+import { ContextSelectPopover } from "./ContextSelectPopover";
 
 export type PromptInputHandle = {
   agentId: number | null;
@@ -143,6 +144,7 @@ export function PromptInput() {
         </PromptInputBody>
         <PromptInputFooter className="gap-16">
           <PromptInputTools className="min-w-0">
+            <ContextSelectPopover />
             <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
             <div className="w-1" />
             <ContextUsage />
