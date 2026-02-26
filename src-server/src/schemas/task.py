@@ -1,3 +1,4 @@
+from typing import Literal
 from . import DTOBase
 from ..db.models.task import TaskMessage, TaskType, TaskUsage
 
@@ -32,3 +33,12 @@ class TaskUpdate(DTOBase):
     last_run_at: int
     agent_id: int | None
     messages: list[TaskMessage] | None
+
+# --- --- --- --- --- ---
+
+ContextFileItemType = Literal["folder", "file"]
+
+class ContextFileItem(DTOBase):
+    path: str
+    name: str
+    type: ContextFileItemType
