@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
-import { PromptInput } from "./components/PromptInput";
+import { PromptInput, PromptInputProvider } from "./components/PromptInput";
 import { TaskConversation } from "./components/TaskConversation";
 import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
 
@@ -55,7 +55,9 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
             {state === "idle" && <ContinueTask />}
             {state === "error" && <ErrorRetry />}
           </div>
-          <PromptInput />
+          <PromptInputProvider>
+            <PromptInput />
+          </PromptInputProvider>
         </div>
       </div>
     </div>

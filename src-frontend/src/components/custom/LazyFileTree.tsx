@@ -167,7 +167,7 @@ const FolderContentLoader = ({
 
 // ─── LazyFileTree (public API) ────────────────────────────────────────────────
 
-export type LazyFileTreeProps = Omit<FileTreeProps, "children"> & {
+export type LazyFileTreeProps = Omit<FileTreeProps, "children" | "onSelect"> & {
   /** Root-level nodes shown immediately (no loading needed) */
   rootNodes: FileTreeNode[];
   /**
@@ -175,6 +175,8 @@ export type LazyFileTreeProps = Omit<FileTreeProps, "children"> & {
    * Should return that folder's direct children.
    */
   loadChildren: LoadChildren;
+  /** Optional callback when a file or folder is selected */
+  onSelect?: (path: string, type: "file" | "folder") => void;
 };
 
 /**
@@ -199,10 +201,11 @@ export type LazyFileTreeProps = Omit<FileTreeProps, "children"> & {
 export const LazyFileTree = ({
   rootNodes,
   loadChildren,
+  onSelect,
   ...fileTreeProps
 }: LazyFileTreeProps) => {
   return (
-    <FileTree {...fileTreeProps}>
+    <FileTree {...fileTreeProps} onSelect={onSelect as FileTreeProps["onSelect"]}>
       {rootNodes.map((node) =>
         node.type === "folder" ? (
           <LazyFileTreeFolder

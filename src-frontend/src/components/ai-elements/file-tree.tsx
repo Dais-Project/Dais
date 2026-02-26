@@ -26,7 +26,7 @@ interface FileTreeContextType {
   expandedPaths: Set<string>;
   togglePath: (path: string) => void;
   selectedPath?: string;
-  onSelect?: (path: string) => void;
+  onSelect?: (path: string, type: "file" | "folder") => void;
 }
 
 // Default noop for context default value
@@ -43,7 +43,7 @@ export type FileTreeProps = HTMLAttributes<HTMLDivElement> & {
   expanded?: Set<string>;
   defaultExpanded?: Set<string>;
   selectedPath?: string;
-  onSelect?: (path: string) => void;
+  onSelect?: (path: string, type: "file" | "folder") => void;
   onExpandedChange?: (expanded: Set<string>) => void;
 };
 
@@ -83,13 +83,13 @@ export const FileTree = ({
     <FileTreeContext.Provider value={contextValue}>
       <div
         className={cn(
-          "rounded-lg border bg-background font-mono text-sm",
+          "rounded-lg border bg-background font-mono text-sm p-2",
           className
         )}
         role="tree"
         {...props}
       >
-        <div className="p-2">{children}</div>
+        {children}
       </div>
     </FileTreeContext.Provider>
   );
@@ -129,7 +129,7 @@ export const FileTreeFolder = ({
   }, [togglePath, path]);
 
   const handleSelect = useCallback(() => {
-    onSelect?.(path);
+    onSelect?.(path, "folder");
   }, [onSelect, path]);
 
   const folderContextValue = useMemo(
@@ -208,13 +208,13 @@ export const FileTreeFile = ({
   const isSelected = selectedPath === path;
 
   const handleClick = useCallback(() => {
-    onSelect?.(path);
+    onSelect?.(path, "file");
   }, [onSelect, path]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
-        onSelect?.(path);
+        onSelect?.(path, "file");
       }
     },
     [onSelect, path]

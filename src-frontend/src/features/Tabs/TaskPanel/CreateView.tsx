@@ -5,7 +5,7 @@ import { getGetTaskQueryKey, invalidateTaskQueries, useNewTask } from "@/api/tas
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { DEFAULT_TAB_TITLE } from ".";
-import { PromptInputDraft, type PromptInputMessage } from "./components/PromptInput";
+import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
 
 type CreateViewProps = {
   tabId: string;
@@ -66,7 +66,9 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
         <h1 className="mb-2 font-bold text-4xl text-foreground tracking-tight">What can I help you with?</h1>
         <p className="text-lg text-muted-foreground">Start a new task with your AI agent.</p>
       </div>
-      <PromptInputDraft taskType={taskType} onSubmit={handleSubmit} />
+      <PromptInputProvider>
+        <PromptInputDraft taskType={taskType} onSubmit={handleSubmit} />
+      </PromptInputProvider>
     </div>
   );
 }

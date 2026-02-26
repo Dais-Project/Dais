@@ -282,7 +282,7 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
       <DialogContent showCloseButton={false} className="max-w-2xl p-0">
         <Command value={value ?? undefined}>
           <CommandInput placeholder="搜索图标..." />
-          <CommandList className="shadcn-scroll max-h-100">
+          <CommandList className="max-h-100">
             {iconGroups.map((group, index) => (
               <div key={group.heading}>
                 <CommandGroup heading={group.heading} className="p-2">

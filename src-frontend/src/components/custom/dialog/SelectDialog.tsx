@@ -247,7 +247,7 @@ export function SelectDialogList({
   className,
 }: SelectDialogListProps) {
   return (
-    <CommandList className={cn("shadcn-scroll", className)}>
+    <CommandList className={className}>
       {children}
     </CommandList>
   );
