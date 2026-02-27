@@ -33,32 +33,44 @@ class AgentService(ServiceBase):
             raise AgentNotFoundError(id)
         return agent
 
-    async def create_agent(self, data: agent_schemas.AgentCreate) -> agent_models.Agent:
-        new_agent = agent_models.Agent(**data.model_dump())
-        self._db_session.add(new_agent)
-        await self._db_session.flush()
-        await self._db_session.refresh(new_agent)
-        return new_agent
-
-    async def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
-        agent = await self.get_agent_by_id(id)
-
-        update_data = data.model_dump(exclude_unset=True,
-                                                      exclude={"usable_tool_ids"})
-        for key, value in update_data.items():
-            if hasattr(agent, key) and value is not None:
-                setattr(agent, key, value)
-        
+    async def _update_relations(self,
+                                agent: agent_models.Agent,
+                                data: agent_schemas.AgentCreate | agent_schemas.AgentUpdate
+                                ):
         if data.usable_tool_ids is not None:
             stmt = select(toolset_models.Tool).where(
                 toolset_models.Tool.id.in_(data.usable_tool_ids)
             )
-            tools = (await self._db_session.execute(stmt)).scalars().all()
+            tools = (await self._db_session.scalars(stmt)).all()
             agent.usable_tools = list(tools)
 
+    async def create_agent(self, data: agent_schemas.AgentCreate) -> agent_models.Agent:
+        create_data = data.model_dump(exclude={"usable_tool_ids"})
+        new_agent = agent_models.Agent(**create_data)
+
+        await self._update_relations(new_agent, data)
+
+        self._db_session.add(new_agent)
         await self._db_session.flush()
-        await self._db_session.refresh(agent)
-        return agent
+
+        new_agent = await self.get_agent_by_id(new_agent.id)
+        return new_agent
+
+    async def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
+        updated_agent = await self.get_agent_by_id(id)
+
+        update_data = data.model_dump(exclude_unset=True,
+                                                      exclude={"usable_tool_ids"})
+        for key, value in update_data.items():
+            if hasattr(updated_agent, key) and value is not None:
+                setattr(updated_agent, key, value)
+        
+        await self._update_relations(updated_agent, data)
+
+        await self._db_session.flush()
+        
+        updated_agent = await self.get_agent_by_id(updated_agent.id)
+        return updated_agent
 
     async def delete_agent(self, id: int) -> None:
         agent = await self._db_session.get(agent_models.Agent, id)

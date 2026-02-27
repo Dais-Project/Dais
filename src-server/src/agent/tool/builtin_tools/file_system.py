@@ -5,34 +5,10 @@ from typing import Annotated, Iterator, TypedDict
 from pathlib import Path
 from markitdown import MarkItDown
 from binaryornot.check import is_binary
-from .utils import scandir_recursive
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
 from ....db.models import toolset as toolset_models
-
-def load_gitignore_spec(cwd: Path) -> pathspec.PathSpec | None:
-    gitignore_path = cwd / ".gitignore"
-    if gitignore_path.exists():
-        with open(gitignore_path, "r", encoding="utf-8") as f:
-            return pathspec.PathSpec.from_lines("gitignore", f)
-    return None
-
-def should_exclude(item: Path, spec: pathspec.PathSpec | None, cwd: Path, include_hidden: bool = False) -> bool:
-    is_hidden = item.name.startswith(".")
-    if not include_hidden and is_hidden:
-        return True
-
-    if spec:
-        try:
-            rel_path = item.relative_to(cwd).as_posix()
-        except ValueError:
-            # item is not under cwd
-            return False
-
-        if item.is_dir():
-            rel_path += "/"
-        if spec.match_file(rel_path):
-            return True
-    return False
+from ....utils.scandir_recursive import scandir_recursive_bfs
+from ....utils.ignore_rules import load_gitignore_spec, should_exclude
 
 class FileSystemToolset(BuiltInToolset):
     def __init__(self,
@@ -350,6 +326,7 @@ class FileSystemToolset(BuiltInToolset):
         """
         Request to write content to a file at the specified path.
         Use this when you need to create a new file or overwrite an existing file with new content.
+        If the parent directory of the specified path does not exist, it will be created automatically.
         **WARNING**: It will raise an error when overwriting existing files that are not read before.
 
         Returns:
@@ -456,7 +433,10 @@ class FileSystemToolset(BuiltInToolset):
                     path: Annotated[str,
                         "(Default: \".\") The path of the directory to search in (relative to the current working directory)."] = ".",
                     limit: Annotated[int,
-                        "(Default: 125) The maximum number of matching file paths to return."] = 125
+                        "(Default: 60) The maximum number of matching file paths to return."] = 60,
+                    show_all: Annotated[bool,
+                        "(Default: False) Whether to include hidden files and files ignored by .gitignore. "
+                        "Use this if you can't find a specific file you're looking for."] = False
                    ) -> SearchFileResult:
         """
         Request to search for files matching the specified pattern within the specified directory.
@@ -472,8 +452,7 @@ class FileSystemToolset(BuiltInToolset):
 
         def scan_collect(directory: Path) -> list[str]:
             matches = []
-            for index, entry in enumerate(scandir_recursive(directory)):
-                if index >= MAX_SCAN_LIMIT: break
+            for entry in scandir_recursive_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
                 if len(matches) >= limit: break
                 path = Path(entry)
                 if path.match(pattern):
@@ -482,10 +461,14 @@ class FileSystemToolset(BuiltInToolset):
 
         MAX_SCAN_LIMIT = 200_000
         abs_path = self._ctx.cwd / path
+        include_hidden = show_all
+        include_gitignored = show_all
+
         if not abs_path.exists():
             raise FileNotFoundError(f"Directory not found at {path}")
         if not abs_path.is_dir():
             raise NotADirectoryError(f"Path {path} is not a directory")
+
         results = scan_collect(abs_path)
         return {
             "search_root": abs_path.as_posix(),

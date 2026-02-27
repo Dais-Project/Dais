@@ -19,9 +19,9 @@ export function GeneralToolMessage({ message }: GeneralToolMessageProps) {
   const toolState = useToolState(message);
   const { toolName, toolsetName } = useToolName(message.name);
   return (
-    <Tool className="selectable-text" defaultOpen={toolState === "approval-requested"}>
+    <Tool className="selectable-text mb-0" defaultOpen={toolState === "approval-requested"}>
       <ToolHeader
-        className="sticky top-0 z-1 bg-card"
+        className="sticky top-0 z-10 rounded-md bg-card"
         toolName={toolName}
         toolsetName={toolsetName}
         state={toolState}

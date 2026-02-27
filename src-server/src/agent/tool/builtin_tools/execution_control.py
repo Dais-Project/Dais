@@ -14,12 +14,25 @@ class ExecutionControlToolset(BuiltInToolset):
     @built_in_tool
     def finish_task(self,
                     task_summary: Annotated[str,
-                        "The summary of the task." \
-                        "Formulate this summary in a way that is final and does not require further input from the user." \
-                        "Don't end your summary with questions or offers for further assistance."]
+                        """
+                        A final summary of the completed task.
+                        - 1-3 sentences
+                        - Clearly state what was accomplished
+                        - Include notable assumptions or intentionally excluded scope, if any
+                        - Must be phrased as a final statement
+                        - Do NOT end with a question
+                        - Do NOT offer further assistance
+                        """],
                     ):
         """
-        Once you've received the results of tool uses and can confirm that the task is complete, use this tool to present the result of your work to the user.
+        Present the final result of the task to the user.
+
+        When to use:
+        - All steps in the current task plan are complete and verified
+        - The deliverable matches the user's stated goal
+        - No further clarification or execution steps are required
+
+        This tool marks the task as finished.
         """
         ...
 
@@ -44,11 +57,13 @@ class ExecutionControlToolset(BuiltInToolset):
         With this list, the user can also see the current progress you are making in executing a given task.
 
         When to use:
-            - At the start of a complex task, after clarifying any ambiguities with the user, to outline all the subtasks required to complete the request.
-            - When the scope of the task changes (e.g. user adds or removes requirements), to update the list accordingly.
-            - When the status of a subtask changes, to reflect the latest progress.
+        - At the start of a complex task, after clarifying any ambiguities with the user, to outline all the subtasks required to complete the request
+        - When the scope of the task changes (e.g. user adds or removes requirements), to update the list accordingly
+        - When the status of a subtask changes, to reflect the latest progress
 
-        IMPORTANT: Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items.
+        IMPORTANT:
+        - Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items
+        - Mark each step complete immediately when done — do not batch status updates
 
         Returns:
             A confirmation message that the todo list has been updated.

@@ -101,8 +101,8 @@ class AgentContext:
     def usable_tool_ids(self) -> set[int] | None:
         workspace_usable_tool_ids = {tool.id for tool in self._workspace.usable_tools}
         agent_usable_tool_ids = {tool.id for tool in self._agent.usable_tools}
-        if len(workspace_usable_tool_ids) == 0 or len(agent_usable_tool_ids) == 0:
-            # No usable tool ids configured, do not filter
+        if len(workspace_usable_tool_ids) == 0 and len(agent_usable_tool_ids) == 0:
+            # both workspace and agent have no usable tools configured, do not filter
             return None
         return workspace_usable_tool_ids & agent_usable_tool_ids
 

@@ -22,6 +22,24 @@ class WorkspaceService(ServiceBase):
             .order_by(workspace_models.Workspace.id.asc())
         )
 
+    async def _update_relations(self,
+                                workspace: workspace_models.Workspace,
+                                data: workspace_schemas.WorkspaceCreate | workspace_schemas.WorkspaceUpdate
+                                ):
+        if data.usable_agent_ids is not None:
+            stmt = select(agent_models.Agent).where(
+                agent_models.Agent.id.in_(data.usable_agent_ids)
+            )
+            agents = (await self._db_session.scalars(stmt)).all()
+            workspace.usable_agents = list(agents)
+
+        if data.usable_tool_ids is not None:
+            stmt = select(toolset_models.Tool).where(
+                toolset_models.Tool.id.in_(data.usable_tool_ids)
+            )
+            tools = (await self._db_session.scalars(stmt)).all()
+            workspace.usable_tools = list(tools)
+
     async def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = await self._db_session.get(
             workspace_models.Workspace, id,
@@ -35,21 +53,15 @@ class WorkspaceService(ServiceBase):
         return workspace
 
     async def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
-        usable_agent_ids = data.usable_agent_ids
-        new_workspace = workspace_models.Workspace(
-            **data.model_dump(exclude={"usable_agent_ids"})
-        )
+        create_data = data.model_dump(exclude={"usable_agent_ids", "usable_tool_ids"})
+        new_workspace = workspace_models.Workspace(**create_data)
 
-        if usable_agent_ids is not None:
-            stmt = select(agent_models.Agent).where(
-                agent_models.Agent.id.in_(usable_agent_ids)
-            )
-            agents = (await self._db_session.scalars(stmt)).all()
-            new_workspace.usable_agents = list(agents)
+        await self._update_relations(new_workspace, data)
 
         self._db_session.add(new_workspace)
         await self._db_session.flush()
-        await self._db_session.refresh(new_workspace)
+
+        new_workspace = await self.get_workspace_by_id(new_workspace.id)
         return new_workspace
 
     async def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
@@ -63,23 +75,11 @@ class WorkspaceService(ServiceBase):
             if hasattr(workspace, key) and value is not None:
                 setattr(workspace, key, value)
 
-        if data.usable_agent_ids is not None:
-            stmt = select(agent_models.Agent).where(
-                agent_models.Agent.id.in_(data.usable_agent_ids)
-            )
-            agents = (await self._db_session.execute(stmt)).scalars().all()
-            workspace.usable_agents = list(agents)
-
-        if data.usable_tool_ids is not None:
-            stmt = select(toolset_models.Tool).where(
-                toolset_models.Tool.id.in_(data.usable_tool_ids)
-            )
-            tools = (await self._db_session.execute(stmt)).scalars().all()
-            workspace.usable_tools = list(tools)
-
+        await self._update_relations(workspace, data)
         await self._db_session.flush()
-        await self._db_session.refresh(workspace)
-        return workspace
+
+        updated_workspace = await self.get_workspace_by_id(workspace.id)
+        return updated_workspace
 
     async def delete_workspace(self, id: int) -> None:
         workspace = await self._db_session.get(workspace_models.Workspace, id)
