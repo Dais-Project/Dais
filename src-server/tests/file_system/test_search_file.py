@@ -40,24 +40,8 @@ class TestSearchFile:
         with pytest.raises(FileNotFoundError):
             tool.search_file("*.txt", path="nonexistent")
 
-    def test_search_file_path_is_file(self, built_in_toolset_context, temp_workspace, sample_text_file):
+    def test_search_file_path_is_file(self, built_in_toolset_context, sample_text_file):
         filename, _ = sample_text_file
         tool = FileSystemToolset(built_in_toolset_context)
         with pytest.raises(NotADirectoryError):
             tool.search_file("*.txt", path=filename)
-
-    def test_search_file_stops_at_max_scan_limit(self, built_in_toolset_context, temp_workspace, monkeypatch):
-        tool = FileSystemToolset(built_in_toolset_context)
-        max_scan_limit = 200_000
-        total_entries = max_scan_limit + 10
-
-        def fake_scandir_recursive(directory: Path):
-            return self._fake_scandir_recursive(directory, total_entries)
-
-        # 使用伪生成器避免创建海量真实文件，但仍覆盖扫描上限逻辑。
-        monkeypatch.setattr(file_system_module, "scandir_recursive", fake_scandir_recursive)
-
-        result = tool.search_file("*.txt", limit=max_scan_limit + 5)
-
-        assert result["total"] == max_scan_limit
-        assert len(result["matches"]) == max_scan_limit

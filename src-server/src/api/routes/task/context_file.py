@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
-from rapidfuzz import process, fuzz, utils
+from rapidfuzz import process, fuzz
 from ....services.exceptions import BadRequestError, NotFoundError
 from ....db import DbSessionDep
 from ....services.workspace import WorkspaceService
