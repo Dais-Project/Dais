@@ -158,10 +158,10 @@ class AgentTask:
         except IndexError:
             last_message = None
 
-        if last_message and\
-           last_message.role == "tool" and\
-           last_message.result is None and \
-           last_message.error is None:
+        if (last_message and
+            last_message.role == "tool" and
+            last_message.result is None and
+            last_message.error is None):
             # If the previous tool call is not finished,
             # we consider it as ignored by user.
             last_message.result = USER_IGNORED_TOOL_CALL_RESULT
@@ -230,6 +230,8 @@ class AgentTask:
         return tool_event, replace_event
 
     async def run(self) -> AsyncGenerator[AgentEvent, None]:
+        _exited_by_generator_close = False
+
         try:
             while self._is_running:
                 last_chunk = None
@@ -262,17 +264,20 @@ class AgentTask:
 
                 tool = request_params.find_tool(tool_call_message.name)
                 if tool is None:
-                    yield ErrorEvent(error=Exception(f"Called not exist tool: {tool_call_message.name}"))
-                    break
+                    tool_call_message.error = handle_tool_does_not_exist_error(ToolDoesNotExistError(tool_call_message.name))
+                    yield MessageReplaceEvent(message=tool_call_message)
+                    continue
 
                 event = await self._process_tool_call_to_event(tool, tool_call_message)
                 yield event
                 yield MessageReplaceEvent(message=tool_call_message)
                 if isinstance(event, (ToolRequirePermissionEvent, ToolRequireUserResponseEvent)):
                     break
+        except GeneratorExit:
+            _exited_by_generator_close = True
         finally:
-            # ensure TaskDoneEvent is yielded
-            yield TaskDoneEvent()
+            if not _exited_by_generator_close:
+                yield TaskDoneEvent()
 
     async def persist(self):
         await self._ctx.persist()
