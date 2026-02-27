@@ -4,13 +4,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
-import { TaskConversation } from "./components/TaskConversation";
+import { TaskConversationContent, TaskConversationProvider, TaskConversationScrollToBottom } from "./components/TaskConversation";
 import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
 
 export function SessionViewSkeleton() {
   return (
-    <div className="flex h-full flex-col space-y-4 p-4 pt-0">
-      <div className="mx-auto flex w-full max-w-3xl flex-col space-y-4">
+    <div className="h-full space-y-4 p-4 pt-0">
+      <div className="mx-auto flex size-full max-w-3xl flex-col space-y-4">
         <div className="flex flex-1 flex-col space-y-2 overflow-y-hidden py-4">
           <Skeleton className="h-20 w-1/3 self-end rounded-lg" />
           <Skeleton className="h-40 w-3/4 self-start rounded-lg" />
@@ -47,19 +47,20 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
   });
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col">
-      <TaskConversation />
-      <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4">
-        <div className="mx-auto w-full max-w-3xl">
-          <div className="w-7/8 mx-auto">
-            {state === "idle" && <ContinueTask />}
-            {state === "error" && <ErrorRetry />}
-          </div>
-          <PromptInputProvider>
-            <PromptInput />
-          </PromptInputProvider>
-        </div>
-      </div>
-    </div>
+    <TaskConversationProvider className="relative flex h-full min-h-0 flex-col">
+       <TaskConversationContent />
+       <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4">
+         <div className="mx-auto w-full max-w-3xl">
+           <TaskConversationScrollToBottom className="flex static mx-auto mb-2" />
+           <div className="w-7/8 mx-auto">
+             {state === "idle" && <ContinueTask />}
+             {state === "error" && <ErrorRetry />}
+           </div>
+           <PromptInputProvider>
+             <PromptInput />
+           </PromptInputProvider>
+         </div>
+       </div>
+    </TaskConversationProvider>
   );
 }
