@@ -350,6 +350,7 @@ class FileSystemToolset(BuiltInToolset):
         """
         Request to write content to a file at the specified path.
         Use this when you need to create a new file or overwrite an existing file with new content.
+        If the parent directory of the specified path does not exist, it will be created automatically.
         **WARNING**: It will raise an error when overwriting existing files that are not read before.
 
         Returns:
