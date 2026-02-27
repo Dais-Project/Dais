@@ -26,7 +26,10 @@ export function TaskConversationContent() {
           return (
             <TextMessage
               key={message.id ?? message.content}
-              text={message.content as string | null}
+              text={message.role === "user"
+                      ? message.content
+                      // for assistant message, we use reasoning_content as fallback when content is null
+                      : (message.content ?? message.reasoning_content)}
               from={message.role}
             />
           );
