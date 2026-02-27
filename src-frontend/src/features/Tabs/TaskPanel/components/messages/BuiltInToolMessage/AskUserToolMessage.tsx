@@ -8,6 +8,7 @@ import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltI
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
+import { Streamdown } from "streamdown";
 
 export type AskUserToolMessageProps = {
   message: ToolMessageType;
@@ -42,7 +43,11 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
       icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
       defaultOpen
     >
-      {question && <p className="px-4 pb-2 font-medium text-sm">{question}</p>}
+      {question && (
+        <Streamdown className="px-4 pb-2 font-medium text-sm">
+          {question}
+        </Streamdown>
+      )}
       {options && (
         <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
           {options.map((option) => (
