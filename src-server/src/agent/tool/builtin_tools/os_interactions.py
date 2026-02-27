@@ -45,19 +45,19 @@ class OsInteractionsToolset(BuiltInToolset):
         This is a LOW PRIORITY tool - only use this tool when no suitable specialized tool is available.
 
         IMPORTANT:
-            1. DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons.
-            2. DO NOT use shell operators such as `&&`, `||`, `|`, `;`, `>`, `>>`, `<`, `2>&1`.
+            - DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons
+            - DO NOT use shell operators such as `&&`, `||`, `|`, `;`, `>`, `>>`, `<`, `2>&1`
 
         Returns:
             A JSON object containing the output of the command.
             The object has the following properties:
-            - stdout: The standard output of the command.
-            - stderr: The standard error output of the command.
-            - stdout_truncated: Whether the stdout is truncated.
-            - stderr_truncated: Whether the stderr is truncated.
-            - returncode: The return code of the command.
-            - status: The status of the command execution.
-            - duration: The duration of the command execution in seconds.
+            - stdout: The standard output of the command
+            - stderr: The standard error output of the command
+            - stdout_truncated: Whether the stdout is truncated
+            - stderr_truncated: Whether the stderr is truncated
+            - returncode: The return code of the command
+            - status: The status of the command execution
+            - duration: The duration of the command execution in seconds
 
         Note:
             If the original stdout or stderr is too long, it will be automatically truncated, keeping the first N and last N lines.

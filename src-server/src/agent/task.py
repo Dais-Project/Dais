@@ -63,9 +63,9 @@ class AgentTask:
             ])
         usable_tool_ids = self._ctx.usable_tool_ids
         if usable_tool_ids is None:
-            # agent or workspace has no usable tools configured, use all tools
+            # both agent and workspace has no usable tools configured, use all tools
             params.toolsets = self._ctx.toolsets
-            params.tool_choice = "required"
+            params.tool_choice = "auto"
         elif len(usable_tool_ids) == 0:
             # the intersection of two usable_tool sets is empty
             params.tool_choice = "none"
@@ -74,7 +74,7 @@ class AgentTask:
                             for toolset in self._ctx.toolsets
                             for tool in toolset.get_tools()
                             if tool.metadata["id"] in usable_tool_ids]
-            params.tool_choice = "required"
+            params.tool_choice = "auto"
 
         return params
 
