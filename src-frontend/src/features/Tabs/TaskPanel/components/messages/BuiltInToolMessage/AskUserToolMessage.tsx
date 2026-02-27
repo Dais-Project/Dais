@@ -60,12 +60,17 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
         <div className="flex items-center gap-2 px-4 pb-4">
           <Input
             type="text"
-            disabled={hasResult || disabled}
             value={answer}
+            className="flex-1"
+            disabled={hasResult || disabled}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}
           />
-          <Button disabled={hasResult || disabled} onClick={handleSendAnswer}>
+          <Button
+            disabled={hasResult || disabled}
+            onClick={handleSendAnswer}
+            className="size-9"
+          >
             <SendIcon />
           </Button>
         </div>

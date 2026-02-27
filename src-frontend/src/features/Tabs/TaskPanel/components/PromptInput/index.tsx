@@ -107,7 +107,7 @@ export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) 
         <PromptInputTextarea />
       </PromptInputBody>
       <PromptInputFooter>
-        <PromptInputTools>
+        <PromptInputTools className="gap-2">
           <ContextSelectPopover onSelect={handleSelectPath} />
           <PromptInputAgentState taskType={taskType} agentId={agentId} onChange={setAgentId} />
         </PromptInputTools>
@@ -161,10 +161,9 @@ export function PromptInput() {
         <PromptInputTextarea />
       </PromptInputBody>
       <PromptInputFooter className="gap-16">
-        <PromptInputTools className="min-w-0">
+        <PromptInputTools className="min-w-0 gap-2">
           <ContextSelectPopover onSelect={handleSelectPath} />
           <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
-          <div className="w-1" />
           <ContextUsage />
           <TaskProgress className="min-w-0 flex-1" />
         </PromptInputTools>
