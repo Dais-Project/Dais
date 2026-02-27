@@ -6,6 +6,18 @@ from pydantic import TypeAdapter
 from src.main import app
 from src.schemas.extra import EXTRA_SCHEMA_TYPES
 
+def _replace_defs_refs(obj: Any) -> Any:
+    """Recursively replace #/$defs/ references with #/components/schemas/"""
+    if isinstance(obj, dict):
+        return {
+            k: _replace_defs_refs(v) for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [_replace_defs_refs(item) for item in obj]
+    if isinstance(obj, str):
+        return obj.replace("#/$defs/", "#/components/schemas/")
+    return obj
+
 def custom_openapi() -> dict[str, Any]:
     raw = app.openapi()
     openapi = OpenAPI.model_validate(raw)
@@ -16,7 +28,7 @@ def custom_openapi() -> dict[str, Any]:
         openapi.components.schemas = {}
 
     for model in EXTRA_SCHEMA_TYPES:
-        if isinstance(model, dict):
+        if isinstance(model, dict) and "function" in model:
             tool_func = model["function"]
             openapi.components.schemas[tool_func["name"]] = Schema(
                 type=DataType.OBJECT,
@@ -27,8 +39,11 @@ def custom_openapi() -> dict[str, Any]:
 
         schema_dict = TypeAdapter(model).json_schema()
         defs = schema_dict.pop("$defs", {})
+        schema_dict = _replace_defs_refs(schema_dict)
+
         openapi.components.schemas[model.__name__] = Schema(**schema_dict)
         for name, definition in defs.items():
+            definition = _replace_defs_refs(definition)
             openapi.components.schemas[name] = Schema(**definition)
 
     return openapi.model_dump(by_alias=True, exclude_unset=True, exclude_none=True)

@@ -8,6 +8,7 @@ import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltI
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
+import { Streamdown } from "streamdown";
 
 export type AskUserToolMessageProps = {
   message: ToolMessageType;
@@ -42,7 +43,11 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
       icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
       defaultOpen
     >
-      {question && <p className="px-4 pb-2 font-medium text-sm">{question}</p>}
+      {question && (
+        <Streamdown className="px-4 pb-2 font-medium text-sm">
+          {question}
+        </Streamdown>
+      )}
       {options && (
         <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
           {options.map((option) => (
@@ -60,12 +65,17 @@ export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
         <div className="flex items-center gap-2 px-4 pb-4">
           <Input
             type="text"
-            disabled={hasResult || disabled}
             value={answer}
+            className="flex-1"
+            disabled={hasResult || disabled}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}
           />
-          <Button disabled={hasResult || disabled} onClick={handleSendAnswer}>
+          <Button
+            disabled={hasResult || disabled}
+            onClick={handleSendAnswer}
+            className="size-9"
+          >
             <SendIcon />
           </Button>
         </div>

@@ -2,15 +2,13 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Any
-from platformdirs import user_data_dir
 from pydantic import GetJsonSchemaHandler
 from pydantic_core import core_schema
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 from .db import db_context
 from .services.llm_model import LlmModelService
-from .common import APP_NAME
+from .common import APP_NAME, DATA_DIR
 
-data_dir = Path(user_data_dir(APP_NAME, appauthor=False, ensure_exists=True))
 
 class JsonFileSettingsSource(PydanticBaseSettingsSource):
     def __init__(self, settings_cls: type[BaseSettings], config_path: Path):
@@ -38,7 +36,7 @@ class JsonSettings(BaseSettings):
 
     @classmethod
     def settings_path(cls):
-        return data_dir / "settings.json"
+        return DATA_DIR / "settings.json"
 
     @classmethod
     def settings_customise_sources(

@@ -42,7 +42,7 @@ export function TaskProgress({ className }: { className?: string }) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent className="p-2">
         <TodoList todos={todos} />
       </PopoverContent>
     </Popover>

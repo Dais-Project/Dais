@@ -74,7 +74,11 @@ export function AgentSelectDialog({
           <SelectDialogEmpty>No agent found.</SelectDialogEmpty>
           <SelectDialogGroup>
             {agents.map((agent) => (
-              <SelectDialogItem key={agent.id} value={agent.id}>
+              <SelectDialogItem
+                key={agent.id}
+                value={agent.id}
+                keywords={[agent.name]}
+              >
                 {agent.name}
               </SelectDialogItem>
             ))}

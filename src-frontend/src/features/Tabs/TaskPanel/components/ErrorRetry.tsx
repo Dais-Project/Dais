@@ -6,7 +6,7 @@ import { useAgentTaskAction } from "../hooks/use-agent-task";
 export function ErrorRetry() {
   const { continue: continueTask } = useAgentTaskAction();
   return (
-    <Alert className="flex w-4/5 min-w-fit items-stretch self-center rounded-b-none border-b-0">
+    <Alert className="flex min-w-fit items-stretch rounded-b-none border-b-0">
       <div className="mr-2 flex items-center">
         <CircleXIcon className="size-4" />
       </div>

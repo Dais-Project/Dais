@@ -1,13 +1,26 @@
+import { ComponentProps } from "react";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
+import { cn } from "@/lib/utils";
 import { useAgentTaskState } from "../hooks/use-agent-task";
 import { ToolMessage } from "./messages/BuiltInToolMessage";
 import { TextMessage } from "./messages/TextMessage";
 
-export function TaskConversation() {
+export function TaskConversationProvider({className, ...props}: ComponentProps<typeof Conversation>) {
+  return (
+    <Conversation
+      id="conversation"
+      className={cn("conversation-container min-h-0", className)}
+      {...props}
+    />
+  )
+}
+
+export const TaskConversationScrollToBottom = ConversationScrollButton;
+
+export function TaskConversationContent() {
   const { data } = useAgentTaskState();
   return (
-    <Conversation id="conversation" className="conversation-container">
-      <ConversationContent className="gap-y-4 pb-20">
+      <ConversationContent className="mx-auto w-full max-w-3xl gap-y-4 pb-52">
         {data.messages.map((message) => {
           if (message.role === "system") {
             return null;
@@ -18,13 +31,14 @@ export function TaskConversation() {
           return (
             <TextMessage
               key={message.id ?? message.content}
-              text={message.content as string | null}
+              text={message.role === "user"
+                      ? message.content
+                      // for assistant message, we use reasoning_content as fallback when content is null
+                      : (message.content ?? message.reasoning_content)}
               from={message.role}
             />
           );
         })}
-        <ConversationScrollButton />
       </ConversationContent>
-    </Conversation>
   );
 }

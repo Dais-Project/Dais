@@ -2,7 +2,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 from collections.abc import AsyncIterator
-from typing import Annotated
+from typing import Annotated, Any
 from fastapi import Depends
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from platformdirs import user_data_dir
-
 from .models import (
     provider as provider_models,
     agent as agent_models,
@@ -20,10 +18,9 @@ from .models import (
 )
 # this unused import is necessary to alembic
 from . import models
-from src.common import APP_NAME
+from src.common import DATA_DIR
 
-data_dir = Path(user_data_dir(APP_NAME, appauthor=False, ensure_exists=True))
-db_path = data_dir / "sqlite.db"
+db_path = DATA_DIR / "sqlite.db"
 
 DB_ASYNC_URL = f"sqlite+aiosqlite:///{db_path}"
 DB_SYNC_URL = f"sqlite:///{db_path}"
@@ -60,10 +57,19 @@ async def init_initial_data() -> None:
         await toolset_models.init(session)
 
 async def migrate_db() -> None:
+    def get_base_dir() -> str:
+        import sys, os
+        from src import IS_DEV
+        if IS_DEV:
+            return str(Path(os.path.abspath(__file__)).parent.parent.parent)
+        else:
+            return sys._MEIPASS
+
     from alembic.config import Config
     from alembic import command
 
     alembic_cfg = Config("alembic.ini")
+    alembic_cfg.set_main_option("script_location", f"{get_base_dir()}/src/db/alembic")
     alembic_cfg.set_main_option("sqlalchemy.url", DB_SYNC_URL)
     command.upgrade(alembic_cfg, "head")
     await init_initial_data()

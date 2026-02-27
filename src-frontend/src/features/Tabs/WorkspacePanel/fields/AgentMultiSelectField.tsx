@@ -32,7 +32,11 @@ function AgentQueryList() {
       query={query}
       selectItems={(page) => page.items}
       itemRender={(agent) => (
-        <SelectDialogItem<number> key={agent.id} value={agent.id}>
+        <SelectDialogItem<number>
+          key={agent.id}
+          value={agent.id}
+          keywords={[agent.name]}
+        >
           {agent.name}
         </SelectDialogItem>
       )}

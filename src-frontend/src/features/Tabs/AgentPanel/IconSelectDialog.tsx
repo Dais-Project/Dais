@@ -9,7 +9,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeaderSrOnly,
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 export type { IconName } from "lucide-react/dynamic";
 
@@ -266,6 +271,8 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      <DialogHeaderSrOnly title="选择图标" description="搜索图标..." />
+
       <DialogTrigger asChild>
         <Button variant="outline" size={value ? "icon" : "default"}>
           {value ? <DynamicIcon name={value} /> : "选择图标"}
@@ -275,7 +282,7 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
       <DialogContent showCloseButton={false} className="max-w-2xl p-0">
         <Command value={value ?? undefined}>
           <CommandInput placeholder="搜索图标..." />
-          <CommandList className="shadcn-scroll max-h-100">
+          <CommandList className="max-h-100">
             {iconGroups.map((group, index) => (
               <div key={group.heading}>
                 <CommandGroup heading={group.heading} className="p-2">

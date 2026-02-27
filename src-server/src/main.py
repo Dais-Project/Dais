@@ -5,6 +5,7 @@ from loguru import logger
 from . import IS_DEV
 from .api import app
 from .db import migrate_db
+from .common import DATA_DIR
 
 def prevent_port_occupancy(port: int):
     import time
@@ -42,4 +43,7 @@ def main():
 
     if IS_DEV:
         prevent_port_occupancy(args.port)
+    
+    logger.add(DATA_DIR / "server.log", mode="w", enqueue=True)
     uvicorn.run(app, host="127.0.0.1", port=args.port)
+    logger.complete()

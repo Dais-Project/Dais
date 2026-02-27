@@ -1,33 +1,4 @@
-export {
-  getGetTaskQueryKey,
-  getGetTasksInfiniteQueryKey,
-  useDeleteTask,
-  useGetTaskSuspense,
-  useGetTasksSuspenseInfinite,
-  useNewTask,
-} from "./generated/endpoints/task/task";
-
-import queryClient from "@/query-client";
-import { getGetTaskQueryKey, getGetTasksInfiniteQueryKey } from "./generated/endpoints/task/task";
-
-type InvalidateTaskQueriesOptions = {
-  workspaceId: number;
-  taskId?: number;
-};
-
-export async function invalidateTaskQueries({
-  workspaceId,
-  taskId,
-}: InvalidateTaskQueriesOptions) {
-  await queryClient.invalidateQueries({ queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }) });
-  if (taskId !== undefined) {
-    await queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  }
-}
-
-// --- --- --- --- --- ---
-
-import { createSseStream } from "../lib/sse";
+import { createSseStream } from "@/lib/sse";
 import type {
   AgentEventType,
   ErrorEventData,
@@ -39,9 +10,9 @@ import type {
   ToolExecutedEventData,
   ToolRequirePermissionEventData,
   ToolRequireUserResponseEventData,
-} from "../types/agent-stream";
-import { API_BASE } from ".";
-import type { ContinueTaskBody, ToolAnswerBody, ToolReviewBody } from "./generated/schemas";
+} from "@/types/agent-stream";
+import { API_BASE } from "..";
+import type { ContinueTaskBody, ToolAnswerBody, ToolReviewBody } from "../generated/schemas";
 
 const TASK_STREAM_BASE_URL = new URL("api/tasks/", API_BASE);
 
@@ -68,6 +39,7 @@ export type TaskSseCallbacks = {
 };
 
 function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSseCallbacks): AbortController {
+  let isStreamError = false;
   const abortController = createSseStream(url, {
     body,
     onMessage: ({ event, data }) => {
@@ -117,6 +89,7 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
           return;
 
         case "ERROR":
+          isStreamError = true;
           callbacks.onError?.(new Error((data as ErrorEventData).message));
           break;
 
@@ -125,7 +98,11 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
       }
     },
     onError: callbacks.onError,
-    onClose: callbacks.onClose,
+    onClose: () => {
+      if (!isStreamError) {
+        callbacks.onClose?.();
+      }
+    },
   });
   return abortController;
 }

@@ -50,7 +50,7 @@
       "cache": true,
       "options": {
         "commands": [
-          "uv run pyinstaller --noconfirm --name server entry.py",
+          "uv run pyinstaller --noconfirm entry.spec",
           "uv run python -m scripts.rename_python_sidecar --name=server --output-dir=../src-tauri/"
         ],
         "parallel": false
@@ -68,7 +68,10 @@
       "command": "uv run python -m scripts.export_openapi",
       "cache": true,
       "inputs": [
-        "{projectRoot}/src/api/**/*.py"
+        "{projectRoot}/src/api/**/*.py",
+        "{projectRoot}/src/schemas/**/*.py",
+        "{projectRoot}/src/settings.py",
+        "{projectRoot}/scripts/export_openapi.py"
       ],
       "outputs": [
         "{workspaceRoot}/openapi.json"

@@ -29,7 +29,11 @@ function ToolQueryList({ onFetched }: { onFetched: (toolsets: ToolsetRead[]) => 
       {toolsets.map((toolset) => (
         <SelectDialogGroup key={toolset.id} heading={toolset.name}>
           {toolset.tools.map((tool) => (
-            <SelectDialogItem<number> key={tool.id} value={tool.id}>
+            <SelectDialogItem<number>
+              key={tool.id}
+              value={tool.id}
+              keywords={[toolset.name, tool.name]}
+            >
               {tool.name}
             </SelectDialogItem>
           ))}
@@ -67,14 +71,12 @@ export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialog
         <SelectDialogSearch placeholder="搜索工具..." />
         <SelectDialogList>
           <SelectDialogEmpty>未找到匹配的工具</SelectDialogEmpty>
-          <SelectDialogGroup>
-            <AsyncBoundary
-              skeleton={<SelectDialogSkeleton />}
-              errorDescription="无法加载工具列表，请稍后重试。"
-            >
-              <ToolQueryList onFetched={handleFetched} />
-            </AsyncBoundary>
-          </SelectDialogGroup>
+          <AsyncBoundary
+            skeleton={<SelectDialogSkeleton />}
+            errorDescription="无法加载工具列表，请稍后重试。"
+          >
+            <ToolQueryList onFetched={handleFetched} />
+          </AsyncBoundary>
         </SelectDialogList>
         <SelectDialogFooter
           onConfirm={onChange}
