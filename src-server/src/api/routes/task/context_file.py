@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from fastapi import APIRouter, Query
+from pydantic import BaseModel
 from rapidfuzz import process, fuzz, utils
 from ....services.exceptions import BadRequestError, NotFoundError
 from ....db import DbSessionDep
@@ -62,35 +63,33 @@ def _list_directory(workspace_root: Path, path: str) -> list[task_schemas.Contex
 
     return sorted(items, key=lambda node: (node.type != "folder", node.name.lower()))
 
-def _search_file(query: str, workspace_root: Path, match_limit: int = 32) -> list[task_schemas.ContextFileItem]:
-    def weighted_path_scorer(query: str, full_path: str, *, processor=None, score_cutoff=None):
-        if processor:
-            query_p = processor(query)
-            path_p = processor(full_path)
-        else:
-            query_p = query
-            path_p = full_path
+def _search_file(query: str, workspace_root: Path, match_limit: int) -> list[task_schemas.ContextFileItem]:
+    def weighted_path_scorer(query, full_path, *, processor=None, score_cutoff=None):
+        filename: str = os.path.basename(full_path)
+        dirname: str = os.path.dirname(full_path)
 
-        filename = os.path.basename(path_p)
-        dirname = os.path.dirname(path_p)
-        filename_score = fuzz.WRatio(query_p, filename)
-        path_score = fuzz.WRatio(query_p, dirname)
-        return filename_score * 0.7 + path_score * 0.3
-    
+        if processor:
+            query = processor(query)
+            filename = processor(filename)
+            dirname = processor(dirname)
+
+        filename_score = fuzz.WRatio(query, filename)
+        dirname_score = fuzz.WRatio(query, dirname) if dirname else 0.0
+        final_score = filename_score + dirname_score * 0.3
+        if score_cutoff is not None and final_score < score_cutoff:
+            return 0
+        return final_score
+
     MAX_SCAN_LIMIT = 10_000
-    if len(query) <= 3:
-        score_cutoff = 70
-    else:
-        score_cutoff = 60
     candidates: list[str] = [entry.path
                              for entry in scandir_recursive_bfs(workspace_root, MAX_SCAN_LIMIT)
                              if entry.is_file()]
     matches = process.extract(
-        query,
+        query.strip(),
         candidates,
         scorer=weighted_path_scorer,
-        processor=utils.default_process,
-        score_cutoff=score_cutoff,
+        processor=str.lower,
+        score_cutoff=60,
         limit=match_limit
     )
     results: list[task_schemas.ContextFileItem] = []
@@ -100,7 +99,14 @@ def _search_file(query: str, workspace_root: Path, match_limit: int = 32) -> lis
         results.append(task_schemas.ContextFileItem(path=relative_path, name=Path(path).name, type="file"))
     return results
 
-@context_file_router.get("/files/list", response_model=list[task_schemas.ContextFileItem])
+class ListDirectoryResult(BaseModel):
+    items: list[task_schemas.ContextFileItem]
+
+class SearchFileResult(BaseModel):
+    items: list[task_schemas.ContextFileItem]
+    total: int
+
+@context_file_router.get("/files/list", response_model=ListDirectoryResult)
 async def list_directory(
     db_session: DbSessionDep,
     workspace_id: int = Query(...),
@@ -108,14 +114,16 @@ async def list_directory(
 ):
     workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
-    return _list_directory(workspace_root, path)
+    return ListDirectoryResult(items=_list_directory(workspace_root, path))
 
-@context_file_router.get("/files/search", response_model=list[task_schemas.ContextFileItem])
+@context_file_router.get("/files/search", response_model=SearchFileResult)
 async def search_file(
     db_session: DbSessionDep,
     workspace_id: int = Query(...),
     query: str = Query(...),
+    match_limit: int = Query(default=20, ge=1, le=100),
 ):
     workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
-    return _search_file(query, workspace_root)
+    items = _search_file(query, workspace_root, match_limit)
+    return SearchFileResult(items=items, total=len(items))
