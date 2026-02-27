@@ -47,10 +47,10 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
   });
 
   return (
-    <TaskConversationProvider className="relative flex h-full min-h-0 flex-col">
+    <TaskConversationProvider className="relative flex h-full flex-col">
        <TaskConversationContent />
-       <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4">
-         <div className="mx-auto w-full max-w-3xl">
+       <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
+         <div className="mx-auto w-full max-w-3xl pointer-events-auto">
            <TaskConversationScrollToBottom className="flex static mx-auto mb-2" />
            <div className="w-7/8 mx-auto">
              {state === "idle" && <ContinueTask />}

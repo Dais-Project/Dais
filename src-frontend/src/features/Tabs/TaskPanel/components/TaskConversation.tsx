@@ -1,12 +1,17 @@
+import { ComponentProps } from "react";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
+import { cn } from "@/lib/utils";
 import { useAgentTaskState } from "../hooks/use-agent-task";
 import { ToolMessage } from "./messages/BuiltInToolMessage";
 import { TextMessage } from "./messages/TextMessage";
-import { ComponentProps } from "react";
 
-export function TaskConversationProvider(props: ComponentProps<typeof Conversation>) {
+export function TaskConversationProvider({className, ...props}: ComponentProps<typeof Conversation>) {
   return (
-    <Conversation id="conversation" className="conversation-container min-h-0" {...props} />
+    <Conversation
+      id="conversation"
+      className={cn("conversation-container min-h-0", className)}
+      {...props}
+    />
   )
 }
 
