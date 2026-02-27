@@ -39,6 +39,7 @@ export type TaskSseCallbacks = {
 };
 
 function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSseCallbacks): AbortController {
+  let isStreamError = false;
   const abortController = createSseStream(url, {
     body,
     onMessage: ({ event, data }) => {
@@ -88,6 +89,7 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
           return;
 
         case "ERROR":
+          isStreamError = true;
           callbacks.onError?.(new Error((data as ErrorEventData).message));
           break;
 
@@ -96,7 +98,11 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
       }
     },
     onError: callbacks.onError,
-    onClose: callbacks.onClose,
+    onClose: () => {
+      if (!isStreamError) {
+        callbacks.onClose?.();
+      }
+    },
   });
   return abortController;
 }
