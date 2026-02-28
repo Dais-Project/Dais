@@ -1,0 +1,146 @@
+/* =====================================================
+   Vditor × shadcn UI 主题适配
+   同时覆盖 classic（亮色）和 dark 两套 Vditor 主题
+   ===================================================== */
+
+/* ---------- 亮色主题 ---------- */
+.vditor--classic {
+  /* 编辑区背景 & 文字 */
+  --background-color:            var(--background);
+  --text-color:                  var(--foreground);
+
+  /* 工具栏 */
+  --toolbar-background-color:    var(--card);
+  --toolbar-icon-color:          var(--muted-foreground);
+  --toolbar-icon-hover-color:    var(--foreground);
+
+  /* 面板 / 浮层（链接弹窗等） */
+  --panel-background-color:      var(--popover);
+  --second-color:                var(--muted-foreground);
+
+  /* 边框 & 输入框 */
+  --border-color:                var(--border);
+  --input-background-color:      var(--input);
+
+  /* 选中 & 高亮 */
+  --selected-background-color:   color-mix(in oklch, var(--primary) 15%, transparent);
+  --code-background-color:       var(--muted);
+
+  /* 滚动条 */
+  --scrollbar-thumb-color:       var(--border);
+
+  /* 圆角与外框 */
+  border-radius: var(--radius);
+  border-color:  var(--border);
+}
+
+/* ---------- 暗色主题 ---------- */
+.vditor--dark {
+  --background-color:            var(--background);
+  --text-color:                  var(--foreground);
+
+  --toolbar-background-color:    var(--card);
+  --toolbar-icon-color:          var(--muted-foreground);
+  --toolbar-icon-hover-color:    var(--foreground);
+
+  --panel-background-color:      var(--popover);
+  --second-color:                var(--muted-foreground);
+
+  --border-color:                var(--border);
+  --input-background-color:      var(--input);
+
+  --selected-background-color:   color-mix(in oklch, var(--primary) 20%, transparent);
+  --code-background-color:       var(--muted);
+
+  --scrollbar-thumb-color:       var(--border);
+
+  border-radius: var(--radius);
+  border-color:  var(--border);
+}
+
+.vditor--dark .vditor-reset:focus-within {
+    background-color: color-mix(in oklch, var(--background) 90%, white) !important;
+}
+
+/* ---------- 公共微调（两套主题都适用）---------- */
+
+/* 工具栏下边框与背景对齐 */
+.vditor-toolbar {
+  border-bottom-color: var(--border) !important;
+  background-color: var(--card) !important;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* 编辑内容区 */
+.vditor-ir,
+.vditor-wysiwyg,
+.vditor-sv {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+/* 底部状态栏 */
+.vditor-info {
+  background-color: var(--card) !important;
+  border-top-color: var(--border) !important;
+  color: var(--muted-foreground) !important;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* 浮层面板（超链接、图片插入等弹窗） */
+.vditor-panel {
+  background-color: var(--popover) !important;
+  border-color: var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--popover-foreground) !important;
+}
+
+.vditor-panel input,
+.vditor-panel textarea {
+  background-color: var(--input) !important;
+  border-color: var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--foreground) !important;
+}
+
+/* 工具栏 tooltip */
+.vditor-tooltipped::after {
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* 行内代码块 */
+.vditor-reset code:not(.hljs) {
+  background-color: var(--muted) !important;
+  color: var(--foreground) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* 代码块容器 */
+.vditor-reset pre {
+  background-color: var(--muted) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* 引用块左边框颜色改用 primary */
+.vditor-reset blockquote {
+  border-left-color: var(--primary) !important;
+  color: var(--muted-foreground) !important;
+}
+
+/* 分割线 */
+.vditor-reset hr {
+  border-color: var(--border) !important;
+}
+
+/* 链接颜色 */
+.vditor-reset a {
+  color: var(--primary) !important;
+}
+
+@layer components {
+  .vditor-reset pre .hljs {
+    @apply shadcn-scroll-horizontal;
+  }
+}

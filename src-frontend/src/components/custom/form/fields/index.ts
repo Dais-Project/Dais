@@ -3,9 +3,11 @@
 import type { FieldItemProps } from "../../item/FieldItem";
 
 // biome-ignore lint/complexity/noBannedTypes: To allow extra props in field components.
-export type FieldProps<Component extends React.ElementType, Extra = {}> = {
+export type FieldProps<ComponentOrProps, Extra = {}> = {
   fieldName: string;
-  controlProps?: React.ComponentProps<Component>;
+  controlProps?: ComponentOrProps extends React.ElementType
+    ? React.ComponentProps<ComponentOrProps>
+    : ComponentOrProps;
   fieldProps?: Omit<FieldItemProps, "fieldState" | "children">;
 } & Extra;
 

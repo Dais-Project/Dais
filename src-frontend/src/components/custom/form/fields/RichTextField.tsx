@@ -1,19 +1,43 @@
 import {
-  Controller,
   type RegisterOptions,
+  useController,
   useFormContext,
 } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { MinimalTiptapEditor } from "@/components/ui/minimal-tiptap";
+import { Vditor } from "@/components/custom/Vditor";
 import type { FieldProps } from ".";
 
+function createRichTextRules(
+  label: string,
+  required: boolean,
+  minLength: number,
+  maxLength: number | undefined
+) {
+  const rules: RegisterOptions = {};
+  if (required) {
+    rules.required = `请输入${label}`;
+  }
+  if (minLength !== undefined) {
+    rules.minLength = {
+      value: minLength,
+      message: `${label}不能少于 ${minLength} 个字符`,
+    };
+  }
+  if (maxLength !== undefined) {
+    rules.maxLength = {
+      value: maxLength,
+      message: `${label}不能超过 ${maxLength} 个字符`,
+    };
+  }
+  return rules;
+}
+
 type RichTextFieldProps = FieldProps<
-  typeof MinimalTiptapEditor,
+  Omit<React.ComponentProps<typeof Vditor>, "initialValue" | "onChange">,
   {
     required?: boolean;
     minLength?: number;
     maxLength?: number;
-    editorClassName?: string;
   }
 >;
 
@@ -22,42 +46,26 @@ export function RichTextField({
   required = false,
   minLength = 1,
   maxLength,
+  controlProps,
   fieldProps = { label: "内容" },
-  controlProps = { editorClassName: "min-h-[8em]" },
 }: RichTextFieldProps) {
-  const { control } = useFormContext();
-
-  const rules: RegisterOptions = {};
-  if (required) {
-    rules.required = `请输入${fieldProps.label}`;
-  }
-  if (minLength !== undefined) {
-    rules.minLength = {
-      value: minLength,
-      message: `${fieldProps.label}不能少于 ${minLength} 个字符`,
-    };
-  }
-  if (maxLength !== undefined) {
-    rules.maxLength = {
-      value: maxLength,
-      message: `${fieldProps.label}不能超过 ${maxLength} 个字符`,
-    };
-  }
-
+  const { control, getFieldState } = useFormContext();
+  const { field } = useController({
+    name: fieldName,
+    control,
+    rules: createRichTextRules(fieldProps.label as string, required, minLength, maxLength),
+  });
   return (
-    <Controller
-      name={fieldName}
-      control={control}
-      rules={rules}
-      render={({ field, fieldState }) => (
-        <FieldItem
-          fieldState={fieldState}
-          orientation="vertical"
-          {...fieldProps}
-        >
-          <MinimalTiptapEditor {...field} className="mt-2" {...controlProps} />
-        </FieldItem>
-      )}
-    />
+    <FieldItem
+      fieldState={getFieldState(fieldName)}
+      orientation="vertical"
+      {...fieldProps}
+    >
+      <Vditor
+        initialValue={field.value}
+        onChange={field.onChange}
+        {...controlProps}
+      />
+    </FieldItem>
   );
 }

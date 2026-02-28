@@ -48,10 +48,6 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
         fieldName="system_prompt"
         maxLength={10_000}
         fieldProps={{ label: "Agent 提示词", className: "mt-2" }}
-        controlProps={{
-          className: "mx-1 mt-2",
-          editorClassName: "min-h-[8em]",
-        }}
       />
 
       <ToolMultiSelectField />
