@@ -5,7 +5,7 @@ class UserInteractionToolset(BuiltInToolset):
     @property
     def name(self) -> str: return "UserInteraction"
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def ask_user(self,
                  question: Annotated[str,
                     "The clear and concise question to ask the user. "],
@@ -40,7 +40,7 @@ class UserInteractionToolset(BuiltInToolset):
         """
         ...
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def show_plan(self,
                   plan: Annotated[str,
                     "The complete execution plan in markdown format. Should include a brief goal summary, numbered steps, and any important notes or assumptions."]
