@@ -5,6 +5,7 @@ import { LazyFileTree } from "@/components/custom/LazyFileTree";
 import { Command, CommandEmpty, CommandLoading, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "ahooks";
 import { AtSignIcon, FileIcon } from "lucide-react";
 import { useState } from "react";
@@ -46,8 +47,11 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
     return null;
   }
   const debouncedQuery = useDebounce(query, { wait: 200 });
-  const { data, isLoading } = useSearchFile({ workspace_id: currentWorkspace.id, query: debouncedQuery });
-  if (isLoading) {
+  const { data, isLoading } = useSearchFile(
+    { workspace_id: currentWorkspace.id, query: debouncedQuery },
+    { query: { placeholderData: keepPreviousData } },
+  );
+  if (isLoading && data === undefined) {
     return <CommandLoading>Loading...</CommandLoading>;
   }
   if (data === undefined || data.items.length === 0) {
@@ -59,7 +63,7 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
         <CommandItem key={item.path} value={item.path} onSelect={onSelect}>
           <FileIcon />
           <span className="font-medium text-sm">{item.name}</span>
-          <span className="text-muted-foreground text-xs">{item.path}</span>
+          <span className="text-muted-foreground text-xs truncate">{item.path}</span>
         </CommandItem>
       ))}
     </>
@@ -79,7 +83,7 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
       />
       <CommandList className="p-1">
         {isSearching ? (
-          <SearchResults query={query} />
+          <SearchResults query={query} onSelect={onSelect} />
         ) : (
           <AsyncBoundary
             skeleton={<div className="p-3 text-muted-foreground text-sm">Loading...</div>}
@@ -110,6 +114,7 @@ export function ContextSelectPopover({ onSelect }: { onSelect?: OnSelectHandler 
         </PromptInputButton>
       </PopoverTrigger>
       <PopoverContent
+        side="top"
         align="start"
         className="w-100 p-0"
         // prevent focusing the trigger button to trigger tooltip after closing
