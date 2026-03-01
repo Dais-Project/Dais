@@ -1,12 +1,13 @@
 import { useBoolean, useThrottleFn } from "ahooks";
-import { useEffect } from "react";
+import { Activity, useEffect } from "react";
 import { type PanelSize, useDefaultLayout, useGroupRef, usePanelRef } from "react-resizable-panels";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useSidebarStore } from "@/stores/sidebar-store";
+import { cn } from "@/lib/utils";
+import { activityVisible } from "@/lib/activity-visible";
 import { ActivityBar } from "./ActivityBar/ActivityBar";
 import { SideBar } from "./SideBar/SideBar";
 import { Tabs } from "./Tabs";
-import { cn } from "@/lib/utils";
 
 export function Layout() {
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
@@ -77,6 +78,9 @@ export function Layout() {
           minSize={300}
           className={cn({ "resizable-panel-resizing": isResizing })}
         >
+          <Activity mode={activityVisible(isResizing)}>
+            <div className="absolute inset-0 z-50 select-none" />
+          </Activity>
           <Tabs />
         </ResizablePanel>
       </ResizablePanelGroup>
