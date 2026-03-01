@@ -5,9 +5,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { Layout } from "./features/Layout";
 
 function App() {
-  const {
-    current: { theme },
-  } = useSettingsStore();
+  const { current: { theme } } = useSettingsStore();
   useEffect(() => applyTheme(theme), [theme]);
 
   return (

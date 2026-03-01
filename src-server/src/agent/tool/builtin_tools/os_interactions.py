@@ -28,7 +28,7 @@ class OsInteractionsToolset(BuiltInToolset):
     @property
     def name(self) -> str: return "OsInteractions"
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     async def shell(self,
                     command: Annotated[str,
                         "The command to execute. Do not pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd)."],

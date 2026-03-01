@@ -11,7 +11,7 @@ class ExecutionControlToolset(BuiltInToolset):
     @property
     def name(self) -> str: return "ExecutionControl"
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def finish_task(self,
                     task_summary: Annotated[str,
                         """
@@ -36,7 +36,7 @@ class ExecutionControlToolset(BuiltInToolset):
         """
         ...
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def update_todos(self,
                      todos: Annotated[list[TodoItem],
                         """
@@ -63,7 +63,46 @@ class ExecutionControlToolset(BuiltInToolset):
 
         IMPORTANT:
         - Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items
-        - Mark each step complete immediately when done — do not batch status updates
+        - Mark each todo step complete immediately when done - do not batch status updates
+
+        Examples:
+        <example>
+        user: Run the build and fix any type errors
+        assistant: I'm going to use the TodoWrite tool to write the following items to the todo list:
+        - Run the build
+        - Fix any type errors
+
+        I'm now going to run the build using Bash.
+
+        Looks like I found 10 type errors. I'm going to use the TodoWrite tool to write 10 items to the todo list.
+
+        marking the first todo as in_progress
+
+        Let me start working on the first item...
+
+        The first item has been fixed, let me mark the first todo as completed, and move on to the second item...
+        ..
+        ..
+        </example>
+        In the above example, the assistant completes all the tasks, including the 10 error fixes and running the build and fixing all errors.
+
+        <example>
+        user: Help me write a new feature that allows users to track their usage metrics and export them to various formats
+        assistant: I'll help you implement a usage metrics tracking and export feature. Let me first use the TodoWrite tool to plan this task.
+        Adding the following todos to the todo list:
+        1. Research existing metrics tracking in the codebase
+        2. Design the metrics collection system
+        3. Implement core metrics tracking functionality
+        4. Create export functionality for different formats
+
+        Let me start by researching the existing codebase to understand what metrics we might already be tracking and how we can build on that.
+
+        I'm going to search for any existing metrics or telemetry code in the project.
+
+        I've found some existing telemetry code. Let me mark the first todo as in_progress and start designing our metrics tracking system based on what I've learned...
+
+        [Assistant continues implementing the feature step by step, marking todos as in_progress and completed as they go]
+        </example>
 
         Returns:
             A confirmation message that the todo list has been updated.

@@ -5,6 +5,7 @@
 @import "@/styles/user-select.css";
 @import "@/styles/scroll-bar.css";
 @import "@/styles/ai-elements-patch.css";
+@import "@/styles/vditor.css";
 @source "../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));

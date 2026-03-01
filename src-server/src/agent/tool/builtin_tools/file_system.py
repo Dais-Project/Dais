@@ -27,7 +27,7 @@ class FileSystemToolset(BuiltInToolset):
     def _is_markitdown_convertable_binary(self, path: str) -> bool:
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def read_file(self,
                   path: Annotated[str,
                     "The path of the file to read (relative to the current working directory)."],
@@ -68,7 +68,7 @@ class FileSystemToolset(BuiltInToolset):
         else:
             return "\n".join(lines)
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def read_file_batch(self,
                         paths: Annotated[list[str],
                             "The paths of the files to read (relative to the current working directory)."],
@@ -130,7 +130,7 @@ class FileSystemToolset(BuiltInToolset):
 """
         return result
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def list_directory(self,
                        path: Annotated[str,
                         "(Default: \".\") The path of the directory to list contents for (relative to the current working directory)."] = ".",
@@ -316,7 +316,7 @@ class FileSystemToolset(BuiltInToolset):
 
         return "\n".join(result_lines)
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def write_file(self,
                    path: Annotated[str,
                     "The path of the file to write (relative to the current working directory)."],
@@ -345,7 +345,7 @@ class FileSystemToolset(BuiltInToolset):
         abs_path.write_text(content, encoding="utf-8")
         return "File written successfully."
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def edit_file(self,
                   path: Annotated[str,
                     "The path of the file to edit (relative to the current working directory)."],
@@ -391,7 +391,7 @@ class FileSystemToolset(BuiltInToolset):
         abs_path.write_text(new_file_content, encoding="utf-8")
         return generate_diff(old_file_content, new_file_content, path)
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def delete(self,
                path: Annotated[str,
                 "The path of the file or directory to delete (relative to the current working directory)."]
@@ -420,7 +420,7 @@ class FileSystemToolset(BuiltInToolset):
         total: int
         matches: list[str]
 
-    @built_in_tool
+    @built_in_tool(validate=True)
     def search_file(self,
                     pattern: Annotated[str,
                         """

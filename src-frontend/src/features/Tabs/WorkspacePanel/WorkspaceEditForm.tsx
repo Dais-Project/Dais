@@ -79,10 +79,6 @@ export function WorkspaceEditForm({
       <RichTextField
         fieldName="workspace_background"
         fieldProps={{ label: "工作区概况", className: "mt-2" }}
-        controlProps={{
-          className: "mx-1 mt-2",
-          editorClassName: "min-h-[8em]",
-        }}
         minLength={0}
       />
 
