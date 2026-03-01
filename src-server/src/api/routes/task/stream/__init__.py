@@ -1,15 +1,16 @@
-from typing import Literal, cast
-from fastapi import APIRouter, Request
+from typing import Literal
+from fastapi import APIRouter, Request, HTTPException, status
 from sse_starlette import EventSourceResponse
 from dais_sdk import UserMessage
 from pydantic import BaseModel
 from .....agent.context import AgentContext
-from .....agent.task import AgentTask
+from .....agent.task import AgentTask, ToolCallNotFoundError
 from .....agent.types import MessageReplaceEvent
 from .....db import db_context
 from .....services.task import TaskService
 from .....schemas import task as task_schemas
-from .utils import AgentGenerator, agent_event_format, agent_stream
+from .types import SseGenerator
+from .utils import create_stream_response, agent_sse_stream, agent_event_format
 
 class TaskStreamBody(BaseModel):
     # to ensure that the agent_id for the target task is not None
@@ -35,10 +36,6 @@ async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
     ctx = await AgentContext.create(task_read)
     return AgentTask(ctx)
 
-def create_stream_response(stream: AgentGenerator) -> EventSourceResponse:
-    gen = (item async for item in stream if item is not None)
-    return EventSourceResponse(gen, headers={"Cache-Control": "no-cache"})
-
 # --- --- --- --- --- ---
 
 task_stream_router = APIRouter(tags=["task", "stream"])
@@ -51,10 +48,11 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
     """
     task = await retrieve_task(task_id, body.agent_id)
 
-    async def temp_stream() -> AgentGenerator:
+    async def temp_stream() -> SseGenerator:
+        nonlocal task
         if body.message is not None:
             task.append_message(body.message)
-        async for event in agent_stream(task, request):
+        async for event in agent_sse_stream(task, request):
             yield event
 
     return create_stream_response(temp_stream())
@@ -66,11 +64,16 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> E
     The frontend should send the tool call id and the answer to this endpoint.
     """
     task = await retrieve_task(task_id, body.agent_id)
-    changed_message = task.set_tool_call_result(body.tool_call_id, body.answer)
 
-    async def temp_stream() -> AgentGenerator:
+    async def temp_stream() -> SseGenerator:
+        nonlocal task
+        try:
+            changed_message = task.set_tool_call_result(body.tool_call_id, body.answer)
+        except ToolCallNotFoundError as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.tool_call_id)
+
         yield agent_event_format(task, MessageReplaceEvent(changed_message))
-        async for event in agent_stream(task, request):
+        async for event in agent_sse_stream(task, request):
             yield event
 
     return create_stream_response(temp_stream())
@@ -82,16 +85,20 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> 
     """
     task = await retrieve_task(task_id, body.agent_id)
 
-    async def temp_stream() -> AgentGenerator:
-        tool_event, replace_event = await task.approve_tool_call(
-                                          body.tool_call_id, body.status == "approved")
+    async def temp_stream() -> SseGenerator:
+        nonlocal task
+        try:
+            tool_event, replace_event = await task.approve_tool_call(
+                                            body.tool_call_id, body.status == "approved")
+        except ToolCallNotFoundError as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.tool_call_id)
 
         if replace_event is not None:
             yield agent_event_format(task, replace_event)
         if tool_event is not None:
             yield agent_event_format(task, tool_event)
 
-        async for event in agent_stream(task, request):
+        async for event in agent_sse_stream(task, request):
             yield event
 
     return create_stream_response(temp_stream())

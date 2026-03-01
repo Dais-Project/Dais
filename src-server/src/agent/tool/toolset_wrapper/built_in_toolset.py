@@ -1,6 +1,6 @@
 from dataclasses import replace
 from pathlib import Path
-from typing import override, TYPE_CHECKING, TypedDict
+from typing import cast, override, TYPE_CHECKING, TypedDict
 from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ...types import ContextUsage
@@ -70,7 +70,9 @@ class BuiltInToolset(PythonToolset):
                                               [ToolsetService.ToolLike(
                                                   name=tool.name,
                                                   internal_key=tool.name,
-                                                  description=tool.description)
+                                                  description=tool.description,
+                                                  auto_approve=cast(BuiltInToolDefaults, tool.defaults)
+                                                                    .get("auto_approve", False))
                                                for tool in raw_tools])
 
     def get_original_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
@@ -90,10 +92,12 @@ class BuiltInToolset(PythonToolset):
             normalized_name = (self.format_tool_name(tool.name)
                                if namespaced_tool_name
                                else tool.name)
+            tool_defaults = cast(BuiltInToolDefaults, tool.defaults)
             tool_with_metadata = replace(tool,
                                          name=normalized_name,
                                          metadata=ToolMetadata(
                                             id=tool_ent.id,
-                                            auto_approve=tool_ent.auto_approve))
+                                            auto_approve=tool_ent.auto_approve,
+                                            needs_user_interaction=tool_defaults.get("needs_user_interaction", False)))
             result.append(tool_with_metadata)
         return result

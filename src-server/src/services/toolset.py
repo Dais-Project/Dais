@@ -41,6 +41,7 @@ class ToolsetService(ServiceBase):
         name: str
         internal_key: str
         description: str
+        auto_approve: bool = False
 
     async def get_all_mcp_toolsets(self) -> list[toolset_models.Toolset]:
         stmt = (
@@ -178,7 +179,7 @@ class ToolsetService(ServiceBase):
                         internal_key=tool.internal_key,
                         description=tool.description,
                         is_enabled=True,
-                        auto_approve=False,
+                        auto_approve=tool.auto_approve,
                     )
                 )
         for existing_tool in existing_tools:
