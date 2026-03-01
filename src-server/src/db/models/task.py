@@ -1,12 +1,11 @@
 import time
 from dataclasses import dataclass
-from enum import Enum
 from typing import Annotated, TYPE_CHECKING, Self
-from dais_sdk import SystemMessage, UserMessage, AssistantMessage, ToolMessage
+from dais_sdk import AssistantMessage, SystemMessage, ToolMessage, UserMessage
 from pydantic import Discriminator, TypeAdapter
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from . import Base
 from .utils import DataClassJSON, PydanticJSON
 
@@ -20,11 +19,6 @@ TaskMessage = Annotated[
 ]
 message_adapter = TypeAdapter(TaskMessage)
 messages_adapter = TypeAdapter(list[TaskMessage])
-
-class TaskType(str, Enum):
-    Agent = "agent"
-    Orchestration = "orchestration"
-    CodeWorkflow = "code_workflow"
 
 @dataclass
 class TaskUsage:
@@ -45,7 +39,6 @@ class TaskUsage:
 class Task(Base):
     __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
-    type: Mapped[TaskType]
     title: Mapped[str]
     usage: Mapped[TaskUsage] = mapped_column(DataClassJSON(TaskUsage), default=TaskUsage.default)
     messages: Mapped[list[TaskMessage]] = mapped_column(PydanticJSON(messages_adapter), default=list)

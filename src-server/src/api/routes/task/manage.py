@@ -4,6 +4,8 @@ from fastapi_pagination.ext.sqlalchemy import apaginate
 from .background_task import summarize_title_in_background
 from ...sse_dispatcher import SseDispatcherDep
 from ....db import DbSessionDep
+from ....db.models import agent as agent_models
+from ....db.models import task as task_models
 from ....services.task import TaskService
 from ....schemas import task as task_schemas
 
@@ -11,8 +13,20 @@ task_manage_router = APIRouter(tags=["task"])
 
 @task_manage_router.get("/", response_model=Page[task_schemas.TaskBrief])
 async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
-    query = TaskService(db_session).get_tasks_query(workspace_id)
-    return await apaginate(db_session, query)
+    tasks_query = TaskService(db_session).get_tasks_query(workspace_id)
+    final_query = (
+        tasks_query
+        .add_columns(agent_models.Agent.icon_name)
+        .join(task_models.Task.agent)
+    )
+    def transformer(rows):
+        return [
+            task_schemas.TaskBrief.model_validate(
+                {**task.__dict__, "icon_name": icon_name}
+            )
+            for task, icon_name in rows
+        ]
+    return await apaginate(db_session, final_query, transformer=transformer)
 
 @task_manage_router.get("/{task_id}", response_model=task_schemas.TaskRead)
 async def get_task(task_id: int, db_session: DbSessionDep):

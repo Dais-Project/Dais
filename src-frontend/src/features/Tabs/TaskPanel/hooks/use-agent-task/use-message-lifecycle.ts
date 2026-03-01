@@ -1,8 +1,7 @@
 import { useCallback } from "react";
 import type { AssistantMessage, TaskRead } from "@/api/generated/schemas";
 import type { MessageEndEventData, MessageReplaceEventData, MessageStartEventData } from "@/types/agent-stream";
-import type { Message } from "@/types/message";
-import { assistantMessageFactory } from "./utils";
+import { type Message, assistantMessageFactory } from "@/types/message";
 
 type SetTaskData = (updater: (draft: TaskRead) => void) => void;
 
@@ -36,7 +35,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
       setData((draft) => {
         replaceMessageById(
           draft,
-          eventData.message.id,
+          eventData.message.id!,
           eventData.message as Message,
           `Message not found for replacement: ${eventData.message.id}`
         );
@@ -50,7 +49,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
       setData((draft) => {
         replaceMessageById(
           draft,
-          eventData.message.id,
+          eventData.message.id!,
           eventData.message as Message,
           `Message not found for replacement: ${eventData.message.id}`
         );

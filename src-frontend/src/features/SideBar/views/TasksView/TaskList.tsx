@@ -27,10 +27,10 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-opt
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import { TaskIcon } from "./TaskIcon";
 import { useEffect } from "react";
 import SseDispatcher from "@/lib/sse-dispatcher";
-import { produce, current } from "immer";
+import { produce } from "immer";
+import { DynamicIcon, IconName } from "lucide-react/dynamic";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -46,7 +46,6 @@ function openTaskTab(task: TaskBrief) {
       metadata: {
         isDraft: false,
         id: task.id,
-        type: task.type,
       },
     });
   }
@@ -78,7 +77,7 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
     <ActionableItem>
       <ActionableItemTrigger onClick={handleClick}>
         <ActionableItemIcon>
-          <TaskIcon taskType={task.type} className="size-4" />
+          <DynamicIcon name={task.icon_name as IconName} />
         </ActionableItemIcon>
         <ActionableItemInfo
           title={task.title}
