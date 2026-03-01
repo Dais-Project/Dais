@@ -1,6 +1,6 @@
 from dataclasses import replace
 from pathlib import Path
-from typing import override, TYPE_CHECKING
+from typing import override, TYPE_CHECKING, TypedDict
 from dais_sdk import PythonToolset, python_tool, ToolDef
 from ..types import ToolMetadata
 from ...types import ContextUsage
@@ -10,6 +10,12 @@ if TYPE_CHECKING:
     from ....db.models import toolset as toolset_models
 
 built_in_tool = python_tool
+
+class BuiltInToolDefaults(TypedDict, total=False):
+    auto_approve: bool
+
+    # Whether this tool needs user interaction (e.g. ask_user, show_plan)
+    needs_user_interaction: bool
 
 class BuiltInToolsetContext:
     def __init__(self, cwd: str | Path, usage: ContextUsage):
