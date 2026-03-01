@@ -3,13 +3,13 @@
    同时覆盖 classic（亮色）和 dark 两套 Vditor 主题
    ===================================================== */
 
-/* ---------- 亮色主题 ---------- */
-.vditor--classic {
+.vditor {
   /* 编辑区背景 & 文字 */
   --background-color:            var(--background);
   --text-color:                  var(--foreground);
 
   /* 工具栏 */
+  --toolbar-height: 2.5rem;
   --toolbar-background-color:    var(--card);
   --toolbar-icon-color:          var(--muted-foreground);
   --toolbar-icon-hover-color:    var(--foreground);
@@ -22,53 +22,60 @@
   --border-color:                var(--border);
   --input-background-color:      var(--input);
 
-  /* 选中 & 高亮 */
-  --selected-background-color:   color-mix(in oklch, var(--primary) 15%, transparent);
   --code-background-color:       var(--muted);
 
-  /* 滚动条 */
   --scrollbar-thumb-color:       var(--border);
 
-  /* 圆角与外框 */
   border-radius: var(--radius);
   border-color:  var(--border);
+
+  contain: layout style;
+  contain-intrinsic-height: auto 160px;
+}
+
+.resizable-panel-resizing .vditor {
+  /* 拖拽时隐藏 Vditor，避免拖拽时容器尺寸变化导致卡顿 */
+  content-visibility: hidden
+}
+
+/* ---------- 亮色主题 ---------- */
+.vditor--classic {
+  --selected-background-color:   color-mix(in oklch, var(--primary) 15%, transparent);
 }
 
 /* ---------- 暗色主题 ---------- */
 .vditor--dark {
-  --background-color:            var(--background);
-  --text-color:                  var(--foreground);
-
-  --toolbar-background-color:    var(--card);
-  --toolbar-icon-color:          var(--muted-foreground);
-  --toolbar-icon-hover-color:    var(--foreground);
-
-  --panel-background-color:      var(--popover);
-  --second-color:                var(--muted-foreground);
-
-  --border-color:                var(--border);
-  --input-background-color:      var(--input);
-
   --selected-background-color:   color-mix(in oklch, var(--primary) 20%, transparent);
-  --code-background-color:       var(--muted);
 
-  --scrollbar-thumb-color:       var(--border);
-
-  border-radius: var(--radius);
-  border-color:  var(--border);
+  .vditor-reset:focus-within {
+      background-color: color-mix(in oklch, var(--background) 90%, white) !important;
+  }
 }
 
-.vditor--dark .vditor-reset:focus-within {
-    background-color: color-mix(in oklch, var(--background) 90%, white) !important;
-}
 
 /* ---------- 公共微调（两套主题都适用）---------- */
 
 /* 工具栏下边框与背景对齐 */
 .vditor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
   border-bottom-color: var(--border) !important;
   background-color: var(--card) !important;
   border-radius: var(--radius) var(--radius) 0 0;
+
+  .vditor-toolbar__item {
+    float: none;
+
+    button {
+      width: auto;
+      padding: 0.5rem;
+    }
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
 }
 
 /* 编辑内容区 */
@@ -140,6 +147,9 @@
 }
 
 @layer components {
+  .vditor-reset {
+    @apply shadcn-scroll;
+  }
   .vditor-reset pre .hljs {
     @apply shadcn-scroll-horizontal;
   }

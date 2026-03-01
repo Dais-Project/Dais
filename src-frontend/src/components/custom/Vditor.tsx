@@ -1,5 +1,5 @@
 import { useMemoizedFn, useMount, useTheme, useUnmount } from "ahooks";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import VditorType from "vditor";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -61,8 +61,10 @@ export function Vditor({
   useMount(() => {
     setThemeMode(themeMode);
     const vditor = new VditorType(containerRef.current!, {
-      placeholder,
+      placeholder: placeholder ?? "",
       mode: "ir",
+      width: "100%",
+      minHeight: 160,
       cache: { enable: false },
       value: initialValue,
       toolbar: CUSTOM_VDITOR_TOOLBAR,
@@ -93,7 +95,7 @@ export function Vditor({
   return (
     <div
       ref={containerRef}
-      className={cn("vditor w-full!", className)}
+      className={cn("vditor max-h-[60vh] overflow-hidden", className)}
     />
   );
 }

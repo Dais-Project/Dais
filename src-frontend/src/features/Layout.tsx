@@ -1,4 +1,4 @@
-import { useThrottleFn } from "ahooks";
+import { useBoolean, useThrottleFn } from "ahooks";
 import { useEffect } from "react";
 import { type PanelSize, useDefaultLayout, useGroupRef, usePanelRef } from "react-resizable-panels";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -6,14 +6,15 @@ import { useSidebarStore } from "@/stores/sidebar-store";
 import { ActivityBar } from "./ActivityBar/ActivityBar";
 import { SideBar } from "./SideBar/SideBar";
 import { Tabs } from "./Tabs";
+import { cn } from "@/lib/utils";
 
 export function Layout() {
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "panels",
     storage: localStorage,
   });
-
   const { isOpen, open: openSidebar, close: closeSidebar } = useSidebarStore();
+  const [isResizing, { setTrue: resizeStart, setFalse: resizeEnd }] = useBoolean(false);
   const groupRef = useGroupRef();
   const sideBarPanelRef = usePanelRef();
 
@@ -53,7 +54,11 @@ export function Layout() {
         className="h-full"
         orientation="horizontal"
         groupRef={groupRef}
-        onLayoutChanged={onLayoutChanged}
+        onLayoutChange={resizeStart}
+        onLayoutChanged={(layout) => {
+          resizeEnd();
+          onLayoutChanged(layout);
+        }}
         defaultLayout={defaultLayout}
       >
         <ResizablePanel
@@ -67,7 +72,11 @@ export function Layout() {
           <SideBar />
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel id="tabs" minSize={300}>
+        <ResizablePanel
+          id="tabs"
+          minSize={300}
+          className={cn({ "resizable-panel-resizing": isResizing })}
+        >
           <Tabs />
         </ResizablePanel>
       </ResizablePanelGroup>
