@@ -27,12 +27,11 @@ import type {
   MessageStartEventData,
   ToolCallEndEventData,
 } from "@/types/agent-stream";
-import { isToolMessage, type Message } from "@/types/message";
+import { isToolMessage, type Message, toolMessageFactory } from "@/types/message";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { toolMessageFactory } from "./utils";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 

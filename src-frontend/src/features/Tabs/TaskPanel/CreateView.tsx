@@ -1,18 +1,13 @@
 import logo from "@shared/icon-square.png";
 import { useQueryClient } from "@tanstack/react-query";
-import type { TaskType, UserMessage } from "@/api/generated/schemas";
 import { getGetTaskQueryKey, invalidateTaskQueries, useNewTask } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
+import { userMessageFactory } from "@/types/message";
 
-type CreateViewProps = {
-  tabId: string;
-  taskType: TaskType;
-};
-
-export function CreateView({ tabId, taskType }: CreateViewProps) {
+export function CreateView({ tabId }: { tabId: string }) {
   const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
@@ -27,7 +22,6 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
         });
         updateTabMetadata(tabId, {
           isDraft: false,
-          type: taskType,
           id: taskRead.id,
         });
       },
@@ -39,16 +33,9 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
       throw new Error("No current workspace");
     }
 
-    const userMessage: UserMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: message.text,
-      attachments: null,
-    };
-
+    const userMessage = userMessageFactory(message.text);
     createTaskMutation.mutateAsync({
       data: {
-        type: taskType,
         title: DEFAULT_TAB_TITLE,
         agent_id: agentId,
         workspace_id: currentWorkspace.id,
@@ -64,10 +51,10 @@ export function CreateView({ tabId, taskType }: CreateViewProps) {
           <img src={logo} alt="Logo" width="96" height="96" />
         </div>
         <h1 className="mb-2 font-bold text-4xl text-foreground tracking-tight">What can I help you with?</h1>
-        <p className="text-lg text-muted-foreground">Start a new task with your AI agent.</p>
+        <p className="text-lg text-muted-foreground">Start a new task with Dais.</p>
       </div>
       <PromptInputProvider>
-        <PromptInputDraft taskType={taskType} onSubmit={handleSubmit} />
+        <PromptInputDraft onSubmit={handleSubmit} />
       </PromptInputProvider>
     </div>
   );

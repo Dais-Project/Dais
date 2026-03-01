@@ -1,16 +1,16 @@
 from typing import Literal
 from . import DTOBase
-from ..db.models.task import TaskMessage, TaskType, TaskUsage
+from ..db.models.task import TaskMessage, TaskUsage
 
 class TaskBase(DTOBase):
     title: str
-    type: TaskType
     messages: list[TaskMessage]
 
 class TaskBrief(TaskBase):
     id: int
     usage: TaskUsage
     last_run_at: int
+    icon_name: str | None
     agent_id: int | None
 
 class TaskRead(TaskBase):
