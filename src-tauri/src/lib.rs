@@ -1,14 +1,16 @@
 mod plugins;
+mod state;
 mod utils;
 
 use std::collections::HashMap;
+use std::sync::Mutex;
 use tauri::Manager;
+use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
-use tauri_plugin_shell::process::CommandEvent;
-use tauri_plugin_window_state::{WindowExt, StateFlags};
+use tauri_plugin_window_state::{StateFlags, WindowExt};
 pub use utils::Args;
 
-fn start_sidecar(app: tauri::AppHandle, server_port: u16) -> Result<(), String> {
+fn start_sidecar(app: tauri::AppHandle, server_port: u16) -> Result<CommandChild, String> {
   let mut child = app
     .shell()
     .sidecar("server")
@@ -32,11 +34,11 @@ fn start_sidecar(app: tauri::AppHandle, server_port: u16) -> Result<(), String> 
         CommandEvent::Terminated(code) => {
           println!("Sidecar exited with code: {:?}", code);
         }
-        _ => {},
+        _ => {}
       }
     }
   });
-  return Ok(());
+  return Ok(child.1);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -60,7 +62,14 @@ pub fn run(args: Args) {
     .setup(move |app| {
       if !args.dev {
         // only start sidecar in production mode
-        start_sidecar(app.handle().clone(), server_port)?;
+        let child = start_sidecar(app.handle().clone(), server_port)?;
+        app.manage(state::AppState {
+          child: Mutex::new(Some(child)),
+        });
+      } else {
+        app.manage(state::AppState {
+          child: Mutex::new(None::<CommandChild>),
+        });
       }
       if let Some(window) = app.get_webview_window("main") {
         let _ = window.restore_state(StateFlags::all());
@@ -69,6 +78,19 @@ pub fn run(args: Args) {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![])
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    .build(tauri::generate_context!())
+    .expect("error while running tauri application")
+    .run(|app_handle, event| match event {
+      tauri::RunEvent::Exit => {
+        let state = app_handle.state::<state::AppState>();
+        let Ok(mut guard) = state.child.lock() else {
+          return;
+        };
+        let Some(child) = guard.take() else {
+          return;
+        };
+        let _ = child.kill();
+      }
+      _ => {}
+    });
 }
