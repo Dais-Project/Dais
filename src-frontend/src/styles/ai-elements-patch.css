@@ -1,14 +1,13 @@
-.conversation-container > div::-webkit-scrollbar {
-  width: 0.5rem;
-  height: 100%;
+.conversation-container > div {
+  @apply shadcn-scroll;
 }
 
-.conversation-container > div::-webkit-scrollbar-track {
-  background: transparent;
+/* streamdown code block */
+[data-streamdown="code-block"] pre {
+  @apply shadcn-scroll-horizontal;
 }
 
-.conversation-container > div::-webkit-scrollbar-thumb {
-  background-color: var(--border);
-  border-radius: 9999px;
-  background-clip: content-box;
+[data-streamdown="code-block-header"]:has(:empty) {
+  /* hide empty code block header */
+  display: none;
 }
