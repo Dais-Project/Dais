@@ -44,14 +44,28 @@ class UserInteractionToolset(BuiltInToolset):
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(needs_user_interaction=True))
     def show_plan(self,
                   plan: Annotated[str,
-                    "The complete execution plan in markdown format. Should include a brief goal summary, numbered steps, and any important notes or assumptions."]
+                    """
+                    The complete execution plan in Markdown format. Must include: 
+                    - A brief one-sentence goal summary
+                    - Numbered steps with clear action descriptions
+                    - Any important assumptions, constraints, or risks noted at the end
+                    """],
+                  alternatives: Annotated[list[str] | None,
+                    """
+                    (Default: None) Alternative approaches you considered but did not include in the current plan, along with a brief reason for each trade-off.
+                    Include 2-4 options when the plan has meaningful trade-offs or ambiguities worth surfacing to the user.
+                    Omit if the plan is already optimal or the task is straightforward.
+                    """] = None
                   ) -> str:
         """
-        Use this tool to present a structured execution plan to the user before starting a complex task.
-        You should call this tool after you have done your plan for some task.
-        The tool will render the plan in the UI automatically. You do not need to repeat the plan content in your text response.
+        Present a structured execution plan to the user for review before starting a complex task.
+        Call this tool once you have finalized your plan — do NOT call it speculatively or mid-execution.
+
+        The UI will render the plan and alternatives automatically.
+        Do NOT repeat or summarize the plan content in your accompanying text response.
 
         Returns:
-            A confirmation message that the user approved the plan or some feedback on how to improve the plan.
+            Either a user approval confirmation (proceed with execution),
+            or user feedback describing requested changes - which may be a direct selection from the provided alternatives, or free-form input (revise the plan accordingly before proceeding).
         """
         ...
