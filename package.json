@@ -9,9 +9,9 @@
     "dev-api": "nx run frontend:watch-api",
     "build": "nx run-many -t build",
     "test": "nx run-many -t test",
-    "release:patch": "pnpm version patch -m 'chore: release %s' && git push origin main --follow-tags",
-    "release:minor": "pnpm version minor -m 'chore: release %s' && git push origin main --follow-tags",
-    "release:major": "pnpm version major -m 'chore: release %s' && git push origin main --follow-tags"
+    "release:patch": "pnpm version patch && git push origin main --follow-tags",
+    "release:minor": "pnpm version minor && git push origin main --follow-tags",
+    "release:major": "pnpm version major && git push origin main --follow-tags"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
