@@ -38,6 +38,7 @@ a = Analysis(
     hiddenimports=[
         "aiosqlite",
         "sqlalchemy.dialects.sqlite.aiosqlite",
+        "tiktoken_ext.openai_public",
     ],
     hookspath=[],
     hooksconfig={},
