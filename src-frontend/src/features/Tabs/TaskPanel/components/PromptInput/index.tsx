@@ -21,6 +21,7 @@ import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
 import { ContextSelectPopover } from "./ContextSelectPopover";
 import { userMessageFactory } from "@/types/message";
+import { cn } from "@/lib/utils";
 
 export { PromptInputProvider } from "@/components/ai-elements/prompt-input";
 
@@ -107,7 +108,7 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
   );
 }
 
-export function PromptInput() {
+export function PromptInput({ className }: { className?: string }) {
   const { agentId, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
   const { textInput } = usePromptInputController();
@@ -126,7 +127,7 @@ export function PromptInput() {
     <BasePromptInput
       globalDrop
       multiple
-      className="rounded-md bg-background"
+      className={cn("rounded-md bg-background", className)}
       onSubmit={(message) => {
         const userMessage = userMessageFactory(message.text);
         if (ableToSubmit) {
