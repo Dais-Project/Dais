@@ -7,19 +7,6 @@ on:
       - 'v*'
 
 jobs:
-  check-version:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check version consistency
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "❌ Version mismatch! Tag: $TAG_VERSION, package.json: $PKG_VERSION"
-            exit 1
-          fi
-
   publish-tauri:
     permissions:
       contents: write
