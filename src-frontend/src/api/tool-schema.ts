@@ -12,6 +12,7 @@ export const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
 
 export const ShowPlanToolSchema: z.ZodType<UserInteractionShowPlan> = z.object({
   plan: z.string(),
+  alternatives: z.array(z.string()).optional(),
 });
 
 export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.object({

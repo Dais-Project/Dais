@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Streamdown } from "streamdown";
 import type { ToolMessage, UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
@@ -18,7 +18,7 @@ const APPROVED_ANSWER = "approved";
 // TODO: show a diff of the plan with the previous plan if exists
 
 type PlanAlternativesProps = {
-  alternatives: UserInteractionShowPlan["alternatives"];
+  alternatives: string[];
   selectedAlternative: string | null;
   disabled: boolean;
   onSelect: (alternative: string) => void;
@@ -32,62 +32,55 @@ function PlanAlternatives({
   onSelect,
   onFill,
 }: PlanAlternativesProps) {
-  if (!alternatives || alternatives.length === 0) {
+  if (alternatives.length === 0) {
     return null;
   }
 
   return (
     <ScrollArea className="w-full">
-      <div className="flex gap-3 pb-2">
+      <div className="flex items-start gap-3 px-4 pb-4">
         {alternatives.map((alternative, index) => {
           const isSelected = selectedAlternative === alternative;
 
           return (
-            <button
-              type="button"
+            <Card
               key={`${alternative}-${index}`}
               className={cn(
-                "w-[min(20rem,calc(100vw-4rem))] max-w-sm shrink-0 outline-none transition-opacity md:w-72",
-                disabled && !isSelected && "cursor-not-allowed opacity-60"
+                "group/plan-alternative relative cursor-pointer py-3 gap-0 w-[min(20rem,calc(100vw-4rem))] max-w-sm shrink-0 outline-none transition-opacity md:w-72",
+                {
+                  "pointer-events-none cursor-not-allowed": disabled,
+                  "opacity-60": !isSelected,
+                }
               )}
-              onClick={() => onSelect(alternative)}
-              disabled={disabled || isSelected}
             >
-              <Card
-                className={cn(
-                  "gap-0 py-0 transition-colors",
-                  isSelected
-                    ? "border-primary bg-primary/10 ring-1 ring-primary"
-                    : "hover:border-primary/50 hover:bg-muted/40"
-                )}
-              >
-                <CardHeader>
-                  <CardTitle className="flex justify-between">
-                    <>方案 {index + 1}</>
+              <button
+                type="button"
+                onClick={() => onSelect(alternative)}
+                className="absolute inset-0 z-0 cursor-pointer outline-none"
+              />
 
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onFill(alternative)}
-                          disabled={disabled}
-                        >
-                          <ClipboardCopyIcon className="size-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>复制到输入框</TooltipContent>
-                    </Tooltip>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>{alternative}</CardContent>
-              </Card>
-            </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className={cn("absolute rounded-full bottom-2 right-2 translate-x-1/2 translate-y-1/2 z-20 opacity-0 transition-opacity group-hover/plan-alternative:opacity-100", {
+                      "pointer-events-none": disabled,
+                    })}
+                    onClick={() => onFill(alternative)}
+                  >
+                    <ClipboardCopyIcon className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>复制到输入框</TooltipContent>
+              </Tooltip>
+              <CardContent className="px-4 text-start text-sm">{alternative}</CardContent>
+            </Card>
           );
         })}
       </div>
-      <ScrollBar orientation="horizontal" />
+      <ScrollBar className="hidden" orientation="horizontal" />
     </ScrollArea>
   );
 }
@@ -152,29 +145,29 @@ export function ShowPlan({ message }: ShowPlanProps) {
         <Streamdown className="px-4 pb-4 text-foreground text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
           {toolArguments.plan}
         </Streamdown>
-        <PlanAlternatives
-          alternatives={toolArguments.alternatives}
-          selectedAlternative={selectedAlternative}
-          disabled={hasResult}
-          onSelect={handleSelectAlternative}
-          onFill={handleFillAlternative}
-        />
-        <div className="px-4 mb-3">
-          <Textarea
-            minRows={1}
-            maxRows={6}
-            value={userFeedback}
-            className="resize-none"
-            onChange={(e) => setUserFeedback(e.target.value)}
-            placeholder="请在此输入对此计划的修改意见..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && e.ctrlKey) {
-                e.preventDefault();
-                handleUserFeedback();
-              }
-            }}
+        {toolArguments.alternatives && (
+          <PlanAlternatives
+            alternatives={toolArguments.alternatives}
+            selectedAlternative={selectedAlternative}
+            disabled={hasResult}
+            onSelect={handleSelectAlternative}
+            onFill={handleFillAlternative}
           />
-        </div>
+        )}
+        <Textarea
+          minRows={1}
+          maxRows={6}
+          value={userFeedback}
+          className="px-4 border-none rounded-none shadow-none resize-none focus-visible:ring-0"
+          onChange={(e) => setUserFeedback(e.target.value)}
+          placeholder="在此输入对计划的修改意见..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.ctrlKey) {
+              e.preventDefault();
+              handleUserFeedback();
+            }
+          }}
+        />
       </CustomToolContent>
     );
   };
@@ -186,6 +179,10 @@ export function ShowPlan({ message }: ShowPlanProps) {
           variant="default"
           onClick={handleUserFeedback}
           disabled={hasResult}
+          style={{
+            "--primary": "var(--color-blue-600)",
+            "--primary-foreground": "var(--color-white)",
+          } as React.CSSProperties}
         >
           提交修改意见
         </CustonToolAction>
