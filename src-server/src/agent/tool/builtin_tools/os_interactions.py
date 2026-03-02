@@ -1,5 +1,5 @@
 import time
-from typing import Annotated, TypedDict
+from typing import Annotated, TypedDict, override
 from itertools import islice
 from dais_shell import (
     AgentShell, CommandStep,
@@ -26,6 +26,7 @@ class OsInteractionsToolset(BuiltInToolset):
         self._shell = AgentShell()
 
     @property
+    @override
     def name(self) -> str: return "OsInteractions"
 
     @built_in_tool(validate=True)

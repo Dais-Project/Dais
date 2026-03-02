@@ -1,7 +1,8 @@
 import { useCallback } from "react";
-import type { AssistantMessage, TaskRead } from "@/api/generated/schemas";
+import type { AssistantMessage, TaskRead, ToolMessage } from "@/api/generated/schemas";
 import type { MessageEndEventData, MessageReplaceEventData, MessageStartEventData } from "@/types/agent-stream";
-import { type Message, assistantMessageFactory } from "@/types/message";
+import { type Message, assistantMessageFactory, isToolMessage, toolMessageFactory } from "@/types/message";
+import type { ToolCallBuffer } from "./use-tool-call-buffer";
 
 type SetTaskData = (updater: (draft: TaskRead) => void) => void;
 
@@ -25,6 +26,39 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
         const newMessage = assistantMessageFactory() as AssistantMessage;
         newMessage.id = eventData.message_id;
         draft.messages.push(newMessage);
+      });
+    },
+    [setData]
+  );
+
+  const handleTextAccumulated = useCallback(
+    (allText: string) => {
+      setData((draft) => {
+        const lastMessage = draft.messages.at(-1);
+        if (lastMessage?.role === "assistant") {
+          lastMessage.content = allText;
+          return;
+        }
+        console.warn("Last message is not assistant when text chunk is accumulated");
+      });
+    },
+    [setData]
+  );
+
+  const handleToolCallAccumulated = useCallback(
+    (toolCallId: string, toolCall: ToolCallBuffer) => {
+      setData((draft) => {
+        const toolMessage = draft.messages.find(
+          (message) => isToolMessage(message) && message.tool_call_id === toolCallId
+        ) as ToolMessage | undefined;
+
+        if (toolMessage === undefined) {
+          draft.messages.push(toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments) as ToolMessage);
+          return;
+        }
+
+        toolMessage.name = toolCall.name;
+        toolMessage.arguments = toolCall.arguments;
       });
     },
     [setData]
@@ -72,6 +106,8 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
 
   return {
     handleMessageStart,
+    handleTextAccumulated,
+    handleToolCallAccumulated,
     handleMessageEnd,
     handleMessageReplace,
     handleClose,

@@ -1,7 +1,6 @@
 import asyncio
 import uuid
 from dais_sdk.types.tool import ToolDef
-from types import MethodType
 from collections.abc import AsyncGenerator
 from loguru import logger
 from dais_sdk import (
@@ -17,11 +16,12 @@ from .exception_handlers import (
     handle_tool_argument_decode_error,
     handle_tool_execution_error
 )
-from .tool import ExecutionControlToolset, UserInteractionToolset
+from .tool import ExecutionControlToolset
 from .tool.types import is_tool_metadata
 from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
-    AgentEvent, ToolDeniedEvent, ToolEvent,
+    AgentGenerator,
+    ToolDeniedEvent, ToolEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent,
     MessageReplaceEvent, ToolCallEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
@@ -67,7 +67,6 @@ class AgentTask:
             params.toolsets = self._ctx.toolsets
             params.tool_choice = "auto"
         elif len(usable_tool_ids) == 0:
-            # the intersection of two usable_tool sets is empty
             params.tool_choice = "none"
         else:
             params.tools = [tool
@@ -122,13 +121,12 @@ class AgentTask:
         # so we can safely assert the type of tool_def to ToolDef here.
         assert isinstance(tool, ToolDef)
 
-        if (isinstance(tool.execute, MethodType) and
-            tool.execute.__func__ in [UserInteractionToolset.ask_user, ExecutionControlToolset.finish_task]):
-            return ToolRequireUserResponseEvent(tool_name=message.name)
-
         # use TypeGuards to assert the type of metadata
         assert is_tool_metadata(tool.metadata)
         assert is_agent_metadata(message.metadata)
+
+        if tool.metadata["needs_user_interaction"]:
+            return ToolRequireUserResponseEvent(tool_name=message.name)
 
         if "user_approval" not in message.metadata:
             message.metadata["user_approval"] = UserApprovalStatus.PENDING
@@ -229,7 +227,7 @@ class AgentTask:
         replace_event = MessageReplaceEvent(message=target_message)
         return tool_event, replace_event
 
-    async def run(self) -> AsyncGenerator[AgentEvent, None]:
+    async def run(self) -> AgentGenerator:
         _exited_by_generator_close = False
 
         try:
@@ -268,6 +266,10 @@ class AgentTask:
                     yield MessageReplaceEvent(message=tool_call_message)
                     continue
 
+                if (isinstance(tool, ToolDef) and tool.executes(ExecutionControlToolset.finish_task)):
+                    # stop the agent loop when finish_task is called
+                    break
+
                 event = await self._process_tool_call_to_event(tool, tool_call_message)
                 yield event
                 yield MessageReplaceEvent(message=tool_call_message)
@@ -286,3 +288,4 @@ class AgentTask:
         self._is_running = False
         if self._current_task:
             self._current_task.cancel()
+            self._current_task = None

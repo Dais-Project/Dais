@@ -1,17 +1,17 @@
 import { ListTodoIcon } from "lucide-react";
-import type { ExecutionControlUpdateTodos, ToolMessage as ToolMessageType } from "@/api/generated/schemas";
+import type { ExecutionControlUpdateTodos, ToolMessage } from "@/api/generated/schemas";
 import { UpdateTodosSchema } from "@/api/tool-schema";
-import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
+import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolState } from "../../../hooks/use-tool-state";
 
-export type UpdateTodosToolMessageProps = {
-  message: ToolMessageType;
+type UpdateTodosProps = {
+  message: ToolMessage;
 };
 
-export function UpdateTodosToolMessage({ message }: UpdateTodosToolMessageProps) {
+export function UpdateTodos({ message }: UpdateTodosProps) {
   const { reviewTool } = useAgentTaskAction();
   const state = useToolState(message);
   const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message.arguments, UpdateTodosSchema);
@@ -42,7 +42,9 @@ export function UpdateTodosToolMessage({ message }: UpdateTodosToolMessageProps)
         reviewTool(message.tool_call_id, reaction, false);
       }}
     >
-      {content}
+      <CustomToolContent>
+        {content}
+      </CustomToolContent>
     </CustomTool>
   );
 }

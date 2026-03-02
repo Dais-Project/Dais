@@ -2,11 +2,17 @@ import { z } from "zod";
 import type {
   ExecutionControlUpdateTodos,
   UserInteractionAskUser,
+  UserInteractionShowPlan,
 } from "@/api/generated/schemas";
 
 export const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
   question: z.string(),
   options: z.array(z.string()).optional(),
+});
+
+export const ShowPlanToolSchema: z.ZodType<UserInteractionShowPlan> = z.object({
+  plan: z.string(),
+  alternatives: z.array(z.string()).optional(),
 });
 
 export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.object({

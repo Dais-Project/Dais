@@ -1,12 +1,14 @@
-from collections.abc import AsyncGenerator
+import asyncio
 from dataclasses import asdict
 from loguru import logger
 from fastapi import Request
-from sse_starlette import ServerSentEvent, JSONServerSentEvent
+from sse_starlette import EventSourceResponse, ServerSentEvent, JSONServerSentEvent
 from dais_sdk import TextChunk, UsageChunk, ToolCallChunk
+from .types import SseGenerator
 from ....types import EmptyServerSentEvent
 from .....agent.task import AgentTask
 from .....agent.types import (
+    AgentGenerator,
     AgentEvent,
     TaskDoneEvent, TaskInterruptedEvent,
     MessageChunkEvent, MessageStartEvent, MessageEndEvent, MessageReplaceEvent,
@@ -14,9 +16,10 @@ from .....agent.types import (
     ErrorEvent
 )
 
-AgentGenerator = AsyncGenerator[ServerSentEvent | None, None]
-
 _logger = logger.bind(name="TaskStreamRoute")
+
+def create_stream_response(gen: SseGenerator) -> EventSourceResponse:
+    return EventSourceResponse(gen, headers={"Cache-Control": "no-cache"})
 
 def agent_event_format(task: AgentTask, event: AgentEvent) -> ServerSentEvent | None:
     match event:
@@ -70,23 +73,43 @@ def agent_event_format(task: AgentTask, event: AgentEvent) -> ServerSentEvent | 
             return None
 
 async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
-    """
-    Process agent event stream and convert to SSE format
-    """
+    pending_terminal_event = None
     try:
         async for event in task.run():
             if await request.is_disconnected():
                 task.stop()
                 break
 
-            yield agent_event_format(task, event)
-            if isinstance(event, ErrorEvent):
-                _logger.error(f"Task failed: {event.error}")
-                _logger.debug("Task openai messages: {}",
-                             [m.to_litellm_message() for m in task._ctx.messages])
-                break
+            if isinstance(event, (TaskDoneEvent, TaskInterruptedEvent)):
+                pending_terminal_event = event
+                continue
+            yield event
+    except asyncio.CancelledError:
+        task.stop()
+        raise
+    except GeneratorExit:
+        task.stop()
+        raise
     except Exception as e:
         _logger.exception("Error in agent stream")
-        yield JSONServerSentEvent(event="error", data={"message": str(e)})
+        yield ErrorEvent(e)
     finally:
-        await task.persist()
+        try:
+            # ensure task is persisted before yielding terminal event
+            await asyncio.shield(task.persist())
+        except Exception as e:
+            _logger.exception("Failed to persist task state in stream finalization")
+
+    if await request.is_disconnected():
+        return
+
+    if pending_terminal_event is None:
+        _logger.warning("No terminal event yielded")
+        pending_terminal_event = TaskDoneEvent()
+    yield pending_terminal_event
+
+async def agent_sse_stream(task: AgentTask, request: Request) -> SseGenerator:
+    async for event in agent_stream(task, request):
+        sse_event = agent_event_format(task, event)
+        if sse_event is not None:
+            yield sse_event
