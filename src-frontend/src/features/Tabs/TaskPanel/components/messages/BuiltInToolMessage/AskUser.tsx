@@ -1,6 +1,6 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
-import type { ToolMessage as ToolMessageType, UserInteractionAskUser } from "@/api/generated/schemas";
+import type { ToolMessage, UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,11 @@ import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { Streamdown } from "streamdown";
 
-export type AskUserToolMessageProps = {
-  message: ToolMessageType;
+type AskUserProps = {
+  message: ToolMessage;
 };
 
-export function AskUserToolMessage({ message }: AskUserToolMessageProps) {
+export function AskUser({ message }: AskUserProps) {
   const { answerTool } = useAgentTaskAction();
   const [disabled, setDisabled] = useState(false);
   const toolArguments = useToolArgument<UserInteractionAskUser>(message.arguments, AskUserToolSchema);

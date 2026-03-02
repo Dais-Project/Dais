@@ -1,14 +1,14 @@
 import { CheckCircleIcon } from "lucide-react";
 import { Streamdown } from "streamdown";
-import type { ExecutionControlFinishTask, ToolMessage as ToolMessageType } from "@/api/generated/schemas";
+import type { ExecutionControlFinishTask, ToolMessage } from "@/api/generated/schemas";
 import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 
-export type FinishTaskToolMessageProps = {
-  message: ToolMessageType;
+type FinishTaskProps = {
+  message: ToolMessage;
 };
 
-export function FinishTaskToolMessage({ message }: FinishTaskToolMessageProps) {
+export function FinishTask({ message }: FinishTaskProps) {
   const toolArguments = useToolArgument<ExecutionControlFinishTask>(message.arguments);
 
   return (
