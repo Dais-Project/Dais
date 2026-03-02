@@ -22,9 +22,9 @@ export function SessionViewSkeleton() {
             <Skeleton className="h-6 max-w-64 rounded-md" />
           </CardContent>
           <CardFooter>
-            <div className="flex w-full justify-between">
+            <div className="flex w-full justify-between items-end">
               <Skeleton className="h-10 w-24 rounded-md" />
-              <Skeleton className="h-10 w-10 rounded-md" />
+              <Skeleton className="size-9 rounded-md" />
             </div>
           </CardFooter>
         </Card>
