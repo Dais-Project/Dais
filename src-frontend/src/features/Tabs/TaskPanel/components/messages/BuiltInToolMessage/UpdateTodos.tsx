@@ -1,7 +1,7 @@
 import { ListTodoIcon } from "lucide-react";
 import type { ExecutionControlUpdateTodos, ToolMessage } from "@/api/generated/schemas";
 import { UpdateTodosSchema } from "@/api/tool-schema";
-import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
+import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -42,7 +42,9 @@ export function UpdateTodos({ message }: UpdateTodosProps) {
         reviewTool(message.tool_call_id, reaction, false);
       }}
     >
-      {content}
+      <CustomToolContent>
+        {content}
+      </CustomToolContent>
     </CustomTool>
   );
 }

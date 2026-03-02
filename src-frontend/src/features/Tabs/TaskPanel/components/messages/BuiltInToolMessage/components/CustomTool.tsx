@@ -1,9 +1,10 @@
 import { ChevronDownIcon } from "lucide-react";
-import { Activity } from "react";
+import { Activity, PropsWithChildren } from "react";
 import type { ToolState } from "@/components/ai-elements/tool";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { activityVisible } from "@/lib/activity-visible";
 import { shouldShowConfirmation, ToolConfirmation } from "./ToolConfirmation";
+import { cn } from "@/lib/utils";
 
 type CustomToolProps = {
   title: string;
@@ -24,9 +25,7 @@ export function CustomTool({ icon, title, children, state, defaultOpen = true, o
         </div>
         <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
-      <CollapsibleContent className="data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in">
-        {children}
-      </CollapsibleContent>
+      {children}
       {state && (
         <Activity mode={activityVisible(shouldShowConfirmation(state))}>
           <ToolConfirmation
@@ -37,5 +36,16 @@ export function CustomTool({ icon, title, children, state, defaultOpen = true, o
         </Activity>
       )}
     </Collapsible>
+  );
+}
+
+export function CustomToolContent({ children, className, ...props }: PropsWithChildren<React.ComponentProps<typeof CollapsibleContent>>) {
+  return (
+    <CollapsibleContent
+      className={cn("data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in", className)}
+      {...props}
+    >
+      {children}
+    </CollapsibleContent>
   );
 }

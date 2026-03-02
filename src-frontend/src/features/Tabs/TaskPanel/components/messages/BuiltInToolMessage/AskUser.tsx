@@ -4,7 +4,7 @@ import type { ToolMessage, UserInteractionAskUser } from "@/api/generated/schema
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CustomTool } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
+import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -43,43 +43,45 @@ export function AskUser({ message }: AskUserProps) {
       icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
       defaultOpen
     >
-      {question && (
-        <Streamdown className="px-4 pb-2 font-medium text-sm">
-          {question}
-        </Streamdown>
-      )}
-      {options && (
-        <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
-          {options.map((option) => (
-            <Suggestion
-              key={option}
-              suggestion={option}
-              onClick={handleSelectOption}
-              variant={option === selectedOption ? "default" : "outline"}
+      <CustomToolContent>
+        {question && (
+          <Streamdown className="px-4 pb-2 font-medium text-sm">
+            {question}
+          </Streamdown>
+        )}
+        {options && (
+          <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
+            {options.map((option) => (
+              <Suggestion
+                key={option}
+                suggestion={option}
+                onClick={handleSelectOption}
+                variant={option === selectedOption ? "default" : "outline"}
+                disabled={hasResult || disabled}
+              />
+            ))}
+          </Suggestions>
+        )}
+        {!options && (
+          <div className="flex items-center gap-2 px-4 pb-4">
+            <Input
+              type="text"
+              value={answer}
+              className="flex-1"
               disabled={hasResult || disabled}
+              onChange={(e) => setAnswer(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}
             />
-          ))}
-        </Suggestions>
-      )}
-      {!options && (
-        <div className="flex items-center gap-2 px-4 pb-4">
-          <Input
-            type="text"
-            value={answer}
-            className="flex-1"
-            disabled={hasResult || disabled}
-            onChange={(e) => setAnswer(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}
-          />
-          <Button
-            disabled={hasResult || disabled}
-            onClick={handleSendAnswer}
-            className="size-9"
-          >
-            <SendIcon />
-          </Button>
-        </div>
-      )}
+            <Button
+              disabled={hasResult || disabled}
+              onClick={handleSendAnswer}
+              className="size-9"
+            >
+              <SendIcon />
+            </Button>
+          </div>
+        )}
+      </CustomToolContent>
     </CustomTool>
   );
 }
