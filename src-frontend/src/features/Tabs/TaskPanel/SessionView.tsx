@@ -1,4 +1,4 @@
-import { useMount } from "ahooks";
+import { useMount, useUnmount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
@@ -39,11 +39,15 @@ type SessionViewProps = {
 
 export function SessionView({ shouldStartStream }: SessionViewProps) {
   const { state } = useAgentTaskState();
-  const { continue: continueTask } = useAgentTaskAction();
+  const { continue: continueTask, cancel: cancelTask } = useAgentTaskAction();
+
   useMount(() => {
     if (shouldStartStream) {
       continueTask();
     }
+  });
+  useUnmount(() => {
+    cancelTask();
   });
 
   return (
