@@ -1,13 +1,14 @@
+import asyncio
 import argparse
 import sys
-from watchfiles import PythonFilter, run_process
+from watchfiles import PythonFilter, run_process, arun_process
 
 def dev():
     from entry import entry
     path_filter = PythonFilter(
         ignore_paths=["__pycache__", ".venv"] 
     )
-    run_process("./src", target=entry, watch_filter=path_filter)
+    asyncio.run(arun_process("./src", target=entry, watch_filter=path_filter))
 
 def schema():
     from scripts.export_openapi import main
@@ -20,11 +21,7 @@ def schema():
     path_filter = PythonFilter(
         ignore_paths=["__pycache__", ".venv"] 
     )
-    run_process(
-        *watches,
-        target=main,
-        watch_filter=path_filter
-    )
+    run_process(*watches, target=main, watch_filter=path_filter)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("command", choices=["dev", "schema"], help="The command to run.")

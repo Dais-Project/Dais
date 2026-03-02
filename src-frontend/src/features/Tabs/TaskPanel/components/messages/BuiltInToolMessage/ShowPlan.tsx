@@ -1,4 +1,4 @@
-import { ClipboardCopyIcon, CommandIcon, CornerDownLeftIcon, SquareKanbanIcon } from "lucide-react";
+import { ClipboardCopyIcon, SquareKanbanIcon } from "lucide-react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
 import type { ToolMessage, UserInteractionShowPlan } from "@/api/generated/schemas";
@@ -36,6 +36,20 @@ function PlanAlternatives({
     return null;
   }
 
+  const handleSelect = (alternative: string) => {
+    if (disabled) {
+      return;
+    }
+    onSelect(alternative);
+  };
+
+  const handleFill = (alternative: string) => {
+    if (disabled) {
+      return;
+    }
+    onFill(alternative);
+  };
+
   return (
     <ScrollArea className="w-full">
       <div className="flex items-start gap-3 px-4 pb-4">
@@ -47,16 +61,17 @@ function PlanAlternatives({
               key={`${alternative}-${index}`}
               className={cn(
                 "group/plan-alternative relative cursor-pointer py-3 gap-0 w-[min(20rem,calc(100vw-4rem))] max-w-sm shrink-0 outline-none transition-opacity md:w-72",
-                {
-                  "pointer-events-none cursor-not-allowed": disabled,
-                  "opacity-60": !isSelected,
-                }
+                { "opacity-60": selectedAlternative !== null && !isSelected }
               )}
             >
               <button
                 type="button"
-                onClick={() => onSelect(alternative)}
-                className="absolute inset-0 z-0 cursor-pointer outline-none"
+                disabled={disabled}
+                onClick={() => handleSelect(alternative)}
+                className={cn(
+                  "absolute inset-0 z-0 cursor-pointer outline-none",
+                  { "cursor-not-allowed": disabled }
+                )}
               />
 
               <Tooltip>
@@ -65,10 +80,11 @@ function PlanAlternatives({
                     type="button"
                     variant="secondary"
                     size="icon"
+                    disabled={disabled}
                     className={cn("absolute rounded-full bottom-2 right-2 translate-x-1/2 translate-y-1/2 z-20 opacity-0 transition-opacity group-hover/plan-alternative:opacity-100", {
-                      "pointer-events-none": disabled,
+                      "cursor-not-allowed opacity-0!": disabled,
                     })}
-                    onClick={() => onFill(alternative)}
+                    onClick={() => handleFill(alternative)}
                   >
                     <ClipboardCopyIcon className="size-4" />
                   </Button>
@@ -161,6 +177,7 @@ export function ShowPlan({ message }: ShowPlanProps) {
           className="px-4 border-none rounded-none shadow-none resize-none focus-visible:ring-0"
           onChange={(e) => setUserFeedback(e.target.value)}
           placeholder="在此输入对计划的修改意见..."
+          disabled={hasResult}
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.ctrlKey) {
               e.preventDefault();
@@ -206,9 +223,11 @@ export function ShowPlan({ message }: ShowPlanProps) {
       defaultOpen
     >
       {content()}
-      <CustomToolFooter>
-        {submit()}
-      </CustomToolFooter>
+      {!hasResult && (
+        <CustomToolFooter>
+          {submit()}
+        </CustomToolFooter>
+      )}
     </CustomTool>
   );
 }

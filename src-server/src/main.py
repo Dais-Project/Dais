@@ -1,10 +1,12 @@
-import asyncio
 import argparse
 import uvicorn
+from typing import Callable
 from loguru import logger
+from uvicorn.server import Server
 from . import IS_DEV
 from .api import app
 from .db import migrate_db
+from .parent_watchdog import ParentWatchdog
 from .common import DATA_DIR
 
 def prevent_port_occupancy(port: int):
@@ -35,15 +37,26 @@ def prevent_port_occupancy(port: int):
             continue
     time.sleep(1)
 
-def main():
+def create_server(port: int) -> tuple[Server, Callable[[], None]]:
+    def stop_server():
+        server.should_exit = True
+
+    server_config = uvicorn.Config(app, host="127.0.0.1", port=port)
+    server = uvicorn.Server(server_config)
+    return server, stop_server
+
+async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=1460)
     args = parser.parse_args()
-    asyncio.run(migrate_db())
 
     if IS_DEV:
         prevent_port_occupancy(args.port)
-    
+
     logger.add(DATA_DIR / "server.log", mode="w", enqueue=True)
-    uvicorn.run(app, host="127.0.0.1", port=args.port)
+    await migrate_db()
+
+    server, stop_server = create_server(args.port)
+    ParentWatchdog(stop_server).start()
+    await server.serve()
     logger.complete()

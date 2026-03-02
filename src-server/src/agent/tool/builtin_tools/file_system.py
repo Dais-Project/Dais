@@ -328,7 +328,8 @@ class FileSystemToolset(BuiltInToolset):
         Request to write content to a file at the specified path.
         Use this when you need to create a new file or overwrite an existing file with new content.
         If the parent directory of the specified path does not exist, it will be created automatically.
-        **WARNING**: It will raise an error when overwriting existing files that are not read before.
+
+        WARNING: This tool will raise an error when overwriting existing files that are not read before.
 
         Returns:
             A success message if the file was written successfully.
@@ -358,7 +359,7 @@ class FileSystemToolset(BuiltInToolset):
         """
         Request to edit the content of a file at the specified path.
         Use this when you need to edit an existing file with existing content you have read before.
-        If the passed in old_content does not match the actual content or match in multiple places, it will raise an error.
+        If the passed in old_content does not match the actual content or match in multiple places, this tool will raise an error.
 
         Returns:
             The diff of the old content and the new content.

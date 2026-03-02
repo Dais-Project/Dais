@@ -29,8 +29,9 @@ class _SseDispatcher {
     return () => this.off(eventType, callback);
   }
 
-  connect(url: URL | string) {
+  connect(url: URL | string, onConnect?: (response: Response) => void) {
     this.abortController = createSseStream(url, {
+      onConnect,
       onMessage: ({ event, data }) => {
         if (event.length === 0 && data === null) {
           // keepalive message

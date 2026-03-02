@@ -310,6 +310,7 @@ export const MessageResponse = memo(
         className
       )}
       plugins={{ code, mermaid, math, cjk }}
+      controls={{ code: false }}
       {...props}
     />
   ),
