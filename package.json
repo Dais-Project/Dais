@@ -12,7 +12,7 @@
     "release:patch": "pnpm version patch && git push origin main --follow-tags",
     "release:minor": "pnpm version minor && git push origin main --follow-tags",
     "release:major": "pnpm version major && git push origin main --follow-tags",
-    "merge:dev": "git checkout main && git merge dev --no-edit && git push origin main"
+    "merge:dev": "git checkout main && git pull origin main  && git merge dev --no-edit && git push origin main"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
