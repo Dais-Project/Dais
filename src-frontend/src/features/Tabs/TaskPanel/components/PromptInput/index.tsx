@@ -1,7 +1,6 @@
 import type { ChatStatus } from "ai";
 import { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import type { TaskType, UserMessage } from "@/api/generated/schemas";
 import {
   PromptInput as BasePromptInput,
   PromptInputActionAddAttachmentsButton,
@@ -21,6 +20,7 @@ import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
 import { ContextSelectPopover } from "./ContextSelectPopover";
+import { userMessageFactory } from "@/types/message";
 
 export { PromptInputProvider } from "@/components/ai-elements/prompt-input";
 
@@ -38,44 +38,31 @@ const PROMPTINPUT_STATE_MAPPING: Record<TaskState, ChatStatus> = {
 };
 
 type PromptInputAgentStateProps = {
-  taskType: TaskType;
   agentId: number | null;
   onChange: (agentId: number) => void;
 };
 
-function PromptInputAgentState({ taskType, agentId, onChange }: PromptInputAgentStateProps) {
-  switch (taskType) {
-    case "agent":
-      return (
-        <ErrorBoundary fallbackRender={AgentSelectErrorFallback}>
-          <Suspense
-            fallback={
-              <Button variant="outline" disabled>
-                Loading...
-              </Button>
-            }
-          >
-            <AgentSelectDialog agentId={agentId} onChange={onChange} />
-          </Suspense>
-        </ErrorBoundary>
-      );
-    case "orchestration":
-      return (
-        <Button variant="outline" disabled>
-          Orchestrator
-        </Button>
-      );
-    default:
-      return null;
-  }
+function PromptInputAgentState({ agentId, onChange }: PromptInputAgentStateProps) {
+  return (
+    <ErrorBoundary fallbackRender={AgentSelectErrorFallback}>
+      <Suspense
+        fallback={
+          <Button variant="outline" disabled>
+            Loading...
+          </Button>
+        }
+      >
+        <AgentSelectDialog agentId={agentId} onChange={onChange} />
+      </Suspense>
+    </ErrorBoundary>
+  );
 }
 
 type PromptInputDraftProps = {
-  taskType: TaskType;
   onSubmit: (message: PromptInputMessage, agentId: number) => void;
 };
 
-export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) {
+export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
   const { textInput } = usePromptInputController();
   const ableToSubmit = agentId !== null;
@@ -109,7 +96,7 @@ export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) 
       <PromptInputFooter>
         <PromptInputTools className="gap-2">
           <ContextSelectPopover onSelect={handleSelectPath} />
-          <PromptInputAgentState taskType={taskType} agentId={agentId} onChange={setAgentId} />
+          <PromptInputAgentState agentId={agentId} onChange={setAgentId} />
         </PromptInputTools>
         <div className="flex gap-2">
           <PromptInputActionAddAttachmentsButton />
@@ -121,7 +108,7 @@ export function PromptInputDraft({ taskType, onSubmit }: PromptInputDraftProps) 
 }
 
 export function PromptInput() {
-  const { agentId, data, state } = useAgentTaskState();
+  const { agentId, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
   const { textInput } = usePromptInputController();
   const ableToSubmit = textInput.value.length && state === "idle" && agentId !== null;
@@ -141,12 +128,7 @@ export function PromptInput() {
       multiple
       className="rounded-md bg-background"
       onSubmit={(message) => {
-        const userMessage = {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: message.text,
-          attachments: null,
-        } satisfies UserMessage;
+        const userMessage = userMessageFactory(message.text);
         if (ableToSubmit) {
           continueTask(userMessage);
         } else if (state === "running") {
@@ -163,7 +145,7 @@ export function PromptInput() {
       <PromptInputFooter className="gap-16">
         <PromptInputTools className="min-w-0 gap-2">
           <ContextSelectPopover onSelect={handleSelectPath} />
-          <PromptInputAgentState taskType={data.type} agentId={agentId} onChange={setAgentId} />
+          <PromptInputAgentState agentId={agentId} onChange={setAgentId} />
           <ContextUsage />
           <TaskProgress className="min-w-0 flex-1" />
         </PromptInputTools>

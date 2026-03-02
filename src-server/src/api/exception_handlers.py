@@ -66,7 +66,7 @@ async def handle_http_exception(_: Request, exc: HTTPException) -> JSONResponse:
                                                      message=exc.detail))
 
 async def handle_unexpected_exception(_: Request, exc: Exception) -> JSONResponse:
-    _logger.error(f"Unexpected server error: {exc}")
+    _logger.error(f"Unexpected server error: ", exc_info=exc)
     return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         content=ErrorResponseContent(error_code="UNKNOWN",
                                                      message="Unexpected server error"))

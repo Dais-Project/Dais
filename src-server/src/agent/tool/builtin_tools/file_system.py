@@ -1,11 +1,11 @@
 import difflib
 import shutil
 import pathspec
-from typing import Annotated, Iterator, TypedDict
+from typing import Annotated, Iterator, TypedDict, override
 from pathlib import Path
 from markitdown import MarkItDown
 from binaryornot.check import is_binary
-from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
 from ....db.models import toolset as toolset_models
 from ....utils.scandir_recursive import scandir_recursive_bfs
 from ....utils.ignore_rules import load_gitignore_spec, should_exclude
@@ -22,12 +22,13 @@ class FileSystemToolset(BuiltInToolset):
         self._read_file_set = set()
 
     @property
+    @override
     def name(self) -> str: return "FileSystem"
 
     def _is_markitdown_convertable_binary(self, path: str) -> bool:
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
-    @built_in_tool(validate=True)
+    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def read_file(self,
                   path: Annotated[str,
                     "The path of the file to read (relative to the current working directory)."],
@@ -68,7 +69,7 @@ class FileSystemToolset(BuiltInToolset):
         else:
             return "\n".join(lines)
 
-    @built_in_tool(validate=True)
+    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def read_file_batch(self,
                         paths: Annotated[list[str],
                             "The paths of the files to read (relative to the current working directory)."],
@@ -130,7 +131,7 @@ class FileSystemToolset(BuiltInToolset):
 """
         return result
 
-    @built_in_tool(validate=True)
+    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def list_directory(self,
                        path: Annotated[str,
                         "(Default: \".\") The path of the directory to list contents for (relative to the current working directory)."] = ".",
@@ -420,7 +421,7 @@ class FileSystemToolset(BuiltInToolset):
         total: int
         matches: list[str]
 
-    @built_in_tool(validate=True)
+    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def search_file(self,
                     pattern: Annotated[str,
                         """

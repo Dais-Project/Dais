@@ -1,5 +1,4 @@
 import type { dynamicIconImports } from "lucide-react/dynamic";
-import type { TaskType } from "@/api/generated/schemas";
 
 export type TabBase = {
   id: string;
@@ -12,13 +11,12 @@ type SpecificTab<Name extends string, Metadata> = TabBase & {
   metadata: Metadata;
 };
 
-export type TaskTabMetadata = { type: TaskType } & (
+export type TaskTabMetadata =
   | { isDraft: true }
   | {
       id: number;
       isDraft: false;
-    }
-);
+    };
 
 export type WorkspaceTabMetadata =
   | { mode: "create" }

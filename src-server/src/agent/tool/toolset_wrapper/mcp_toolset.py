@@ -76,7 +76,8 @@ class McpToolset(Toolset):
             result.append(replace(tool,
                                   metadata=ToolMetadata(
                                     id=tool_ent.id,
-                                    auto_approve=tool_ent.auto_approve)))
+                                    auto_approve=tool_ent.auto_approve,
+                                    needs_user_interaction=False)))
         return result
 
     def refresh_metadata(self, tools: list[toolset_models.Tool]):

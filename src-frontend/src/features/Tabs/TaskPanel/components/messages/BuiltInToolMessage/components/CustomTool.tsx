@@ -4,6 +4,9 @@ import type { ToolState } from "@/components/ai-elements/tool";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { activityVisible } from "@/lib/activity-visible";
 import { shouldShowConfirmation, ToolConfirmation } from "./ToolConfirmation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 type CustomToolProps = {
   title: string;
@@ -24,9 +27,7 @@ export function CustomTool({ icon, title, children, state, defaultOpen = true, o
         </div>
         <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
-      <CollapsibleContent className="data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in">
-        {children}
-      </CollapsibleContent>
+      {children}
       {state && (
         <Activity mode={activityVisible(shouldShowConfirmation(state))}>
           <ToolConfirmation
@@ -38,4 +39,30 @@ export function CustomTool({ icon, title, children, state, defaultOpen = true, o
       )}
     </Collapsible>
   );
+}
+
+export function CustomToolContent({ children, className, ...props }: React.ComponentProps<typeof CollapsibleContent>) {
+  return (
+    <CollapsibleContent
+      className={cn("data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in", className)}
+      {...props}
+    >
+      {children}
+    </CollapsibleContent>
+  );
+}
+
+export function CustomToolFooter({ children, className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <>
+      <Separator className="bg-border/60" />
+      <div className={cn("flex justify-end gap-2 px-4 py-3", className)} {...props}>
+        {children}
+      </div>
+    </>
+  );
+}
+
+export function CustonToolAction({ className, ...props }: React.ComponentProps<typeof Button>) {
+  return <Button className={cn("h-8 px-3 text-sm", className)} type="button" {...props} />;
 }

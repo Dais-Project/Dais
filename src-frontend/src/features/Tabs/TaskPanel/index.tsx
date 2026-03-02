@@ -12,7 +12,7 @@ export function TaskPanel({ tabId, metadata }: TabPanelProps<TaskTabMetadata>) {
   const isInitialDraft = useRef(metadata.isDraft);
 
   if (metadata.isDraft) {
-    return <CreateView tabId={tabId} taskType={metadata.type} />;
+    return <CreateView tabId={tabId} />;
   }
 
   return (

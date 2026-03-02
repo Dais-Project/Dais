@@ -32,7 +32,6 @@ import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { toolMessageFactory } from "./utils";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -43,35 +42,6 @@ export type TaskStream<Body extends { agent_id: number }> = (
 ) => AbortController;
 
 // --- --- --- --- --- ---
-
-function handleTextAccumulated(allText: string, setData: (updater: (draft: TaskRead) => void) => void) {
-  setData((draft) => {
-    const lastMessage = draft.messages.at(-1);
-    if (lastMessage?.role === "assistant") {
-      lastMessage.content = allText;
-      return;
-    }
-    console.warn("Last message is not assistant when text chunk is accumulated");
-  });
-}
-
-function handleToolCallAccumulated(
-  toolCallId: string,
-  toolCall: { name: string; arguments: string },
-  setData: (updater: (draft: TaskRead) => void) => void
-) {
-  setData((draft) => {
-    const toolMessage = draft.messages.find((m) => isToolMessage(m) && m.tool_call_id === toolCallId) as
-      | ToolMessage
-      | undefined;
-    if (toolMessage === undefined) {
-      draft.messages.push(toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments) as ToolMessage);
-      return;
-    }
-    toolMessage.name = toolCall.name;
-    toolMessage.arguments = toolCall.arguments;
-  });
-}
 
 function findLatestTodoList(messages: Message[]): TodoItem[] | null {
   for (const message of messages.reverseIter()) {
@@ -137,12 +107,16 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     [queryClient, taskId]
   );
 
+  const messageLifecycle = useMessageLifecycle({
+    setData,
+  });
+
   const textBuffer = useTextBuffer({
-    onAccumulated: (allText: string) => handleTextAccumulated(allText, setData),
+    onAccumulated: messageLifecycle.handleTextAccumulated,
   });
 
   const toolCallsBuffer = useToolCallBuffer({
-    onAccumulated: (toolCallId, toolCall) => handleToolCallAccumulated(toolCallId, toolCall, setData),
+    onAccumulated: messageLifecycle.handleToolCallAccumulated,
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
@@ -150,10 +124,6 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     taskId,
     agentId,
     sseCallbacksRef,
-  });
-
-  const messageLifecycle = useMessageLifecycle({
-    setData,
   });
 
   const onMessageStart = useCallback(

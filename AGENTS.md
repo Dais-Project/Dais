@@ -122,6 +122,10 @@ def get_agent(agent_id: int, service: AgentServiceDep):
 - **对话框 (dialog) 组件标题英文文本的大小写**：使用“句子大小写”
 - **Label 组件英文文本的大小写**：使用“句子大小写”
 
+#### 后端部分
+
+- 禁止直接修改 `alembic/versions` 目录下的数据库迁移文件
+
 #### 前端部分
 
 注：下面提到的依赖默认已经存在，不需要再去读文件验证是否存在。

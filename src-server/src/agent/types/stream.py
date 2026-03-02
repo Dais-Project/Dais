@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Literal
 from dais_sdk import MessageChunk, ToolMessage, AssistantMessage
@@ -92,3 +93,5 @@ type AgentEvent = (
     ToolEvent |
     ErrorEvent
 )
+
+type AgentGenerator = AsyncGenerator[AgentEvent, None]
