@@ -54,7 +54,7 @@ class UserInteractionToolset(BuiltInToolset):
                     """
                     (Default: None) Alternative approaches you considered but did not include in the current plan, along with a brief reason for each trade-off.
                     Include 2-4 options when the plan has meaningful trade-offs or ambiguities worth surfacing to the user.
-                    Omit if the plan is already optimal or the task is straightforward.
+                    Omit only for truly mechanical tasks with a single obvious approach.
                     """] = None
                   ) -> str:
         """
