@@ -62,6 +62,10 @@ message data: ${event.data}`,
         return;
       }
 
+      if (event.event.length === 0 && event.data === null) {
+        // keepalive message
+        return;
+      }
       onMessage({ event: event.event, data });
     },
 
