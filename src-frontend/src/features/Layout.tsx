@@ -58,8 +58,10 @@ export function LayoutSkeleton() {
 
 // --- --- --- --- --- ---
 
+const backendReadyPromise = backendReady();
+
 export function Layout() {
-  use(backendReady);
+  use(backendReadyPromise);
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "panels",

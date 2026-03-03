@@ -15,6 +15,7 @@ from .routes import (
     task_manage_router,
     task_stream_router,
     context_file_router,
+    health_router,
 )
 from .exception_handlers import (
     ErrorResponseSchema,
@@ -64,6 +65,8 @@ app.include_router(settings_router, prefix="/api/settings")
 app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 app.include_router(context_file_router, prefix="/api/tasks")
+
+app.include_router(health_router, prefix="/api/health")
 
 add_pagination(app)
 
