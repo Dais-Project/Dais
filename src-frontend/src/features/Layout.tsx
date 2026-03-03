@@ -15,7 +15,7 @@ import { SideBarListSkeleton } from "./SideBar/components/SideBarListSkeleton";
 
 function SideBarSkeleton() {
   return (
-    <div className="h-full w-[320px] shrink-0 border-r bg-muted/40 hidden sm:block">
+    <div className="h-full w-[320px] shrink-0 bg-muted/40 hidden sm:block">
       <div className="border-b p-3">
         <Skeleton className="h-8 w-full" />
       </div>
