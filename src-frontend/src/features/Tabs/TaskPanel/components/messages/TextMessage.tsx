@@ -1,4 +1,5 @@
-import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { Message, MessageAction, MessageActions, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { CopyIcon } from "lucide-react";
 
 type TextMessageProps = {
   text: string | null;
@@ -27,6 +28,18 @@ export function TextMessage({ text, from }: TextMessageProps) {
           {normalizeText(text, from)}
         </MessageResponse>
       </MessageContent>
+
+      {from === "user" && (
+        <MessageActions className="justify-end">
+          <MessageAction
+            label="Copy"
+            tooltip="复制"
+            onClick={() => navigator.clipboard.writeText(text)}
+          >
+            <CopyIcon />
+          </MessageAction>
+        </MessageActions>
+      )}
     </Message>
   );
 }
