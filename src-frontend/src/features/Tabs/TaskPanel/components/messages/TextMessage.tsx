@@ -1,5 +1,5 @@
-import { Message, MessageAction, MessageActions, MessageContent, MessageResponse } from "@/components/ai-elements/message";
-import { CopyIcon } from "lucide-react";
+import { Message, MessageActions, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { CopyButton } from "@/components/ui/copy-button";
 
 type TextMessageProps = {
   text: string | null;
@@ -18,6 +18,9 @@ export function TextMessage({ text, from }: TextMessageProps) {
   if (text === null || text.trim() === "") {
     return null;
   }
+
+  const messageText = text;
+
   return (
     <Message className="selectable-text" from={from}>
       <MessageContent>
@@ -25,19 +28,13 @@ export function TextMessage({ text, from }: TextMessageProps) {
           mode={from === "user" ? "static" : "streaming"}
           parseIncompleteMarkdown={from !== "user"}
         >
-          {normalizeText(text, from)}
+          {normalizeText(messageText, from)}
         </MessageResponse>
       </MessageContent>
 
       {from === "user" && (
         <MessageActions className="justify-end">
-          <MessageAction
-            label="Copy"
-            tooltip="复制"
-            onClick={() => navigator.clipboard.writeText(text)}
-          >
-            <CopyIcon />
-          </MessageAction>
+          <CopyButton variant="ghost" content={messageText} />
         </MessageActions>
       )}
     </Message>
