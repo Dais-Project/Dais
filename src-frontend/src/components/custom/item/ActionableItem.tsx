@@ -69,11 +69,13 @@ export function ActionableItemIcon(props: ActionableItemIconProps) {
 
 type ActionableItemTriggerProps = {
   children: React.ReactNode;
+  className?: string
   onClick?: () => void;
 };
 
 export function ActionableItemTrigger({
   children,
+  className,
   onClick,
 }: ActionableItemTriggerProps) {
   const context = React.useContext(ActionableItemContext);
@@ -86,7 +88,7 @@ export function ActionableItemTrigger({
       <Item
         variant="outline"
         size="sm"
-        className="group flex cursor-default flex-nowrap rounded-none border-x-0 border-t-0 hover:bg-accent/30"
+        className={cn("group flex cursor-default flex-nowrap rounded-none border-x-0 border-t-0 hover:bg-accent/30", className)}
         onClick={onClick}
       >
         {children}

@@ -75,7 +75,7 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
 
   return (
     <ActionableItem>
-      <ActionableItemTrigger onClick={handleClick}>
+      <ActionableItemTrigger className="cursor-pointer" onClick={handleClick}>
         <ActionableItemIcon>
           <DynamicIcon name={task.icon_name as IconName} />
         </ActionableItemIcon>

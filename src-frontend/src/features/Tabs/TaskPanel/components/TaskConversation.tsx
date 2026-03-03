@@ -26,7 +26,7 @@ export function TaskConversationContent() {
             return null;
           }
           if (message.role === "tool") {
-            return <ToolMessage key={message.id} message={message} />;
+            return <ToolMessage key={message.id ?? message.tool_call_id} message={message} />;
           }
           return (
             <TextMessage

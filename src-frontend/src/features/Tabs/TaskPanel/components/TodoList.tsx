@@ -10,9 +10,9 @@ export function TodoList({ todos }: { todos: TodoItem[] }) {
     <>
       {todos.map((todo, index) => (
         <QueueItem key={`${todo.description}-${index}`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <QueueItemIndicator status={todo.status} />
-            <QueueItemContent status={todo.status}>{todo.description}</QueueItemContent>
+            <QueueItemContent className="line-clamp-none" status={todo.status}>{todo.description}</QueueItemContent>
           </div>
         </QueueItem>
       ))}
