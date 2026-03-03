@@ -79,9 +79,7 @@ pub fn run(args: Args) {
       }
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![
-      commands::devtools::toggle_devtools
-    ])
+    .invoke_handler(tauri::generate_handler![commands::devtools::open_devtools])
     .build(tauri::generate_context!())
     .expect("error while running tauri application")
     .run(|app_handle, event| match event {

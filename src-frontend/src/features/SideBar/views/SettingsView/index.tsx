@@ -2,6 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { SideBarHeader } from "../../components/SideBarHeader";
+import { DevSettings } from "./DevSettings";
 import { GeneralSettings } from "./GeneralSettings";
 import { HelperModelSettings } from "./HelperModelSettings";
 import { ProviderSettings } from "./ProviderSettings";
@@ -22,6 +23,11 @@ export function SettingsView() {
       id: "helper-model",
       title: "助手模型",
       content: <HelperModelSettings />,
+    },
+    {
+      id: "dev",
+      title: "开发工具",
+      content: <DevSettings />,
     },
   ];
 
