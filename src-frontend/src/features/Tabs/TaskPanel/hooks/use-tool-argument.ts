@@ -8,8 +8,10 @@ export function useToolArgument<T extends Record<string, unknown>>(
   return useMemo(() => {
     try {
       const parsed = JSON.parse(rawArguments);
-      schema?.parse(parsed);
-      return parsed as T;
+      if (!schema) {
+        return parsed as T;
+      }
+      return schema.parse(parsed);
     } catch {
       return null;
     }

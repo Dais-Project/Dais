@@ -62,7 +62,7 @@ message data: ${event.data}`,
         return;
       }
 
-      if (event.event.length === 0 && event.data === null) {
+      if (event.event.length === 0 && data === null) {
         // keepalive message
         return;
       }
