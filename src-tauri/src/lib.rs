@@ -1,14 +1,16 @@
+mod args;
+mod commands;
 mod plugins;
 mod state;
 mod utils;
 
+pub use args::Args;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::Manager;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_window_state::{StateFlags, WindowExt};
-pub use utils::Args;
 
 fn start_sidecar(app: tauri::AppHandle, server_port: u16) -> Result<CommandChild, String> {
   let mut child = app
@@ -77,7 +79,9 @@ pub fn run(args: Args) {
       }
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![])
+    .invoke_handler(tauri::generate_handler![
+      commands::devtools::toggle_devtools
+    ])
     .build(tauri::generate_context!())
     .expect("error while running tauri application")
     .run(|app_handle, event| match event {
