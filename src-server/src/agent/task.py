@@ -150,24 +150,25 @@ class AgentTask:
             tool_call_id=message.tool_call_id,
             result=result if error is None else None)
 
-    def append_message(self, message: UserMessage):
+    def append_message(self, message: UserMessage) -> MessageReplaceEvent | None:
         try:
             last_message = self._ctx.messages[-1]
         except IndexError:
             last_message = None
 
-        if (last_message and
-            last_message.role == "tool" and
-            last_message.result is None and
-            last_message.error is None):
-            # If the previous tool call is not finished,
-            # we consider it as ignored by user.
-            last_message.result = USER_IGNORED_TOOL_CALL_RESULT
-            last_message.metadata.clear()
+        try:
+            if (last_message and
+                last_message.role == "tool" and
+                last_message.result is None and
+                last_message.error is None):
+                # If the previous tool call is not finished, we consider it as ignored by user.
+                last_message.result = USER_IGNORED_TOOL_CALL_RESULT
+                last_message.metadata.clear()
+                return MessageReplaceEvent(message=last_message)
+        finally:
+            self._ctx.messages.append(message)
 
-        self._ctx.messages.append(message)
-
-    def set_tool_call_result(self, tool_call_id: str, result: str) -> ToolMessage:
+    def set_tool_call_result(self, tool_call_id: str, result: str) -> MessageReplaceEvent:
         """
         Set the result for a tool call
 
@@ -178,7 +179,7 @@ class AgentTask:
             if (message.role         == "tool" and
                 message.tool_call_id == tool_call_id):
                 message.result = result
-                return message
+                return MessageReplaceEvent(message=message)
         raise ToolCallNotFoundError(tool_call_id)
 
     async def approve_tool_call(

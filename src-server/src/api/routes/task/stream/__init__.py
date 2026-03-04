@@ -51,7 +51,9 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request) 
     async def temp_stream() -> SseGenerator:
         nonlocal task
         if body.message is not None:
-            task.append_message(body.message)
+            replace_event = task.append_message(body.message)
+            if replace_event is not None:
+                yield agent_event_format(task, replace_event)
         async for event in agent_sse_stream(task, request):
             yield event
 
@@ -68,11 +70,11 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> E
     async def temp_stream() -> SseGenerator:
         nonlocal task
         try:
-            changed_message = task.set_tool_call_result(body.tool_call_id, body.answer)
+            replace_event = task.set_tool_call_result(body.tool_call_id, body.answer)
         except ToolCallNotFoundError as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.tool_call_id)
 
-        yield agent_event_format(task, MessageReplaceEvent(changed_message))
+        yield agent_event_format(task, replace_event)
         async for event in agent_sse_stream(task, request):
             yield event
 
