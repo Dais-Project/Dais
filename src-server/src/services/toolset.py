@@ -1,7 +1,7 @@
 from typing import NamedTuple
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from dais_sdk import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
+from dais_sdk.mcp_client import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ConflictError, BadRequestError
 from ..db.models import toolset as toolset_models

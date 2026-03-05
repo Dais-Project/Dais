@@ -1,6 +1,5 @@
 from enum import Enum
-from dais_sdk import ToolSchema
-from dais_sdk.tool.prepare import prepare_tools
+from dais_sdk.types import ToolSchema
 from .file_system import FileSystemToolset
 from .os_interactions import OsInteractionsToolset
 from .user_interaction import UserInteractionToolset
@@ -21,6 +20,8 @@ def get_builtin_tool_enum() -> type[Enum]:
     return BuiltInTools
 
 def get_builtin_tool_arg_schemas() -> list[ToolSchema]:
+    from dais_sdk.tool.prepare import prepare_tools
+
     result = []
     for toolset in [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]:
         temp_instance = toolset(BuiltInToolsetContext.default())

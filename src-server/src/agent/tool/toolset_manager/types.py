@@ -1,6 +1,6 @@
 from abc import ABC
 from typing import Sequence
-from dais_sdk import Toolset
+from dais_sdk.tool import Toolset
 
 class ToolsetManager(ABC):
     @property

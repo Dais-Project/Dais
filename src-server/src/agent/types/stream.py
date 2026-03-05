@@ -1,7 +1,10 @@
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Literal
-from dais_sdk import MessageChunk, ToolMessage, AssistantMessage
+from dais_sdk.types import (
+    ToolMessage, AssistantMessage,
+    TextChunkEvent, UsageChunkEvent, ToolCallChunkEvent
+)
 from ...db.models.task import TaskMessage
 
 @dataclass(frozen=True)
@@ -13,7 +16,7 @@ class MessageStartEvent:
 @dataclass(frozen=True)
 class MessageChunkEvent:
     """Message chunk event"""
-    chunk: MessageChunk
+    chunk: TextChunkEvent | UsageChunkEvent | ToolCallChunkEvent
     event_id: Literal["MESSAGE_CHUNK"] = "MESSAGE_CHUNK"
 
 @dataclass(frozen=True)
@@ -47,14 +50,14 @@ class TaskInterruptedEvent:
 @dataclass(frozen=True)
 class ToolExecutedEvent:
     """Tool execution result event"""
-    tool_call_id: str
+    call_id: str
     result: str | None
     event_id: Literal["TOOL_EXECUTED"] = "TOOL_EXECUTED"
 
 @dataclass(frozen=True)
 class ToolDeniedEvent:
     """Tool execution result event"""
-    tool_call_id: str
+    call_id: str
     event_id: Literal["TOOL_DENIED"] = "TOOL_DENIED"
 
 @dataclass(frozen=True)
@@ -66,7 +69,7 @@ class ToolRequireUserResponseEvent:
 @dataclass(frozen=True)
 class ToolRequirePermissionEvent:
     """Event for tools that require user permission"""
-    tool_call_id: str
+    call_id: str
     event_id: Literal["TOOL_REQUIRE_PERMISSION"] = "TOOL_REQUIRE_PERMISSION"
 
 @dataclass(frozen=True)

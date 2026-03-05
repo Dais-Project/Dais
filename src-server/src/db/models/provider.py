@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
-from dais_sdk import LlmProviders
+from dais_sdk.providers import LlmProviders
 from . import Base
 from .utils import DataClassJSON
 

@@ -2,7 +2,7 @@ import asyncio
 import threading
 from typing import Sequence, override
 from loguru import logger
-from dais_sdk import Toolset
+from dais_sdk.tool import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
 from ....db import db_context

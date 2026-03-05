@@ -28,12 +28,14 @@ def custom_openapi() -> dict[str, Any]:
         openapi.components.schemas = {}
 
     for model in EXTRA_SCHEMA_TYPES:
-        if isinstance(model, dict) and "function" in model:
-            tool_func = model["function"]
-            openapi.components.schemas[tool_func["name"]] = Schema(
+        if (isinstance(model, dict) and
+            "name" in model and
+            "description" in model and
+            "parameters" in model):
+            openapi.components.schemas[model["name"]] = Schema(
                 type=DataType.OBJECT,
-                properties=tool_func["parameters"]["properties"],
-                required=tool_func["parameters"]["required"],
+                properties=model["parameters"]["properties"],
+                required=model["parameters"]["required"],
             )
             continue
 

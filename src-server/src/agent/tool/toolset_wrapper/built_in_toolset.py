@@ -1,7 +1,8 @@
 from dataclasses import replace
 from pathlib import Path
 from typing import cast, override, TYPE_CHECKING, TypedDict
-from dais_sdk import PythonToolset, python_tool, ToolDef
+from dais_sdk.tool import PythonToolset, python_tool
+from dais_sdk.types import ToolDef
 from ..types import ToolMetadata
 from ...types import ContextUsage
 from ....db import db_context

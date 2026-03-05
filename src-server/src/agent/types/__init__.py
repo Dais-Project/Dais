@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from dais_sdk import UsageChunk
+from dais_sdk.types import UsageChunkEvent
 from ...db.models.task import TaskUsage
 from .stream import *
 from .metadata import *
@@ -12,7 +12,7 @@ class ContextUsage(TaskUsage):
         safety_margin = int(self.max_tokens * 0.1)
         return self.max_tokens - self.total_tokens - reserved_output - safety_margin
 
-    def set_usage(self, usage: UsageChunk) -> None:
+    def set_usage(self, usage: UsageChunkEvent) -> None:
         self.input_tokens = usage.input_tokens
         self.output_tokens = usage.output_tokens
         self.total_tokens = usage.total_tokens

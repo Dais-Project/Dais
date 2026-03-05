@@ -1,14 +1,13 @@
 from dataclasses import replace
 from enum import Enum
 from typing import cast, override
-from dais_sdk import (
-    Toolset, ToolDef,
-    McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset,
-    LocalServerParams, RemoteServerParams,
-)
+from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
+from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset
+from dais_sdk.types import ToolDef
 from ..types import ToolMetadata
 from ....db import db_context
 from ....db.models import toolset as toolset_models
+
 
 class McpToolsetStatus(str, Enum):
     CONNECTING = "connecting"

@@ -1,7 +1,7 @@
 import platform
 import time
 from typing import Self
-from dais_sdk import Toolset
+from dais_sdk.tool import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
 from .prompts.instruction import BASE_INSTRUCTION
 from .types import ContextUsage

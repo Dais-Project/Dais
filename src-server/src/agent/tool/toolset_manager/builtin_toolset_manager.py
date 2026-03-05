@@ -1,6 +1,6 @@
 import asyncio
 from typing import Sequence, override
-from dais_sdk import Toolset
+from dais_sdk.tool import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 from ..builtin_tools import (

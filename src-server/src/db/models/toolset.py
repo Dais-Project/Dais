@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import TypeAdapter
-from dais_sdk import LocalServerParams, RemoteServerParams, McpTool
+from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams, McpTool
 from . import Base
 from .utils import PydanticJSON
 from .relationships import workspace_tool_association_table, agent_tool_association_table

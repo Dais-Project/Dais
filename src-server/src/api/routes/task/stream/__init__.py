@@ -1,11 +1,10 @@
 from typing import Literal
 from fastapi import APIRouter, Request, HTTPException, status
 from sse_starlette import EventSourceResponse
-from dais_sdk import UserMessage
+from dais_sdk.types import UserMessage
 from pydantic import BaseModel
 from .....agent.context import AgentContext
 from .....agent.task import AgentTask, ToolCallNotFoundError
-from .....agent.types import MessageReplaceEvent
 from .....db import db_context
 from .....services.task import TaskService
 from .....schemas import task as task_schemas
@@ -20,11 +19,11 @@ class ContinueTaskBody(TaskStreamBody):
     message: UserMessage | None = None
 
 class ToolAnswerBody(TaskStreamBody):
-    tool_call_id: str
+    call_id: str
     answer: str
 
 class ToolReviewBody(TaskStreamBody):
-    tool_call_id: str
+    call_id: str
     status: Literal["approved", "denied"]
     auto_approve: bool = False
 
@@ -70,9 +69,9 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request) -> E
     async def temp_stream() -> SseGenerator:
         nonlocal task
         try:
-            replace_event = task.set_tool_call_result(body.tool_call_id, body.answer)
+            replace_event = task.set_tool_call_result(body.call_id, body.answer)
         except ToolCallNotFoundError as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.tool_call_id)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.call_id)
 
         yield agent_event_format(task, replace_event)
         async for event in agent_sse_stream(task, request):
@@ -91,9 +90,9 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request) -> 
         nonlocal task
         try:
             tool_event, replace_event = await task.approve_tool_call(
-                                            body.tool_call_id, body.status == "approved")
+                                            body.call_id, body.status == "approved")
         except ToolCallNotFoundError as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.tool_call_id)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.call_id)
 
         if replace_event is not None:
             yield agent_event_format(task, replace_event)
