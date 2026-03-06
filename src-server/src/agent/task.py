@@ -111,6 +111,7 @@ class AgentTask:
                         yield UsageChunkEvent.from_sdk(chunk, self._ctx.model.context_size)
                         self._ctx.usage.set_usage(chunk)
                     case AssistantMessageEvent(message):
+                        message.id = assistant_message_id
                         yield MessageEndEvent.from_sdk(message)
         except asyncio.CancelledError:
             yield TaskInterruptedEvent()
@@ -271,6 +272,9 @@ class AgentTask:
                     yield MessageReplaceEvent(message=tool_call_message)
                     continue
 
+                print(tool,
+                      isinstance(tool, ToolDef),
+                      isinstance(tool, ToolDef) and tool.executes(ExecutionControlToolset.finish_task))
                 if (isinstance(tool, ToolDef) and tool.executes(ExecutionControlToolset.finish_task)):
                     # stop the agent loop when finish_task is called
                     break

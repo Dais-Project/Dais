@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { UiMessage, isToolMessage, UiAssistantMessage, UiToolMessage, toUiMessage, uiAssistantMessageFactory, uiToolMessageFactory, SdkToolMessage, SdkAssistantMessage, SdkMessage } from "@/types/message";
+import { UiMessage, isToolMessage, toUiMessage, uiAssistantMessageFactory, uiToolMessageFactory, SdkToolMessage, SdkAssistantMessage, SdkMessage } from "@/types/message";
 import type { ToolCallBuffer } from "./use-tool-call-buffer";
 
 type UseMessageLifecycleOptions = {
@@ -68,16 +68,15 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   );
 
   const handleToolCallEnd = useCallback(
-    (message: SdkToolMessage) => {
+    (completeMessage: SdkToolMessage) => {
       setData((draft) => {
-        const replaced = replaceMessageById(
-          draft,
-          message.call_id,
-          toUiMessage(message) as UiToolMessage,
-        );
-        if (!replaced) {
-          console.warn("Tool call not found for replacement: ", message);
+        const index = draft.findIndex((message) =>
+          isToolMessage(message) && message.call_id === completeMessage.call_id);
+        if (index === -1) {
+          console.warn("Tool call not found for replacement: ", completeMessage);
+          return;
         }
+        draft[index] = toUiMessage(completeMessage);
       });
     },
     [setData]
@@ -89,7 +88,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
         const replaced = replaceMessageById(
           draft,
           message.id!,
-          toUiMessage(message) as UiAssistantMessage,
+          toUiMessage(message),
         );
         if (!replaced) {
           console.warn("Assistant message not found for replacement: ", message);
@@ -105,7 +104,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
         const replaced = replaceMessageById(
           draft,
           updatedMessage.id!,
-          toUiMessage(updatedMessage) as UiMessage,
+          toUiMessage(updatedMessage),
         );
         if (!replaced) {
           console.warn("Message not found for replacement: ", updatedMessage);
