@@ -64,6 +64,9 @@
         "{workspaceRoot}/src-tauri/server*"
       ]
     },
+    "type-check": {
+      "command": "uv run pyright"
+    },
     "export-openapi": {
       "command": "uv run python -m scripts.export_openapi",
       "cache": true,
