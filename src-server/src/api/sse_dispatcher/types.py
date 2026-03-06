@@ -1,12 +1,16 @@
-from enum import Enum
-from typing import TypedDict
+from typing import Annotated, Literal
+from pydantic import BaseModel, Discriminator
 
-class DispatcherEvent(str, Enum):
-    TASK_TITLE_UPDATED = "task_title_updated"
-
-
-class TaskTitleUpdatedEvent(TypedDict):
+class TaskTitleUpdatedEvent(BaseModel):
+    event_id: Literal["TASK_TITLE_UPDATED"] = "TASK_TITLE_UPDATED"
     task_id: int
     title: str
 
-type DispatcherEventData = TaskTitleUpdatedEvent
+class McpToolsetConnectedEvent(BaseModel):
+    event_id: Literal["MCP_TOOLSET_CONNECTED"] = "MCP_TOOLSET_CONNECTED"
+    toolset_id: int
+
+type DispatcherEventData = Annotated[
+    TaskTitleUpdatedEvent | McpToolsetConnectedEvent,
+    Discriminator("event_id")
+]

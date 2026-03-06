@@ -41,7 +41,7 @@ def create_server(port: int) -> tuple[Server, Callable[[], None]]:
     def stop_server():
         server.should_exit = True
 
-    server_config = uvicorn.Config(app, host="127.0.0.1", port=port)
+    server_config = uvicorn.Config(app, host="127.0.0.1", port=port, workers=1)
     server = uvicorn.Server(server_config)
     return server, stop_server
 
@@ -59,4 +59,4 @@ async def main():
     server, stop_server = create_server(args.port)
     ParentWatchdog(stop_server).start()
     await server.serve()
-    logger.complete()
+    await logger.complete()

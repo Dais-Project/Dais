@@ -63,7 +63,7 @@ async def migrate_db() -> None:
         if IS_DEV:
             return str(Path(os.path.abspath(__file__)).parent.parent.parent)
         else:
-            return sys._MEIPASS
+            return sys._MEIPASS # type: ignore
 
     from alembic.config import Config
     from alembic import command

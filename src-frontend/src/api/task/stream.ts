@@ -1,18 +1,22 @@
-import { createSseStream } from "@/lib/sse";
 import type {
-  AgentEventType,
-  ErrorEventData,
-  MessageChunkEventData,
-  MessageEndEventData,
-  MessageReplaceEventData,
-  MessageStartEventData,
-  ToolCallEndEventData,
-  ToolExecutedEventData,
-  ToolRequirePermissionEventData,
-  ToolRequireUserResponseEventData,
-} from "@/types/agent-stream";
+  ContinueTaskBody,
+  ToolAnswerBody,
+  ToolReviewBody,
+  AgentEvent,
+  TextChunkEvent,
+  ToolCallChunkEvent,
+  MessageStartEvent,
+  MessageEndEvent,
+  MessageReplaceEvent,
+  ToolCallEndEvent,
+  ToolExecutedEvent,
+  ToolRequireUserResponseEvent,
+  ErrorEvent,
+  UsageChunkEvent,
+  ToolRequirePermissionEvent,
+} from "@/api/generated/schemas";
+import { createSseStream } from "@/lib/sse";
 import { API_BASE } from "..";
-import type { ContinueTaskBody, ToolAnswerBody, ToolReviewBody } from "../generated/schemas";
 
 const TASK_STREAM_BASE_URL = new URL("api/tasks/", API_BASE);
 
@@ -22,58 +26,68 @@ export type TaskSseCallbacks = {
   onTaskInterrupted?: () => void;
 
   // message related callbacks
-  onMessageStart?: (data: MessageStartEventData) => void;
-  onMessageEnd?: (data: MessageEndEventData) => void;
-  onMessageChunk?: (chunk: MessageChunkEventData) => void;
-  onMessageReplace?: (data: MessageReplaceEventData) => void;
-  onToolCallEnd?: (data: ToolCallEndEventData) => void;
+  onMessageStart?: (data: MessageStartEvent) => void;
+  onTextChunk?: (chunk: TextChunkEvent) => void;
+  onToolCallChunk?: (chunk: ToolCallChunkEvent) => void;
+  onUsageChunk?: (chunk: UsageChunkEvent) => void;
+  onToolCallEnd?: (data: ToolCallEndEvent) => void;
+  onMessageEnd?: (data: MessageEndEvent) => void;
+  onMessageReplace?: (data: MessageReplaceEvent) => void;
 
   // tool related callbacks
-  onToolExecuted?: (data: ToolExecutedEventData) => void;
-  onToolRequireUserResponse?: (data: ToolRequireUserResponseEventData) => void;
-  onToolRequirePermission?: (data: ToolRequirePermissionEventData) => void;
+  onToolExecuted?: (data: ToolExecutedEvent) => void;
+  onToolRequireUserResponse?: (data: ToolRequireUserResponseEvent) => void;
+  onToolRequirePermission?: (data: ToolRequirePermissionEvent) => void;
 
   // error and close callbacks
-  onError?: (error: Error) => void;
+  onError?: (error: ErrorEvent) => void;
+  onSseError?: (error: Error) => void;
   onClose?: () => void;
 };
 
 function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSseCallbacks): AbortController {
-  let isStreamError = false;
-  const abortController = createSseStream(url, {
+  const abortController = createSseStream<AgentEvent>(url, {
     body,
-    onMessage: ({ event, data }) => {
-      switch (event as AgentEventType) {
-        case "MESSAGE_CHUNK":
-          callbacks.onMessageChunk?.(data as MessageChunkEventData);
+    onMessage: ({ data }) => {
+      switch (data?.event_id) {
+        case "MESSAGE_START":
+          callbacks.onMessageStart?.(data);
           break;
 
-        case "MESSAGE_START":
-          callbacks.onMessageStart?.(data as MessageStartEventData);
+        case "TEXT_CHUNK":
+          callbacks.onTextChunk?.(data);
+          break;
+
+        case "TOOL_CALL_CHUNK":
+          callbacks.onToolCallChunk?.(data);
+          break;
+
+        case "USAGE_CHUNK":
+          callbacks.onUsageChunk?.(data);
           break;
 
         case "MESSAGE_END":
-          callbacks.onMessageEnd?.(data as MessageEndEventData);
+          callbacks.onMessageEnd?.(data);
           break;
 
         case "MESSAGE_REPLACE":
-          callbacks.onMessageReplace?.(data as MessageReplaceEventData);
+          callbacks.onMessageReplace?.(data);
           break;
 
         case "TOOL_CALL_END":
-          callbacks.onToolCallEnd?.(data as ToolCallEndEventData);
+          callbacks.onToolCallEnd?.(data);
           break;
 
         case "TOOL_EXECUTED":
-          callbacks.onToolExecuted?.(data as ToolExecutedEventData);
+          callbacks.onToolExecuted?.(data);
           break;
 
         case "TOOL_REQUIRE_USER_RESPONSE":
-          callbacks.onToolRequireUserResponse?.(data as ToolRequireUserResponseEventData);
+          callbacks.onToolRequireUserResponse?.(data);
           break;
 
         case "TOOL_REQUIRE_PERMISSION":
-          callbacks.onToolRequirePermission?.(data as ToolRequirePermissionEventData);
+          callbacks.onToolRequirePermission?.(data);
           break;
 
         case "TASK_DONE":
@@ -89,20 +103,15 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
           return;
 
         case "ERROR":
-          isStreamError = true;
-          callbacks.onError?.(new Error((data as ErrorEventData).message));
+          callbacks.onError?.(data);
           break;
 
         default:
-          console.warn("Unknown SSE event type:", event);
+          console.warn("Unknown SSE event type:", data?.event_id);
       }
     },
-    onError: callbacks.onError,
-    onClose: () => {
-      if (!isStreamError) {
-        callbacks.onClose?.();
-      }
-    },
+    onError: callbacks.onSseError,
+    onClose: callbacks.onClose,
   });
   return abortController;
 }

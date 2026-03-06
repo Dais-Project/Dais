@@ -9,7 +9,7 @@ from ....schemas import task as task_schemas
 from ....agent.prompts import TITLE_SUMMARIZATION_INSTRUCTION
 from ....agent.temp_generation import TempGeneration
 from ....settings import use_app_setting_manager
-from ....api.sse_dispatcher.types import DispatcherEvent, TaskTitleUpdatedEvent
+from ....api.sse_dispatcher.types import TaskTitleUpdatedEvent
 
 if TYPE_CHECKING:
     from ....api.sse_dispatcher import SseDispatcher
@@ -31,6 +31,10 @@ async def summarize_title_in_background(
         _logger.exception("Failed to request title summarization for task {}", task_id)
         return
 
+    if title is None:
+        _logger.warning("Generate an empty title for task {}, skipping...", task_id)
+        return
+
     try:
         async with db_context() as session:
             update_data = task_schemas.TaskUpdate(title=title,
@@ -39,7 +43,4 @@ async def summarize_title_in_background(
     except Exception:
         _logger.exception("Failed to update task {} with title '{}'", task_id, title)
 
-    await sse_dispatcher.send(
-        event=DispatcherEvent.TASK_TITLE_UPDATED,
-        data=TaskTitleUpdatedEvent(task_id=task_id, title=title),
-    )
+    await sse_dispatcher.send(TaskTitleUpdatedEvent(task_id=task_id, title=title))

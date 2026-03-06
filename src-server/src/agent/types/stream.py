@@ -1,82 +1,104 @@
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from typing import Literal
+from typing import Annotated, Literal, Self
 from dais_sdk.types import (
     ToolMessage, AssistantMessage,
-    TextChunkEvent, UsageChunkEvent, ToolCallChunkEvent
+    TextChunkEvent as SdkTextChunkEvent,
+    UsageChunkEvent as SdkUsageChunkEvent,
+    ToolCallChunkEvent as SdkToolCallChunkEvent
 )
+from pydantic import BaseModel, Discriminator
 from ...db.models.task import TaskMessage
 
-@dataclass(frozen=True)
-class MessageStartEvent:
-    """Message start event"""
+
+class MessageStartEvent(BaseModel):
     message_id: str # This ID is for the AssistantMessage that is being streamed
     event_id: Literal["MESSAGE_START"] = "MESSAGE_START"
 
-@dataclass(frozen=True)
-class MessageChunkEvent:
-    """Message chunk event"""
-    chunk: TextChunkEvent | UsageChunkEvent | ToolCallChunkEvent
-    event_id: Literal["MESSAGE_CHUNK"] = "MESSAGE_CHUNK"
+class TextChunkEvent(BaseModel):
+    content: str
+    message_id: str
+    event_id: Literal["TEXT_CHUNK"] = "TEXT_CHUNK"
 
-@dataclass(frozen=True)
-class MessageEndEvent:
-    """Message end event"""
+    @classmethod
+    def from_sdk(cls, chunk: SdkTextChunkEvent, message_id: str) -> Self:
+        return cls(content=chunk.content, message_id=message_id)
+
+class ToolCallChunkEvent(BaseModel):
+    call_id: str | None
+    name: str | None
+    arguments: str | None
+    index: int
+    event_id: Literal["TOOL_CALL_CHUNK"] = "TOOL_CALL_CHUNK"
+
+    @classmethod
+    def from_sdk(cls, chunk: SdkToolCallChunkEvent) -> Self:
+        return cls(
+            call_id=chunk.id,
+            name=chunk.name,
+            arguments=chunk.arguments,
+            index=chunk.index
+        )
+
+class UsageChunkEvent(BaseModel):
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    max_tokens: int
+    event_id: Literal["USAGE_CHUNK"] = "USAGE_CHUNK"
+
+    @classmethod
+    def from_sdk(cls, chunk: SdkUsageChunkEvent, max_tokens: int) -> Self:
+        return cls(
+            input_tokens=chunk.input_tokens,
+            output_tokens=chunk.output_tokens,
+            total_tokens=chunk.total_tokens,
+            max_tokens=max_tokens
+        )
+
+class MessageEndEvent(BaseModel):
     message: AssistantMessage # This message contains the final assistant message
     event_id: Literal["MESSAGE_END"] = "MESSAGE_END"
 
-@dataclass(frozen=True)
-class MessageReplaceEvent:
-    """Message replace event - carries complete message object for frontend replacement"""
+    @classmethod
+    def from_sdk(cls, message: AssistantMessage) -> Self:
+        return cls(message=message)
+
+class MessageReplaceEvent(BaseModel):
     message: TaskMessage
     event_id: Literal["MESSAGE_REPLACE"] = "MESSAGE_REPLACE"
 
-@dataclass(frozen=True)
-class ToolCallEndEvent:
-    """Tool call end event - notifies frontend that tool call has ended"""
+class ToolCallEndEvent(BaseModel):
     message: ToolMessage
     event_id: Literal["TOOL_CALL_END"] = "TOOL_CALL_END"
 
-@dataclass(frozen=True)
-class TaskDoneEvent:
-    """Task done event"""
+class TaskDoneEvent(BaseModel):
     event_id: Literal["TASK_DONE"] = "TASK_DONE"
 
-@dataclass(frozen=True)
-class TaskInterruptedEvent:
-    """Task interrupted event"""
+class TaskInterruptedEvent(BaseModel):
     event_id: Literal["TASK_INTERRUPTED"] = "TASK_INTERRUPTED"
 
-@dataclass(frozen=True)
-class ToolExecutedEvent:
-    """Tool execution result event"""
+class ErrorEvent(BaseModel):
+    error: str
+    event_id: Literal["ERROR"] = "ERROR"
+
+class ToolExecutedEvent(BaseModel):
     call_id: str
     result: str | None
     event_id: Literal["TOOL_EXECUTED"] = "TOOL_EXECUTED"
 
-@dataclass(frozen=True)
-class ToolDeniedEvent:
-    """Tool execution result event"""
+class ToolDeniedEvent(BaseModel):
     call_id: str
     event_id: Literal["TOOL_DENIED"] = "TOOL_DENIED"
 
-@dataclass(frozen=True)
-class ToolRequireUserResponseEvent:
-    """Event for tools that require user response"""
+class ToolRequireUserResponseEvent(BaseModel):
     tool_name: str
     event_id: Literal["TOOL_REQUIRE_USER_RESPONSE"] = "TOOL_REQUIRE_USER_RESPONSE"
 
-@dataclass(frozen=True)
-class ToolRequirePermissionEvent:
-    """Event for tools that require user permission"""
+class ToolRequirePermissionEvent(BaseModel):
     call_id: str
     event_id: Literal["TOOL_REQUIRE_PERMISSION"] = "TOOL_REQUIRE_PERMISSION"
 
-@dataclass(frozen=True)
-class ErrorEvent:
-    """Error event"""
-    error: Exception
-    event_id: Literal["ERROR"] = "ERROR"
 
 type ToolEvent = (
     ToolExecutedEvent |
@@ -85,9 +107,11 @@ type ToolEvent = (
     ToolRequirePermissionEvent
 )
 
-type AgentEvent = (
-    MessageChunkEvent |
+type AgentEvent = Annotated[(
     MessageStartEvent |
+    TextChunkEvent |
+    ToolCallChunkEvent |
+    UsageChunkEvent |
     MessageEndEvent |
     MessageReplaceEvent |
     ToolCallEndEvent |
@@ -95,6 +119,6 @@ type AgentEvent = (
     TaskInterruptedEvent |
     ToolEvent |
     ErrorEvent
-)
+), Discriminator("event_id")]
 
 type AgentGenerator = AsyncGenerator[AgentEvent, None]

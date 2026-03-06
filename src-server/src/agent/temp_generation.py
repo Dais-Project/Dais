@@ -28,11 +28,9 @@ class TempGeneration:
             ],
             tool_choice="none")
 
-    async def generate(self, input: str) -> str:
+    async def generate(self, input: str) -> str | None:
         provider = OpenAIProvider(self._provider.base_url, api_key=self._provider.api_key)
         llm = LLM(provider=provider)
         request_params = self._request_param_factory(input)
-        message, *_ = await llm.generate_text(request_params)
-        assert isinstance(message, AssistantMessage)
-        assert message.content is not None
+        message = await llm.generate_text(request_params)
         return message.content

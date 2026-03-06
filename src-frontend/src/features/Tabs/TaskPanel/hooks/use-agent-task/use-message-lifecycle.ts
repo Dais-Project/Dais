@@ -1,10 +1,19 @@
 import { useCallback } from "react";
-import type { MessageEndEventData, MessageReplaceEventData, MessageStartEventData } from "@/types/agent-stream";
-import { UiMessage, isToolMessage, UiAssistantMessage, UiToolMessage, toUiMessage, uiAssistantMessageFactory, uiToolMessageFactory } from "@/types/message";
+import { UiMessage, isToolMessage, UiAssistantMessage, UiToolMessage, toUiMessage, uiAssistantMessageFactory, uiToolMessageFactory, SdkToolMessage, SdkAssistantMessage, SdkMessage } from "@/types/message";
 import type { ToolCallBuffer } from "./use-tool-call-buffer";
 
 type UseMessageLifecycleOptions = {
   setData: (updater: ImmerUpdater<UiMessage[]>) => void;
+};
+
+type UseMessageLifecycleResult = {
+  handleMessageStart: (message_id: string) => void;
+  handleTextAccumulated: (allText: string) => void;
+  handleToolCallAccumulated: (toolCallId: string, toolCall: ToolCallBuffer) => void;
+  handleToolCallEnd: (message: SdkToolMessage) => void;
+  handleMessageEnd: (message: SdkAssistantMessage) => void;
+  handleMessageReplace: (updatedMessage: SdkMessage) => void;
+  handleClose: () => void;
 };
 
 function replaceMessageById(draft: UiMessage[], messageId: string, nextMessage: UiMessage, notFoundWarning: string) {
@@ -16,11 +25,11 @@ function replaceMessageById(draft: UiMessage[], messageId: string, nextMessage: 
   draft[index] = nextMessage;
 }
 
-export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
+export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): UseMessageLifecycleResult {
   const handleMessageStart = useCallback(
-    (eventData: MessageStartEventData) => {
+    (message_id: string) => {
       setData((draft) => {
-        const newMessage = uiAssistantMessageFactory(eventData.message_id);
+        const newMessage = uiAssistantMessageFactory(message_id);
         draft.push(newMessage);
       });
     },
@@ -49,7 +58,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
         ) as UiToolMessage | undefined;
 
         if (toolMessage === undefined) {
-          draft.push(uiToolMessageFactory(toolCall.id, toolCall.name, toolCall.arguments));
+          draft.push(uiToolMessageFactory(toolCall.call_id, toolCall.name, toolCall.arguments));
           return;
         }
         toolMessage.name = toolCall.name;
@@ -59,14 +68,31 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
     [setData]
   );
 
+  const handleToolCallEnd = useCallback(
+    (message: SdkToolMessage) => {
+      setData((draft) => {
+        const index = draft.findIndex(
+          (m) => isToolMessage(m) && m.call_id === message.call_id
+        );
+        const uiMessage = toUiMessage(message);
+        if (index === -1) {
+          draft.push(uiMessage);
+          return;
+        }
+        draft[index] = uiMessage;
+      });
+    },
+    [setData]
+  );
+
   const handleMessageEnd = useCallback(
-    (eventData: MessageEndEventData) => {
+    (message: SdkAssistantMessage) => {
       setData((draft) => {
         replaceMessageById(
           draft,
-          eventData.message.id!,
-          toUiMessage(eventData.message) as UiAssistantMessage,
-          `Message not found for replacement: ${eventData.message.id}`
+          message.id!,
+          toUiMessage(message) as UiAssistantMessage,
+          `Message not found for replacement: ${message.id}`
         );
       });
     },
@@ -74,13 +100,13 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
   );
 
   const handleMessageReplace = useCallback(
-    (eventData: MessageReplaceEventData) => {
+    (updatedMessage: SdkMessage) => {
       setData((draft) => {
         replaceMessageById(
           draft,
-          eventData.message.id!,
-          toUiMessage(eventData.message) as UiAssistantMessage,
-          `Message not found for replacement: ${eventData.message.id}`
+          updatedMessage.id!,
+          toUiMessage(updatedMessage) as UiMessage,
+          `Message not found for replacement: ${updatedMessage.id}`
         );
       });
     },
@@ -103,6 +129,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
     handleMessageStart,
     handleTextAccumulated,
     handleToolCallAccumulated,
+    handleToolCallEnd,
     handleMessageEnd,
     handleMessageReplace,
     handleClose,

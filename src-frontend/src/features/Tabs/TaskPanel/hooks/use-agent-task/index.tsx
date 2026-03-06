@@ -3,6 +3,14 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 import { toast } from "sonner";
 import {
   BuiltInTools,
+  ErrorEvent,
+  MessageEndEvent,
+  MessageReplaceEvent,
+  MessageStartEvent,
+  TextChunkEvent,
+  ToolCallChunkEvent,
+  ToolCallEndEvent,
+  UsageChunkEvent,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
   type ToolReviewBody,
@@ -16,13 +24,7 @@ import {
 } from "@/api/task";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
-import type {
-  MessageChunkEventData,
-  MessageEndEventData,
-  MessageStartEventData,
-  ToolCallEndEventData,
-} from "@/types/agent-stream";
-import { isToolMessage, UiUserMessage, type SdkMessage } from "@/types/message";
+import { UiUserMessage, type SdkMessage } from "@/types/message";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
@@ -106,11 +108,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   );
 
   const messageLifecycle = useMessageLifecycle({ setData });
-
   const textBuffer = useTextBuffer({
     onAccumulated: messageLifecycle.handleTextAccumulated,
   });
-
   const toolCallsBuffer = useToolCallBuffer({
     onAccumulated: messageLifecycle.handleToolCallAccumulated,
   });
@@ -123,58 +123,56 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   });
 
   const onMessageStart = useCallback(
-    (eventData: MessageStartEventData) => {
+    (eventData: MessageStartEvent) => {
       setState("running");
-      messageLifecycle.handleMessageStart(eventData);
+      messageLifecycle.handleMessageStart(eventData.message_id);
     },
     [setState, messageLifecycle.handleMessageStart]
   );
 
-  const onMessageChunk = useCallback(
-    (chunk: MessageChunkEventData) => {
-      switch (chunk.type) {
-        case "text":
-          textBuffer.accumulate(chunk.content);
-          break;
-        case "tool_call": {
-          toolCallsBuffer.accumulate(chunk.data);
-          break;
-        }
-        case "usage": {
-          setUsage((draft) => ({ ...draft, ...chunk }));
-          break;
-        }
-        default:
-          break;
-      }
+  const onTextChunk = useCallback(
+    (chunk: TextChunkEvent) => {
+      textBuffer.accumulate(chunk.content);
     },
-    [textBuffer, toolCallsBuffer, setUsage]
+    [textBuffer]
+  );
+
+  const onToolCallChunk = useCallback(
+    (chunk: ToolCallChunkEvent) => {
+      const {event_id, ...toolCallChunk} = chunk;
+      toolCallsBuffer.accumulate(toolCallChunk);
+    },
+    [toolCallsBuffer]
+  );
+
+  const onUsageChunk = useCallback(
+    (chunk: UsageChunkEvent) => {
+      const { event_id, ...usage } = chunk;
+      setUsage(usage);
+    },
+    [setUsage]
   );
 
   const onMessageEnd = useCallback(
-    (eventData: MessageEndEventData) => {
+    (eventData: MessageEndEvent) => {
       textBuffer.clear();
       toolCallsBuffer.clear();
-      messageLifecycle.handleMessageEnd(eventData);
+      messageLifecycle.handleMessageEnd(eventData.message);
     },
     [textBuffer, toolCallsBuffer, messageLifecycle.handleMessageEnd]
   );
 
-  const onMessageReplace = messageLifecycle.handleMessageReplace;
+  const onMessageReplace = useCallback(
+    (eventData: MessageReplaceEvent) => {
+      messageLifecycle.handleMessageReplace(eventData.message);
+    },
+    [messageLifecycle.handleMessageReplace]
+  );
 
   const onToolCallEnd = useCallback(
-    (eventData: ToolCallEndEventData) => {
-      setData((draft) => {
-        const index = draft.findIndex(
-          (m) => isToolMessage(m) && m.call_id === eventData.message.call_id
-        );
-        const uiMessage = toUiMessage(eventData.message);
-        if (index === -1) {
-          draft.push(uiMessage);
-          return;
-        }
-        draft[index] = uiMessage;
-      });
+    (eventData: ToolCallEndEvent) => {
+      messageLifecycle.handleToolCallEnd(eventData.message);
+
       // refresh todo list
       if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
         const todoList = tryParseSchema(UpdateTodosSchema, eventData.message.arguments);
@@ -183,14 +181,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
         }
       }
     },
-    [setData, setTodos]
+    [messageLifecycle.handleToolCallEnd, setTodos]
   );
 
   const onError = useCallback(
-    (error: Error) => {
-      toast.error("任务失败", {
-        description: error.message || "任务失败，请稍后重试。",
-      });
+    (eventData: ErrorEvent) => {
+      toast.error("任务失败", { description: eventData.error });
       setState("error");
     },
     [setState]
@@ -203,7 +199,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   sseCallbacksRef.current = {
     onMessageStart,
-    onMessageChunk,
+    onTextChunk,
+    onToolCallChunk,
+    onUsageChunk,
     onMessageEnd,
     onMessageReplace,
     onToolCallEnd,

@@ -6,10 +6,13 @@ from dais_sdk import LLM
 from dais_sdk.providers import OpenAIProvider
 from dais_sdk.types import (
     LlmRequestParams,
-    SystemMessage, AssistantMessage, ToolMessage, UserMessage,
-    AssistantMessageEvent, TextChunkEvent, UsageChunkEvent, ToolCallChunkEvent,
+    SystemMessage, ToolMessage, UserMessage,
     ToolLike, ToolDef,
-    ToolDef, ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError
+    ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
+    AssistantMessageEvent,
+    TextChunkEvent as SdkTextChunkEvent,
+    UsageChunkEvent as SdkUsageChunkEvent,
+    ToolCallChunkEvent as SdkToolCallChunkEvent,
 )
 from .context import AgentContext
 from .exception_handlers import (
@@ -23,7 +26,8 @@ from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
     AgentGenerator,
     ToolDeniedEvent, ToolEvent,
-    MessageChunkEvent, MessageStartEvent, MessageEndEvent,
+    MessageStartEvent, MessageEndEvent,
+    TextChunkEvent, ToolCallChunkEvent, UsageChunkEvent,
     MessageReplaceEvent, ToolCallEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
     ToolExecutedEvent,
@@ -82,8 +86,10 @@ class AgentTask:
 
     async def _create_llm_call(self,
                                request_params: LlmRequestParams
-                               ) -> AsyncGenerator[MessageChunkEvent
-                                                 | MessageStartEvent
+                               ) -> AsyncGenerator[MessageStartEvent
+                                                 | TextChunkEvent
+                                                 | ToolCallChunkEvent
+                                                 | UsageChunkEvent
                                                  | MessageEndEvent
                                                  | ToolCallEndEvent
                                                  | TaskInterruptedEvent
@@ -92,41 +98,26 @@ class AgentTask:
         Create LLM API call, put message chunks into chunk_queue and return the first tool call message
         """
         assistant_message_id = str(uuid.uuid4())
-        assistant_message: AssistantMessage | None = None
         try:
             stream = self._llm.stream_text(request_params)
             yield MessageStartEvent(message_id=assistant_message_id)
             async for chunk in stream:
                 match chunk:
-                    case TextChunkEvent() | UsageChunkEvent() | ToolCallChunkEvent() as event:
-                        yield MessageChunkEvent(event)
-                        if isinstance(chunk, UsageChunkEvent):
-                            self._ctx.usage.set_usage(chunk)
+                    case SdkTextChunkEvent() as chunk:
+                        yield TextChunkEvent.from_sdk(chunk, assistant_message_id)
+                    case SdkToolCallChunkEvent() as chunk:
+                        yield ToolCallChunkEvent.from_sdk(chunk)
+                    case SdkUsageChunkEvent() as chunk:
+                        yield UsageChunkEvent.from_sdk(chunk, self._ctx.model.context_size)
+                        self._ctx.usage.set_usage(chunk)
                     case AssistantMessageEvent(message):
-                        yield MessageEndEvent(message)
-                        assistant_message = message
-
-            # self._current_task = asyncio.create_task(self._llm.stream_text(request_params))
-            # stream, message_queue = await self._current_task
-            # yield MessageStartEvent(message_id=assistant_message_id)
-            # async for chunk in stream:
-            #     yield MessageChunkEvent(chunk)
-            #     if isinstance(chunk, UsageChunk):
-            #         self._ctx.usage.set_usage(chunk)
-
-            # # Since we did not set `execute_tools` flag,
-            # # there will be only one assistant message in the queue
-            # first_message = await message_queue.get()
-            # assert type(first_message) == AssistantMessage
-            # assistant_message = first_message
-            # assistant_message.id = assistant_message_id
-            # yield MessageEndEvent(message=assistant_message)
+                        yield MessageEndEvent.from_sdk(message)
         except asyncio.CancelledError:
             yield TaskInterruptedEvent()
             raise
         except Exception as e:
             self._logger.exception(f"Failed to create llm call.")
-            yield ErrorEvent(error=e)
+            yield ErrorEvent(error=str(e))
         finally:
             self._current_task = None
 

@@ -1,6 +1,7 @@
-import type { DispatcherEvent, DispatcherEventData } from "@/api/generated/schemas";
+import type { DispatcherEventData } from "@/api/generated/schemas";
 import { createSseStream } from "./sse";
 
+type DispatcherEvent = DispatcherEventData["event_id"];
 type DispatcherEventHandler = (data: DispatcherEventData) => unknown;
 
 class _SseDispatcher {
@@ -30,19 +31,18 @@ class _SseDispatcher {
   }
 
   connect(url: URL | string, onConnect?: (response: Response) => void) {
-    this.abortController = createSseStream(url, {
+    this.abortController = createSseStream<DispatcherEventData>(url, {
       onConnect,
-      onMessage: ({ event, data }) => {
-        if (event.length === 0 && data === null) {
-          // keepalive message
+      onMessage: ({ data } ) => {
+        if (data === null) {
           return;
         }
-        const listeners = this.listeners.get(event as DispatcherEvent);
+        const listeners = this.listeners.get(data.event_id);
         if (!listeners) {
           return;
         }
         for (const callback of listeners) {
-          callback(data as DispatcherEventData);
+          callback(data);
         }
       },
     });
