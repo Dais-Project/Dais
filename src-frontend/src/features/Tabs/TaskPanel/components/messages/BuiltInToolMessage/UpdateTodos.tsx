@@ -1,20 +1,17 @@
 import { ListTodoIcon } from "lucide-react";
-import type { ExecutionControlUpdateTodos, ToolMessage } from "@/api/generated/schemas";
+import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
+import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolState } from "../../../hooks/use-tool-state";
 
-type UpdateTodosProps = {
-  message: ToolMessage;
-};
-
-export function UpdateTodos({ message }: UpdateTodosProps) {
+export function UpdateTodos({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const state = useToolState(message);
-  const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message.arguments, UpdateTodosSchema);
+  const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message, UpdateTodosSchema);
   const todos = toolArguments?.todos ?? [];
 
   const content = (() => {
@@ -39,7 +36,7 @@ export function UpdateTodos({ message }: UpdateTodosProps) {
       state={state}
       onUserReaction={(approved) => {
         const reaction = approved ? "approved" : "denied";
-        reviewTool(message.tool_call_id, reaction, false);
+        reviewTool(message.call_id, reaction, false);
       }}
     >
       <CustomToolContent>

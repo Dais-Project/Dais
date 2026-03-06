@@ -1,19 +1,20 @@
 import { ClipboardCopyIcon, SquareKanbanIcon } from "lucide-react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import type { ToolMessage, UserInteractionShowPlan } from "@/api/generated/schemas";
+import type { UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { useAgentTaskAction } from "../../../hooks/use-agent-task";
-import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { CustomTool, CustomToolContent, CustomToolFooter, CustonToolAction } from "./components/CustomTool";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { ToolMessageProps } from ".";
+import { useAgentTaskAction } from "../../../hooks/use-agent-task";
+import { useToolArgument } from "../../../hooks/use-tool-argument";
 
-const APPROVED_ANSWER = "approved";
+const APPROVED_ANSWER = "Approved";
 
 // TODO: show a diff of the plan with the previous plan if exists
 
@@ -101,14 +102,9 @@ function PlanAlternatives({
   );
 }
 
-
-type ShowPlanProps = {
-  message: ToolMessage;
-};
-
-export function ShowPlan({ message }: ShowPlanProps) {
+export function ShowPlan({ message }: ToolMessageProps) {
   const { answerTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<UserInteractionShowPlan>(message.arguments, ShowPlanToolSchema);
+  const toolArguments = useToolArgument<UserInteractionShowPlan>(message, ShowPlanToolSchema);
   const hasResult = message.result !== null;
 
   const [userFeedback, setUserFeedback] = useState(message.result ?? "");
@@ -123,7 +119,7 @@ export function ShowPlan({ message }: ShowPlanProps) {
     if (hasResult) {
       return;
     }
-    answerTool(message.tool_call_id, APPROVED_ANSWER);
+    answerTool(message.call_id, APPROVED_ANSWER);
     setSelectedAlternative(APPROVED_ANSWER);
   };
 
@@ -131,7 +127,7 @@ export function ShowPlan({ message }: ShowPlanProps) {
     if (hasResult) {
       return;
     }
-    answerTool(message.tool_call_id, userFeedback);
+    answerTool(message.call_id, userFeedback);
     setSelectedAlternative(userFeedback);
   };
 
@@ -141,7 +137,7 @@ export function ShowPlan({ message }: ShowPlanProps) {
     }
 
     setSelectedAlternative(alternative);
-    answerTool(message.tool_call_id, alternative);
+    answerTool(message.call_id, alternative);
   };
 
   const handleFillAlternative = (alternative: string) => {

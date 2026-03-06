@@ -1,31 +1,27 @@
 import { useCallback } from "react";
-import type { AssistantMessage, TaskRead, ToolMessage } from "@/api/generated/schemas";
 import type { MessageEndEventData, MessageReplaceEventData, MessageStartEventData } from "@/types/agent-stream";
-import { type Message, assistantMessageFactory, isToolMessage, toolMessageFactory } from "@/types/message";
+import { UiMessage, isToolMessage, UiAssistantMessage, UiToolMessage, toUiMessage, uiAssistantMessageFactory, uiToolMessageFactory } from "@/types/message";
 import type { ToolCallBuffer } from "./use-tool-call-buffer";
 
-type SetTaskData = (updater: (draft: TaskRead) => void) => void;
-
 type UseMessageLifecycleOptions = {
-  setData: SetTaskData;
+  setData: (updater: ImmerUpdater<UiMessage[]>) => void;
 };
 
-function replaceMessageById(draft: TaskRead, messageId: string, nextMessage: Message, notFoundWarning: string) {
-  const index = draft.messages.findIndex((message) => message.id === messageId);
+function replaceMessageById(draft: UiMessage[], messageId: string, nextMessage: UiMessage, notFoundWarning: string) {
+  const index = draft.findIndex((message) => message.id === messageId);
   if (index === -1) {
     console.warn(notFoundWarning);
     return;
   }
-  draft.messages[index] = nextMessage;
+  draft[index] = nextMessage;
 }
 
 export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
   const handleMessageStart = useCallback(
     (eventData: MessageStartEventData) => {
       setData((draft) => {
-        const newMessage = assistantMessageFactory() as AssistantMessage;
-        newMessage.id = eventData.message_id;
-        draft.messages.push(newMessage);
+        const newMessage = uiAssistantMessageFactory(eventData.message_id);
+        draft.push(newMessage);
       });
     },
     [setData]
@@ -34,7 +30,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
   const handleTextAccumulated = useCallback(
     (allText: string) => {
       setData((draft) => {
-        const lastMessage = draft.messages.at(-1);
+        const lastMessage = draft.at(-1);
         if (lastMessage?.role === "assistant") {
           lastMessage.content = allText;
           return;
@@ -48,15 +44,14 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
   const handleToolCallAccumulated = useCallback(
     (toolCallId: string, toolCall: ToolCallBuffer) => {
       setData((draft) => {
-        const toolMessage = draft.messages.find(
-          (message) => isToolMessage(message) && message.tool_call_id === toolCallId
-        ) as ToolMessage | undefined;
+        const toolMessage = draft.find(
+          (message) => isToolMessage(message) && message.call_id === toolCallId
+        ) as UiToolMessage | undefined;
 
         if (toolMessage === undefined) {
-          draft.messages.push(toolMessageFactory(toolCallId, toolCall.name, toolCall.arguments) as ToolMessage);
+          draft.push(uiToolMessageFactory(toolCall.id, toolCall.name, toolCall.arguments));
           return;
         }
-
         toolMessage.name = toolCall.name;
         toolMessage.arguments = toolCall.arguments;
       });
@@ -70,7 +65,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
         replaceMessageById(
           draft,
           eventData.message.id!,
-          eventData.message as Message,
+          toUiMessage(eventData.message) as UiAssistantMessage,
           `Message not found for replacement: ${eventData.message.id}`
         );
       });
@@ -84,7 +79,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
         replaceMessageById(
           draft,
           eventData.message.id!,
-          eventData.message as Message,
+          toUiMessage(eventData.message) as UiAssistantMessage,
           `Message not found for replacement: ${eventData.message.id}`
         );
       });
@@ -93,15 +88,15 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions) {
   );
 
   const handleClose = useCallback(() => {
-    setData((draft) => {
-      draft.messages = draft.messages.filter((message) => {
+    setData((draft) => (
+      draft.filter((message) => {
         const isDeterminedMessage = message.id !== undefined;
         if (!isDeterminedMessage) {
           console.warn("Undetermined message found and removed: ", message);
         }
         return isDeterminedMessage;
-      });
-    });
+      })
+    ));
   }, [setData]);
 
   return {

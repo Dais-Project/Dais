@@ -1,12 +1,12 @@
-import type { TaskUsage, ToolMessage } from "@/api/generated/schemas";
-import type { Message, ToolCallChunk } from "./message";
+import type { TaskUsage } from "@/api/generated/schemas";
+import type { SdkMessage, SdkToolMessage, ToolCallChunk } from "./message";
 
 export type MessageStartEventData = {
   message_id: string;
 };
 
 export type MessageEndEventData = {
-  message: Message;
+  message: SdkMessage;
 };
 
 export type MessageChunkEventData =
@@ -23,15 +23,15 @@ export type MessageChunkEventData =
     };
 
 export type MessageReplaceEventData = {
-  message: Message;
+  message: SdkMessage;
 };
 
 export type ToolCallEndEventData = {
-  message: ToolMessage;
+  message: SdkToolMessage;
 };
 
 export type ToolExecutedEventData = {
-  tool_call_id: string;
+  call_id: string;
   result: string | null;
 };
 
@@ -40,7 +40,7 @@ export type ToolRequireUserResponseEventData = {
 };
 
 export type ToolRequirePermissionEventData = {
-  tool_call_id: string;
+  call_id: string;
 };
 
 export type ErrorEventData = {

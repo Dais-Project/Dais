@@ -1,19 +1,14 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { produce } from "immer";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   BuiltInTools,
-  type TaskRead,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
-  type ToolMessage,
   type ToolReviewBody,
-  type UserMessage,
 } from "@/api/generated/schemas";
 import {
   continueTask,
-  getGetTaskQueryKey,
   type TaskSseCallbacks,
   toolAnswer,
   toolReview,
@@ -27,11 +22,13 @@ import type {
   MessageStartEventData,
   ToolCallEndEventData,
 } from "@/types/agent-stream";
-import { isToolMessage, type Message } from "@/types/message";
+import { isToolMessage, UiUserMessage, type SdkMessage } from "@/types/message";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
+import { UiMessage } from "@/types/message";
+import { toUiMessage } from "@/types/message";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -43,9 +40,9 @@ export type TaskStream<Body extends { agent_id: number }> = (
 
 // --- --- --- --- --- ---
 
-function findLatestTodoList(messages: Message[]): TodoItem[] | null {
+function findLatestTodoList(messages: SdkMessage[]): TodoItem[] | null {
   for (const message of messages.reverseIter()) {
-    if (isToolMessage(message) && message.name === BuiltInTools.ExecutionControl__update_todos) {
+    if (message.role === "tool" && message.name === BuiltInTools.ExecutionControl__update_todos) {
       const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
       if (todoList) {
         return todoList.todos;
@@ -61,13 +58,13 @@ export type AgentTaskState = {
   state: TaskState;
   todos: TodoItem[] | null;
   usage: TaskUsage;
-  data: TaskRead;
+  messages: UiMessage[];
   agentId: number | null;
 };
 
 export type AgentTaskActions = {
   setAgentId: (agentId: number) => void;
-  continue: (message?: UserMessage | null) => void;
+  continue: (message?: UiUserMessage) => void;
   answerTool: (toolCallId: string, answer: string) => void;
   reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
   cancel: () => void;
@@ -82,7 +79,6 @@ type AgentTaskProviderProps = {
 };
 
 export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
-  const queryClient = useQueryClient();
   const { data } = useGetTaskSuspense(taskId, {
     query: {
       staleTime: Number.POSITIVE_INFINITY,
@@ -94,22 +90,22 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const [agentId, setAgentId] = useState(data.agent_id);
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
-  const todo = findLatestTodoList(data.messages);
-  const [todos, setTodos] = useState<TodoItem[] | null>(todo);
+  const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
+  const [todos, setTodos] = useState<TodoItem[] | null>(() => {
+    const todo = findLatestTodoList(data.messages);
+    return todo ?? null;
+  });
 
   const setData = useCallback(
-    (updater: (draft: TaskRead) => void) => {
-      queryClient.setQueryData<TaskRead>(
-        getGetTaskQueryKey(taskId),
-        produce((draft) => draft && updater(draft))
+    (updater: ImmerUpdater<UiMessage[]>) => {
+      setMessages(
+        produce((draft) => updater(draft))
       );
     },
-    [queryClient, taskId]
+    [setMessages]
   );
 
-  const messageLifecycle = useMessageLifecycle({
-    setData,
-  });
+  const messageLifecycle = useMessageLifecycle({ setData });
 
   const textBuffer = useTextBuffer({
     onAccumulated: messageLifecycle.handleTextAccumulated,
@@ -169,14 +165,15 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const onToolCallEnd = useCallback(
     (eventData: ToolCallEndEventData) => {
       setData((draft) => {
-        const index = draft.messages.findIndex(
-          (m) => isToolMessage(m) && m.tool_call_id === eventData.message.tool_call_id
+        const index = draft.findIndex(
+          (m) => isToolMessage(m) && m.call_id === eventData.message.call_id
         );
+        const uiMessage = toUiMessage(eventData.message);
         if (index === -1) {
-          draft.messages.push(eventData.message as ToolMessage);
+          draft.push(uiMessage);
           return;
         }
-        draft.messages[index] = eventData.message as ToolMessage;
+        draft[index] = uiMessage;
       });
       // refresh todo list
       if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
@@ -215,13 +212,13 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const continue_ = useCallback(
-    (message: UserMessage | null = null) => {
+    (message?: UiUserMessage) => {
       setState("waiting");
-      setData((draft) => {
-        if (message) {
-          draft.messages.push(message);
-        }
-      });
+      if (message) {
+        setData((draft) => {
+          draft.push(toUiMessage(message));
+        });
+      }
       startStream(continueTask, { message });
     },
     [setState, setData, startStream]
@@ -230,7 +227,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const answerTool = useCallback(
     (toolCallId: string, answer: string) => {
       setState("waiting");
-      startStream(toolAnswer, { tool_call_id: toolCallId, answer });
+      startStream(toolAnswer, { call_id: toolCallId, answer });
     },
     [setState, startStream]
   );
@@ -239,7 +236,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
       setState("waiting");
       startStream(toolReview, {
-        tool_call_id: toolCallId,
+        call_id: toolCallId,
         auto_approve: autoApprove,
         status,
       });
@@ -252,10 +249,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       state,
       todos,
       usage,
-      data,
+      messages,
       agentId,
     }),
-    [state, todos, usage, data, agentId]
+    [state, todos, usage, messages, agentId]
   );
 
   const actionValue = useMemo(
@@ -271,27 +268,25 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   return (
     <AgentTaskActionContext value={actionValue}>
-      <AgentTaskStateContext value={stateValue}>{children}</AgentTaskStateContext>
+      <AgentTaskStateContext value={stateValue}>
+        {children}
+      </AgentTaskStateContext>
     </AgentTaskActionContext>
   );
 }
 
 export function useAgentTaskState() {
   const context = useContext(AgentTaskStateContext);
-
   if (!context) {
     throw new Error("useAgentTaskState must be used within AgentTaskProvider");
   }
-
   return context;
 }
 
 export function useAgentTaskAction() {
   const context = useContext(AgentTaskActionContext);
-
   if (!context) {
     throw new Error("useAgentTaskAction must be used within AgentTaskProvider");
   }
-
   return context;
 }
