@@ -9,6 +9,7 @@ from .db import migrate_db
 from .parent_watchdog import ParentWatchdog
 from .common import DATA_DIR
 
+
 def prevent_port_occupancy(port: int):
     import time
     import psutil

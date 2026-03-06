@@ -27,6 +27,7 @@ from .exception_handlers import (
 from .lifespan import lifespan
 from ..services.exceptions import ServiceError
 
+
 app = FastAPI(
     lifespan=lifespan,
     separate_input_output_schemas=False,
