@@ -15,6 +15,9 @@ export function UpdateTodos({ message }: ToolMessageProps) {
   const todos = toolArguments?.todos ?? [];
 
   const content = (() => {
+    if (message.isStreaming) {
+      return null;
+    }
     if (toolArguments === null) {
       return <p className="px-4 pb-4 text-muted-foreground text-sm">待办参数解析失败</p>;
     }

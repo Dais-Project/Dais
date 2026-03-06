@@ -8,7 +8,7 @@ type UseMessageLifecycleOptions = {
 
 type UseMessageLifecycleResult = {
   handleMessageStart: (message_id: string) => void;
-  handleTextAccumulated: (allText: string) => void;
+  handleTextAccumulated: (messageId: string, allText: string) => void;
   handleToolCallAccumulated: (toolCallId: string, toolCall: ToolCallBuffer) => void;
   handleToolCallEnd: (message: SdkToolMessage) => void;
   handleMessageEnd: (message: SdkAssistantMessage) => void;
@@ -16,13 +16,13 @@ type UseMessageLifecycleResult = {
   handleClose: () => void;
 };
 
-function replaceMessageById(draft: UiMessage[], messageId: string, nextMessage: UiMessage, notFoundWarning: string) {
+function replaceMessageById(draft: UiMessage[], messageId: string, nextMessage: UiMessage): boolean {
   const index = draft.findIndex((message) => message.id === messageId);
   if (index === -1) {
-    console.warn(notFoundWarning);
-    return;
+    return false;
   }
   draft[index] = nextMessage;
+  return true;
 }
 
 export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): UseMessageLifecycleResult {
@@ -37,14 +37,15 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   );
 
   const handleTextAccumulated = useCallback(
-    (allText: string) => {
+    (messageId: string, allText: string) => {
       setData((draft) => {
-        const lastMessage = draft.at(-1);
-        if (lastMessage?.role === "assistant") {
-          lastMessage.content = allText;
-          return;
+        for (const message of draft.reverseIter()) {
+          if (message.id === messageId && message.role === "assistant") {
+            message.content = allText;
+            return;
+          }
         }
-        console.warn("Last message is not assistant when text chunk is accumulated");
+        console.warn("Assistant message not found for text accumulation: ", messageId);
       });
     },
     [setData]
@@ -53,16 +54,14 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   const handleToolCallAccumulated = useCallback(
     (toolCallId: string, toolCall: ToolCallBuffer) => {
       setData((draft) => {
-        const toolMessage = draft.find(
-          (message) => isToolMessage(message) && message.call_id === toolCallId
-        ) as UiToolMessage | undefined;
-
-        if (toolMessage === undefined) {
-          draft.push(uiToolMessageFactory(toolCall.call_id, toolCall.name, toolCall.arguments));
-          return;
+        for (const message of draft.reverseIter()) {
+          if (isToolMessage(message) && message.call_id === toolCallId) {
+            message.name = toolCall.name;
+            message.arguments = toolCall.arguments;
+            return;
+          }
         }
-        toolMessage.name = toolCall.name;
-        toolMessage.arguments = toolCall.arguments;
+        draft.push(uiToolMessageFactory(toolCall.call_id, toolCall.name, toolCall.arguments));
       });
     },
     [setData]
@@ -71,15 +70,14 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   const handleToolCallEnd = useCallback(
     (message: SdkToolMessage) => {
       setData((draft) => {
-        const index = draft.findIndex(
-          (m) => isToolMessage(m) && m.call_id === message.call_id
+        const replaced = replaceMessageById(
+          draft,
+          message.call_id,
+          toUiMessage(message) as UiToolMessage,
         );
-        const uiMessage = toUiMessage(message);
-        if (index === -1) {
-          draft.push(uiMessage);
-          return;
+        if (!replaced) {
+          console.warn("Tool call not found for replacement: ", message);
         }
-        draft[index] = uiMessage;
       });
     },
     [setData]
@@ -88,12 +86,14 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   const handleMessageEnd = useCallback(
     (message: SdkAssistantMessage) => {
       setData((draft) => {
-        replaceMessageById(
+        const replaced = replaceMessageById(
           draft,
           message.id!,
           toUiMessage(message) as UiAssistantMessage,
-          `Message not found for replacement: ${message.id}`
         );
+        if (!replaced) {
+          console.warn("Assistant message not found for replacement: ", message);
+        }
       });
     },
     [setData]
@@ -102,12 +102,14 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   const handleMessageReplace = useCallback(
     (updatedMessage: SdkMessage) => {
       setData((draft) => {
-        replaceMessageById(
+        const replaced = replaceMessageById(
           draft,
           updatedMessage.id!,
           toUiMessage(updatedMessage) as UiMessage,
-          `Message not found for replacement: ${updatedMessage.id}`
         );
+        if (!replaced) {
+          console.warn("Message not found for replacement: ", updatedMessage);
+        }
       });
     },
     [setData]

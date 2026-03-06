@@ -132,7 +132,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const onTextChunk = useCallback(
     (chunk: TextChunkEvent) => {
-      textBuffer.accumulate(chunk.content);
+      textBuffer.accumulate(chunk.message_id, chunk.content);
     },
     [textBuffer]
   );
