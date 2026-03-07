@@ -3,7 +3,7 @@ import time
 from typing import Self
 from dais_sdk.tool import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
-from .prompts.instruction import BASE_INSTRUCTION
+from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
 from .types import ContextUsage
 from ..db import db_context
 from ..db.models import task as task_models
@@ -70,14 +70,16 @@ class AgentContext:
     @property
     def system_instruction(self) -> str:
         settings = use_app_setting_manager().settings
+        workspace_instruction = self._workspace.instruction or NO_WORKSPACE_INSTRUCTION
+        agent_instruction = self._agent.instruction or NO_AGENT_INSTRUCTION
         return BASE_INSTRUCTION.format(
             os_platform=platform.system(),
             user_language=settings.reply_language,
             workspace_name=self._workspace.name,
             workspace_directory=self._workspace.directory,
-            workspace_instruction=self._workspace.instruction,
+            workspace_instruction=workspace_instruction,
             agent_role=self._agent.name,
-            agent_instruction=self._agent.instruction
+            agent_instruction=agent_instruction,
         ).strip()
 
     @property

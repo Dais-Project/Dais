@@ -26,17 +26,34 @@ class Workspace(Base):
                                              viewonly=True)
 
 async def init(db_session: AsyncSession):
+    from .agent import Agent
+    from .toolset import Tool, Toolset, ToolsetType
+
+    stmt = select(Workspace).limit(1)
+    exists = await db_session.scalar(stmt)
+    if exists: return
+
+    # initialize the user directory workspace
+    builtin_tools_stmt = (
+        select(Tool)
+        .join(Toolset, Tool.toolset_id == Toolset.id)
+        .where(Toolset.type == ToolsetType.BUILT_IN)
+    )
+    builtin_tools = (await db_session.scalars(builtin_tools_stmt)).all()
+
+    builtin_agents_stmt = select(Agent).where(Agent.name == "Terminal Interpreter")
+    builtin_agents = await db_session.scalar(builtin_agents_stmt)
+    usable_agents = []
+    if builtin_agents is not None:
+        usable_agents.append(builtin_agents)
+
     user_directory_workspace = Workspace(
         name="User Directory",
         directory="~",
-        instruction="")
-
-    stmt = select(Workspace.id).where(
-        (Workspace.name == user_directory_workspace.name) |
-        (Workspace.directory == user_directory_workspace.directory)
-    ).limit(1)
-    exists = await db_session.scalar(stmt)
-    if exists: return
+        instruction="",
+        usable_agents=usable_agents,
+        usable_tools=list(builtin_tools),
+    )
 
     db_session.add(user_directory_workspace)
     await db_session.flush()
