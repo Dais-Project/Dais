@@ -14,14 +14,14 @@ import {
   usePromptInputController,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
+import { uiUserMessageFactory } from "@/types/message";
+import { cn } from "@/lib/utils";
 import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
 import { ContextSelectPopover } from "./ContextSelectPopover";
-import { userMessageFactory } from "@/types/message";
-import { cn } from "@/lib/utils";
+import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
 
 export { PromptInputProvider } from "@/components/ai-elements/prompt-input";
 
@@ -129,7 +129,7 @@ export function PromptInput({ className }: { className?: string }) {
       multiple
       className={cn("rounded-md bg-background", className)}
       onSubmit={(message) => {
-        const userMessage = userMessageFactory(message.text);
+        const userMessage = uiUserMessageFactory(message.text);
         if (ableToSubmit) {
           continueTask(userMessage);
         } else if (state === "running") {

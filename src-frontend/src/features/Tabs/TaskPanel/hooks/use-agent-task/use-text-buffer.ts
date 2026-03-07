@@ -2,29 +2,29 @@ import { useThrottleFn } from "ahooks";
 import { useCallback, useRef } from "react";
 
 type UseTextBufferProps = {
-  onAccumulated?: (allText: string) => void;
+  onAccumulated?: (messageId: string, allText: string) => void;
   throttleDelay?: number;
 };
 
-export type TextBuffer = {
+type UseTextBufferResult = {
   text: string;
-  accumulate: (chunk: string) => void;
+  accumulate: (messageId: string, chunk: string) => void;
   clear: () => void;
 };
 
 export function useTextBuffer({
   onAccumulated,
   throttleDelay = 100,
-}: UseTextBufferProps): TextBuffer {
+}: UseTextBufferProps): UseTextBufferResult {
   const textRef = useRef<string>("");
   const { run: accumulateNotify, cancel: cancelThrottle } = useThrottleFn(
-    () => onAccumulated?.(textRef.current),
+    (messageId: string) => onAccumulated?.(messageId, textRef.current),
     { wait: throttleDelay }
   );
   const accumulate = useCallback(
-    (chunk: string) => {
+    (messageId: string, chunk: string) => {
       textRef.current += chunk;
-      accumulateNotify();
+      accumulateNotify(messageId);
     },
     [accumulateNotify]
   );

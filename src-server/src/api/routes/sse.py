@@ -1,16 +1,16 @@
+from collections.abc import AsyncIterable
 from fastapi import APIRouter
-from sse_starlette import EventSourceResponse
-from ..sse_dispatcher import SseDispatcher, SseDispatcherDep
+from fastapi.sse import EventSourceResponse
+from ..sse_dispatcher import SseDispatcherDep
+from ..sse_dispatcher.types import DispatcherEventData
 
 sse_router = APIRouter(tags=["stream"])
 
-async def sse_stream(sse_dispatcher: SseDispatcher):
-    async for event in sse_dispatcher.listen():
-        yield event
-
-@sse_router.post("/")
-async def sse_endpoint(sse_dispatcher: SseDispatcherDep):
-    return EventSourceResponse(
-        sse_stream(sse_dispatcher),
-        ping=30,
-        headers={"Cache-Control": "no-cache"})
+@sse_router.post(
+    "/",
+    responses={ 200: {"model": DispatcherEventData} },
+    response_class=EventSourceResponse,
+)
+async def sse_endpoint(sse_dispatcher: SseDispatcherDep) -> AsyncIterable[DispatcherEventData]:
+    async for data in sse_dispatcher.listen():
+        yield data

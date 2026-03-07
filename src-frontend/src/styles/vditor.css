@@ -33,6 +33,14 @@
   contain-intrinsic-height: auto 160px;
 }
 
+.vditor--fullscreen {
+  max-height: unset !important;
+
+  .vditor-toolbar {
+    padding-left: 215px !important;
+  }
+}
+
 .resizable-panel-resizing .vditor {
   /* 拖拽时隐藏 Vditor，避免拖拽时容器尺寸变化导致卡顿 */
   content-visibility: hidden
@@ -59,6 +67,7 @@
 .vditor-toolbar {
   display: flex;
   flex-wrap: wrap;
+  padding-left: 2rem !important;
   border-bottom-color: var(--border) !important;
   background-color: var(--card) !important;
   border-radius: var(--radius) var(--radius) 0 0;

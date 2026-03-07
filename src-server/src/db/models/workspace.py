@@ -15,7 +15,7 @@ class Workspace(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     directory: Mapped[str]
-    workspace_background: Mapped[str]
+    instruction: Mapped[str]
     usable_agents: Mapped[list[Agent]] = relationship(secondary=workspace_agent_association_table,
                                                       back_populates="workspaces")
     usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table,
@@ -25,18 +25,35 @@ class Workspace(Base):
                                              cascade="all, delete-orphan",
                                              viewonly=True)
 
-async def init(session: AsyncSession):
+async def init(db_session: AsyncSession):
+    from .agent import Agent
+    from .toolset import Tool, Toolset, ToolsetType
+
+    stmt = select(Workspace).limit(1)
+    exists = await db_session.scalar(stmt)
+    if exists: return
+
+    # initialize the user directory workspace
+    builtin_tools_stmt = (
+        select(Tool)
+        .join(Toolset, Tool.toolset_id == Toolset.id)
+        .where(Toolset.type == ToolsetType.BUILT_IN)
+    )
+    builtin_tools = (await db_session.scalars(builtin_tools_stmt)).all()
+
+    builtin_agents_stmt = select(Agent).where(Agent.name == "Terminal Interpreter")
+    builtin_agents = await db_session.scalar(builtin_agents_stmt)
+    usable_agents = []
+    if builtin_agents is not None:
+        usable_agents.append(builtin_agents)
+
     user_directory_workspace = Workspace(
         name="User Directory",
         directory="~",
-        workspace_background="")
+        instruction="",
+        usable_agents=usable_agents,
+        usable_tools=list(builtin_tools),
+    )
 
-    stmt = select(Workspace.id).where(
-        (Workspace.name == user_directory_workspace.name) |
-        (Workspace.directory == user_directory_workspace.directory)
-    ).limit(1)
-    exists = await session.scalar(stmt)
-    if exists: return
-
-    session.add(user_directory_workspace)
-    await session.flush()
+    db_session.add(user_directory_workspace)
+    await db_session.flush()

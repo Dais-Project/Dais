@@ -50,6 +50,9 @@
         "{projectRoot}/dist"
       ]
     },
+    "type-check": {
+      "command": "pnpm tsc --noEmit"
+    },
     "generate-api": {
       "command": "pnpm orval",
       "inputs": [

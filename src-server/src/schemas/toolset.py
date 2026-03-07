@@ -1,5 +1,5 @@
 from typing import Literal
-from dais_sdk import LocalServerParams, RemoteServerParams
+from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from . import DTOBase
 from ..db.models.toolset import ToolsetType
 from ..agent.tool import McpToolsetStatus

@@ -4,6 +4,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 type TextMessageProps = {
   text: string | null;
   from: "user" | "assistant";
+  isStreaming: boolean;
 };
 
 function normalizeText(text: string, from: "user" | "assistant") {
@@ -14,7 +15,7 @@ function normalizeText(text: string, from: "user" | "assistant") {
   return _text;
 }
 
-export function TextMessage({ text, from }: TextMessageProps) {
+export function TextMessage({ text, from, isStreaming }: TextMessageProps) {
   if (text === null || text.trim() === "") {
     return null;
   }
@@ -25,8 +26,8 @@ export function TextMessage({ text, from }: TextMessageProps) {
     <Message className="selectable-text" from={from}>
       <MessageContent>
         <MessageResponse
-          mode={from === "user" ? "static" : "streaming"}
-          parseIncompleteMarkdown={from !== "user"}
+          mode={!isStreaming ? "static" : "streaming"}
+          parseIncompleteMarkdown={isStreaming}
         >
           {normalizeText(messageText, from)}
         </MessageResponse>

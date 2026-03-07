@@ -3,3 +3,5 @@ type MustOneOf<T> = {
 }[keyof T];
 
 type PromiseOr<T> = Promise<T> | T;
+
+type ImmerUpdater<T> = (draft: T) => T | void;

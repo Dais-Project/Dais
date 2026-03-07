@@ -1,9 +1,9 @@
 import platform
 import time
 from typing import Self
-from dais_sdk import Toolset
+from dais_sdk.tool import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
-from .prompts.instruction import BASE_INSTRUCTION
+from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
 from .types import ContextUsage
 from ..db import db_context
 from ..db.models import task as task_models
@@ -48,13 +48,13 @@ class AgentContext:
         assert task.agent_id is not None
 
         messages = task.messages
-        async with db_context() as session:
-            agent = await AgentService(session).get_agent_by_id(task.agent_id)
-            workspace = await WorkspaceService(session).get_workspace_by_id(task.workspace_id)
+        async with db_context() as db_session:
+            agent = await AgentService(db_session).get_agent_by_id(task.agent_id)
+            workspace = await WorkspaceService(db_session).get_workspace_by_id(task.workspace_id)
 
             assert agent.model_id is not None
-            model = await LlmModelService(session).get_model_by_id(agent.model_id)
-            provider = await ProviderService(session).get_provider_by_id(model.provider_id)
+            model = await LlmModelService(db_session).get_model_by_id(agent.model_id)
+            provider = await ProviderService(db_session).get_provider_by_id(model.provider_id)
 
         builtin_toolset_manager = BuiltinToolsetManager(workspace.directory, ContextUsage.default())
         await builtin_toolset_manager.initialize()
@@ -70,14 +70,16 @@ class AgentContext:
     @property
     def system_instruction(self) -> str:
         settings = use_app_setting_manager().settings
+        workspace_instruction = self._workspace.instruction or NO_WORKSPACE_INSTRUCTION
+        agent_instruction = self._agent.instruction or NO_AGENT_INSTRUCTION
         return BASE_INSTRUCTION.format(
             os_platform=platform.system(),
             user_language=settings.reply_language,
             workspace_name=self._workspace.name,
             workspace_directory=self._workspace.directory,
-            workspace_instruction=self._workspace.workspace_background,
+            workspace_instruction=workspace_instruction,
             agent_role=self._agent.name,
-            agent_instruction=self._agent.system_prompt
+            agent_instruction=agent_instruction,
         ).strip()
 
     @property
@@ -113,8 +115,8 @@ class AgentContext:
         return workspace_usable_tool_ids & agent_usable_tool_ids
 
     async def persist(self):
-        async with db_context() as session:
-            await TaskService(session).update_task(self.task_id, task_schemas.TaskUpdate(
+        async with db_context() as db_session:
+            await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
                 title=None, agent_id=None,
                 messages=self._messages,
                 usage=self._usage,

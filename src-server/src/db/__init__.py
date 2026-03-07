@@ -52,9 +52,9 @@ def on_connect(dbapi_conn, _):
 async def init_initial_data() -> None:
     async with AsyncSessionLocal.begin() as session:
         await provider_models.init(session)
+        await toolset_models.init(session)
         await agent_models.init(session)
         await workspace_models.init(session)
-        await toolset_models.init(session)
 
 async def migrate_db() -> None:
     def get_base_dir() -> str:
@@ -63,7 +63,7 @@ async def migrate_db() -> None:
         if IS_DEV:
             return str(Path(os.path.abspath(__file__)).parent.parent.parent)
         else:
-            return sys._MEIPASS
+            return sys._MEIPASS # type: ignore
 
     from alembic.config import Config
     from alembic import command

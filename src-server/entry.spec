@@ -1,12 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
-import litellm
 import magika
-
-# litellm resources
-litellm_path = os.path.dirname(litellm.__file__)
-tokenizer_path = os.path.join(litellm_path, "litellm_core_utils", "tokenizers")
-endpoints_path = os.path.join(litellm_path, "containers", "endpoints.json")
 
 project_root = SPECPATH
 # alembic resources
@@ -25,9 +19,6 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        (tokenizer_path, "litellm/litellm_core_utils/tokenizers"),
-        (endpoints_path, "litellm/containers"),
-
         (alembic_ini_path, "."),
         (alembic_env_path, "src/db/alembic"),
         (alembic_migrations_dir, "src/db/alembic/versions"),
@@ -38,7 +29,6 @@ a = Analysis(
     hiddenimports=[
         "aiosqlite",
         "sqlalchemy.dialects.sqlite.aiosqlite",
-        "tiktoken_ext.openai_public",
     ],
     hookspath=[],
     hooksconfig={},

@@ -36,7 +36,8 @@ class TaskService(ServiceBase):
     async def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
         new_task = task_models.Task(
             _workspace_id=data.workspace_id,
-            **data.model_dump(exclude={"workspace_id"})
+            messages=data.messages,
+            **data.model_dump(exclude={"messages", "workspace_id"})
         )
 
         self._db_session.add(new_task)

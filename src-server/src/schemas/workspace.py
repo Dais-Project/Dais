@@ -11,18 +11,18 @@ class WorkspaceBrief(WorkspaceBase):
 
 class WorkspaceRead(WorkspaceBase):
     id: int
-    workspace_background: str
+    instruction: str
     usable_agents: list[AgentBrief]
     usable_tools: list[ToolRead]
 
 class WorkspaceCreate(WorkspaceBase):
-    workspace_background: str
+    instruction: str
     usable_agent_ids: list[int]
     usable_tool_ids: list[int]
 
 class WorkspaceUpdate(DTOBase):
     name: str | None
     directory: str | None
-    workspace_background: str | None
+    instruction: str | None
     usable_agent_ids: list[int] | None
     usable_tool_ids: list[int] | None

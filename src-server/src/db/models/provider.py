@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
-from dais_sdk import LlmProviders
+from dais_sdk.providers import LlmProviders
 from . import Base
 from .utils import DataClassJSON
 
@@ -42,7 +42,7 @@ class Provider(Base):
     models: Mapped[list[LlmModel]] = relationship(back_populates="provider",
                                                   cascade="all, delete-orphan")
 
-async def init(session: AsyncSession):
+async def init(db_session: AsyncSession):
     default_provider = Provider(
         name="OpenAI",
         type=LlmProviders.OPENAI,
@@ -55,8 +55,8 @@ async def init(session: AsyncSession):
                 capability=LlmModelCapability())])
 
     stmt = select(Provider.id).limit(1)
-    exists = await session.scalar(stmt)
+    exists = await db_session.scalar(stmt)
     if exists: return
 
-    session.add(default_provider)
-    await session.flush()
+    db_session.add(default_provider)
+    await db_session.flush()

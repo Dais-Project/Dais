@@ -13,17 +13,17 @@ class AgentBrief(AgentBase):
 class AgentRead(AgentBase):
     id: int
     model: LlmModelRead | None
-    system_prompt: str
+    instruction: str
     usable_tools: list[ToolRead]
 
 class AgentCreate(AgentBase):
     model_id: int | None
-    system_prompt: str
+    instruction: str
     usable_tool_ids: list[int]
 
 class AgentUpdate(DTOBase):
     name: str | None
     icon_name: str | None
-    system_prompt: str | None
+    instruction: str | None
     model_id: int | None
     usable_tool_ids: list[int] | None

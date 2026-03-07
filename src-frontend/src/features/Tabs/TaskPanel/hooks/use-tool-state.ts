@@ -1,7 +1,8 @@
-import type { ToolMessage, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { ToolMessageMetadata } from "@/api/generated/schemas";
+import type { UiToolMessage } from "@/types/message";
 import type { ToolState } from "@/components/ai-elements/tool";
 
-function getToolState(message: ToolMessage): ToolState {
+function getToolState(message: UiToolMessage): ToolState {
   if (message.error) {
     return "output-error";
   }
@@ -20,6 +21,6 @@ function getToolState(message: ToolMessage): ToolState {
   return "input-streaming";
 }
 
-export function useToolState(message: ToolMessage): ToolState {
+export function useToolState(message: UiToolMessage): ToolState {
   return getToolState(message);
 }
