@@ -52,13 +52,8 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
       <AgentModelField />
 
       <RichTextField
-        fieldName="system_prompt"
-        maxLength={10_000}
-        fieldProps={{ label: "Agent 提示词", className: "mt-2" }}
-        controlProps={{
-          className: "mx-1 mt-2",
-          editorClassName: "min-h-[8em]",
-        }}
+        fieldName="instruction"
+        fieldProps={{ label: "Agent 指令", className: "mt-2" }}
       />
 
       <ToolMultiSelectField />

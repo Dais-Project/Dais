@@ -1,3 +1,4 @@
+from dis import Instruction
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -18,7 +19,7 @@ class Agent(Base):
     name: Mapped[str]
     # name of lucide icon, default is "bot"
     icon_name: Mapped[str] = mapped_column(default="bot")
-    system_prompt: Mapped[str]
+    instruction: Mapped[str]
     model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
 
     _model: Mapped[LlmModel | None] = relationship(back_populates="agents",
@@ -73,7 +74,7 @@ async def init(db_session: AsyncSession):
     for name, instruction, icon_name, tools in builtin_agents:
         agent = Agent(
             name=name,
-            system_prompt=instruction,
+            instruction=instruction,
             icon_name=icon_name,
             model_id=1,
             usable_tools=[],
