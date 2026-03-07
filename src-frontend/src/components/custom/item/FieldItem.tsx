@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ControllerFieldState } from "react-hook-form";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
 const fieldItemVariants = cva("flex justify-between py-2", {
@@ -42,10 +42,11 @@ export function FieldItem({
   descriptionClassName,
   contentClassName,
   align,
-  orientation,
+  orientation = "horizontal",
 }: FieldItemProps) {
   return (
     <Field
+      orientation={orientation}
       className={cn(fieldItemVariants({ orientation, align }), className)}
       data-invalid={fieldState.invalid}
     >
@@ -56,18 +57,17 @@ export function FieldItem({
           {label}
         </FieldLabel>
         {description && (
-          <div
-            className={cn(
-              "text-muted-foreground text-xs",
-              descriptionClassName
-            )}
-          >
+          <FieldDescription className={descriptionClassName}>
             {description}
-          </div>
+          </FieldDescription>
         )}
         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
       </div>
-      <div className={cn("flex items-center justify-end", contentClassName)}>
+      <div className={cn(
+        "flex items-center justify-end",
+        { "w-full max-w-sm": orientation === "horizontal" },
+        contentClassName
+      )}>
         {children}
       </div>
     </Field>
