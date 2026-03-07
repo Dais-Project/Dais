@@ -15,7 +15,7 @@ class Workspace(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     directory: Mapped[str]
-    workspace_background: Mapped[str]
+    instruction: Mapped[str]
     usable_agents: Mapped[list[Agent]] = relationship(secondary=workspace_agent_association_table,
                                                       back_populates="workspaces")
     usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table,
@@ -29,7 +29,7 @@ async def init(db_session: AsyncSession):
     user_directory_workspace = Workspace(
         name="User Directory",
         directory="~",
-        workspace_background="")
+        instruction="")
 
     stmt = select(Workspace.id).where(
         (Workspace.name == user_directory_workspace.name) |

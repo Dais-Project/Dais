@@ -75,7 +75,7 @@ class AgentContext:
             user_language=settings.reply_language,
             workspace_name=self._workspace.name,
             workspace_directory=self._workspace.directory,
-            workspace_instruction=self._workspace.workspace_background,
+            workspace_instruction=self._workspace.instruction,
             agent_role=self._agent.name,
             agent_instruction=self._agent.instruction
         ).strip()

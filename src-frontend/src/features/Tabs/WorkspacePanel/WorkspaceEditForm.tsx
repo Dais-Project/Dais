@@ -77,7 +77,7 @@ export function WorkspaceEditForm({
       />
 
       <RichTextField
-        fieldName="workspace_background"
+        fieldName="instruction"
         fieldProps={{ label: "工作区概况", className: "mt-2" }}
         minLength={0}
       />
