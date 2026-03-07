@@ -14,8 +14,8 @@ class TempGeneration:
 
     @classmethod
     async def create(cls, instruction: str, model_id: int) -> Self:
-        async with db_context() as session:
-            model = await LlmModelService(session).get_model_by_id(model_id)
+        async with db_context() as db_session:
+            model = await LlmModelService(db_session).get_model_by_id(model_id)
             provider = model.provider
         return cls(instruction, model.name, provider)
 

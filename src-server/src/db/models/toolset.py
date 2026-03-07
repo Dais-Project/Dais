@@ -58,26 +58,29 @@ class Toolset(Base):
     is_enabled: Mapped[bool] = mapped_column(default=True)
     tools: Mapped[list[Tool]] = relationship(back_populates="toolset", cascade="all, delete-orphan")
 
-async def init(session: AsyncSession):
+async def init(db_session: AsyncSession):
     from ...agent.tool import (
+        BuiltInToolset,
         FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset
     )
 
-    toolsets_to_init = [
-        ("File System", FileSystemToolset.__name__, ToolsetType.BUILT_IN),
-        ("OS Interactions", OsInteractionsToolset.__name__, ToolsetType.BUILT_IN),
-        ("User Interaction", UserInteractionToolset.__name__, ToolsetType.BUILT_IN),
-        ("Execution Control", ExecutionControlToolset.__name__, ToolsetType.BUILT_IN),
+    toolsets_to_init: list[tuple[str, type[BuiltInToolset]]] = [
+        ("File System", FileSystemToolset),
+        ("OS Interactions", OsInteractionsToolset),
+        ("User Interaction", UserInteractionToolset),
+        ("Execution Control", ExecutionControlToolset),
     ]
 
-    for name, internal_key, type in toolsets_to_init:
+    for name, toolset_t in toolsets_to_init:
+        internal_key = toolset_t.internal_key()
         stmt = select(Toolset).where(Toolset.internal_key == internal_key).limit(1)
-        exists = await session.scalar(stmt)
+        exists = await db_session.scalar(stmt)
         if exists: continue
-        session.add(Toolset(name=name,
+        db_session.add(Toolset(name=name,
                             internal_key=internal_key,
-                            type=type,
+                            type=ToolsetType.BUILT_IN,
                             params=None,
                             is_enabled=True,
                             tools=[]))
-    await session.flush()
+        await db_session.flush()
+        await toolset_t.sync(db_session)

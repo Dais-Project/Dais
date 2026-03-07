@@ -25,7 +25,7 @@ class Workspace(Base):
                                              cascade="all, delete-orphan",
                                              viewonly=True)
 
-async def init(session: AsyncSession):
+async def init(db_session: AsyncSession):
     user_directory_workspace = Workspace(
         name="User Directory",
         directory="~",
@@ -35,8 +35,8 @@ async def init(session: AsyncSession):
         (Workspace.name == user_directory_workspace.name) |
         (Workspace.directory == user_directory_workspace.directory)
     ).limit(1)
-    exists = await session.scalar(stmt)
+    exists = await db_session.scalar(stmt)
     if exists: return
 
-    session.add(user_directory_workspace)
-    await session.flush()
+    db_session.add(user_directory_workspace)
+    await db_session.flush()

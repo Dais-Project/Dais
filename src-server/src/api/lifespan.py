@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from .sse_dispatcher import SseDispatcher
 from ..settings import use_app_setting_manager
 from ..agent.tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
-from ..db import engine as database_engine
+from ..db import engine as database_engine, db_context
 
 class AppState(TypedDict):
     sse_dispatcher: SseDispatcher
@@ -18,7 +18,9 @@ async def lifespan(_: FastAPI) -> AsyncIterator[AppState]:
     app_setting_manager = use_app_setting_manager()
     await app_setting_manager.initialize()
 
-    await BuiltinToolsetManager.sync_toolsets()
+    async with db_context() as db_session:
+        await BuiltinToolsetManager.sync_toolsets(db_session)
+
     mcp_toolset_manager = use_mcp_toolset_manager()
     await mcp_toolset_manager.initialize()
     await mcp_toolset_manager.connect_mcp_servers()
@@ -28,6 +30,6 @@ async def lifespan(_: FastAPI) -> AsyncIterator[AppState]:
                        mcp_toolset_manager=mcp_toolset_manager)
     finally:
         await mcp_toolset_manager.disconnect_mcp_servers()
-        await database_engine.dispose()
         await app_setting_manager.persist()
         await sse_dispatcher.close()
+        await database_engine.dispose()

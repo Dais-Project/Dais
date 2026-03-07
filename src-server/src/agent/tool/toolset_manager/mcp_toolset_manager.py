@@ -26,8 +26,8 @@ class McpToolsetManager(ToolsetManager):
     async def initialize(self):
         from ....services import ToolsetService
 
-        async with db_context() as session:
-            toolset_ents = await ToolsetService(session).get_all_mcp_toolsets()
+        async with db_context() as db_session:
+            toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
         with self._lock:
             self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
@@ -37,8 +37,8 @@ class McpToolsetManager(ToolsetManager):
         if self._toolset_map is None:
             raise ValueError("Toolset manager not initialized")
 
-        async with db_context() as session:
-            toolset_ents = await ToolsetService(session).get_all_mcp_toolsets()
+        async with db_context() as db_session:
+            toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
 
         toolsets = []
         toolset_connect_tasks = []

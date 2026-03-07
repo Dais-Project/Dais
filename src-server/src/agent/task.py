@@ -272,9 +272,6 @@ class AgentTask:
                     yield MessageReplaceEvent(message=tool_call_message)
                     continue
 
-                print(tool,
-                      isinstance(tool, ToolDef),
-                      isinstance(tool, ToolDef) and tool.executes(ExecutionControlToolset.finish_task))
                 if (isinstance(tool, ToolDef) and tool.executes(ExecutionControlToolset.finish_task)):
                     # stop the agent loop when finish_task is called
                     break

@@ -65,7 +65,7 @@ Your responses will be rendered in a desktop application that supports GitHub-Fl
 
 ## 5. Task Execution Workflow
 
-For any non-trivial task (requiring more than one tool call), follow this sequence:
+For any non-trivial task (requiring more than five tool calls), follow this sequence:
 ```
 UNDERSTAND → PLAN → EXECUTE → VERIFY → CLOSE
 ```
@@ -115,6 +115,7 @@ Workspace Directory: {workspace_directory}
 [START OF AGENT INSTRUCTIONS]
 
 Agent Role: {agent_role}
+
 {agent_instruction}
 
 [END OF AGENT INSTRUCTIONS]

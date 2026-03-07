@@ -54,8 +54,8 @@ class McpToolset(Toolset):
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
         from ....services import ToolsetService
 
-        async with db_context() as session:
-            toolset_service = ToolsetService(session)
+        async with db_context() as db_session:
+            toolset_service = ToolsetService(db_session)
             tools = [ToolsetService.ToolLike(
                         name=tool.name,
                         internal_key=tool.name,

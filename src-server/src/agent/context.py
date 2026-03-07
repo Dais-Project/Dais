@@ -48,13 +48,13 @@ class AgentContext:
         assert task.agent_id is not None
 
         messages = task.messages
-        async with db_context() as session:
-            agent = await AgentService(session).get_agent_by_id(task.agent_id)
-            workspace = await WorkspaceService(session).get_workspace_by_id(task.workspace_id)
+        async with db_context() as db_session:
+            agent = await AgentService(db_session).get_agent_by_id(task.agent_id)
+            workspace = await WorkspaceService(db_session).get_workspace_by_id(task.workspace_id)
 
             assert agent.model_id is not None
-            model = await LlmModelService(session).get_model_by_id(agent.model_id)
-            provider = await ProviderService(session).get_provider_by_id(model.provider_id)
+            model = await LlmModelService(db_session).get_model_by_id(agent.model_id)
+            provider = await ProviderService(db_session).get_provider_by_id(model.provider_id)
 
         builtin_toolset_manager = BuiltinToolsetManager(workspace.directory, ContextUsage.default())
         await builtin_toolset_manager.initialize()
@@ -113,8 +113,8 @@ class AgentContext:
         return workspace_usable_tool_ids & agent_usable_tool_ids
 
     async def persist(self):
-        async with db_context() as session:
-            await TaskService(session).update_task(self.task_id, task_schemas.TaskUpdate(
+        async with db_context() as db_session:
+            await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
                 title=None, agent_id=None,
                 messages=self._messages,
                 usage=self._usage,

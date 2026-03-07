@@ -36,10 +36,10 @@ async def summarize_title_in_background(
         return
 
     try:
-        async with db_context() as session:
+        async with db_context() as db_session:
             update_data = task_schemas.TaskUpdate(title=title,
                 messages=None, agent_id=None, last_run_at=int(time.time()), usage=None)
-            await TaskService(session).update_task(task_id, update_data)
+            await TaskService(db_session).update_task(task_id, update_data)
     except Exception:
         _logger.exception("Failed to update task {} with title '{}'", task_id, title)
 

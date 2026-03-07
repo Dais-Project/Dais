@@ -28,8 +28,8 @@ class ToolReviewBody(TaskStreamBody):
     auto_approve: bool = False
 
 async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
-    async with db_context() as session:
-        task = await TaskService(session).get_task_by_id(task_id)
+    async with db_context() as db_session:
+        task = await TaskService(db_session).get_task_by_id(task_id)
         task.agent_id = agent_id
     task_read = task_schemas.TaskRead.model_validate(task)
     ctx = await AgentContext.create(task_read)

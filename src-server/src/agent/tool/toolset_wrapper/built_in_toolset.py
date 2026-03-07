@@ -3,9 +3,10 @@ from pathlib import Path
 from typing import cast, override, TYPE_CHECKING, TypedDict
 from dais_sdk.tool import PythonToolset, python_tool
 from dais_sdk.types import ToolDef
+from sqlalchemy.ext.asyncio import AsyncSession
 from ..types import ToolMetadata
 from ...types import ContextUsage
-from ....db import db_context
+
 
 if TYPE_CHECKING:
     from ....db.models import toolset as toolset_models
@@ -59,22 +60,21 @@ class BuiltInToolset(PythonToolset):
         return cls.__name__
 
     @classmethod
-    async def sync(cls):
+    async def sync(cls, db_session: AsyncSession):
         from ....services import ToolsetService
 
         temp_instance = cls(BuiltInToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
-        async with db_context() as session:
-            toolset_service = ToolsetService(session)
-            toolset_ent = await toolset_service.get_toolset_by_internal_key(cls.internal_key())
-            await toolset_service.sync_toolset(toolset_ent.id,
-                                              [ToolsetService.ToolLike(
-                                                  name=tool.name,
-                                                  internal_key=tool.name,
-                                                  description=tool.description,
-                                                  auto_approve=cast(BuiltInToolDefaults, tool.defaults)
-                                                                    .get("auto_approve", False))
-                                               for tool in raw_tools])
+        toolset_service = ToolsetService(db_session)
+        toolset_ent = await toolset_service.get_toolset_by_internal_key(cls.internal_key())
+        await toolset_service.sync_toolset(toolset_ent.id,
+                                            [ToolsetService.ToolLike(
+                                                name=tool.name,
+                                                internal_key=tool.name,
+                                                description=tool.description,
+                                                auto_approve=cast(BuiltInToolDefaults, tool.defaults)
+                                                                .get("auto_approve", False))
+                                            for tool in raw_tools])
 
     def get_original_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
         return super().get_tools(namespaced_tool_name=namespaced_tool_name)
