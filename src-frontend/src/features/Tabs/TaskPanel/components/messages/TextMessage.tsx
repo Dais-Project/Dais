@@ -1,8 +1,10 @@
-import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { Message, MessageActions, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { CopyButton } from "@/components/ui/copy-button";
 
 type TextMessageProps = {
   text: string | null;
   from: "user" | "assistant";
+  isStreaming: boolean;
 };
 
 function normalizeText(text: string, from: "user" | "assistant") {
@@ -13,20 +15,29 @@ function normalizeText(text: string, from: "user" | "assistant") {
   return _text;
 }
 
-export function TextMessage({ text, from }: TextMessageProps) {
+export function TextMessage({ text, from, isStreaming }: TextMessageProps) {
   if (text === null || text.trim() === "") {
     return null;
   }
+
+  const messageText = text;
+
   return (
     <Message className="selectable-text" from={from}>
       <MessageContent>
         <MessageResponse
-          mode={from === "user" ? "static" : "streaming"}
-          parseIncompleteMarkdown={from !== "user"}
+          mode={!isStreaming ? "static" : "streaming"}
+          parseIncompleteMarkdown={isStreaming}
         >
-          {normalizeText(text, from)}
+          {normalizeText(messageText, from)}
         </MessageResponse>
       </MessageContent>
+
+      {from === "user" && (
+        <MessageActions className="justify-end">
+          <CopyButton variant="ghost" content={messageText} />
+        </MessageActions>
+      )}
     </Message>
   );
 }

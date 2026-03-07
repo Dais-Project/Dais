@@ -1,4 +1,4 @@
-import { useFormContext } from "react-hook-form";
+import { useController, useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import {
   Select,
@@ -33,14 +33,37 @@ export function SelectField<S extends Record<string, string>>({
   fieldProps = { label: "类型" },
   controlProps,
 }: SelectFieldProps<S>) {
-  const { register, getFieldState } = useFormContext();
+  const { control } = useFormContext<Record<string, string>>();
+  const { field, fieldState } = useController({
+    name: fieldName,
+    control,
+    rules: {
+      required: required ? errorMessage : false,
+    },
+  });
+
+  const {
+    onValueChange: onValueChangeFromProps,
+    value: _ignoredValue,
+    defaultValue: _ignoredDefaultValue,
+    name: _ignoredName,
+    required: requiredFromProps,
+    ...restControlProps
+  } = controlProps ?? {};
+
   return (
-    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+    <FieldItem {...fieldProps} fieldState={fieldState}>
       <Select
-        {...register(fieldName, { required: required ? errorMessage : false })}
-        {...controlProps}
+        {...restControlProps}
+        value={typeof field.value === "string" ? field.value : undefined}
+        onValueChange={(value) => {
+          field.onChange(value);
+          onValueChangeFromProps?.(value);
+        }}
+        name={field.name}
+        required={requiredFromProps ?? required}
       >
-        <SelectTrigger>
+        <SelectTrigger onBlur={field.onBlur}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

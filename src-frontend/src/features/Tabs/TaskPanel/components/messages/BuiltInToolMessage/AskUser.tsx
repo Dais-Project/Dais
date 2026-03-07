@@ -1,6 +1,7 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
-import type { ToolMessage, UserInteractionAskUser } from "@/api/generated/schemas";
+import { Streamdown } from "streamdown";
+import type { UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +9,12 @@ import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/compone
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
-import { Streamdown } from "streamdown";
+import { ToolMessageProps } from ".";
 
-type AskUserProps = {
-  message: ToolMessage;
-};
-
-export function AskUser({ message }: AskUserProps) {
+export function AskUser({ message }: ToolMessageProps) {
   const { answerTool } = useAgentTaskAction();
   const [disabled, setDisabled] = useState(false);
-  const toolArguments = useToolArgument<UserInteractionAskUser>(message.arguments, AskUserToolSchema);
+  const toolArguments = useToolArgument<UserInteractionAskUser>(message, AskUserToolSchema);
   const { question, options } = toolArguments ?? {};
   const selectedOption = options && (message.result as string);
 
@@ -26,7 +23,7 @@ export function AskUser({ message }: AskUserProps) {
 
   const handleSelectOption = (option: string) => {
     setDisabled(true);
-    answerTool(message.tool_call_id, option);
+    answerTool(message.call_id, option);
   };
 
   const handleSendAnswer = () => {
@@ -34,7 +31,7 @@ export function AskUser({ message }: AskUserProps) {
     if (hasResult) {
       return;
     }
-    answerTool(message.tool_call_id, answer);
+    answerTool(message.call_id, answer);
   };
 
   return (

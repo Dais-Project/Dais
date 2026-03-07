@@ -46,13 +46,12 @@ export function DirectoryField({
 
   return (
     <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
-      <div className="flex gap-2">
+      <div className="flex gap-2 w-full">
         <Input
           {...register(fieldName, {
             required: required ? "目录路径为必填项" : false,
           })}
           {...controlProps}
-          className="min-w-48"
         />
         <Button type="button" variant="outline" onClick={chooseDirectory}>
           {chooseButtonText}

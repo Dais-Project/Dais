@@ -1,14 +1,18 @@
 import asyncio
 import uuid
-from dais_sdk.types.tool import ToolDef
 from collections.abc import AsyncGenerator
 from loguru import logger
-from dais_sdk import (
-    ToolLike,
-    LLM, AssistantMessage, LlmRequestParams,
-    SystemMessage, ToolMessage,
-    UsageChunk, UserMessage, ToolDef,
-    ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError
+from dais_sdk import LLM
+from dais_sdk.providers import OpenAIProvider
+from dais_sdk.types import (
+    LlmRequestParams,
+    SystemMessage, ToolMessage, UserMessage,
+    ToolLike, ToolDef,
+    ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
+    AssistantMessageEvent,
+    TextChunkEvent as SdkTextChunkEvent,
+    UsageChunkEvent as SdkUsageChunkEvent,
+    ToolCallChunkEvent as SdkToolCallChunkEvent,
 )
 from .context import AgentContext
 from .exception_handlers import (
@@ -22,7 +26,8 @@ from .prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from .types import (
     AgentGenerator,
     ToolDeniedEvent, ToolEvent,
-    MessageChunkEvent, MessageStartEvent, MessageEndEvent,
+    MessageStartEvent, MessageEndEvent,
+    TextChunkEvent, ToolCallChunkEvent, UsageChunkEvent,
     MessageReplaceEvent, ToolCallEndEvent,
     TaskDoneEvent, TaskInterruptedEvent,
     ToolExecutedEvent,
@@ -32,7 +37,7 @@ from .types import (
 )
 
 class ToolCallNotFoundError(Exception):
-    tool_call_id: str
+    call_id: str
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -42,12 +47,14 @@ class AgentTask:
         self._ctx = ctx
         self._llm = self._llm_factory()
         self._is_running = True
+        self._cancel_event = asyncio.Event()
         self._current_task: asyncio.Task | None = None
 
     def _llm_factory(self) -> LLM:
-        llm = LLM(provider=self._ctx.provider.type,
-                  base_url=self._ctx.provider.base_url,
-                  api_key=self._ctx.provider.api_key)
+        provider = OpenAIProvider(
+            self._ctx.provider.base_url,
+            api_key=self._ctx.provider.api_key)
+        llm = LLM(provider=provider)
         tool_exception_handler_manager = llm.tool_exception_handler_manager
         tool_exception_handler_manager.set_handler(ToolDoesNotExistError, handle_tool_does_not_exist_error)
         tool_exception_handler_manager.set_handler(ToolArgumentDecodeError, handle_tool_argument_decode_error)
@@ -79,8 +86,10 @@ class AgentTask:
 
     async def _create_llm_call(self,
                                request_params: LlmRequestParams
-                               ) -> AsyncGenerator[MessageChunkEvent
-                                                 | MessageStartEvent
+                               ) -> AsyncGenerator[MessageStartEvent
+                                                 | TextChunkEvent
+                                                 | ToolCallChunkEvent
+                                                 | UsageChunkEvent
                                                  | MessageEndEvent
                                                  | ToolCallEndEvent
                                                  | TaskInterruptedEvent
@@ -89,29 +98,27 @@ class AgentTask:
         Create LLM API call, put message chunks into chunk_queue and return the first tool call message
         """
         assistant_message_id = str(uuid.uuid4())
-        assistant_message: AssistantMessage | None = None
         try:
-            self._current_task = asyncio.create_task(self._llm.stream_text(request_params))
-            stream, message_queue = await self._current_task
+            stream = self._llm.stream_text(request_params)
             yield MessageStartEvent(message_id=assistant_message_id)
             async for chunk in stream:
-                yield MessageChunkEvent(chunk)
-                if isinstance(chunk, UsageChunk):
-                    self._ctx.usage.set_usage(chunk)
-
-            # Since we did not set `execute_tools` flag,
-            # there will be only one assistant message in the queue
-            first_message = await message_queue.get()
-            assert type(first_message) == AssistantMessage
-            assistant_message = first_message
-            assistant_message.id = assistant_message_id
-            yield MessageEndEvent(message=assistant_message)
+                match chunk:
+                    case SdkTextChunkEvent() as chunk:
+                        yield TextChunkEvent.from_sdk(chunk, assistant_message_id)
+                    case SdkToolCallChunkEvent() as chunk:
+                        yield ToolCallChunkEvent.from_sdk(chunk)
+                    case SdkUsageChunkEvent() as chunk:
+                        yield UsageChunkEvent.from_sdk(chunk, self._ctx.model.context_size)
+                        self._ctx.usage.set_usage(chunk)
+                    case AssistantMessageEvent(message):
+                        message.id = assistant_message_id
+                        yield MessageEndEvent.from_sdk(message)
         except asyncio.CancelledError:
             yield TaskInterruptedEvent()
             raise
         except Exception as e:
             self._logger.exception(f"Failed to create llm call.")
-            yield ErrorEvent(error=e)
+            yield ErrorEvent(error=str(e))
         finally:
             self._current_task = None
 
@@ -134,10 +141,10 @@ class AgentTask:
         if tool.metadata["auto_approve"] == False:
             match message.metadata["user_approval"]:
                 case UserApprovalStatus.PENDING:
-                    return ToolRequirePermissionEvent(tool_call_id=message.tool_call_id)
+                    return ToolRequirePermissionEvent(call_id=message.call_id)
                 case UserApprovalStatus.DENIED:
                     message.result = USER_DENIED_TOOL_CALL_RESULT
-                    return ToolDeniedEvent(tool_call_id=message.tool_call_id)
+                    return ToolDeniedEvent(call_id=message.call_id)
                 case UserApprovalStatus.APPROVED:
                     # continue to execute
                     pass
@@ -147,27 +154,28 @@ class AgentTask:
         message.error = error
 
         return ToolExecutedEvent(
-            tool_call_id=message.tool_call_id,
+            call_id=message.call_id,
             result=result if error is None else None)
 
-    def append_message(self, message: UserMessage):
+    def append_message(self, message: UserMessage) -> MessageReplaceEvent | None:
         try:
             last_message = self._ctx.messages[-1]
         except IndexError:
             last_message = None
 
-        if (last_message and
-            last_message.role == "tool" and
-            last_message.result is None and
-            last_message.error is None):
-            # If the previous tool call is not finished,
-            # we consider it as ignored by user.
-            last_message.result = USER_IGNORED_TOOL_CALL_RESULT
-            last_message.metadata.clear()
+        try:
+            if (last_message and
+                last_message.role == "tool" and
+                last_message.result is None and
+                last_message.error is None):
+                # If the previous tool call is not finished, we consider it as ignored by user.
+                last_message.result = USER_IGNORED_TOOL_CALL_RESULT
+                last_message.metadata.clear()
+                return MessageReplaceEvent(message=last_message)
+        finally:
+            self._ctx.messages.append(message)
 
-        self._ctx.messages.append(message)
-
-    def set_tool_call_result(self, tool_call_id: str, result: str) -> ToolMessage:
+    def set_tool_call_result(self, call_id: str, result: str) -> MessageReplaceEvent:
         """
         Set the result for a tool call
 
@@ -175,15 +183,13 @@ class AgentTask:
             ToolCallNotFoundError
         """
         for message in reversed(self._ctx.messages):
-            if (message.role         == "tool" and
-                message.tool_call_id == tool_call_id):
-                message.result = result
-                return message
-        raise ToolCallNotFoundError(tool_call_id)
+            if (message.role    == "tool" and
+                message.call_id == call_id):
+                message.result  =  result
+                return MessageReplaceEvent(message=message)
+        raise ToolCallNotFoundError(call_id)
 
-    async def approve_tool_call(
-        self, tool_call_id: str, approved: bool
-    ) -> tuple[ToolEvent | None, MessageReplaceEvent | None]:
+    async def approve_tool_call(self, call_id: str, approved: bool) -> tuple[ToolEvent | None, MessageReplaceEvent | None]:
         """
         Approve or deny a tool call
 
@@ -197,17 +203,17 @@ class AgentTask:
         """
         target_message = None
         for message in reversed(self._ctx.messages):
-            if message.role == "tool" and message.tool_call_id == tool_call_id:
+            if message.role == "tool" and message.call_id == call_id:
                 target_message = message
                 break
         if target_message is None:
-            raise ToolCallNotFoundError(tool_call_id)
+            raise ToolCallNotFoundError(call_id)
 
         metadata = target_message.metadata
         assert is_agent_metadata(metadata)
         if "user_approval" not in metadata:
             # This should not happen, but we handle it just in case.
-            self._logger.warning(f"Tool call {tool_call_id} has no user_approval metadata")
+            self._logger.warning(f"Tool call {call_id} has no user_approval metadata")
             metadata["user_approval"] = UserApprovalStatus.PENDING
 
         if metadata["user_approval"] != UserApprovalStatus.PENDING:
@@ -286,6 +292,4 @@ class AgentTask:
 
     def stop(self):
         self._is_running = False
-        if self._current_task:
-            self._current_task.cancel()
-            self._current_task = None
+        self._cancel_event.set()

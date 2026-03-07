@@ -1,4 +1,4 @@
-import { useBoolean, useThrottleFn } from "ahooks";
+import { useBoolean, useDebounceFn, useThrottleFn } from "ahooks";
 import { Activity, use, useEffect } from "react";
 import { type PanelSize, useDefaultLayout, useGroupRef, usePanelRef } from "react-resizable-panels";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -58,8 +58,10 @@ export function LayoutSkeleton() {
 
 // --- --- --- --- --- ---
 
+const backendReadyPromise = backendReady();
+
 export function Layout() {
-  use(backendReady);
+  use(backendReadyPromise);
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "panels",
@@ -80,6 +82,14 @@ export function Layout() {
       }
     },
     { wait: 100 }
+  );
+
+  const { run: handleTabsResize } = useDebounceFn(
+    // use an extra resized handler to ensure the isResizing state is reset
+    (_panelSize: PanelSize, _: string | number | undefined) => {
+      resizeEnd();
+    },
+    { wait: 300 }
   );
 
   useEffect(() => {
@@ -128,6 +138,7 @@ export function Layout() {
           id="tabs"
           minSize={300}
           className={cn("relative", { "resizable-panel-resizing": isResizing })}
+          onResize={handleTabsResize}
         >
           <Activity mode={activityVisible(isResizing)}>
             <div className="absolute inset-0 z-50 select-none" />

@@ -3,9 +3,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getGetTaskQueryKey, invalidateTaskQueries, useNewTask } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
 import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
-import { userMessageFactory } from "@/types/message";
 
 export function CreateView({ tabId }: { tabId: string }) {
   const queryClient = useQueryClient();
@@ -33,13 +33,13 @@ export function CreateView({ tabId }: { tabId: string }) {
       throw new Error("No current workspace");
     }
 
-    const userMessage = userMessageFactory(message.text);
+    const userMessage = uiUserMessageFactory(message.text);
     createTaskMutation.mutateAsync({
       data: {
         title: DEFAULT_TAB_TITLE,
         agent_id: agentId,
         workspace_id: currentWorkspace.id,
-        messages: [userMessage],
+        messages: [toSdkMessage(userMessage)],
       },
     });
   };

@@ -1,18 +1,18 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-type SseStreamOptions = {
+type SseStreamOptions<TData> = {
   body?: object;
   method?: string;
   headers?: Record<string, string>;
   onConnect?: (response: Response) => void;
-  onMessage: (event: { event: string; data: unknown }) => void;
+  onMessage: (event: { event: string; data: TData | null }) => void;
   onError?: (error: Error) => void;
   onClose?: () => void;
 };
 
-export function createSseStream(
+export function createSseStream<TData>(
   url: URL | string,
-  { body, method = "POST", headers = {}, onConnect, onMessage, onError, onClose }: SseStreamOptions
+  { body, method = "POST", headers = {}, onConnect, onMessage, onError, onClose }: SseStreamOptions<TData>
 ): AbortController {
   const abortController = new AbortController();
 
@@ -42,7 +42,7 @@ export function createSseStream(
     },
 
     onmessage(event) {
-      let data: unknown;
+      let data: TData | null;
 
       try {
         if (event.data.length) {
@@ -62,6 +62,10 @@ message data: ${event.data}`,
         return;
       }
 
+      if (event.event.length === 0 && data === null) {
+        // keepalive message
+        return;
+      }
       onMessage({ event: event.event, data });
     },
 

@@ -1,6 +1,18 @@
 const port = globalThis.__INJECTED__.server_port;
 export const API_BASE = `http://localhost:${port}/`;
 
-let resolveReady!: ()=>void
-export const backendReady = new Promise<void>(r => resolveReady = r)
-export const setBackendReady = () => resolveReady()
+import { getHealth } from "./generated/endpoints/health/health";
+export async function backendReady() {
+  const interval = 1000;
+  while (true) {
+    try {
+      const result = await getHealth({
+        cache: "no-store",
+      });
+      if (result.status === "ok") {
+        break;
+      }
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+};

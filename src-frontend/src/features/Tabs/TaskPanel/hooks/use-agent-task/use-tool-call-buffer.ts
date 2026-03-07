@@ -1,9 +1,11 @@
 import { useThrottleFn } from "ahooks";
 import { useCallback, useRef } from "react";
-import type { ToolCallChunk } from "@/types/message";
+import type { ToolCallChunkEvent } from "@/api/generated/schemas";
+
+type ToolCallChunk = Omit<ToolCallChunkEvent, "event_id">;
 
 export type ToolCallBuffer = {
-  id: string;
+  call_id: string;
   name: string;
   arguments: string;
 };
@@ -37,8 +39,8 @@ export function useToolCallBuffer({
       let currentBuffer: ToolCallBuffer;
       if (existing) {
         existing.arguments += chunk.arguments;
-        if (chunk.id) {
-          existing.id = chunk.id;
+        if (chunk.call_id) {
+          existing.call_id = chunk.call_id;
         }
         if (chunk.name) {
           existing.name = chunk.name;
@@ -46,14 +48,14 @@ export function useToolCallBuffer({
         currentBuffer = { ...existing };
       } else {
         const newBuffer = {
-          id: chunk.id ?? "",
+          call_id: chunk.call_id ?? "",
           name: chunk.name ?? "",
-          arguments: chunk.arguments,
-        };
+          arguments: chunk.arguments ?? "",
+        } satisfies ToolCallBuffer;
         toolCallsRef.current.set(chunk.index, newBuffer);
         currentBuffer = { ...newBuffer };
       }
-      accumulateNotify(currentBuffer.id, { ...currentBuffer });
+      accumulateNotify(currentBuffer.call_id, { ...currentBuffer });
     },
     [accumulateNotify]
   );

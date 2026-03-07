@@ -1,6 +1,7 @@
 import asyncio
 from typing import Sequence, override
-from dais_sdk import Toolset
+from dais_sdk.tool import Toolset
+from sqlalchemy.ext.asyncio import AsyncSession
 from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 from ..builtin_tools import (
@@ -20,8 +21,8 @@ class BuiltinToolsetManager(ToolsetManager):
         from ....services import ToolsetService
 
         toolset_types: list[type[BuiltInToolset]] = [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]
-        async with db_context() as session:
-            toolset_ents = await ToolsetService(session).get_all_built_in_toolsets()
+        async with db_context() as db_session:
+            toolset_ents = await ToolsetService(db_session).get_all_built_in_toolsets()
         self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
 
         self._toolsets = []
@@ -30,11 +31,11 @@ class BuiltinToolsetManager(ToolsetManager):
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
 
     @staticmethod
-    async def sync_toolsets():
+    async def sync_toolsets(db_session: AsyncSession):
         toolset_types: list[type[BuiltInToolset]] = [
             FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]
-        sync_tasks = [toolset.sync() for toolset in toolset_types]
-        await asyncio.gather(*sync_tasks)
+        for toolset_t in toolset_types:
+            await toolset_t.sync(db_session)
 
     @property
     @override

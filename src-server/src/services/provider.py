@@ -60,7 +60,8 @@ class ProviderService(ServiceBase):
 
         self._db_session.add(new_provider)
         await self._db_session.flush()
-        await self._db_session.refresh(new_provider)
+
+        new_provider = await self.get_provider_by_id(new_provider.id)
         return new_provider
 
     async def update_provider(self, id: int, data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
@@ -122,8 +123,9 @@ class ProviderService(ServiceBase):
                 setattr(provider, key, value)
 
         await self._db_session.flush()
-        await self._db_session.refresh(provider)
-        return provider
+        
+        updated_provider = await self.get_provider_by_id(provider.id)
+        return updated_provider
 
     async def delete_provider(self, id: int) -> None:
         provider = await self._db_session.get(provider_models.Provider, id)

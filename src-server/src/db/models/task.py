@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass
 from typing import Annotated, TYPE_CHECKING, Self
-from dais_sdk import AssistantMessage, SystemMessage, ToolMessage, UserMessage
+from dais_sdk.types import AssistantMessage, SystemMessage, ToolMessage, UserMessage
 from pydantic import Discriminator, TypeAdapter
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property

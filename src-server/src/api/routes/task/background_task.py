@@ -1,7 +1,7 @@
 import time
 from typing import TYPE_CHECKING
 from loguru import logger
-from dais_sdk import UserMessage
+from dais_sdk.types import UserMessage
 from ....db.models.task import TaskMessage
 from ....db import db_context
 from ....services.task import TaskService
@@ -9,7 +9,7 @@ from ....schemas import task as task_schemas
 from ....agent.prompts import TITLE_SUMMARIZATION_INSTRUCTION
 from ....agent.temp_generation import TempGeneration
 from ....settings import use_app_setting_manager
-from ....api.sse_dispatcher.types import DispatcherEvent, TaskTitleUpdatedEvent
+from ....api.sse_dispatcher.types import TaskTitleUpdatedEvent
 
 if TYPE_CHECKING:
     from ....api.sse_dispatcher import SseDispatcher
@@ -31,15 +31,16 @@ async def summarize_title_in_background(
         _logger.exception("Failed to request title summarization for task {}", task_id)
         return
 
+    if title is None:
+        _logger.warning("Generate an empty title for task {}, skipping...", task_id)
+        return
+
     try:
-        async with db_context() as session:
+        async with db_context() as db_session:
             update_data = task_schemas.TaskUpdate(title=title,
                 messages=None, agent_id=None, last_run_at=int(time.time()), usage=None)
-            await TaskService(session).update_task(task_id, update_data)
+            await TaskService(db_session).update_task(task_id, update_data)
     except Exception:
         _logger.exception("Failed to update task {} with title '{}'", task_id, title)
 
-    await sse_dispatcher.send(
-        event=DispatcherEvent.TASK_TITLE_UPDATED,
-        data=TaskTitleUpdatedEvent(task_id=task_id, title=title),
-    )
+    await sse_dispatcher.send(TaskTitleUpdatedEvent(task_id=task_id, title=title))

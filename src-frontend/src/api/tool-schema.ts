@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type {
+  ExecutionControlFinishTask,
   ExecutionControlUpdateTodos,
   UserInteractionAskUser,
   UserInteractionShowPlan,
@@ -22,4 +23,8 @@ export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.objec
       status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
     })
   ),
+});
+
+export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object({
+  task_summary: z.string(),
 });

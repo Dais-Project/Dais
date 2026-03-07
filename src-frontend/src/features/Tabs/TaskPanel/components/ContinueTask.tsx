@@ -1,13 +1,13 @@
 import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BuiltInTools, type TaskRead, type ToolMessageMetadata } from "@/api/generated/schemas";
+import { BuiltInTools, type ToolMessageMetadata } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { isToolMessageCompleted } from "@/types/message";
+import { type UiMessage, isToolMessageCompleted,  } from "@/types/message";
 import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
 
-function shouldShow(data: TaskRead): boolean {
-  const lastMessage = data.messages.at(-1);
+function shouldShow(message: UiMessage[]): boolean {
+  const lastMessage = message.at(-1);
   if (!lastMessage || lastMessage.role === "system") {
     return false;
   }
@@ -32,13 +32,13 @@ function shouldShow(data: TaskRead): boolean {
 }
 
 export function ContinueTask() {
-  const { data } = useAgentTaskState();
+  const { messages } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setShow(shouldShow(data));
-  }, [data]);
+    setShow(shouldShow(messages));
+  }, [messages]);
 
   if (!show) {
     return null;

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 9be96a1d92cb
+Revision ID: 812b93ec54d5
 Revises: 
-Create Date: 2026-01-20 13:07:14.345500
+Create Date: 2026-03-07 20:53:22.618174
 
 """
 from typing import Sequence, Union
@@ -10,11 +10,12 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from db.models.provider import LlmModelCapability
+from db.models.task import TaskUsage
 from db.models.utils import DataClassJSON
 from db.models.utils import PydanticJSON
 
 # revision identifiers, used by Alembic.
-revision: str = '9be96a1d92cb'
+revision: str = '812b93ec54d5'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +27,7 @@ def upgrade() -> None:
     op.create_table('providers',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('type', sa.Enum('OPENAI', 'OPENAI_LIKE', 'JINA_AI', 'XAI', 'CUSTOM_OPENAI', 'TEXT_COMPLETION_OPENAI', 'COHERE', 'COHERE_CHAT', 'CLARIFAI', 'ANTHROPIC', 'ANTHROPIC_TEXT', 'BYTEZ', 'REPLICATE', 'RUNWAYML', 'HUGGINGFACE', 'TOGETHER_AI', 'OPENROUTER', 'DATAROBOT', 'VERTEX_AI', 'VERTEX_AI_BETA', 'GEMINI', 'AI21', 'BASETEN', 'AZURE', 'AZURE_TEXT', 'AZURE_AI', 'SAGEMAKER', 'SAGEMAKER_CHAT', 'BEDROCK', 'VLLM', 'NLP_CLOUD', 'PETALS', 'OOBABOOGA', 'OLLAMA', 'OLLAMA_CHAT', 'DEEPINFRA', 'PERPLEXITY', 'MISTRAL', 'MILVUS', 'GROQ', 'NVIDIA_NIM', 'CEREBRAS', 'AI21_CHAT', 'VOLCENGINE', 'CODESTRAL', 'TEXT_COMPLETION_CODESTRAL', 'DASHSCOPE', 'MOONSHOT', 'V0', 'MORPH', 'LAMBDA_AI', 'DEEPSEEK', 'SAMBANOVA', 'MARITALK', 'VOYAGE', 'CLOUDFLARE', 'XINFERENCE', 'FIREWORKS_AI', 'FRIENDLIAI', 'FEATHERLESS_AI', 'WATSONX', 'WATSONX_TEXT', 'TRITON', 'PREDIBASE', 'DATABRICKS', 'EMPOWER', 'GITHUB', 'COMPACTIFAI', 'CUSTOM', 'LITELLM_PROXY', 'HOSTED_VLLM', 'LLAMAFILE', 'LM_STUDIO', 'GALADRIEL', 'NEBIUS', 'INFINITY', 'DEEPGRAM', 'ELEVENLABS', 'NOVITA', 'AIOHTTP_OPENAI', 'LANGFUSE', 'HUMANLOOP', 'TOPAZ', 'ASSEMBLYAI', 'GITHUB_COPILOT', 'SNOWFLAKE', 'GRADIENT_AI', 'LLAMA', 'NSCALE', 'PG_VECTOR', 'HYPERBOLIC', 'RECRAFT', 'FAL_AI', 'HEROKU', 'AIML', 'COMETAPI', 'OCI', 'AUTO_ROUTER', 'VERCEL_AI_GATEWAY', 'DOTPROMPT', 'WANDB', 'OVHCLOUD', 'LEMONADE', name='llmproviders', native_enum=False), nullable=False),
+    sa.Column('type', sa.Enum('OPENAI', name='llmproviders', native_enum=False), nullable=False),
     sa.Column('base_url', sa.String(), nullable=False),
     sa.Column('api_key', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -45,7 +46,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('directory', sa.String(), nullable=False),
-    sa.Column('workspace_background', sa.String(), nullable=False),
+    sa.Column('instruction', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('llm_models',
@@ -60,6 +61,7 @@ def upgrade() -> None:
     op.create_table('tools',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
     sa.Column('internal_key', sa.String(), nullable=False),
     sa.Column('is_enabled', sa.Boolean(), nullable=False),
     sa.Column('auto_approve', sa.Boolean(), nullable=False),
@@ -72,15 +74,29 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('icon_name', sa.String(), nullable=False),
-    sa.Column('system_prompt', sa.String(), nullable=False),
+    sa.Column('instruction', sa.String(), nullable=False),
     sa.Column('model_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['model_id'], ['llm_models.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('workspace_tool_association',
+    sa.Column('workspace_id', sa.Integer(), nullable=False),
+    sa.Column('tool_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['tool_id'], ['tools.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['workspace_id'], ['workspaces.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('workspace_id', 'tool_id')
+    )
+    op.create_table('agent_tool_association',
+    sa.Column('agent_id', sa.Integer(), nullable=False),
+    sa.Column('tool_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['agent_id'], ['agents.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['tool_id'], ['tools.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('agent_id', 'tool_id')
+    )
     op.create_table('tasks',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.Enum('Agent', 'Orchestration', 'CodeExecution', name='tasktype', native_enum=False), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
+    sa.Column('usage', DataClassJSON(TaskUsage), nullable=False),
     sa.Column('messages', PydanticJSON(None), nullable=False),
     sa.Column('last_run_at', sa.Integer(), nullable=False),
     sa.Column('agent_id', sa.Integer(), nullable=True),
@@ -104,6 +120,8 @@ def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('workspace_agent_association')
     op.drop_table('tasks')
+    op.drop_table('agent_tool_association')
+    op.drop_table('workspace_tool_association')
     op.drop_table('agents')
     op.drop_table('tools')
     op.drop_table('llm_models')

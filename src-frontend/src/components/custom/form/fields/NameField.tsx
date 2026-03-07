@@ -25,7 +25,7 @@ export function NameField({
           },
         })}
         placeholder={placeholder}
-        className="w-auto min-w-0"
+        className="w-full min-w-0"
         {...controlProps}
       />
     </FieldItem>

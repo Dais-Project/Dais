@@ -18,15 +18,21 @@ export function TaskConversationProvider({className, ...props}: ComponentProps<t
 export const TaskConversationScrollToBottom = ConversationScrollButton;
 
 export function TaskConversationContent() {
-  const { data } = useAgentTaskState();
+  const { messages } = useAgentTaskState();
   return (
       <ConversationContent className="mx-auto w-full max-w-3xl gap-y-4 pb-52">
-        {data.messages.map((message) => {
+        {messages.map((message) => {
           if (message.role === "system") {
             return null;
           }
           if (message.role === "tool") {
-            return <ToolMessage key={message.id} message={message} />;
+            return (
+              <ToolMessage
+                key={message.id ?? message.call_id}
+                message={message}
+                isStreaming={message.isStreaming}
+              />
+            );
           }
           return (
             <TextMessage
@@ -36,6 +42,7 @@ export function TaskConversationContent() {
                       // for assistant message, we use reasoning_content as fallback when content is null
                       : (message.content ?? message.reasoning_content)}
               from={message.role}
+              isStreaming={message.isStreaming}
             />
           );
         })}

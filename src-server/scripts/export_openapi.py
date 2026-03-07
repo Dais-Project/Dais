@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any
-from openapi_pydantic import DataType, OpenAPI, Components, Schema
+from openapi_pydantic import DataType, OpenAPI, Components, Schema, Response
 from pydantic import TypeAdapter
 from src.main import app
 from src.schemas.extra import EXTRA_SCHEMA_TYPES
@@ -28,12 +28,14 @@ def custom_openapi() -> dict[str, Any]:
         openapi.components.schemas = {}
 
     for model in EXTRA_SCHEMA_TYPES:
-        if isinstance(model, dict) and "function" in model:
-            tool_func = model["function"]
-            openapi.components.schemas[tool_func["name"]] = Schema(
+        if (isinstance(model, dict) and
+            "name" in model and
+            "description" in model and
+            "parameters" in model):
+            openapi.components.schemas[model["name"]] = Schema(
                 type=DataType.OBJECT,
-                properties=tool_func["parameters"]["properties"],
-                required=tool_func["parameters"]["required"],
+                properties=model["parameters"]["properties"],
+                required=model["parameters"]["required"],
             )
             continue
 
@@ -45,6 +47,18 @@ def custom_openapi() -> dict[str, Any]:
         for name, definition in defs.items():
             definition = _replace_defs_refs(definition)
             openapi.components.schemas[name] = Schema(**definition)
+
+    # clear itemSchema for sse endpoints
+    # TODO: remove this after orval supports `itemSchema` in openapi
+    if openapi.paths is None:
+        openapi.paths = {}
+    for path_item in openapi.paths.values():
+        if path_item.post is not None and path_item.post.responses is not None:
+            for response in path_item.post.responses.values():
+                if isinstance(response, Response) and response.content is not None:
+                    for media_type in response.content.values():
+                        if hasattr(media_type, "itemSchema"):
+                            delattr(media_type, "itemSchema")
 
     return openapi.model_dump(by_alias=True, exclude_unset=True, exclude_none=True)
 

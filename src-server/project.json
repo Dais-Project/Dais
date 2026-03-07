@@ -64,6 +64,9 @@
         "{workspaceRoot}/src-tauri/server*"
       ]
     },
+    "type-check": {
+      "command": "uv run pyright"
+    },
     "export-openapi": {
       "command": "uv run python -m scripts.export_openapi",
       "cache": true,
@@ -88,7 +91,8 @@
       "options": {
         "commands": [
           "uv run alembic upgrade head",
-          "uv run alembic revision --autogenerate"
+          "uv run alembic revision --autogenerate",
+          "rm temporary_for_migration.db"
         ],
         "parallel": false,
         "cwd": "src-server"
