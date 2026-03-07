@@ -3,7 +3,6 @@ dist/
 __pycache__/
 wheels/
 .venv/
-*.db
 
 .coverage
 tool_schema.json
