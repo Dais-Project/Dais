@@ -55,14 +55,14 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
        <TaskConversationContent />
        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
          <div className="mx-auto w-full max-w-3xl">
-           <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
-           <div className="w-7/8 mx-auto pointer-events-auto">
-             {state === "idle" && <ContinueTask />}
-             {state === "error" && <ErrorRetry />}
-           </div>
-           <PromptInputProvider>
-             <PromptInput className="pointer-events-auto" />
-           </PromptInputProvider>
+            <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
+            <div className="w-7/8 mx-auto pointer-events-auto">
+              {state === "idle" && <ContinueTask />}
+              {state === "error" && <ErrorRetry />}
+            </div>
+            <PromptInputProvider>
+              <PromptInput className="pointer-events-auto" />
+            </PromptInputProvider>
          </div>
        </div>
     </TaskConversationProvider>

@@ -17,7 +17,7 @@ function SideBarSkeleton() {
   return (
     <div className="h-full w-[320px] shrink-0 bg-muted/40 hidden sm:block">
       <div className="border-b p-3">
-        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full rounded-none" />
       </div>
       <div className="space-y-1 p-2">
         <SideBarListSkeleton />
