@@ -8,11 +8,36 @@
     "dev": "nx run-many -t dev",
     "dev-api": "nx run frontend:watch-api",
     "build": "nx run-many -t build",
-    "test": "nx run-many -t test",
-    "release:patch": "pnpm version patch && git push origin main --follow-tags",
-    "release:minor": "pnpm version minor && git push origin main --follow-tags",
-    "release:major": "pnpm version major && git push origin main --follow-tags",
-    "merge:dev": "git checkout main && git pull origin main  && git merge dev --no-edit && git push origin main"
+    "test": "nx run-many -t test"
+  },
+  "nx": {
+    "targets": {
+      "pre-release": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "git diff --exit-code",
+            "git checkout main",
+            "git pull origin main"
+          ],
+          "parallel": false
+        }
+      },
+      "release": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "pre-release"
+        ],
+        "options": {
+          "commands": [
+            "pnpm version {args.type}",
+            "git push origin main --follow-tags"
+          ],
+          "forwardAllArgs": false,
+          "parallel": false
+        }
+      }
+    }
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
