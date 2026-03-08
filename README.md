@@ -2,7 +2,7 @@
     <br />
     <img src="./public/icon.png" alt="Dais Logo" width="160" height="160" />
     <h1>Dais</h1>
-    Your <b>D</b>esktop <b>AI</b> <b>S</b>tudio
+    Your <b>D</b>esktop <b>AI</b> <b>S</b>taffs
     <br />
     <br />
 </div>
