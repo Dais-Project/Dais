@@ -114,9 +114,5 @@ async def search_file(
 ) -> SearchFileResult:
     workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
-    import time
-    start_time = time.monotonic()
     items = _search_file(query, workspace_root, match_limit)
-    end_time = time.monotonic()
-    print(f"Search time: {end_time - start_time:.2f} seconds")
     return SearchFileResult(items=items, total=len(items))
