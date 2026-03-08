@@ -1,0 +1,4 @@
+[data-slot="scroll-area-viewport"] > div > * {
+  width: 0;
+  min-width: 100%;
+}

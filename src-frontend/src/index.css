@@ -4,6 +4,7 @@
 @import "@/styles/global.css";
 @import "@/styles/user-select.css";
 @import "@/styles/scroll-bar.css";
+@import "@/styles/shadcn-patch.css";
 @import "@/styles/ai-elements-patch.css";
 @import "@/styles/vditor.css";
 @source "../node_modules/streamdown/dist/*.js";
