@@ -41,6 +41,6 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
-    "nx": "22.5.2"
+    "nx": "22.5.4"
   }
 }
