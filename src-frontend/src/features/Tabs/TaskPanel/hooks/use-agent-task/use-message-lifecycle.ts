@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { current } from "immer";
 import { UiMessage, isToolMessage, toUiMessage, uiAssistantMessageFactory, uiToolMessageFactory, SdkToolMessage, SdkAssistantMessage, SdkMessage } from "@/types/message";
 import type { ToolCallBuffer } from "./use-tool-call-buffer";
 
@@ -119,7 +120,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
       draft.filter((message) => {
         const isDeterminedMessage = message.id !== undefined;
         if (!isDeterminedMessage) {
-          console.warn("Undetermined message found and removed: ", message);
+          console.warn("Undetermined message found and removed: ", current(message));
         }
         return isDeterminedMessage;
       })

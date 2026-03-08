@@ -35,10 +35,10 @@ export function TaskProgress({ className }: { className?: string }) {
         <Button className={cn("justify-start", className)} type="button" variant="ghost">
           {currentTodo && <span className="truncate">{currentTodo.description}</span>}
           {!currentTodo && (
-            <span className="text-success">
+            <div className="flex items-center gap-1 text-success">
               <CheckIcon />
               任务已完成
-            </span>
+            </div>
           )}
         </Button>
       </PopoverTrigger>

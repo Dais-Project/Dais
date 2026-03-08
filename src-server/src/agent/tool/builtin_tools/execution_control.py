@@ -57,7 +57,7 @@ class ExecutionControlToolset(BuiltInToolset):
         The list of subtasks helps you keep track of the current task, organize complex queries and help ensure that you don't miss any steps.
         With this list, the user can also see the current progress you are making in executing a given task.
 
-        When to use:
+        When SHOULD to use:
             - At the start of a complex task, after clarifying any ambiguities with the user, to outline all the subtasks required to complete the request
             - When the scope of the task changes (e.g. user adds or removes requirements), to update the list accordingly
             - When the status of a subtask changes, to reflect the latest progress
