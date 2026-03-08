@@ -1,5 +1,6 @@
-import os
+from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from rapidfuzz import process, fuzz
@@ -51,53 +52,41 @@ def _list_directory(workspace_root: Path, path: str) -> list[task_schemas.Contex
         if entry.name.startswith(".") or entry.is_symlink():
             continue
 
-        if entry.is_dir():
-            node_type = "folder"
-        elif entry.is_file():
-            node_type = "file"
-        else:
-            continue
+        if entry.is_dir():    node_type = "folder"
+        elif entry.is_file(): node_type = "file"
+        else: continue
 
         relative_path = entry.relative_to(workspace_root).as_posix()
+        if node_type == "folder": relative_path += "/"
         items.append(task_schemas.ContextFileItem(path=relative_path, name=entry.name, type=node_type))
 
     return sorted(items, key=lambda node: (node.type != "folder", node.name.lower()))
 
+type SearchCandidate = tuple[str, str, Literal["folder", "file"]]
+@lru_cache(maxsize=8)
+def _scan_cached(root: Path, scan_limit: int) -> list[SearchCandidate]:
+    candidates = list[SearchCandidate]()
+    for entry in scandir_recursive_bfs(root, scan_limit):
+        rel_path = Path(entry.path).relative_to(root).as_posix()
+        candidates.append((entry.name, rel_path, "folder" if entry.is_dir() else "file"))
+    return candidates
+
 def _search_file(query: str, workspace_root: Path, match_limit: int) -> list[task_schemas.ContextFileItem]:
-    def weighted_path_scorer(query, full_path, *, processor=None, score_cutoff=None):
-        filename: str = os.path.basename(full_path)
-        dirname: str = os.path.dirname(full_path)
-
-        if processor:
-            query = processor(query)
-            filename = processor(filename)
-            dirname = processor(dirname)
-
-        filename_score = fuzz.WRatio(query, filename)
-        dirname_score = fuzz.WRatio(query, dirname) if dirname else 0.0
-        final_score = filename_score + dirname_score * 0.3
-        if score_cutoff is not None and final_score < score_cutoff:
-            return 0
-        return final_score
-
     MAX_SCAN_LIMIT = 10_000
-    candidates: list[str] = [entry.path
-                             for entry in scandir_recursive_bfs(workspace_root, MAX_SCAN_LIMIT)
-                             if entry.is_file()]
-    matches = process.extract(
-        query.strip(),
-        candidates,
-        scorer=weighted_path_scorer,
-        processor=str.lower,
-        score_cutoff=60,
-        limit=match_limit
-    )
-    results: list[task_schemas.ContextFileItem] = []
-    for _, _, index in matches:
-        path = candidates[index]
-        relative_path = Path(path).relative_to(workspace_root).as_posix()
-        results.append(task_schemas.ContextFileItem(path=relative_path, name=Path(path).name, type="file"))
-    return results
+    SCORE_CUTOFF = 60
+    candidates = _scan_cached(workspace_root, MAX_SCAN_LIMIT)
+
+    results = list[tuple[float, task_schemas.ContextFileItem]]()
+    for basename, rel_path, node_type in candidates:
+        name_score = fuzz.WRatio(query, basename)
+        path_score = fuzz.WRatio(query, rel_path)
+        score = max(name_score, path_score)
+        if score >= SCORE_CUTOFF:
+            if node_type == "folder": rel_path += "/"
+            results.append((score, task_schemas.ContextFileItem(path=rel_path, name=basename, type=node_type)))
+
+    results.sort(key=lambda r: r[0], reverse=True)
+    return [item for _, item in results[:match_limit]]
 
 class ListDirectoryResult(BaseModel):
     items: list[task_schemas.ContextFileItem]
@@ -122,8 +111,12 @@ async def search_file(
     workspace_id: int = Query(...),
     query: str = Query(...),
     match_limit: int = Query(default=20, ge=1, le=100),
-):
+) -> SearchFileResult:
     workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
+    import time
+    start_time = time.monotonic()
     items = _search_file(query, workspace_root, match_limit)
+    end_time = time.monotonic()
+    print(f"Search time: {end_time - start_time:.2f} seconds")
     return SearchFileResult(items=items, total=len(items))

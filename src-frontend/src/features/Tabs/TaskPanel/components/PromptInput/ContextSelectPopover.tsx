@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "ahooks";
-import { AtSignIcon, FileIcon } from "lucide-react";
+import { AtSignIcon, FileIcon, FolderIcon } from "lucide-react";
 import { useState } from "react";
 
 type OnSelectHandler = (path: string) => void;
@@ -18,16 +18,11 @@ function FileTreeSuspense({ onSelect }: { onSelect?: OnSelectHandler }) {
     return null;
   }
   const { data: rootItems } = useListDirectorySuspense({ workspace_id: currentWorkspace.id });
-  const handleSelect = (path: string, type: "file" | "folder") => {
-    if (type === "file") {
-      onSelect?.(path);
-    }
-  };
   return (
     <LazyFileTree
       className="border-none p-0"
       rootNodes={rootItems.items}
-      onSelect={handleSelect}
+      onSelect={onSelect}
       loadChildren={async (path) => {
         const result = await listDirectory({ workspace_id: currentWorkspace.id, path: path });
         return result.items;
@@ -46,9 +41,8 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
   if (currentWorkspace === null) {
     return null;
   }
-  const debouncedQuery = useDebounce(query, { wait: 200 });
   const { data, isLoading } = useSearchFile(
-    { workspace_id: currentWorkspace.id, query: debouncedQuery },
+    { workspace_id: currentWorkspace.id, query },
     { query: { placeholderData: keepPreviousData } },
   );
   if (isLoading && data === undefined) {
@@ -60,10 +54,17 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
   return (
     <>
       {data.items.map((item) => (
-        <CommandItem key={item.path} value={item.path} onSelect={onSelect}>
-          <FileIcon />
-          <span className="font-medium text-sm">{item.name}</span>
-          <span className="text-muted-foreground text-xs truncate">{item.path}</span>
+        <CommandItem
+          className="grid grid-cols-[auto_1fr] grid-rows-2 gap-x-1 gap-y-0 items-center"
+          key={item.path}
+          value={item.path}
+          onSelect={onSelect}
+        >
+          <div className="mt-0.5">
+            {item.type === "file" ? <FileIcon /> : <FolderIcon />}
+          </div>
+          <div className="font-medium text-sm">{item.name}</div>
+          <div className="col-start-2 text-muted-foreground text-xs truncate">{item.path}</div>
         </CommandItem>
       ))}
     </>
@@ -72,6 +73,7 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
 
 function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, { wait: 150 });
   const isSearching = query.length > 0;
 
   return (
@@ -83,7 +85,7 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
       />
       <CommandList className="p-1">
         {isSearching ? (
-          <SearchResults query={query} onSelect={onSelect} />
+          <SearchResults query={debouncedQuery} onSelect={onSelect} />
         ) : (
           <AsyncBoundary
             skeleton={<div className="p-3 text-muted-foreground text-sm">Loading...</div>}
@@ -95,6 +97,16 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
       </CommandList>
     </Command>
   )
+}
+
+export function contextFileConcat(current: string, path: string): string {
+  if (current.length === 0) {
+    return path;
+  }
+  if (current.endsWith("\n") || current.endsWith(" ")) {
+    return current + path;
+  }
+  return current + " " + path;
 }
 
 export function ContextSelectPopover({ onSelect }: { onSelect?: OnSelectHandler }) {

@@ -176,7 +176,7 @@ export type LazyFileTreeProps = Omit<FileTreeProps, "children" | "onSelect"> & {
    */
   loadChildren: LoadChildren;
   /** Optional callback when a file or folder is selected */
-  onSelect?: (path: string, type: "file" | "folder") => void;
+  onSelect?: (path: string) => void;
 };
 
 /**
@@ -205,7 +205,7 @@ export const LazyFileTree = ({
   ...fileTreeProps
 }: LazyFileTreeProps) => {
   return (
-    <FileTree {...fileTreeProps} onSelect={onSelect as FileTreeProps["onSelect"]}>
+    <FileTree {...fileTreeProps} onSelect={onSelect}>
       {rootNodes.map((node) =>
         node.type === "folder" ? (
           <LazyFileTreeFolder
