@@ -48,9 +48,9 @@ export function ActionableItem({ children }: ActionableItemProps) {
 
   return (
     <ContextMenu>
-      <ActionableItemContext.Provider value={{ onTriggerMenu }}>
+      <ActionableItemContext value={{ onTriggerMenu }}>
         {children}
-      </ActionableItemContext.Provider>
+      </ActionableItemContext>
     </ContextMenu>
   );
 }
