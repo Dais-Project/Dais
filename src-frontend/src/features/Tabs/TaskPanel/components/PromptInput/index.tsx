@@ -20,7 +20,7 @@ import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
-import { ContextSelectPopover } from "./ContextSelectPopover";
+import { contextFileConcat, ContextSelectPopover } from "./ContextSelectPopover";
 import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
 
 export { PromptInputProvider } from "@/components/ai-elements/prompt-input";
@@ -70,11 +70,7 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
 
   const handleSelectPath = (path: string) => {
     const current = textInput.value;
-    if (current.length === 0) {
-      textInput.setInput(path);
-      return;
-    }
-    textInput.setInput(`${current} ${path} `);
+    textInput.setInput(contextFileConcat(current, path));
   };
 
   return (
@@ -116,11 +112,7 @@ export function PromptInput({ className }: { className?: string }) {
 
   const handleSelectPath = (path: string) => {
     const current = textInput.value;
-    if (current.length === 0) {
-      textInput.setInput(path);
-      return;
-    }
-    textInput.setInput(`${current} ${path} `);
+    textInput.setInput(contextFileConcat(current, path));
   };
 
   return (
