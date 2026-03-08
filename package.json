@@ -12,6 +12,18 @@
   },
   "nx": {
     "targets": {
+      "install": {
+        "executor": "nx:noop"
+      },
+      "dev": {
+        "executor": "nx:noop"
+      },
+      "build": {
+        "executor": "nx:noop"
+      },
+      "test": {
+        "executor": "nx:noop"
+      },
       "pre-release": {
         "executor": "nx:run-commands",
         "options": {
