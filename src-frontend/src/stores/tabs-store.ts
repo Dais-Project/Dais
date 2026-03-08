@@ -24,7 +24,7 @@ type TabsStore = TabsState & TabsActions;
 export const useTabsStore = create<TabsStore>()(
   persist(
     immer((set, get) => {
-      SseDispatcher.on("task_title_updated", ({ task_id, title }) => {
+      SseDispatcher.on("TASK_TITLE_UPDATED", ({ task_id, title }) => {
         set((state) => {
           const tab = state.tabs.find((t) => t.type === "task" && "id" in t.metadata && t.metadata.id === task_id);
           if (tab) {

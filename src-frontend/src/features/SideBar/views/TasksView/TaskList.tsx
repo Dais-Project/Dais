@@ -3,7 +3,7 @@ import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { toast } from "sonner";
-import type { PageTaskBrief, TaskBrief } from "@/api/generated/schemas";
+import type { PageTaskBrief, TaskBrief, TaskTitleUpdatedEvent } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
   getGetTasksInfiniteQueryKey,
@@ -110,7 +110,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const deleteTaskMutation = useDeleteTask();
 
   useEffect(() => 
-    SseDispatcher.subscribe("task_title_updated", ({ task_id, title}) => {
+    SseDispatcher.subscribe("TASK_TITLE_UPDATED", ({ task_id, title }: TaskTitleUpdatedEvent) => {
       const queryKey = getGetTasksInfiniteQueryKey({ workspace_id: workspaceId });
       queryClient.setQueryData<InfiniteData<PageTaskBrief>>(
         queryKey, produce((draft) => {

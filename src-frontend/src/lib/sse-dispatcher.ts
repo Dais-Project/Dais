@@ -2,48 +2,70 @@ import type { DispatcherEventData } from "@/api/generated/schemas";
 import { createSseStream } from "./sse";
 
 type DispatcherEvent = DispatcherEventData["event_id"];
-type DispatcherEventHandler = (data: DispatcherEventData) => unknown;
+
+type DispatcherEventMap = {
+  [TEvent in DispatcherEvent]: Extract<DispatcherEventData, { event_id: TEvent }>;
+};
+
+type DispatcherEventHandler<TEvent extends DispatcherEvent> = (data: DispatcherEventMap[TEvent]) => void;
 
 class _SseDispatcher {
   private abortController: AbortController | null = null;
-  private readonly listeners: Map<DispatcherEvent, Set<DispatcherEventHandler>> = new Map();
+  private readonly listeners: Map<DispatcherEvent, Set<unknown>> = new Map();
 
-  on(eventType: DispatcherEvent, callback: DispatcherEventHandler) {
-    const listeners = this.listeners.get(eventType) ?? new Set();
-    listeners.add(callback);
-    this.listeners.set(eventType, listeners);
+  private getEventListeners<TEvent extends DispatcherEvent>(eventType: TEvent): Set<DispatcherEventHandler<TEvent>> {
+    const listeners = this.listeners.get(eventType) as Set<DispatcherEventHandler<TEvent>> | undefined;
+    if (listeners) {
+      return listeners;
+    }
+
+    const nextListeners = new Set<DispatcherEventHandler<TEvent>>();
+    this.listeners.set(eventType, nextListeners as Set<unknown>);
+    return nextListeners;
   }
 
-  off(eventType: DispatcherEvent, callback: DispatcherEventHandler) {
-    const listeners = this.listeners.get(eventType);
+  on<TEvent extends DispatcherEvent>(eventType: TEvent, callback: DispatcherEventHandler<TEvent>) {
+    const listeners = this.getEventListeners(eventType);
+    listeners.add(callback);
+  }
+
+  off<TEvent extends DispatcherEvent>(eventType: TEvent, callback: DispatcherEventHandler<TEvent>) {
+    const listeners = this.listeners.get(eventType) as Set<DispatcherEventHandler<TEvent>> | undefined;
     if (!listeners) {
       return;
     }
+
     listeners.delete(callback);
     if (listeners.size === 0) {
       this.listeners.delete(eventType);
     }
   }
 
-  subscribe(eventType: DispatcherEvent, callback: DispatcherEventHandler): () => void {
+  subscribe<TEvent extends DispatcherEvent>(eventType: TEvent, callback: DispatcherEventHandler<TEvent>): () => void {
     this.on(eventType, callback);
     return () => this.off(eventType, callback);
+  }
+
+  private emit<TEvent extends DispatcherEvent>(eventType: TEvent, data: DispatcherEventMap[TEvent]) {
+    const listeners = this.listeners.get(eventType) as Set<DispatcherEventHandler<TEvent>> | undefined;
+    if (!listeners) {
+      return;
+    }
+
+    for (const callback of listeners) {
+      callback(data);
+    }
   }
 
   connect(url: URL | string, onConnect?: (response: Response) => void) {
     this.abortController = createSseStream<DispatcherEventData>(url, {
       onConnect,
-      onMessage: ({ data } ) => {
+      onMessage: ({ data }) => {
         if (data === null) {
           return;
         }
-        const listeners = this.listeners.get(data.event_id);
-        if (!listeners) {
-          return;
-        }
-        for (const callback of listeners) {
-          callback(data);
-        }
+
+        this.emit(data.event_id, data);
       },
     });
   }
