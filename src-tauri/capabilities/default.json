@@ -10,6 +10,7 @@
     "opener:default",
     "dialog:allow-open",
     "dialog:default",
+    "notification:default",
     "window-state:default"
   ]
 }
