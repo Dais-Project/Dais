@@ -73,6 +73,12 @@ pub fn run(args: Args) {
           child: Mutex::new(None::<CommandChild>),
         });
       }
+
+      #[cfg(desktop)]
+      let _ = app
+        .handle()
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}));
+
       if let Some(window) = app.get_webview_window("main") {
         let _ = window.restore_state(StateFlags::all());
         let _ = window.show();
