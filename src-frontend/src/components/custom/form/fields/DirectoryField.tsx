@@ -5,6 +5,7 @@ import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { FieldProps } from ".";
+import { cn } from "@/lib/utils";
 
 type DirectoryFieldProps = FieldProps<
   typeof Input,
@@ -21,12 +22,10 @@ export function DirectoryField({
   chooseButtonText = "选择",
   chooseDirectoryErrorMessage = "选择目录失败",
   fieldProps = { label: "目录路径" },
-  controlProps = {
-    placeholder: "请输入目录路径",
-    className: "flex-1",
-  },
+  controlProps = { placeholder: "请输入目录路径" },
 }: DirectoryFieldProps) {
   const { register, getFieldState, setValue } = useFormContext();
+  const { className: controlClassName, ...restControlProps } = controlProps;
 
   async function chooseDirectory() {
     try {
@@ -51,7 +50,8 @@ export function DirectoryField({
           {...register(fieldName, {
             required: required ? "目录路径为必填项" : false,
           })}
-          {...controlProps}
+          className={cn("flex-1", controlClassName)}
+          {...restControlProps}
         />
         <Button type="button" variant="outline" onClick={chooseDirectory}>
           {chooseButtonText}
