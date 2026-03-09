@@ -36,7 +36,8 @@
       "no_results": "No results found.",
       "search_placeholder": "Add files, folders, docs...",
       "trigger_tooltip": "Add files, folders, docs..."
-    }
+    },
+    "input_placeholder": "Enter task instructions here..."
   },
   "tab": {
     "default_title": "New task"

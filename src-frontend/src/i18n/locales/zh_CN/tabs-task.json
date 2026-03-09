@@ -36,7 +36,8 @@
       "no_results": "未找到结果。",
       "search_placeholder": "添加文件、文件夹、文档...",
       "trigger_tooltip": "添加文件、文件夹、文档..."
-    }
+    },
+    "input_placeholder": "在此处输入任务指令..."
   },
   "tab": {
     "default_title": "新任务"

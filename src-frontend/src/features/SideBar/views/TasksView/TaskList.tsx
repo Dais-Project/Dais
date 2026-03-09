@@ -2,7 +2,9 @@ import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { produce } from "immer";
 import { toast } from "sonner";
 import type { PageTaskBrief, TaskBrief, TaskTitleUpdatedEvent } from "@/api/generated/schemas";
 import {
@@ -28,10 +30,10 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-opt
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import { useEffect } from "react";
 import SseDispatcher from "@/lib/sse-dispatcher";
-import { produce } from "immer";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { DATEFNS_LOCALE_MAP } from "@/i18n/localeMap.datefns";
+import { useSettingsStore } from "@/stores/settings-store";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -64,6 +66,7 @@ type TaskItemProps = {
 
 function TaskItem({ task, onDelete }: TaskItemProps) {
   const { t } = useTranslation("sidebar");
+  const { language } = useSettingsStore((state) => state.current);
 
   const handleClick = () => {
     openTaskTab(task);
@@ -86,6 +89,7 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
           title={task.title}
           description={formatDistanceToNow(new Date(task.last_run_at * 1000), {
             addSuffix: true,
+            locale: DATEFNS_LOCALE_MAP[language],
           })}
         />
       </ActionableItemTrigger>

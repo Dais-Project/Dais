@@ -67,6 +67,7 @@ type PromptInputDraftProps = {
 
 export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
+  const { t } = useTranslation("tabs-task");
   const { textInput } = usePromptInputController();
   const ableToSubmit = agentId !== null;
 
@@ -90,7 +91,7 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
         <AttachmentsDisplay />
       </PromptInputHeader>
       <PromptInputBody>
-        <PromptInputTextarea />
+        <PromptInputTextarea placeholder={t("prompt.input_placeholder")} />
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools className="gap-2">
@@ -107,6 +108,7 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
 }
 
 export function PromptInput({ className }: { className?: string }) {
+  const { t } = useTranslation("tabs-task");
   const { agentId, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
   const { textInput } = usePromptInputController();
@@ -135,7 +137,7 @@ export function PromptInput({ className }: { className?: string }) {
         <AttachmentsDisplay />
       </PromptInputHeader>
       <PromptInputBody>
-        <PromptInputTextarea />
+        <PromptInputTextarea placeholder={t("prompt.input_placeholder")} />
       </PromptInputBody>
       <PromptInputFooter className="gap-16">
         <PromptInputTools className="min-w-0 gap-2">

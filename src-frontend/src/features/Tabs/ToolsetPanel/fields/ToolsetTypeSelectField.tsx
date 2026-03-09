@@ -26,7 +26,7 @@ export function ToolsetTypeSelectField() {
       placeholder={t("form.type.placeholder")}
       selections={selections}
       fieldProps={{ label: t("form.type.label") }}
-      controlProps={{ disabled: isBuiltIn, value: type }}
+      controlProps={{ disabled: isBuiltIn }}
     />
   );
 }

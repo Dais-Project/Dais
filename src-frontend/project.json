@@ -56,6 +56,12 @@
     "i18n": {
       "command": "pnpm exec i18next-cli -c config/i18next.config.ts"
     },
+    "i18n-status": {
+      "command": "pnpm exec i18next-cli -c config/i18next.config.ts status"
+    },
+    "i18n-sync": {
+      "command": "pnpm exec i18next-cli -c config/i18next.config.ts extract --sync-all"
+    },
     "generate-api": {
       "command": "pnpm orval",
       "inputs": [
