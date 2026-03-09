@@ -78,6 +78,7 @@ export function WorkspaceEditForm({
       <RichTextField
         fieldName="instruction"
         fieldProps={{ label: t("form.instruction.label"), className: "mt-2" }}
+        controlProps={{ className: "mt-2" }}
         minLength={0}
       />
 

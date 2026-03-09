@@ -45,7 +45,7 @@ export function DirectoryField({
   return (
     <FieldItem
       {...fieldProps}
-      label={t("form.directory.label")}
+      label={t("fields.directory.label")}
       fieldState={getFieldState(fieldName)}
     >
       <div className="flex gap-2 w-full">

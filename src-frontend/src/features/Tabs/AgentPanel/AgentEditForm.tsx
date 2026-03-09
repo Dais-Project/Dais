@@ -56,6 +56,7 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
       <RichTextField
         fieldName="instruction"
         fieldProps={{ label: t("form.instruction.label"), className: "mt-2" }}
+        controlProps={{ className: "mt-2" }}
       />
 
       <ToolMultiSelectField />

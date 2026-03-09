@@ -54,12 +54,10 @@ export function AgentPanel({
   return (
     <TabPanelFrame
       errorRender={({ resetErrorBoundary }) => (
-        <div className="flex h-full items-center justify-center p-4">
-          <FailedToLoad
-            refetch={resetErrorBoundary}
-            description={t("panel.error.load_description")}
-          />
-        </div>
+        <FailedToLoad
+          refetch={resetErrorBoundary}
+          description={t("panel.error.load_description")}
+        />
       )}
     >
       <AgentEditPanel tabId={tabId} agentId={metadata.id} />
