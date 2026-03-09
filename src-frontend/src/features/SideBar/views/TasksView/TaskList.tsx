@@ -2,6 +2,7 @@ import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageTaskBrief, TaskBrief, TaskTitleUpdatedEvent } from "@/api/generated/schemas";
 import {
@@ -62,14 +63,16 @@ type TaskItemProps = {
 };
 
 function TaskItem({ task, onDelete }: TaskItemProps) {
+  const { t } = useTranslation("sidebar");
+
   const handleClick = () => {
     openTaskTab(task);
   };
 
   const handleRename = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toast.info("重命名功能", {
-      description: "重命名功能待实现",
+    toast.info(t("tasks.toast.rename_feature_title"), {
+      description: t("tasks.toast.rename_feature_description"),
     });
   };
 
@@ -90,11 +93,11 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleRename}>
           <PencilIcon className="mr-2 size-4" />
-          <span>编辑任务名称</span>
+          <span>{t("tasks.menu.rename")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem className="text-destructive" onClick={() => onDelete(task)}>
           <TrashIcon className="mr-2 size-4" />
-          <span>删除任务</span>
+          <span>{t("tasks.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -106,6 +109,7 @@ type TaskListProps = {
 };
 
 export function TaskList({ workspaceId }: TaskListProps) {
+  const { t } = useTranslation("sidebar");
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
 
@@ -138,13 +142,13 @@ export function TaskList({ workspaceId }: TaskListProps) {
         queryKey: getGetTaskQueryKey(task.id),
       });
       removeTaskTab(task.id);
-      toast.success("删除成功", {
-        description: "已成功删除任务。",
+      toast.success(t("tasks.toast.delete_success_title"), {
+        description: t("tasks.toast.delete_success_description"),
       });
     },
     onError(error: Error) {
-      toast.error("删除失败", {
-        description: error.message || "删除任务时发生错误，请稍后重试。",
+      toast.error(t("tasks.toast.delete_error_title"), {
+        description: error.message || t("tasks.toast.delete_error_description"),
       });
     },
   });
@@ -162,8 +166,8 @@ export function TaskList({ workspaceId }: TaskListProps) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>暂无任务</EmptyTitle>
-          <EmptyDescription>您还没有创建任何任务。</EmptyDescription>
+          <EmptyTitle>{t("tasks.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("tasks.empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -180,7 +184,9 @@ export function TaskList({ workspaceId }: TaskListProps) {
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={`确定要删除任务 "${asyncConfirm.pendingData?.title}" 吗？此操作无法撤销。`}
+        description={t("tasks.dialog.delete_description_with_name", {
+          name: asyncConfirm.pendingData?.title ?? "",
+        })}
         onConfirm={asyncConfirm.confirm}
         onCancel={asyncConfirm.cancel}
         isDeleting={asyncConfirm.isPending}

@@ -1,5 +1,7 @@
 import { PlusIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { i18n } from "@/i18n";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
@@ -11,20 +13,29 @@ function openWorkspaceCreateTab() {
   addTab({
     id: tabIdFactory(),
     type: "workspace",
-    title: "创建工作区",
+    title: i18n.t("workspaces.tab.create_title", { ns: "sidebar" }),
     icon: "folder-plus",
     metadata: { mode: "create" },
   });
 }
 
 export function WorkspacesView() {
+  const { t } = useTranslation("sidebar");
+
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader title="工作区">
-        <SideBarHeaderAction Icon={PlusIcon} tooltip="Create new workspace" onClick={openWorkspaceCreateTab} />
+      <SideBarHeader title={t("workspaces.header.title")}>
+        <SideBarHeaderAction
+          Icon={PlusIcon}
+          tooltip={t("workspaces.header.create_tooltip")}
+          onClick={openWorkspaceCreateTab}
+        />
       </SideBarHeader>
       <div className="flex-1">
-        <AsyncBoundary skeleton={<SideBarListSkeleton />} errorDescription="无法加载工作区列表，请稍后重试。">
+        <AsyncBoundary
+          skeleton={<SideBarListSkeleton />}
+          errorDescription={t("workspaces.list.error_load")}
+        >
           <WorkspaceList />
         </AsyncBoundary>
       </div>

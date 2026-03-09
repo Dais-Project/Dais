@@ -1,5 +1,6 @@
 import { PencilIcon, TrashIcon } from "lucide-react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { McpToolsetStatus, ToolsetBrief } from "@/api/generated/schemas";
 import {
@@ -24,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
+import { i18n } from "@/i18n";
 import { tabIdFactory } from "@/lib/tab";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -46,18 +48,18 @@ function getStatusColor(status: McpToolsetStatus): string {
 }
 
 // TODO: replace this function with I18N
-function getStatusText(status: McpToolsetStatus): string {
+function getStatusText(status: McpToolsetStatus, t: (key: string) => string): string {
   switch (status) {
     case "connected":
-      return "已连接";
+      return t("toolsets.status.connected");
     case "connecting":
-      return "连接中";
+      return t("toolsets.status.connecting");
     case "disconnected":
-      return "已断开";
+      return t("toolsets.status.disconnected");
     case "error":
-      return "错误";
+      return t("toolsets.status.error");
     default:
-      return "未知状态";
+      return t("toolsets.status.unknown");
   }
 }
 
@@ -65,7 +67,7 @@ function createToolsetEditTab(toolsetId: number, toolsetName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "toolset",
-    title: `编辑：${toolsetName}`,
+    title: i18n.t("toolsets.tab.edit_title_with_name", { ns: "sidebar", name: toolsetName }),
     icon: "wrench",
     metadata: { mode: "edit", id: toolsetId },
   };
@@ -107,6 +109,7 @@ type ToolsetItemProps = {
 };
 
 function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
+  const { t } = useTranslation("sidebar");
   const tabs = useTabsStore((state) => state.tabs);
   const addTab = useTabsStore((state) => state.add);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -143,7 +146,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{getStatusText(toolset.status ?? "connected")}</p>
+                      <p>{getStatusText(toolset.status ?? "connected", t)}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -155,14 +158,14 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon className="mr-2 size-4" />
-          <span>编辑 Toolset</span>
+          <span>{t("toolsets.menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem
           className="text-destructive hover:text-destructive!"
           onClick={() => onDelete(toolset)}
         >
           <TrashIcon className="mr-2 size-4 text-destructive" />
-          <span>删除 Toolset</span>
+          <span>{t("toolsets.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -170,6 +173,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 }
 
 export function ToolsetList() {
+  const { t } = useTranslation("sidebar");
   const removeTabsPattern = useTabsStore((state) => state.removePattern);
 
   const deleteToolsetMutation = useDeleteToolset();
@@ -185,13 +189,13 @@ export function ToolsetList() {
           tab.metadata.id === toolset.id
       );
 
-      toast.success("删除成功", {
-        description: "已成功删除 Toolset。",
+      toast.success(t("toolsets.toast.delete_success_title"), {
+        description: t("toolsets.toast.delete_success_description"),
       });
     },
     onError(error: Error) {
-      toast.error("删除失败", {
-        description: error.message || "删除 Toolset 时发生错误，请稍后重试。",
+      toast.error(t("toolsets.toast.delete_error_title"), {
+        description: error.message || t("toolsets.toast.delete_error_description"),
       });
     },
   });
@@ -216,7 +220,9 @@ export function ToolsetList() {
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={`确定要删除 Toolset "${asyncConfirm.pendingData?.name}" 吗？此操作无法撤销。`}
+        description={t("toolsets.dialog.delete_description_with_name", {
+          name: asyncConfirm.pendingData?.name ?? "",
+        })}
         onConfirm={asyncConfirm.confirm}
         onCancel={asyncConfirm.cancel}
         isDeleting={asyncConfirm.isPending}

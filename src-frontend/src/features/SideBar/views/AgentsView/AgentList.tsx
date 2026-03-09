@@ -1,6 +1,7 @@
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateAgentQueries, useDeleteAgent, useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
@@ -18,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import type { IconName } from "@/features/Tabs/AgentPanel/IconSelectDialog";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
+import { i18n } from "@/i18n";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata, Tab } from "@/types/tab";
@@ -26,7 +28,7 @@ function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "agent",
-    title: `编辑：${agentName}`,
+    title: i18n.t("agents.tab.edit_title_with_name", { ns: "sidebar", name: agentName }),
     icon: "bot",
     metadata: { mode: "edit", id: agentId },
   };
@@ -62,6 +64,7 @@ type AgentItemProps = {
 };
 
 function AgentItem({ agent, onDelete }: AgentItemProps) {
+  const { t } = useTranslation("sidebar");
   const tabs = useTabsStore((state) => state.tabs);
   const addTab = useTabsStore((state) => state.add);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -82,16 +85,16 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
         <ActionableItemIcon seed={agent.name}>
           <DynamicIcon name={agent.icon_name as IconName} />
         </ActionableItemIcon>
-        <ActionableItemInfo title={agent.name} description={agent.model?.name ?? "无模型"} />
+        <ActionableItemInfo title={agent.name} description={agent.model?.name ?? t("agents.list.no_model")} />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon className="mr-2 size-4" />
-          <span>编辑 Agent</span>
+          <span>{t("agents.menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem className="text-destructive hover:text-destructive!" onClick={() => onDelete(agent)}>
           <TrashIcon className="mr-2 size-4 text-destructive" />
-          <span>删除 Agent</span>
+          <span>{t("agents.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -99,6 +102,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 }
 
 export function AgentList() {
+  const { t } = useTranslation("sidebar");
   const removePattern = useTabsStore((state) => state.removePattern);
 
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
@@ -108,13 +112,13 @@ export function AgentList() {
 
       removePattern((tab) => tab.type === "agent" && tab.metadata.mode === "edit" && tab.metadata.id === agent.id);
 
-      toast.success("删除成功", {
-        description: "已成功删除 Agent。",
+      toast.success(t("agents.toast.delete_success_title"), {
+        description: t("agents.toast.delete_success_description"),
       });
     },
     onError(error: Error) {
-      toast.error("删除失败", {
-        description: error.message || "删除 Agent 时发生错误，请稍后重试。",
+      toast.error(t("agents.toast.delete_error_title"), {
+        description: error.message || t("agents.toast.delete_error_description"),
       });
     },
   });
@@ -127,13 +131,13 @@ export function AgentList() {
     mutation: {
       async onSuccess(_, variables) {
         await invalidateAgentQueries(variables.agentId);
-        toast.success("删除成功", {
-          description: "已成功删除 Agent。",
+        toast.success(t("agents.toast.delete_success_title"), {
+          description: t("agents.toast.delete_success_description"),
         });
       },
       onError(error: Error) {
-        toast.error("删除失败", {
-          description: error.message || "删除 Agent 时发生错误，请稍后重试。",
+        toast.error(t("agents.toast.delete_error_title"), {
+          description: error.message || t("agents.toast.delete_error_description"),
         });
       },
     },
@@ -150,7 +154,9 @@ export function AgentList() {
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={`确定要删除 Agent "${asyncConfirm.pendingData?.name}" 吗？此操作无法撤销。`}
+        description={t("agents.dialog.delete_description_with_name", {
+          name: asyncConfirm.pendingData?.name ?? "",
+        })}
         onConfirm={asyncConfirm.confirm}
         onCancel={asyncConfirm.cancel}
         isDeleting={asyncConfirm.isPending}

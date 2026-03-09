@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -8,25 +9,27 @@ import { HelperModelSettings } from "./HelperModelSettings";
 import { ProviderSettings } from "./ProviderSettings";
 
 export function SettingsView() {
+  const { t } = useTranslation("sidebar");
+
   const settingItems = [
     {
       id: "general",
-      title: "通用",
+      title: t("settings.tabs.general"),
       content: <GeneralSettings />,
     },
     {
       id: "providers",
-      title: "模型服务",
+      title: t("settings.tabs.providers"),
       content: <ProviderSettings />,
     },
     {
       id: "helper-model",
-      title: "助手模型",
+      title: t("settings.tabs.helper_model"),
       content: <HelperModelSettings />,
     },
     {
       id: "dev",
-      title: "开发工具",
+      title: t("settings.tabs.dev"),
       content: <DevSettings />,
     },
   ];
@@ -38,7 +41,7 @@ export function SettingsView() {
   );
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader title="设置" />
+      <SideBarHeader title={t("settings.header.title")} />
       <Tabs defaultValue={settingItems[0].id} className="flex min-h-0 w-full flex-1 flex-row gap-0">
         <TabsList className="flex h-full flex-col items-stretch gap-2 rounded-none border-r bg-transparent p-0">
           {settingItems.map((item) => (

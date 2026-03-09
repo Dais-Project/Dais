@@ -1,7 +1,13 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import type { Language } from "@/types/common";
-import { DEFAULT_NAMESPACE, FALLBACK_LANGUAGE, resources, SUPPORTED_LANGUAGES } from "./resources";
+import {
+  resources,
+  DEFAULT_NAMESPACE,
+  FALLBACK_LANGUAGE,
+  SIDEBAR_NAMESPACE,
+  SUPPORTED_LANGUAGES,
+} from "./resources";
 
 export function resolveLanguage(language: string): Language {
   if (SUPPORTED_LANGUAGES.includes(language as Language)) {
@@ -15,7 +21,7 @@ i18n.use(initReactI18next).init({
   lng: FALLBACK_LANGUAGE,
   fallbackLng: FALLBACK_LANGUAGE,
   defaultNS: DEFAULT_NAMESPACE,
-  ns: [DEFAULT_NAMESPACE],
+  ns: [DEFAULT_NAMESPACE, SIDEBAR_NAMESPACE],
   initImmediate: false,
   interpolation: {
     escapeValue: false,

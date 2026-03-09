@@ -1,4 +1,5 @@
 import { PlusIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { DEFAULT_TAB_TITLE } from "@/features/Tabs/TaskPanel";
@@ -22,6 +23,7 @@ function openTaskCreateTab() {
 }
 
 export function TasksView() {
+  const { t } = useTranslation("sidebar");
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   const Content = () => {
@@ -29,15 +31,15 @@ export function TasksView() {
       return (
         <Empty>
           <EmptyContent>
-            <EmptyTitle>未选择工作区</EmptyTitle>
-            <EmptyDescription>请先选择一个工作区以查看任务。</EmptyDescription>
+            <EmptyTitle>{t("tasks.empty.no_workspace.title")}</EmptyTitle>
+            <EmptyDescription>{t("tasks.empty.no_workspace.description")}</EmptyDescription>
           </EmptyContent>
         </Empty>
       );
     }
 
     return (
-      <AsyncBoundary skeleton={<SideBarListSkeleton />} errorDescription="无法加载任务列表，请稍后重试。">
+      <AsyncBoundary skeleton={<SideBarListSkeleton />} errorDescription={t("tasks.list.error_load")}>
         <TaskList workspaceId={currentWorkspace.id} />
       </AsyncBoundary>
     );
@@ -45,8 +47,12 @@ export function TasksView() {
 
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader title="Tasks">
-        <SideBarHeaderAction Icon={PlusIcon} tooltip="Create new task" onClick={openTaskCreateTab} />
+      <SideBarHeader title={t("tasks.header.title")}>
+        <SideBarHeaderAction
+          Icon={PlusIcon}
+          tooltip={t("tasks.header.create_tooltip")}
+          onClick={openTaskCreateTab}
+        />
       </SideBarHeader>
       <div className="h-full min-h-0 flex-1">
         <Content />

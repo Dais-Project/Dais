@@ -1,6 +1,8 @@
 import { PlusIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Button } from "@/components/ui/button";
+import { i18n } from "@/i18n";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
@@ -11,13 +13,14 @@ function createProviderCreateTab(): Tab {
   return {
     id: tabIdFactory(),
     type: "provider",
-    title: "添加服务提供商",
+    title: i18n.t("settings.providers.tab.create_title", { ns: "sidebar" }),
     icon: "plug-zap",
     metadata: { mode: "create" },
   };
 }
 
 export function ProviderSettings() {
+  const { t } = useTranslation("sidebar");
   const addTab = useTabsStore((state) => state.add);
 
   const handleAddProvider = () => {
@@ -29,7 +32,7 @@ export function ProviderSettings() {
     <div className="flex flex-col">
       <AsyncBoundary
         skeleton={<ProviderListSkeleton />}
-        errorDescription="无法加载服务提供商列表，请稍后重试。"
+        errorDescription={t("settings.providers.list.error_load")}
       >
         <ProviderList />
       </AsyncBoundary>
@@ -41,7 +44,7 @@ export function ProviderSettings() {
           onClick={handleAddProvider}
         >
           <PlusIcon className="h-4 w-4" />
-          添加
+          {t("settings.providers.actions.add")}
         </Button>
       </div>
     </div>
