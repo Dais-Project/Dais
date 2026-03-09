@@ -65,7 +65,7 @@ export function FieldItem({
       </div>
       <div className={cn(
         "flex items-center justify-end",
-        { "w-full max-w-sm": orientation === "horizontal" },
+        { "w-full max-w-xs": orientation === "horizontal" },
         contentClassName
       )}>
         {children}

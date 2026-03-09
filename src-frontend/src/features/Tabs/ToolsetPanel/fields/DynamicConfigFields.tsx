@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
 import { UrlField } from "@/components/custom/form/fields";
 import type { ToolsetCreateFormValues } from "../form-types";
@@ -6,6 +7,7 @@ import { CommandField } from "./CommandField";
 import { HttpHeadersField } from "./HttpHeadersField";
 
 export function DynamicConfigFields() {
+  const { t } = useTranslation("tabs-toolset");
   const { control } = useFormContext<ToolsetCreateFormValues>();
   const type = useWatch({ control, name: "type" });
 
@@ -23,8 +25,8 @@ export function DynamicConfigFields() {
       <>
         <UrlField
           fieldName="params.url"
-          fieldProps={{ label: "URL", align: "start" }}
-          controlProps={{ placeholder: "https://api.example.com" }}
+          fieldProps={{ label: t("form.url.label"), align: "start" }}
+          controlProps={{ placeholder: t("form.url.placeholder") }}
         />
         <HttpHeadersField />
       </>

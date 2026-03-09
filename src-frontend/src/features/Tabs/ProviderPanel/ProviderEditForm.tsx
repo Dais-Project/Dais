@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ProviderRead } from "@/api/generated/schemas";
 import { useUpdateProvider, invalidateProviderQueries } from "@/api/provider";
@@ -18,21 +19,21 @@ export function ProviderEditForm({
   provider,
   onConfirm,
 }: ProviderEditFormProps) {
+  const { t } = useTranslation("tabs-provider");
   const formValues: ProviderEditFormValues = provider;
 
   const updateMutation = useUpdateProvider({
     mutation: {
-      async onSuccess(updatedProvider) {
+      async onSuccess(updatedProvider: { id: number; name: string }) {
         await invalidateProviderQueries(updatedProvider.id);
-        toast.success("更新成功", {
-          description: `已成功更新 ${updatedProvider.name} 服务提供商。`,
+        toast.success(t("toast.update.success_title"), {
+          description: t("toast.update.success_description_with_name", { name: updatedProvider.name }),
         });
         onConfirm?.();
       },
       onError(error: Error) {
-        toast.error("更新失败", {
-          description:
-            error.message || "更新服务提供商时发生错误，请稍后重试。",
+        toast.error(t("toast.update.error_title"), {
+          description: error.message || t("toast.update.error_description"),
         });
       },
     },
@@ -45,27 +46,27 @@ export function ProviderEditForm({
         updateMutation.mutate({ providerId: provider.id, data });
       }}
     >
-      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
+      <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <ProviderTypeSelectField />
 
       <UrlField
         fieldName="base_url"
-        fieldProps={{ label: "Base URL" }}
-        controlProps={{ placeholder: "请输入服务地址" }}
+        fieldProps={{ label: t("form.base_url.label") }}
+        controlProps={{ placeholder: t("form.base_url.placeholder") }}
       />
 
       <PasswordField
         fieldName="api_key"
-        fieldProps={{ label: "API Key" }}
-        controlProps={{ placeholder: "请输入 API Key" }}
+        fieldProps={{ label: t("form.api_key.label") }}
+        controlProps={{ placeholder: t("form.api_key.placeholder") }}
       />
 
       <ModelsField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "保存中..." : "保存"}
+          {updateMutation.isPending ? t("form.submit.saving") : t("form.submit.save")}
         </Button>
       </FormShellFooter>
     </FormShell>

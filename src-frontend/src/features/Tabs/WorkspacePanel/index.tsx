@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useGetWorkspaceSuspense } from "@/api/workspace";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -33,6 +34,8 @@ export function WorkspacePanel({
   tabId,
   metadata,
 }: TabPanelProps<WorkspaceTabMetadata>) {
+  const { t } = useTranslation("tabs-workspace");
+
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -48,7 +51,7 @@ export function WorkspacePanel({
         <div className="flex h-full items-center justify-center p-4">
           <FailedToLoad
             refetch={resetErrorBoundary}
-            description="无法加载工作区信息，请稍后重试。"
+            description={t("panel.error.load_description")}
           />
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
 import { useGetToolsetsSuspense } from "@/api/toolset";
 import { ToolBreadcrumb } from "@/components/ai-elements/tool";
@@ -57,6 +58,7 @@ function ToolSelectedList({ selectedToolIds }: { selectedToolIds: number[] }) {
 }
 
 export function ToolMultiSelectField() {
+  const { t } = useTranslation("tabs-agent");
   const { control } =
     useFormContext<AgentCreateFormValues | AgentEditFormValues>();
   const {
@@ -71,11 +73,11 @@ export function ToolMultiSelectField() {
 
   return (
     <div>
-      <FieldItem label="可用的工具" fieldState={fieldState}>
+      <FieldItem label={t("form.usable_tools.label")} fieldState={fieldState}>
         <ToolMultiSelectDialog value={selectedToolIds} onChange={onChange} />
       </FieldItem>
 
-      <AsyncBoundary errorDescription="无法加载工具列表，请稍后重试。">
+      <AsyncBoundary errorDescription={t("form.usable_tools.load_error")}>
         <ToolSelectedList selectedToolIds={selectedToolIds} />
       </AsyncBoundary>
     </div>

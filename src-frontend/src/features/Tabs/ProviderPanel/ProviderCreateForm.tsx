@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ProviderCreate } from "@/api/generated/schemas";
 import { useCreateProvider, invalidateProviderQueries } from "@/api/provider";
@@ -15,19 +16,20 @@ type ProviderCreateFormProps = {
 };
 
 export function ProviderCreateForm({ onConfirm }: ProviderCreateFormProps) {
+  const { t } = useTranslation("tabs-provider");
+
   const createMutation = useCreateProvider({
     mutation: {
-      async onSuccess(newProvider) {
+      async onSuccess(newProvider: { name: string }) {
         await invalidateProviderQueries();
-        toast.success("创建成功", {
-          description: `已成功创建 ${newProvider.name} 服务提供商。`,
+        toast.success(t("toast.create.success_title"), {
+          description: t("toast.create.success_description_with_name", { name: newProvider.name }),
         });
         onConfirm?.();
       },
       onError(error: Error) {
-        toast.error("创建失败", {
-          description:
-            error.message || "创建服务提供商时发生错误，请稍后重试。",
+        toast.error(t("toast.create.error_title"), {
+          description: error.message || t("toast.create.error_description"),
         });
       },
     },
@@ -47,27 +49,27 @@ export function ProviderCreateForm({ onConfirm }: ProviderCreateFormProps) {
       values={DEFAULT_PROVIDER}
       onSubmit={handleSubmit}
     >
-      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
+      <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <ProviderTypeSelectField />
 
       <UrlField
         fieldName="base_url"
-        fieldProps={{ label: "Base URL" }}
-        controlProps={{ placeholder: "请输入服务地址" }}
+        fieldProps={{ label: t("form.base_url.label") }}
+        controlProps={{ placeholder: t("form.base_url.placeholder") }}
       />
 
       <PasswordField
         fieldName="api_key"
-        fieldProps={{ label: "API Key" }}
-        controlProps={{ placeholder: "请输入 API Key" }}
+        fieldProps={{ label: t("form.api_key.label") }}
+        controlProps={{ placeholder: t("form.api_key.placeholder") }}
       />
 
       <ModelsField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "创建中..." : "创建"}
+          {createMutation.isPending ? t("form.submit.creating") : t("form.submit.create")}
         </Button>
       </FormShellFooter>
     </FormShell>

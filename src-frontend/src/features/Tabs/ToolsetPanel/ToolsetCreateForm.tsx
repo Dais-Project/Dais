@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateToolsetQueries, useCreateMcpToolset } from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -15,18 +16,20 @@ type ToolsetCreateProps = {
 };
 
 export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
+  const { t } = useTranslation("tabs-toolset");
+
   const createMutation = useCreateMcpToolset({
     mutation: {
-      async onSuccess(newToolset) {
+      async onSuccess(newToolset: { name: string }) {
         await invalidateToolsetQueries();
-        toast.success("创建成功", {
-          description: `已成功创建 ${newToolset.name} Toolset。`,
+        toast.success(t("toast.create.success_title"), {
+          description: t("toast.create.success_description_with_name", { name: newToolset.name }),
         });
         onConfirm?.();
       },
       onError(error: Error) {
-        toast.error("创建失败", {
-          description: error.message || "创建 Toolset 时发生错误，请稍后重试。",
+        toast.error(t("toast.create.error_title"), {
+          description: error.message || t("toast.create.error_description"),
         });
       },
     },
@@ -39,7 +42,7 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
 
   return (
     <FormShell<ToolsetCreateFormValues> onSubmit={handleSubmit}>
-      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
+      <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <ToolsetTypeSelectField />
 
@@ -47,7 +50,7 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "创建中..." : "创建"}
+          {createMutation.isPending ? t("form.submit.creating") : t("form.submit.create")}
         </Button>
       </FormShellFooter>
     </FormShell>

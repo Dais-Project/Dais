@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useGetAgentSuspense } from "@/api/agent";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -40,6 +41,7 @@ export function AgentPanel({
   tabId,
   metadata,
 }: TabPanelProps<AgentTabMetadata>) {
+  const { t } = useTranslation("tabs-agent");
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -55,7 +57,7 @@ export function AgentPanel({
         <div className="flex h-full items-center justify-center p-4">
           <FailedToLoad
             refetch={resetErrorBoundary}
-            description="无法加载 Agent 信息，请稍后重试。"
+            description={t("panel.error.load_description")}
           />
         </div>
       )}

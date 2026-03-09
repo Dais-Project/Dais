@@ -3,9 +3,9 @@ import { initReactI18next } from "react-i18next";
 import type { Language } from "@/types/common";
 import {
   resources,
+  namespaces,
   DEFAULT_NAMESPACE,
   FALLBACK_LANGUAGE,
-  SIDEBAR_NAMESPACE,
   SUPPORTED_LANGUAGES,
 } from "./resources";
 
@@ -21,7 +21,7 @@ i18n.use(initReactI18next).init({
   lng: FALLBACK_LANGUAGE,
   fallbackLng: FALLBACK_LANGUAGE,
   defaultNS: DEFAULT_NAMESPACE,
-  ns: [DEFAULT_NAMESPACE, SIDEBAR_NAMESPACE],
+  ns: namespaces,
   initImmediate: false,
   interpolation: {
     escapeValue: false,
