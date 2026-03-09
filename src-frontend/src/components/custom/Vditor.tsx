@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import VditorType from "vditor";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
+import { VDITOR_LOCALE_MAP } from "@/i18n/locale-maps/vditor";
 
 const CUSTOM_VDITOR_TOOLBAR = [
   { name: "headings", tipPosition: "se" },
@@ -46,7 +47,7 @@ export function Vditor({
   const vditorRef = useRef<VditorType | null>(null);
   const changeHandler = useMemoizedFn((value: string) => onChange?.(value));
 
-  const { current: { theme: themeMode } } = useSettingsStore();
+  const { current: { theme: themeMode, language } } = useSettingsStore();
   const { theme, setThemeMode } = useTheme();
 
   const setVditorTheme = () => {
@@ -65,6 +66,7 @@ export function Vditor({
       mode: "ir",
       width: "100%",
       minHeight: 160,
+      lang: VDITOR_LOCALE_MAP[language],
       cache: { enable: false },
       value: initialValue,
       toolbar: CUSTOM_VDITOR_TOOLBAR,

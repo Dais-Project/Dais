@@ -32,7 +32,7 @@ import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import SseDispatcher from "@/lib/sse-dispatcher";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
-import { DATEFNS_LOCALE_MAP } from "@/i18n/localeMap.datefns";
+import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
 
 function openTaskTab(task: TaskBrief) {
