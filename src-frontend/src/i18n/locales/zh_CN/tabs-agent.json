@@ -1,0 +1,65 @@
+{
+  "form": {
+    "icon": {
+      "label": "图标"
+    },
+    "instruction": {
+      "label": "Agent 指令"
+    },
+    "model": {
+      "label": "关联模型"
+    },
+    "name": {
+      "label": "名称",
+      "placeholder": "请输入 Agent 名称"
+    },
+    "submit": {
+      "create": "创建",
+      "creating": "创建中...",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "usable_tools": {
+      "label": "可用的工具",
+      "load_error": "无法加载工具列表，请稍后重试。"
+    }
+  },
+  "icon_dialog": {
+    "description": "搜索图标...",
+    "group": {
+      "ai_core": "AI 与核心功能",
+      "data": "数据与分析",
+      "development": "编程与技术",
+      "lifestyle": "生活与角色扮演",
+      "media": "媒体与设计",
+      "productivity": "办公与生产力",
+      "science": "科学与数学",
+      "security": "安全与管理",
+      "writing": "写作与内容创作"
+    },
+    "search_placeholder": "搜索图标...",
+    "title": "选择图标",
+    "trigger": {
+      "select": "选择图标"
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "无法加载 Agent 信息，请稍后重试。"
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "创建 Agent 时发生错误，请稍后重试。",
+      "error_title": "创建失败",
+      "success_description_with_name": "已成功创建 Agent {{name}}。",
+      "success_title": "创建成功"
+    },
+    "update": {
+      "error_description": "更新 Agent 时发生错误，请稍后重试。",
+      "error_title": "更新失败",
+      "success_description_with_name": "已成功更新 Agent {{name}}。",
+      "success_title": "更新成功"
+    }
+  }
+}

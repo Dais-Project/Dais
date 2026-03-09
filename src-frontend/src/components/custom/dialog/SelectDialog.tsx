@@ -1,5 +1,5 @@
-// components/ui/select-dialog/select-dialog.tsx
 import { CheckIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   createContext,
   useCallback,
@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { i18n } from "@/i18n";
+import { DIALOG_NAMESPACE } from "@/i18n/resources";
 
 type Selection = string | number;
 
@@ -226,7 +228,7 @@ export function SelectDialogContent({
 // ============================================================
 
 export function SelectDialogSearch({
-  placeholder = "Search...",
+  placeholder = i18n.t("select.search_placeholder", { ns: DIALOG_NAMESPACE }),
 }: {
   placeholder?: string;
 }) {
@@ -258,11 +260,12 @@ export function SelectDialogList({
 // ============================================================
 
 export function SelectDialogEmpty({
-  children = "No results found.",
+  children,
 }: {
   children?: React.ReactNode;
 }) {
-  return <CommandEmpty>{children}</CommandEmpty>;
+  const { t } = useTranslation("dialog");
+  return <CommandEmpty>{children ?? t("select.empty")}</CommandEmpty>;
 }
 
 // ============================================================
@@ -355,18 +358,21 @@ type SelectDialogFooterProps<V extends Selection> = {
 };
 
 export function SelectDialogFooter<V extends Selection>({
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   onConfirm,
   onCancel,
   children,
 }: SelectDialogFooterProps<V>) {
+  const { t } = useTranslation("dialog");
   const { mode, selectedKeys, setOpen } = useSelectDialog<V>();
 
   if (mode === "single") {
-    console.warn("SelectDialogFooter should only be used in multi-select mode");
     return null;
   }
+
+  const resolvedConfirmText = confirmText ?? t("select.footer.confirm");
+  const resolvedCancelText = cancelText ?? t("select.footer.cancel");
 
   const handleConfirm = () => {
     onConfirm?.(Array.from(selectedKeys));
@@ -385,10 +391,10 @@ export function SelectDialogFooter<V extends Selection>({
       </div>
       <div className="space-x-2">
         <Button variant="outline" size="sm" onClick={handleCancel}>
-          {cancelText}
+          {resolvedCancelText}
         </Button>
         <Button size="sm" onClick={handleConfirm}>
-          {confirmText}
+          {resolvedConfirmText}
         </Button>
       </div>
     </DialogFooter>

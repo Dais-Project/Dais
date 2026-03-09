@@ -1,5 +1,6 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Streamdown } from "streamdown";
 import type { UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
@@ -12,6 +13,7 @@ import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { ToolMessageProps } from ".";
 
 export function AskUser({ message }: ToolMessageProps) {
+  const { t } = useTranslation("tabs-task");
   const { answerTool } = useAgentTaskAction();
   const [disabled, setDisabled] = useState(false);
   const toolArguments = useToolArgument<UserInteractionAskUser>(message, AskUserToolSchema);
@@ -36,7 +38,7 @@ export function AskUser({ message }: ToolMessageProps) {
 
   return (
     <CustomTool
-      title="Dais 有个问题："
+      title={t("tool.ask_user.title")}
       icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
       defaultOpen
     >

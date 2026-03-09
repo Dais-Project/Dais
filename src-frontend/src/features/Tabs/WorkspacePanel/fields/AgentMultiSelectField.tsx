@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
 import { useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
@@ -96,6 +97,7 @@ function AgentSelectedList({ selectedAgentIds }: { selectedAgentIds: number[] })
 }
 
 export function AgentMultiSelectField() {
+  const { t } = useTranslation("tabs-workspace");
   const { control } = useFormContext<WorkspaceCreateFormValues | WorkspaceEditFormValues>();
   const {
     field: { value, onChange },
@@ -107,29 +109,33 @@ export function AgentMultiSelectField() {
 
   return (
     <div>
-      <FieldItem label="可用的 Agent" fieldState={fieldState}>
+      <FieldItem label={t("form.usable_agents.label")} fieldState={fieldState}>
         <SelectDialog<number> mode="multi" value={value}>
           <SelectDialogTrigger>
             <Button type="button" variant="outline">
-              选择
+              {t("form.usable_agents.select")}
             </Button>
           </SelectDialogTrigger>
           <SelectDialogContent>
-            <SelectDialogSearch placeholder="搜索 Agent..." />
+            <SelectDialogSearch placeholder={t("form.usable_agents.search_placeholder")} />
             <SelectDialogList>
-              <SelectDialogEmpty>未找到匹配的 Agent</SelectDialogEmpty>
+              <SelectDialogEmpty>{t("form.usable_agents.empty")}</SelectDialogEmpty>
               <SelectDialogGroup>
-                <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription="无法加载 Agent 列表，请稍后重试。">
+                <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription={t("form.usable_agents.load_error")}>
                   <AgentQueryList />
                 </AsyncBoundary>
               </SelectDialogGroup>
             </SelectDialogList>
-            <SelectDialogFooter onConfirm={onChange} confirmText="确定" cancelText="取消" />
+            <SelectDialogFooter
+              onConfirm={onChange}
+              confirmText={t("form.usable_agents.confirm")}
+              cancelText={t("form.usable_agents.cancel")}
+            />
           </SelectDialogContent>
         </SelectDialog>
       </FieldItem>
 
-      <AsyncBoundary errorDescription="无法加载 Agent 列表，请稍后重试。">
+      <AsyncBoundary errorDescription={t("form.usable_agents.load_error")}>
         <AgentSelectedList selectedAgentIds={value} />
       </AsyncBoundary>
     </div>

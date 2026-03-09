@@ -1,4 +1,6 @@
 import { produce } from "immer";
+import { i18n } from "@/i18n";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -186,7 +188,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const onError = useCallback(
     (eventData: ErrorEvent) => {
-      toast.error("任务失败", { description: eventData.error });
+      toast.error(i18n.t("toast.task_failed.title", { ns: TABS_TASK_NAMESPACE }), {
+        description: eventData.error,
+      });
       setState("error");
     },
     [setState]

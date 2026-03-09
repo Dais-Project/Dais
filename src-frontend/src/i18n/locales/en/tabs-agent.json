@@ -1,0 +1,65 @@
+{
+  "form": {
+    "icon": {
+      "label": "Icon"
+    },
+    "instruction": {
+      "label": "Agent instruction"
+    },
+    "model": {
+      "label": "Model"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter agent name"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "usable_tools": {
+      "label": "Available tools",
+      "load_error": "Failed to load tool list. Please try again later."
+    }
+  },
+  "icon_dialog": {
+    "description": "Search icons...",
+    "group": {
+      "ai_core": "AI and core",
+      "data": "Data and analytics",
+      "development": "Development and tech",
+      "lifestyle": "Lifestyle and roleplay",
+      "media": "Media and design",
+      "productivity": "Productivity",
+      "science": "Science and math",
+      "security": "Security and management",
+      "writing": "Writing and content"
+    },
+    "search_placeholder": "Search icons...",
+    "title": "Select icon",
+    "trigger": {
+      "select": "Select icon"
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load agent details. Please try again later."
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "Failed to create agent. Please try again later.",
+      "error_title": "Create failed",
+      "success_description_with_name": "Agent {{name}} created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "error_description": "Failed to update agent. Please try again later.",
+      "error_title": "Update failed",
+      "success_description_with_name": "Agent {{name}} updated successfully.",
+      "success_title": "Update success"
+    }
+  }
+}

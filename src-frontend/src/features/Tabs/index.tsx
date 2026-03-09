@@ -19,6 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -140,6 +141,7 @@ function TabPanelRenderer({ tab }: { tab: Tab }) {
 }
 
 export function Tabs() {
+  const { t } = useTranslation("tabs");
   const tabs = useTabsStore((state) => state.tabs);
   const activeTabId = useTabsStore((state) => state.activeTabId);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -233,7 +235,7 @@ export function Tabs() {
             if (tabs.length === 0) {
               return (
                 <div className="flex h-full items-center justify-center bg-card">
-                  <p>No tabs open</p>
+                  <p>{t("tabs.empty.no_tabs_open")}</p>
                 </div>
               );
             }

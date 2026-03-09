@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   type Control,
   Controller,
@@ -29,6 +30,7 @@ type ToolItemProps = {
 };
 
 function ToolItem({ tool, index, control }: ToolItemProps) {
+  const { t } = useTranslation("tabs-toolset");
   const textRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
@@ -59,7 +61,7 @@ function ToolItem({ tool, index, control }: ToolItemProps) {
           name={`tools.${index}.is_enabled`}
           control={control}
           render={({ field: { value, onChange }, fieldState }) => (
-            <FieldItem label="启用" fieldState={fieldState}>
+            <FieldItem label={t("form.tool_item.enabled")} fieldState={fieldState}>
               <Checkbox checked={value} onCheckedChange={onChange} />
             </FieldItem>
           )}
@@ -68,7 +70,7 @@ function ToolItem({ tool, index, control }: ToolItemProps) {
           name={`tools.${index}.auto_approve`}
           control={control}
           render={({ field: { value, onChange }, fieldState }) => (
-            <FieldItem label="自动批准" fieldState={fieldState}>
+            <FieldItem label={t("form.tool_item.auto_approve")} fieldState={fieldState}>
               <Checkbox checked={value} onCheckedChange={onChange} />
             </FieldItem>
           )}
@@ -79,6 +81,7 @@ function ToolItem({ tool, index, control }: ToolItemProps) {
 }
 
 export function ToolList() {
+  const { t } = useTranslation("tabs-toolset");
   const { control } = useFormContext<ToolsetEditFormValues>();
   const { fields } = useFieldArray({
     control,
@@ -87,7 +90,7 @@ export function ToolList() {
 
   return (
     <FieldSet className="mt-3 gap-3">
-      <FieldLabel>工具列表</FieldLabel>
+      <FieldLabel>{t("form.tools.label")}</FieldLabel>
       <FieldGroup className="gap-y-2">
         {fields.map((field, index) => (
           <ToolItem

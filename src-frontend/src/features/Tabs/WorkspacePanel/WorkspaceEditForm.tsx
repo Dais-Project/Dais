@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceRead } from "@/api/generated/schemas";
 import { invalidateWorkspaceQueries, useUpdateWorkspace } from "@/api/workspace";
@@ -26,6 +27,7 @@ export function WorkspaceEditForm({
   workspace,
   onConfirm,
 }: WorkspaceEditFormProps) {
+  const { t } = useTranslation("tabs-workspace");
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const syncCurrentWorkspace = useWorkspaceStore((state) => state.syncCurrent);
 
@@ -36,10 +38,10 @@ export function WorkspaceEditForm({
 
   const updateMutation = useUpdateWorkspace({
     mutation: {
-      async onSuccess(updatedWorkspace) {
+      async onSuccess(updatedWorkspace: { id: number; name: string }) {
         await invalidateWorkspaceQueries(updatedWorkspace.id);
-        toast.success("更新成功", {
-          description: `已成功更新工作区 "${updatedWorkspace.name}"。`,
+        toast.success(t("toast.update.success_title"), {
+          description: t("toast.update.success_description_with_name", { name: updatedWorkspace.name }),
         });
         onConfirm?.();
 
@@ -48,8 +50,8 @@ export function WorkspaceEditForm({
         }
       },
       onError(error: Error) {
-        toast.error("更新失败", {
-          description: error.message || "更新工作区时发生错误，请稍后重试。",
+        toast.error(t("toast.update.error_title"), {
+          description: error.message || t("toast.update.error_description"),
         });
       },
     },
@@ -67,18 +69,16 @@ export function WorkspaceEditForm({
     >
       <NameField
         fieldName="name"
-        fieldProps={{ label: "名称" }}
-        controlProps={{ placeholder: "请输入工作区名称" }}
+        fieldProps={{ label: t("form.name.label") }}
+        controlProps={{ placeholder: t("form.name.placeholder") }}
       />
 
-      <DirectoryField
-        fieldName="directory"
-        fieldProps={{ label: "目录路径" }}
-      />
+      <DirectoryField fieldName="directory" />
 
       <RichTextField
         fieldName="instruction"
-        fieldProps={{ label: "工作区概况", className: "mt-2" }}
+        fieldProps={{ label: t("form.instruction.label"), className: "mt-2" }}
+        controlProps={{ className: "mt-2" }}
         minLength={0}
       />
 
@@ -88,7 +88,7 @@ export function WorkspaceEditForm({
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "保存中..." : "保存"}
+          {updateMutation.isPending ? t("form.submit.saving") : t("form.submit.save")}
         </Button>
       </FormShellFooter>
     </FormShell>

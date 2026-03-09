@@ -1,0 +1,85 @@
+{
+  "form": {
+    "api_key": {
+      "label": "API Key",
+      "placeholder": "请输入 API Key"
+    },
+    "base_url": {
+      "label": "Base URL",
+      "placeholder": "请输入服务地址"
+    },
+    "models": {
+      "fetch_button": "获取模型",
+      "label": "模型列表"
+    },
+    "name": {
+      "label": "名称"
+    },
+    "submit": {
+      "create": "创建",
+      "creating": "创建中...",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "type": {
+      "label": "类型",
+      "placeholder": "请选择类型"
+    }
+  },
+  "models": {
+    "edit_dialog": {
+      "cancel": "取消",
+      "capability": {
+        "label": "模型能力",
+        "reasoning": "推理能力",
+        "tool_use": "工具调用",
+        "vision": "视觉能力"
+      },
+      "context_size": {
+        "label": "上下文大小",
+        "min": "上下文大小必须大于 0",
+        "placeholder": "请输入上下文大小",
+        "required": "请输入上下文大小"
+      },
+      "name": {
+        "empty": "模型名称不能为空",
+        "label": "模型名称",
+        "placeholder": "请输入模型名称",
+        "required": "请输入模型名称"
+      },
+      "save": "保存",
+      "saving": "保存中...",
+      "title": "编辑模型信息"
+    },
+    "item": {
+      "delete_aria_label": "删除模型",
+      "edit_aria_label": "编辑模型"
+    },
+    "select": {
+      "cancel": "取消",
+      "confirm": "确认",
+      "empty": "未找到模型",
+      "error_load": "无法加载模型列表，请稍后重试。",
+      "search_placeholder": "搜索模型..."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "无法加载服务提供商信息，请稍后重试。"
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "创建服务提供商时发生错误，请稍后重试。",
+      "error_title": "创建失败",
+      "success_description_with_name": "已成功创建服务提供商 {{name}}。",
+      "success_title": "创建成功"
+    },
+    "update": {
+      "error_description": "更新服务提供商时发生错误，请稍后重试。",
+      "error_title": "更新失败",
+      "success_description_with_name": "已成功更新服务提供商 {{name}}。",
+      "success_title": "更新成功"
+    }
+  }
+}

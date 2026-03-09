@@ -1,5 +1,6 @@
 import { ChevronsUpDownIcon } from "lucide-react";
 import { use, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { FallbackProps } from "react-error-boundary";
 import {
   SelectDialog,
@@ -22,16 +23,18 @@ class NoCurrentWorkspaceError extends Error {
 }
 
 export function AgentSelectErrorFallback({ error }: FallbackProps) {
+  const { t } = useTranslation("tabs-task");
+
   if (error instanceof NoCurrentWorkspaceError) {
     return (
       <Button variant="outline" className="justify-between" disabled>
-        当前未打开工作区
+        {t("prompt.agent.no_workspace")}
       </Button>
     );
   }
   return (
     <Button variant="outline" className="justify-between" disabled>
-      工作区加载失败
+      {t("prompt.agent.workspace_load_failed")}
     </Button>
   );
 }
@@ -45,6 +48,7 @@ export function AgentSelectDialog({
   agentId,
   onChange,
 }: AgentSelectDialogProps) {
+  const { t } = useTranslation("tabs-task");
   const currentWorkspacePromise = useWorkspaceStore(
     (state) => state.currentPromise
   );
@@ -64,14 +68,14 @@ export function AgentSelectDialog({
     <SelectDialog<number> value={agentId ?? undefined} onValueChange={onChange}>
       <SelectDialogTrigger>
         <Button variant="outline" className="justify-between">
-          {targetAgent?.name ?? "选择 Agent"}
+          {targetAgent?.name ?? t("prompt.agent.select")}
           <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </SelectDialogTrigger>
       <SelectDialogContent className="p-0">
-        <SelectDialogSearch placeholder="Search agent..." />
+        <SelectDialogSearch placeholder={t("prompt.agent.search_placeholder")} />
         <SelectDialogList>
-          <SelectDialogEmpty>No agent found.</SelectDialogEmpty>
+          <SelectDialogEmpty>{t("prompt.agent.empty")}</SelectDialogEmpty>
           <SelectDialogGroup>
             {agents.map((agent) => (
               <SelectDialogItem

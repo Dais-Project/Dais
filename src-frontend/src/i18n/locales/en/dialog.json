@@ -1,0 +1,42 @@
+{
+  "confirm_delete": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "deleting": "Deleting...",
+    "title": "Confirm deletion"
+  },
+  "resource": {
+    "model": {
+      "empty": {
+        "no_model": "No models found",
+        "no_provider": "No providers yet. Add an LLM provider first to use models."
+      },
+      "load_error": "Failed to load model list. Please try again later.",
+      "search_placeholder": "Search models...",
+      "trigger": {
+        "deleted": "Model has been deleted",
+        "loading": "Loading...",
+        "select": "Select model"
+      }
+    },
+    "tool": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "empty": "No matching tools found",
+      "load_error": "Failed to load tool list. Please try again later.",
+      "search_placeholder": "Search tools...",
+      "select_all": "Select all",
+      "trigger": {
+        "select": "Select"
+      }
+    }
+  },
+  "select": {
+    "empty": "No results found.",
+    "footer": {
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "search_placeholder": "Search..."
+  }
+}

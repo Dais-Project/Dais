@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import type { LlmModelCreate } from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
@@ -30,6 +31,7 @@ export function ModelEditDialog({
   onConfirm,
   onCancel,
 }: ModelEditDialogProps) {
+  const { t } = useTranslation("tabs-provider");
   const { reset, handleSubmit, register, getFieldState, formState } =
     useForm<LlmModelCreate>({ defaultValues: DEFAULT_LLM_MODEL });
 
@@ -53,7 +55,7 @@ export function ModelEditDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{"编辑模型信息"}</DialogTitle>
+          <DialogTitle>{t("models.edit_dialog.title")}</DialogTitle>
         </DialogHeader>
 
         <form
@@ -64,56 +66,56 @@ export function ModelEditDialog({
         >
           <FieldGroup className="gap-y-2">
             <FieldItem
-              label="模型名称"
+              label={t("models.edit_dialog.name.label")}
               fieldState={getFieldState("name", formState)}
             >
               <Input
                 {...register("name", {
-                  required: "请输入模型名称",
+                  required: t("models.edit_dialog.name.required"),
                   minLength: {
                     value: 1,
-                    message: "模型名称不能为空",
+                    message: t("models.edit_dialog.name.empty"),
                   },
                 })}
-                placeholder="请输入模型名称"
+                placeholder={t("models.edit_dialog.name.placeholder")}
               />
             </FieldItem>
 
             <FieldItem
-              label="上下文大小"
+              label={t("models.edit_dialog.context_size.label")}
               fieldState={getFieldState("context_size", formState)}
             >
               <Input
                 {...register("context_size", {
-                  required: "请输入上下文大小",
+                  required: t("models.edit_dialog.context_size.required"),
                   min: {
                     value: 1,
-                    message: "上下文大小必须大于 0",
+                    message: t("models.edit_dialog.context_size.min"),
                   },
                 })}
                 type="number"
-                placeholder="请输入上下文大小"
+                placeholder={t("models.edit_dialog.context_size.placeholder")}
               />
             </FieldItem>
 
             <Field className="mt-4 flex flex-row justify-between">
-              <FieldLabel className="self-start">模型能力</FieldLabel>
+              <FieldLabel className="self-start">{t("models.edit_dialog.capability.label")}</FieldLabel>
               <div className="flex w-max flex-col items-end gap-3 pr-2">
                 {[
                   {
                     name: "capability.vision" as const,
                     id: "vision",
-                    label: "视觉能力",
+                    label: t("models.edit_dialog.capability.vision"),
                   },
                   {
                     name: "capability.reasoning" as const,
                     id: "reasoning",
-                    label: "推理能力",
+                    label: t("models.edit_dialog.capability.reasoning"),
                   },
                   {
                     name: "capability.tool_use" as const,
                     id: "tool_use",
-                    label: "工具调用",
+                    label: t("models.edit_dialog.capability.tool_use"),
                   },
                 ].map((capability) => (
                   <Field
@@ -136,10 +138,10 @@ export function ModelEditDialog({
 
           <DialogFooter className="mt-8">
             <DialogClose asChild>
-              <Button variant="outline">取消</Button>
+              <Button variant="outline">{t("models.edit_dialog.cancel")}</Button>
             </DialogClose>
             <Button type="submit" disabled={formState.isSubmitting}>
-              {formState.isSubmitting ? "保存中..." : "保存"}
+              {formState.isSubmitting ? t("models.edit_dialog.saving") : t("models.edit_dialog.save")}
             </Button>
           </DialogFooter>
         </form>

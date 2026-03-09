@@ -1,0 +1,49 @@
+{
+  "form": {
+    "instruction": {
+      "label": "Workspace overview"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter workspace name"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "usable_agents": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "empty": "No matching agents found",
+      "label": "Available agents",
+      "load_error": "Failed to load agent list. Please try again later.",
+      "search_placeholder": "Search agents...",
+      "select": "Select"
+    },
+    "usable_tools": {
+      "label": "Available tools",
+      "load_error": "Failed to load tool list. Please try again later."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load workspace details. Please try again later."
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "Failed to create workspace. Please try again later.",
+      "error_title": "Create failed",
+      "success_description_with_name": "Workspace \"{{name}}\" created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "error_description": "Failed to update workspace. Please try again later.",
+      "error_title": "Update failed",
+      "success_description_with_name": "Workspace \"{{name}}\" updated successfully.",
+      "success_title": "Update success"
+    }
+  }
+}

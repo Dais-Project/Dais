@@ -40,7 +40,11 @@ export function TabPanelFrame({ children, errorRender }: TabPanelFrameProps) {
   return (
     <AsyncBoundary
       skeleton={<TabPanelFrameSkeleton />}
-      errorRender={errorRender}
+      errorRender={(props) => (
+        <div className="flex h-full items-center justify-center p-4">
+          {errorRender(props)}
+        </div>
+      )}
     >
       <ScrollArea className="h-full px-8">{children}</ScrollArea>
     </AsyncBoundary>

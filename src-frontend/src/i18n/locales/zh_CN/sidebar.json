@@ -1,0 +1,188 @@
+{
+  "agents": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除 Agent \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "header": {
+      "create_tooltip": "创建 Agent",
+      "title": "Agents"
+    },
+    "list": {
+      "error_load": "无法加载 Agent 列表，请稍后重试。",
+      "no_model": "无模型"
+    },
+    "menu": {
+      "delete": "删除",
+      "edit": "编辑 Agent"
+    },
+    "tab": {
+      "create_title": "创建 Agent",
+      "edit_title_with_name": "编辑：{{name}}"
+    },
+    "toast": {
+      "delete_error_description": "删除 Agent 时发生错误，请稍后重试。",
+      "delete_error_title": "删除失败",
+      "delete_success_description": "已成功删除 Agent。",
+      "delete_success_title": "删除成功"
+    }
+  },
+  "plugins": {
+    "placeholder": "插件视图"
+  },
+  "settings": {
+    "dev": {
+      "devtools": {
+        "open_button": "打开",
+        "title": "开发者工具"
+      }
+    },
+    "general": {
+      "language": {
+        "placeholder": "选择语言",
+        "title": "语言"
+      },
+      "reply_language": {
+        "placeholder": "选择语言",
+        "title": "模型回复语言"
+      },
+      "theme": {
+        "dark": "深色",
+        "light": "浅色",
+        "placeholder": "选择主题",
+        "system": "跟随系统",
+        "title": "主题"
+      }
+    },
+    "header": {
+      "title": "设置"
+    },
+    "helper_model": {
+      "flash_model": {
+        "title": "快速模型"
+      }
+    },
+    "providers": {
+      "actions": {
+        "add": "添加"
+      },
+      "dialog": {
+        "delete_description_with_name": "确定要删除服务提供商 \"{{name}}\" 吗？此操作无法撤销。"
+      },
+      "empty": {
+        "description": "还没有配置任何服务提供商。",
+        "title": "暂无模型服务"
+      },
+      "list": {
+        "delete_provider_title": "删除",
+        "edit_provider_title": "编辑服务提供商",
+        "error_load": "无法加载服务提供商列表，请稍后重试。",
+        "model_count_with_count_one": "",
+        "model_count_with_count_other": ""
+      },
+      "tab": {
+        "create_title": "添加服务提供商",
+        "edit_title_with_name": "编辑：{{name}}"
+      },
+      "toast": {
+        "delete_error_description": "删除服务提供商时发生错误，请稍后重试。",
+        "delete_error_title": "删除失败",
+        "delete_success_description": "已成功删除服务提供商。",
+        "delete_success_title": "删除成功"
+      }
+    },
+    "tabs": {
+      "dev": "开发工具",
+      "general": "通用",
+      "helper_model": "助手模型",
+      "providers": "模型服务"
+    }
+  },
+  "tasks": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除任务 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "empty": {
+      "description": "您还没有创建任何任务。",
+      "no_workspace": {
+        "description": "请先选择一个工作区以查看任务。",
+        "title": "未选择工作区"
+      },
+      "title": "暂无任务"
+    },
+    "header": {
+      "create_tooltip": "创建任务",
+      "title": "任务"
+    },
+    "list": {
+      "error_load": "无法加载任务列表，请稍后重试。"
+    },
+    "menu": {
+      "delete": "删除",
+      "rename": "编辑任务名称"
+    },
+    "toast": {
+      "delete_error_description": "删除任务时发生错误，请稍后重试。",
+      "delete_error_title": "删除失败",
+      "delete_success_description": "已成功删除任务。",
+      "delete_success_title": "删除成功",
+      "rename_feature_description": "重命名功能待实现",
+      "rename_feature_title": "重命名功能"
+    }
+  },
+  "toolsets": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除工具集 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "header": {
+      "create_tooltip": "连接到 MCP 服务",
+      "title": "工具集"
+    },
+    "list": {
+      "error_load": "无法加载工具集列表，请稍后重试。"
+    },
+    "menu": {
+      "delete": "删除",
+      "edit": "编辑工具集"
+    },
+    "tab": {
+      "create_title": "连接到 MCP 服务",
+      "edit_title_with_name": "编辑：{{name}}"
+    },
+    "toast": {
+      "delete_error_description": "删除工具集时发生错误，请稍后重试。",
+      "delete_error_title": "删除失败",
+      "delete_success_description": "已成功删除工具集。",
+      "delete_success_title": "删除成功"
+    }
+  },
+  "workspaces": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除工作区 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "empty": {
+      "description": "您还没有创建任何工作区。",
+      "title": "暂无工作区"
+    },
+    "header": {
+      "create_tooltip": "创建工作区",
+      "title": "工作区"
+    },
+    "list": {
+      "error_load": "无法加载工作区列表，请稍后重试。"
+    },
+    "menu": {
+      "delete": "删除",
+      "edit": "编辑工作区"
+    },
+    "tab": {
+      "create_title": "创建工作区",
+      "edit_title_with_name": "编辑：{{name}}"
+    },
+    "toast": {
+      "delete_error_description": "删除工作区时发生错误，请稍后重试。",
+      "delete_error_title": "删除失败",
+      "delete_success_description": "已成功删除工作区。",
+      "delete_success_title": "删除成功"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "form": {
+    "args": {
+      "description": "每行一个参数",
+      "label": "参数",
+      "placeholder": "例如:\n--version\n--help"
+    },
+    "command": {
+      "label": "命令",
+      "required": "请输入命令"
+    },
+    "http_headers": {
+      "description": "JSON 格式的请求头",
+      "invalid_json": "请输入有效的 JSON 格式",
+      "label": "HTTP Headers"
+    },
+    "is_enabled": {
+      "label": "启用"
+    },
+    "name": {
+      "label": "名称"
+    },
+    "submit": {
+      "create": "创建",
+      "creating": "创建中...",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "tool_item": {
+      "auto_approve": "自动批准",
+      "enabled": "启用"
+    },
+    "tools": {
+      "label": "工具列表"
+    },
+    "type": {
+      "label": "类型",
+      "option": {
+        "built_in": "Built-in",
+        "mcp_local": "Local MCP",
+        "mcp_remote": "Remote MCP"
+      },
+      "placeholder": "选择 Toolset 类型"
+    },
+    "url": {
+      "label": "URL",
+      "placeholder": "https://api.example.com"
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "无法加载 Toolset 信息，请稍后重试。"
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "创建 Toolset 时发生错误，请稍后重试。",
+      "error_title": "创建失败",
+      "success_description_with_name": "已成功创建 Toolset {{name}}。",
+      "success_title": "创建成功"
+    },
+    "update": {
+      "error_description": "更新 Toolset 时发生错误，请稍后重试。",
+      "error_title": "更新失败",
+      "success_description_with_name": "已成功更新 Toolset {{name}}。",
+      "success_title": "更新成功"
+    }
+  }
+}

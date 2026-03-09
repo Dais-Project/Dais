@@ -1,4 +1,5 @@
 import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
 import {
@@ -20,16 +21,18 @@ import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
+import { i18n } from "@/i18n";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab, WorkspaceTabMetadata } from "@/types/tab";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "workspace",
-    title: `编辑：${workspaceName}`,
+    title: i18n.t("workspaces.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: workspaceName }),
     icon: "folder-cog",
     metadata: { mode: "edit", id: workspaceId },
   };
@@ -68,6 +71,7 @@ type WorkspaceItemProps = {
 };
 
 function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: WorkspaceItemProps) {
+  const { t } = useTranslation("sidebar");
   const tabs = useTabsStore((state) => state.tabs);
   const addTab = useTabsStore((state) => state.add);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -108,14 +112,14 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon className="mr-2 size-4" />
-          <span>编辑工作区</span>
+          <span>{t("workspaces.menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem
           className="text-destructive hover:text-destructive!"
           onClick={() => onDelete(workspace)}
         >
           <TrashIcon className="mr-2 size-4 text-destructive" />
-          <span>删除工作区</span>
+          <span>{t("workspaces.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -123,6 +127,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
 }
 
 export function WorkspaceList() {
+  const { t } = useTranslation("sidebar");
   const removeTabsPattern = useTabsStore((state) => state.removePattern);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
@@ -142,13 +147,13 @@ export function WorkspaceList() {
         await setCurrentWorkspace(null);
       }
 
-      toast.success("删除成功", {
-        description: "已成功删除工作区。",
+      toast.success(t("workspaces.toast.delete_success_title"), {
+        description: t("workspaces.toast.delete_success_description"),
       });
     },
     onError(error: Error) {
-      toast.error("删除失败", {
-        description: error.message || "删除工作区时发生错误，请稍后重试。",
+      toast.error(t("workspaces.toast.delete_error_title"), {
+        description: error.message || t("workspaces.toast.delete_error_description"),
       });
     },
   });
@@ -162,8 +167,8 @@ export function WorkspaceList() {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>暂无工作区</EmptyTitle>
-          <EmptyDescription>您还没有创建任何工作区。</EmptyDescription>
+          <EmptyTitle>{t("workspaces.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("workspaces.empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -189,7 +194,9 @@ export function WorkspaceList() {
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={`确定要删除工作区 "${asyncConfirm.pendingData?.name}" 吗？此操作无法撤销。`}
+        description={t("workspaces.dialog.delete_description_with_name", {
+          name: asyncConfirm.pendingData?.name ?? "",
+        })}
         onConfirm={asyncConfirm.confirm}
         onCancel={asyncConfirm.cancel}
         isDeleting={asyncConfirm.isPending}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
 import isURL from "validator/lib/isURL";
 import { FieldItem } from "@/components/custom/item/FieldItem";
@@ -14,25 +15,35 @@ type UrlFieldProps = FieldProps<
 export function UrlField({
   fieldName = "url",
   required = true,
-  fieldProps = { label: "URL", align: "center" },
-  controlProps = { placeholder: "请输入 URL" },
+  fieldProps,
+  controlProps,
 }: UrlFieldProps) {
+  const { t } = useTranslation("form");
   const { register, getFieldState } = useFormContext();
+  const { label = t("fields.url.label"), ...restFieldProps } = fieldProps ?? {};
+  const { placeholder = t("fields.url.placeholder"), ...restControlProps } =
+    controlProps ?? {};
 
   return (
-    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+    <FieldItem
+      {...restFieldProps}
+      label={label}
+      align="center"
+      fieldState={getFieldState(fieldName)}
+    >
       <Input
         {...register(fieldName, {
-          required: required ? "请输入 URL" : false,
+          required: required ? t("fields.url.validation.required") : false,
           validate: (value) => {
-            if (isURL(value)) {
+            if (isURL(value, { protocols: ["http", "https"], require_protocol: true })) {
               return true;
             }
-            return "请输入有效的 HTTP 或 HTTPS URL";
+            return t("fields.url.validation.invalid_http_https");
           },
         })}
         type="url"
-        {...controlProps}
+        placeholder={placeholder}
+        {...restControlProps}
       />
     </FieldItem>
   );

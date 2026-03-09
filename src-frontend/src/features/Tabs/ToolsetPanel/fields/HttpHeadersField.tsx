@@ -1,14 +1,16 @@
+import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Textarea } from "@/components/ui/textarea";
 
 export function HttpHeadersField() {
+  const { t } = useTranslation("tabs-toolset");
   const { register, getFieldState } = useFormContext();
 
   return (
     <FieldItem
-      label="HTTP Headers"
-      description="JSON 格式的请求头"
+      label={t("form.http_headers.label")}
+      description={t("form.http_headers.description")}
       fieldState={getFieldState("params.http_headers")}
       orientation="vertical"
       align="start"
@@ -23,7 +25,7 @@ export function HttpHeadersField() {
               JSON.parse(value);
               return true;
             } catch {
-              return "请输入有效的 JSON 格式";
+              return t("form.http_headers.invalid_json");
             }
           },
         })}

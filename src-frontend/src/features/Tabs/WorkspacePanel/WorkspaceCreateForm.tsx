@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateWorkspaceQueries, useCreateWorkspace } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -13,18 +14,20 @@ type WorkspaceCreateFormProps = {
 };
 
 export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
+  const { t } = useTranslation("tabs-workspace");
+
   const createMutation = useCreateWorkspace({
     mutation: {
-      async onSuccess(newWorkspace) {
+      async onSuccess(newWorkspace: { name: string }) {
         await invalidateWorkspaceQueries();
-        toast.success("创建成功", {
-          description: `已成功创建工作区 "${newWorkspace.name}"。`,
+        toast.success(t("toast.create.success_title"), {
+          description: t("toast.create.success_description_with_name", { name: newWorkspace.name }),
         });
         onConfirm?.();
       },
       onError(error: Error) {
-        toast.error("创建失败", {
-          description: error.message || "创建工作区时发生错误，请稍后重试。",
+        toast.error(t("toast.create.error_title"), {
+          description: error.message || t("toast.create.error_description"),
         });
       },
     },
@@ -36,13 +39,18 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
 
   return (
     <FormShell<WorkspaceCreateFormValues> values={DEFAULT_WORKSPACE} onSubmit={handleSubmit} className="h-full">
-      <NameField fieldName="name" fieldProps={{ label: "名称" }} controlProps={{ placeholder: "请输入工作区名称" }} />
+      <NameField
+        fieldName="name"
+        fieldProps={{ label: t("form.name.label") }}
+        controlProps={{ placeholder: t("form.name.placeholder") }}
+      />
 
-      <DirectoryField fieldName="directory" fieldProps={{ label: "目录路径" }} />
+      <DirectoryField fieldName="directory" />
 
       <RichTextField
         fieldName="instruction"
-        fieldProps={{ label: "工作区概况", className: "mt-2" }}
+        fieldProps={{ label: t("form.instruction.label"), className: "mt-2" }}
+        controlProps={{ className: "mt-2" }}
         minLength={0}
       />
 
@@ -52,7 +60,7 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "创建中..." : "创建"}
+          {createMutation.isPending ? t("form.submit.creating") : t("form.submit.create")}
         </Button>
       </FormShellFooter>
     </FormShell>

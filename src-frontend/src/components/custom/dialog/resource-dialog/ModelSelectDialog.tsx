@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useGetModelById } from "@/api/llm-model";
 import { useGetProvidersSuspenseInfinite } from "@/api/provider";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -23,17 +24,19 @@ type ModelSelectTriggerProps = {
 } & React.ComponentProps<typeof Button>;
 
 function ModelSelectTrigger({ model_id, ...props }: ModelSelectTriggerProps) {
+  const { t } = useTranslation("dialog");
   const { data, isLoading } = useGetModelById(model_id);
   if (isLoading) {
-    return <Button variant="outline" {...props} disabled>加载中...</Button>;
+    return <Button variant="outline" {...props} disabled>{t("resource.model.trigger.loading")}</Button>;
   }
   if (!data) {
-    return <Button variant="outline" {...props}>模型已被删除</Button>;
+    return <Button variant="outline" {...props}>{t("resource.model.trigger.deleted")}</Button>;
   }
   return <Button variant="outline" {...props}>{data.name}</Button>;
 }
 
 function ModelQueryList() {
+  const { t } = useTranslation("dialog");
   const query = useGetProvidersSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -45,7 +48,9 @@ function ModelQueryList() {
   return (
     <>
       <SelectDialogEmpty>
-        {providers.length === 0 ? "暂无供应商，请先添加 LLM 供应商以使用模型。" : "未找到模型"}
+        {providers.length === 0
+          ? t("resource.model.empty.no_provider")
+          : t("resource.model.empty.no_model")}
       </SelectDialogEmpty>
       <InfiniteScroll
         query={query}
@@ -78,16 +83,25 @@ type ModelSelectDialogProps = {
 };
 
 export function ModelSelectDialog({ value, onChange: onSelect }: ModelSelectDialogProps) {
+  const { t } = useTranslation("dialog");
+
   return (
     <SelectDialog<number> value={value ?? undefined} onValueChange={onSelect}>
       <SelectDialogTrigger>
-        {value ? <ModelSelectTrigger model_id={value} /> : <Button variant="outline">选择模型</Button>}
+        {value ? (
+          <ModelSelectTrigger model_id={value} />
+        ) : (
+          <Button variant="outline">{t("resource.model.trigger.select")}</Button>
+        )}
       </SelectDialogTrigger>
 
       <SelectDialogContent>
-        <SelectDialogSearch placeholder="搜索模型..." />
+        <SelectDialogSearch placeholder={t("resource.model.search_placeholder")} />
         <SelectDialogList className="max-h-96">
-          <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription="无法加载模型列表，请稍后重试。">
+          <AsyncBoundary
+            skeleton={<SelectDialogSkeleton />}
+            errorDescription={t("resource.model.load_error")}
+          >
             <ModelQueryList />
           </AsyncBoundary>
         </SelectDialogList>

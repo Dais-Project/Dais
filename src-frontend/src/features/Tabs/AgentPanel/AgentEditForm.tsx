@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateAgentQueries, useUpdateAgent } from "@/api/agent";
 import type { AgentRead } from "@/api/generated/schemas";
@@ -16,20 +17,21 @@ type AgentEditFormProps = {
 };
 
 export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
+  const { t } = useTranslation("tabs-agent");
   const formValues = useMemo(() => agentToEditFormValues(agent), [agent]);
 
   const updateMutation = useUpdateAgent({
     mutation: {
-      async onSuccess(updatedAgent) {
+      async onSuccess(updatedAgent: { id: number; name: string }) {
         await invalidateAgentQueries(updatedAgent.id);
-        toast.success("更新成功", {
-          description: `已成功更新 ${updatedAgent.name} Agent。`,
+        toast.success(t("toast.update.success_title"), {
+          description: t("toast.update.success_description_with_name", { name: updatedAgent.name }),
         });
         onConfirm?.();
       },
       onError(error: Error) {
-        toast.error("更新失败", {
-          description: error.message || "更新 Agent 时发生错误，请稍后重试。",
+        toast.error(t("toast.update.error_title"), {
+          description: error.message || t("toast.update.error_description"),
         });
       },
     },
@@ -43,8 +45,8 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
     <FormShell<AgentEditFormValues> values={formValues} onSubmit={handleSubmit}>
       <NameField
         fieldName="name"
-        fieldProps={{ label: "名称" }}
-        controlProps={{ placeholder: "请输入 Agent 名称" }}
+        fieldProps={{ label: t("form.name.label") }}
+        controlProps={{ placeholder: t("form.name.placeholder") }}
       />
 
       <AgentIconField />
@@ -53,14 +55,15 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
 
       <RichTextField
         fieldName="instruction"
-        fieldProps={{ label: "Agent 指令", className: "mt-2" }}
+        fieldProps={{ label: t("form.instruction.label"), className: "mt-2" }}
+        controlProps={{ className: "mt-2" }}
       />
 
       <ToolMultiSelectField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "保存中..." : "保存"}
+          {updateMutation.isPending ? t("form.submit.saving") : t("form.submit.save")}
         </Button>
       </FormShellFooter>
     </FormShell>

@@ -1,6 +1,7 @@
 import type { ChatStatus } from "ai";
 import { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useTranslation } from "react-i18next";
 import {
   PromptInput as BasePromptInput,
   PromptInputActionAddAttachmentsButton,
@@ -44,12 +45,13 @@ type PromptInputAgentStateProps = {
 };
 
 function PromptInputAgentState({ agentId, onChange }: PromptInputAgentStateProps) {
+  const { t } = useTranslation("tabs-task");
   return (
-    <ErrorBoundary fallbackRender={AgentSelectErrorFallback}>
+    <ErrorBoundary fallbackRender={(props) => <AgentSelectErrorFallback {...props} />}>
       <Suspense
         fallback={
           <Button variant="outline" disabled>
-            Loading...
+            {t("prompt.agent.loading")}
           </Button>
         }
       >

@@ -1,4 +1,5 @@
 import { Edit2Icon, Trash2Icon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { LlmModelCreate } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ type ModelItemProps = {
 };
 
 export function ModelItem({ model, index, onDelete, onEdit }: ModelItemProps) {
+  const { t } = useTranslation("tabs-provider");
   const handleEdit = (updatedModel: LlmModelCreate) =>
     onEdit(index, updatedModel);
   const handleDelete = () => onDelete(index);
@@ -33,7 +35,7 @@ export function ModelItem({ model, index, onDelete, onEdit }: ModelItemProps) {
       </ItemContent>
       <ItemActions>
         <ModelEditDialog model={model} onConfirm={handleEdit}>
-          <Button type="button" variant="ghost" size="sm" aria-label="编辑模型">
+          <Button type="button" variant="ghost" size="sm" aria-label={t("models.item.edit_aria_label")}>
             <Edit2Icon className="h-4 w-4" />
           </Button>
         </ModelEditDialog>
@@ -42,7 +44,7 @@ export function ModelItem({ model, index, onDelete, onEdit }: ModelItemProps) {
           variant="ghost"
           size="sm"
           onClick={handleDelete}
-          aria-label="删除模型"
+          aria-label={t("models.item.delete_aria_label")}
         >
           <Trash2Icon className="h-4 w-4" />
         </Button>

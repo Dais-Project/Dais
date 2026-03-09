@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { FetchModelsParams, LlmProviders } from "@/api/generated/schemas";
 import { useFetchModelsSuspense } from "@/api/llm";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -21,17 +22,18 @@ type ModelQueryListProps = {
 };
 
 function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
+  const { t } = useTranslation("tabs-provider");
   const { data, refetch } = useFetchModelsSuspense(provider);
 
   useEffect(() => {
     if (enabled) {
       refetch();
     }
-  }, [enabled]);
+  }, [enabled, refetch]);
 
   return (
     <>
-      <SelectDialogEmpty>未找到模型</SelectDialogEmpty>
+      <SelectDialogEmpty>{t("models.select.empty")}</SelectDialogEmpty>
       {data?.models?.map((model) => (
         <SelectDialogItem key={model} value={model}>
           {model}
@@ -58,6 +60,7 @@ export function ModelSelectDialog({
   existingModelNames,
   onConfirm,
 }: ModelSelectDialogProps) {
+  const { t } = useTranslation("tabs-provider");
   const [open, setOpen] = useState(false);
 
   return (
@@ -69,12 +72,12 @@ export function ModelSelectDialog({
     >
       <SelectDialogTrigger>{children}</SelectDialogTrigger>
       <SelectDialogContent>
-        <SelectDialogSearch placeholder="搜索模型..." />
+        <SelectDialogSearch placeholder={t("models.select.search_placeholder")} />
         <SelectDialogList>
           <SelectDialogGroup>
             <AsyncBoundary
               skeleton={<SelectDialogSkeleton />}
-              errorDescription="无法加载模型列表，请稍后重试。"
+              errorDescription={t("models.select.error_load")}
             >
               <ModelQueryList enabled={open} provider={provider} />
             </AsyncBoundary>
@@ -82,8 +85,8 @@ export function ModelSelectDialog({
         </SelectDialogList>
         <SelectDialogFooter
           onConfirm={onConfirm}
-          confirmText="确认"
-          cancelText="取消"
+          confirmText={t("models.select.confirm")}
+          cancelText={t("models.select.cancel")}
         />
       </SelectDialogContent>
     </SelectDialog>

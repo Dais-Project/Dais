@@ -1,0 +1,42 @@
+{
+  "confirm_delete": {
+    "cancel": "取消",
+    "confirm": "确认",
+    "deleting": "删除中...",
+    "title": "确认删除"
+  },
+  "resource": {
+    "model": {
+      "empty": {
+        "no_model": "未找到模型",
+        "no_provider": "暂无供应商，请先添加 LLM 供应商以使用模型。"
+      },
+      "load_error": "无法加载模型列表，请稍后重试。",
+      "search_placeholder": "搜索模型...",
+      "trigger": {
+        "deleted": "模型已被删除",
+        "loading": "加载中...",
+        "select": "选择模型"
+      }
+    },
+    "tool": {
+      "cancel": "取消",
+      "confirm": "确定",
+      "empty": "未找到匹配的工具",
+      "load_error": "无法加载工具列表，请稍后重试。",
+      "search_placeholder": "搜索工具...",
+      "select_all": "全选",
+      "trigger": {
+        "select": "选择"
+      }
+    }
+  },
+  "select": {
+    "empty": "未找到结果。",
+    "footer": {
+      "cancel": "取消",
+      "confirm": "确定"
+    },
+    "search_placeholder": "搜索..."
+  }
+}

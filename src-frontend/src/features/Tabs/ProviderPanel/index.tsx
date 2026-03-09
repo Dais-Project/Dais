@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useGetProviderSuspense } from "@/api/provider";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,6 +34,8 @@ export function ProviderPanel({
   tabId,
   metadata,
 }: TabPanelProps<ProviderTabMetadata>) {
+  const { t } = useTranslation("tabs-provider");
+
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -44,12 +47,10 @@ export function ProviderPanel({
   return (
     <TabPanelFrame
       errorRender={({ resetErrorBoundary }) => (
-        <div className="flex h-full items-center justify-center p-4">
-          <FailedToLoad
-            refetch={resetErrorBoundary}
-            description="无法加载服务提供商信息，请稍后重试。"
-          />
-        </div>
+        <FailedToLoad
+          refetch={resetErrorBoundary}
+          description={t("panel.error.load_description")}
+        />
       )}
     >
       <ProviderEditPanel tabId={tabId} providerId={metadata.id} />

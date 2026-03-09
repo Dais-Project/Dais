@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   type RegisterOptions,
   useController,
@@ -6,6 +7,8 @@ import {
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Vditor } from "@/components/custom/Vditor";
 import type { FieldProps } from ".";
+import { i18n } from "@/i18n";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 
 function createRichTextRules(
   label: string,
@@ -13,20 +16,29 @@ function createRichTextRules(
   minLength: number,
   maxLength: number | undefined
 ) {
+  const t = (...args: Parameters<typeof i18n.t>) => i18n.t(...args);
   const rules: RegisterOptions = {};
   if (required) {
-    rules.required = `请输入${label}`;
+    rules.required = t("fields.rich_text.validation.required_with_label", { label, ns: FORM_NAMESPACE });
   }
   if (minLength !== undefined) {
     rules.minLength = {
       value: minLength,
-      message: `${label}不能少于 ${minLength} 个字符`,
+      message: t("fields.rich_text.validation.min_length_with_label", {
+        label,
+        minLength,
+        ns: FORM_NAMESPACE
+      }),
     };
   }
   if (maxLength !== undefined) {
     rules.maxLength = {
       value: maxLength,
-      message: `${label}不能超过 ${maxLength} 个字符`,
+      message: t("fields.rich_text.validation.max_length_with_label", {
+        label,
+        maxLength,
+        ns: FORM_NAMESPACE
+      }),
     };
   }
   return rules;
@@ -47,19 +59,24 @@ export function RichTextField({
   minLength = 1,
   maxLength,
   controlProps,
-  fieldProps = { label: "内容" },
+  fieldProps,
 }: RichTextFieldProps) {
+  const { t } = useTranslation("form");
   const { control, getFieldState } = useFormContext();
+  const { label = t("fields.rich_text.label"), ...restFieldProps } = fieldProps ?? {};
+
   const { field } = useController({
     name: fieldName,
     control,
-    rules: createRichTextRules(fieldProps.label as string, required, minLength, maxLength),
+    rules: createRichTextRules(label as string, required, minLength, maxLength),
   });
+
   return (
     <FieldItem
+      label={label}
       fieldState={getFieldState(fieldName)}
       orientation="vertical"
-      {...fieldProps}
+      {...restFieldProps}
     >
       <Vditor
         initialValue={field.value}

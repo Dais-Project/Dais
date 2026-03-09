@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
@@ -5,28 +6,36 @@ import type { FieldProps } from ".";
 
 export function NameField({
   fieldName = "name",
-  fieldProps = { label: "名称" },
-  controlProps: { placeholder = "请输入名称", ...controlProps } = {},
+  fieldProps,
+  controlProps,
 }: FieldProps<typeof Input>) {
+  const { t } = useTranslation("form");
   const { register, getFieldState } = useFormContext();
+  const { label = t("fields.name.label"), ...restFieldProps } = fieldProps ?? {};
+  const { placeholder = t("fields.name.placeholder"), ...restControlProps } =
+    controlProps ?? {};
 
   return (
-    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+    <FieldItem
+      {...restFieldProps}
+      label={label}
+      fieldState={getFieldState(fieldName)}
+    >
       <Input
         {...register(fieldName, {
-          required: "请输入名称",
+          required: t("fields.name.validation.required"),
           minLength: {
             value: 1,
-            message: "名称不能为空",
+            message: t("fields.name.validation.empty"),
           },
           maxLength: {
             value: 50,
-            message: "名称长度不能超过 50 个字符",
+            message: t("fields.name.validation.max_length"),
           },
         })}
         placeholder={placeholder}
         className="w-full min-w-0"
-        {...controlProps}
+        {...restControlProps}
       />
     </FieldItem>
   );

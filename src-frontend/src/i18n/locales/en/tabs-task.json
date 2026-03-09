@@ -1,0 +1,79 @@
+{
+  "continue": {
+    "banner": {
+      "action": "Continue task",
+      "title": "Task paused, click to continue."
+    }
+  },
+  "create": {
+    "description": "Start a new task with Dais.",
+    "logo_alt": "Dais logo",
+    "title": "What can I help you with?"
+  },
+  "error": {
+    "banner": {
+      "action": "Retry",
+      "title": "Task failed. Please retry."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load task. Please try again later."
+    }
+  },
+  "prompt": {
+    "agent": {
+      "empty": "No agent found.",
+      "loading": "Loading...",
+      "no_workspace": "No workspace opened",
+      "search_placeholder": "Search agent...",
+      "select": "Select agent",
+      "workspace_load_failed": "Failed to load workspace"
+    },
+    "context": {
+      "load_error": "Failed to load files.",
+      "loading": "Loading...",
+      "no_results": "No results found.",
+      "search_placeholder": "Add files, folders, docs...",
+      "trigger_tooltip": "Add files, folders, docs..."
+    }
+  },
+  "tab": {
+    "default_title": "New task"
+  },
+  "task_progress": {
+    "completed": "Task completed"
+  },
+  "toast": {
+    "task_failed": {
+      "title": "Task failed"
+    }
+  },
+  "tool": {
+    "ask_user": {
+      "title": "Dais has a question:"
+    },
+    "confirmation": {
+      "accept": "Accept",
+      "accepted": "Accepted",
+      "reject": "Reject",
+      "rejected": "Rejected"
+    },
+    "finish_task": {
+      "title": "Task completed"
+    },
+    "show_plan": {
+      "approve": "Approve plan",
+      "copy_to_input": "Copy to input",
+      "feedback_placeholder": "Enter your plan revision feedback here...",
+      "parse_error": "Failed to parse plan arguments",
+      "submit_feedback": "Submit feedback",
+      "title": "Dais wants to show you a plan:"
+    },
+    "update_todos": {
+      "empty": "No todo updates",
+      "parse_error": "Failed to parse todo arguments",
+      "title": "Task todos updated"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "form": {
+    "api_key": {
+      "label": "API key",
+      "placeholder": "Enter API key"
+    },
+    "base_url": {
+      "label": "Base URL",
+      "placeholder": "Enter service URL"
+    },
+    "models": {
+      "fetch_button": "Fetch models",
+      "label": "Models"
+    },
+    "name": {
+      "label": "Name"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "type": {
+      "label": "Type",
+      "placeholder": "Select type"
+    }
+  },
+  "models": {
+    "edit_dialog": {
+      "cancel": "Cancel",
+      "capability": {
+        "label": "Model capabilities",
+        "reasoning": "Reasoning capability",
+        "tool_use": "Tool use",
+        "vision": "Vision capability"
+      },
+      "context_size": {
+        "label": "Context size",
+        "min": "Context size must be greater than 0",
+        "placeholder": "Enter context size",
+        "required": "Please enter context size"
+      },
+      "name": {
+        "empty": "Model name cannot be empty",
+        "label": "Model name",
+        "placeholder": "Enter model name",
+        "required": "Please enter model name"
+      },
+      "save": "Save",
+      "saving": "Saving...",
+      "title": "Edit model details"
+    },
+    "item": {
+      "delete_aria_label": "Delete model",
+      "edit_aria_label": "Edit model"
+    },
+    "select": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "empty": "No models found",
+      "error_load": "Failed to load model list. Please try again later.",
+      "search_placeholder": "Search models..."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load provider details. Please try again later."
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "Failed to create provider. Please try again later.",
+      "error_title": "Create failed",
+      "success_description_with_name": "Provider {{name}} created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "error_description": "Failed to update provider. Please try again later.",
+      "error_title": "Update failed",
+      "success_description_with_name": "Provider {{name}} updated successfully.",
+      "success_title": "Update success"
+    }
+  }
+}

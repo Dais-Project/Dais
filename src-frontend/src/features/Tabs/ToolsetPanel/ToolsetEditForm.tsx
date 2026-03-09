@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ToolsetRead } from "@/api/generated/schemas";
 import { invalidateToolsetQueries, useUpdateToolset } from "@/api/toolset";
@@ -16,20 +17,21 @@ type ToolsetEditFormProps = {
 };
 
 export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
+  const { t } = useTranslation("tabs-toolset");
   const formValues = useMemo(() => toolsetToEditFormValues(toolset), [toolset]);
 
   const updateMutation = useUpdateToolset({
     mutation: {
-      async onSuccess(updatedToolset) {
+      async onSuccess(updatedToolset: { id: number; name: string }) {
         await invalidateToolsetQueries(updatedToolset.id);
-        toast.success("更新成功", {
-          description: `已成功更新 ${updatedToolset.name} Toolset。`,
+        toast.success(t("toast.update.success_title"), {
+          description: t("toast.update.success_description_with_name", { name: updatedToolset.name }),
         });
         onConfirm?.();
       },
       onError(error: Error) {
-        toast.error("更新失败", {
-          description: error.message || "更新 Toolset 时发生错误，请稍后重试。",
+        toast.error(t("toast.update.error_title"), {
+          description: error.message || t("toast.update.error_description"),
         });
       },
     },
@@ -41,11 +43,11 @@ export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
   }
   return (
     <FormShell<ToolsetEditFormValues> values={formValues} onSubmit={handleSubmit}>
-      <NameField fieldName="name" fieldProps={{ label: "名称" }} />
+      <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <ToolsetTypeSelectField />
 
-      <CheckboxField fieldName="is_enabled" fieldProps={{ label: "启用" }} />
+      <CheckboxField fieldName="is_enabled" fieldProps={{ label: t("form.is_enabled.label") }} />
 
       <DynamicConfigFields />
 
@@ -53,7 +55,7 @@ export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "保存中..." : "保存"}
+          {updateMutation.isPending ? t("form.submit.saving") : t("form.submit.save")}
         </Button>
       </FormShellFooter>
     </FormShell>

@@ -1,5 +1,6 @@
 import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -235,16 +236,16 @@ export const AGENT_ICONS: Record<string, IconName[]> = {
   ],
 };
 
-const ICON_GROUP_LABELS: Record<keyof typeof AGENT_ICONS, string> = {
-  ai_core: "AI 与核心功能",
-  development: "编程与技术",
-  writing: "写作与内容创作",
-  data: "数据与分析",
-  productivity: "办公与生产力",
-  media: "媒体与设计",
-  security: "安全与管理",
-  science: "科学与数学",
-  lifestyle: "生活与角色扮演",
+const ICON_GROUP_I18N_KEYS: Record<keyof typeof AGENT_ICONS, string> = {
+  ai_core: "icon_dialog.group.ai_core",
+  development: "icon_dialog.group.development",
+  writing: "icon_dialog.group.writing",
+  data: "icon_dialog.group.data",
+  productivity: "icon_dialog.group.productivity",
+  media: "icon_dialog.group.media",
+  security: "icon_dialog.group.security",
+  science: "icon_dialog.group.science",
+  lifestyle: "icon_dialog.group.lifestyle",
 };
 
 type IconSelectDialogProps = {
@@ -253,15 +254,16 @@ type IconSelectDialogProps = {
 };
 
 export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
+  const { t } = useTranslation("tabs-agent");
   const [open, setOpen] = useState(false);
 
   const iconGroups = useMemo(
     () =>
       Object.entries(AGENT_ICONS).map(([key, items]) => ({
-        heading: ICON_GROUP_LABELS[key as keyof typeof AGENT_ICONS],
+        heading: t(ICON_GROUP_I18N_KEYS[key as keyof typeof AGENT_ICONS]),
         items,
       })),
-    []
+    [t]
   );
 
   const handleChange = (iconName: IconName) => {
@@ -271,17 +273,17 @@ export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogHeaderSrOnly title="选择图标" description="搜索图标..." />
+      <DialogHeaderSrOnly title={t("icon_dialog.title")} description={t("icon_dialog.description")} />
 
       <DialogTrigger asChild>
         <Button variant="outline" size={value ? "icon" : "default"}>
-          {value ? <DynamicIcon name={value} /> : "选择图标"}
+          {value ? <DynamicIcon name={value} /> : t("icon_dialog.trigger.select")}
         </Button>
       </DialogTrigger>
 
       <DialogContent showCloseButton={false} className="max-w-2xl p-0">
         <Command value={value ?? undefined}>
-          <CommandInput placeholder="搜索图标..." />
+          <CommandInput placeholder={t("icon_dialog.search_placeholder")} />
           <CommandList className="max-h-100">
             {iconGroups.map((group, index) => (
               <div key={group.heading}>

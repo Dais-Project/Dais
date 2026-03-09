@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
@@ -5,6 +6,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import type { AppTheme, Language } from "@/types/common";
 
 export function GeneralSettings() {
+  const { t } = useTranslation("sidebar");
   const { current: settings, setPartial: setPartialConfig } = useSettingsStore();
   const {
     current: serverSettings,
@@ -26,23 +28,23 @@ export function GeneralSettings() {
 
   return (
     <div className="px-4 py-2">
-      <SettingItem title="主题">
+      <SettingItem title={t("settings.general.theme.title")}>
         <Select value={settings.theme} onValueChange={handleThemeChange}>
           <SelectTrigger className="w-32">
-            <SelectValue placeholder="选择主题" />
+            <SelectValue placeholder={t("settings.general.theme.placeholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="system">跟随系统</SelectItem>
-            <SelectItem value="light">浅色</SelectItem>
-            <SelectItem value="dark">深色</SelectItem>
+            <SelectItem value="system">{t("settings.general.theme.system")}</SelectItem>
+            <SelectItem value="light">{t("settings.general.theme.light")}</SelectItem>
+            <SelectItem value="dark">{t("settings.general.theme.dark")}</SelectItem>
           </SelectContent>
         </Select>
       </SettingItem>
 
-      <SettingItem title="语言">
+      <SettingItem title={t("settings.general.language.title")}>
         <Select value={settings.language} onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-32">
-            <SelectValue placeholder="选择语言" />
+            <SelectValue placeholder={t("settings.general.language.placeholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
@@ -51,14 +53,14 @@ export function GeneralSettings() {
         </Select>
       </SettingItem>
 
-      <SettingItem title="模型回复语言">
+      <SettingItem title={t("settings.general.reply_language.title")}>
         <Select
           value={serverSettings?.reply_language}
           onValueChange={handleModelReplyLanguageChange}
           disabled={isServerSettingsLoading}
         >
           <SelectTrigger className="w-32">
-            <SelectValue placeholder="选择语言" />
+            <SelectValue placeholder={t("settings.general.reply_language.placeholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="English">English</SelectItem>

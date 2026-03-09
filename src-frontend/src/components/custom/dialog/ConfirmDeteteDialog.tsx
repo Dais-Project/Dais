@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,8 @@ export function ConfirmDeleteDialog({
   onConfirm,
   onCancel,
 }: ConfirmDeleteDialogProps) {
+  const { t } = useTranslation("dialog");
+
   const handleOpenChange = (open_: boolean) => {
     if (open_) {
       onOpen?.();
@@ -41,15 +44,15 @@ export function ConfirmDeleteDialog({
       {children && <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>}
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>确认删除</AlertDialogTitle>
+          <AlertDialogTitle>{t("confirm_delete.title")}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onCancel} disabled={isDeleting}>
-            取消
+            {t("confirm_delete.cancel")}
           </AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} disabled={isDeleting}>
-            {isDeleting ? "删除中..." : "确认删除"}
+            {isDeleting ? t("confirm_delete.deleting") : t("confirm_delete.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,5 +1,6 @@
 import { DownloadIcon } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { ModelSelectDialog } from "./ModelSelectDialog";
 import { useModelManagement } from "./use-model-management";
 
 export function ModelsField() {
+  const { t } = useTranslation("tabs-provider");
   const { control, trigger } = useFormContext<
     ProviderCreateFormValues | ProviderEditFormValues
   >();
@@ -39,7 +41,7 @@ export function ModelsField() {
     <div className="flex flex-col gap-3">
       {/* header */}
       <div className="flex justify-between">
-        <Label>模型列表</Label>
+        <Label>{t("form.models.label")}</Label>
         <ModelSelectDialog
           provider={{
             type: providerType,
@@ -56,7 +58,7 @@ export function ModelsField() {
             onClick={handleValidateProvider}
           >
             <DownloadIcon className="mr-1 h-4 w-4" />
-            获取模型
+            {t("form.models.fetch_button")}
           </Button>
         </ModelSelectDialog>
       </div>

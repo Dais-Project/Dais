@@ -1,8 +1,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import ReactDOM from "react-dom/client";
+import { I18nextProvider } from "react-i18next";
 import { Toaster } from "@/components/ui/sonner";
 import App from "./App";
 import { API_BASE } from "./api";
+import { i18n } from "./i18n";
 import SseDispatcher from "./lib/sse-dispatcher";
 import queryClient from "./query-client";
 import "vditor/dist/index.css";
@@ -13,8 +15,10 @@ SseDispatcher.connect(new URL("api/events", API_BASE));
 
 const root = document.getElementById("root") as HTMLElement;
 ReactDOM.createRoot(root).render(
-  <QueryClientProvider client={queryClient}>
-    <App />
-    <Toaster />
-  </QueryClientProvider>,
+  <I18nextProvider i18n={i18n}>
+    <QueryClientProvider client={queryClient}>
+      <App />
+      <Toaster />
+    </QueryClientProvider>
+  </I18nextProvider>,
 );
