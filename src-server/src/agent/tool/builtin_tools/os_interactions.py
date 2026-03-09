@@ -1,3 +1,4 @@
+import inspect
 import time
 from typing import Annotated, TypedDict, override
 from itertools import islice
@@ -6,6 +7,7 @@ from dais_shell import (
     ShellResultStatus as AgentShellResultStatus
 )
 from dais_shell.iostream_reader import IOStreamBuffer
+from pydantic import ValidationError
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
 from ....db.models import toolset as toolset_models
 
@@ -45,9 +47,16 @@ class OsInteractionsToolset(BuiltInToolset):
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
         This is a LOW PRIORITY tool - only use this tool when no suitable specialized tool is available.
 
-        IMPORTANT:
+        IMPORTANTS:
             - DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons
             - DO NOT use shell operators such as `&&`, `||`, `|`, `;`, `>`, `>>`, `<`, `2>&1`
+
+        Examples:
+            # Run: python script.py --verbose --output /tmp/out.txt
+            shell(command="python", args=["script.py", "--verbose", "--output", "/tmp/out.txt"])
+
+            # Run: ls -la /tmp
+            shell(command="ls", args=["-la", "/tmp"])
 
         Returns:
             A JSON object containing the output of the command.
@@ -89,6 +98,16 @@ class OsInteractionsToolset(BuiltInToolset):
         STDERR_MAX_OUTPUT_LINES = 500
         HEAD_LINES = 200
         TAIL_LINES = 200
+
+        if " " in command:
+            raise ValidationError(
+                inspect.cleandoc(
+                f"""
+                Invalid command "{command}": `command` must be the executable only (e.g., "python"). 
+                Move arguments to the `args` parameter. 
+                This tool call should be: shell(command="{command.split()[0]}", args={command.split()[1:]})
+                """
+            ))
 
         step = CommandStep(command=command,
                            args=args or [],
