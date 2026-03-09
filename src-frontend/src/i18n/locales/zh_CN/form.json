@@ -1,23 +1,41 @@
 {
   "fields": {
-    "name": {
-      "label": "名称",
-      "placeholder": "请输入名称",
+    "directory": {
+      "choose_button": "选择",
+      "choose_error": "选择目录失败",
+      "label": "目录路径",
+      "placeholder": "请输入目录路径",
       "validation": {
-        "required": "请输入名称",
-        "empty": "名称不能为空",
-        "max_length": "名称长度不能超过 50 个字符"
-      }
-    },
-    "password": {
-      "label": "密码",
-      "validation": {
-        "required": "请输入密码",
-        "empty": "密码不能为空"
+        "required": "目录路径为必填项"
       }
     },
     "enabled": {
       "label": "启用"
+    },
+    "name": {
+      "label": "名称",
+      "placeholder": "请输入名称",
+      "validation": {
+        "empty": "名称不能为空",
+        "max_length": "名称长度不能超过 50 个字符",
+        "required": "请输入名称"
+      }
+    },
+    "password": {
+      "label": "密码",
+      "placeholder": "",
+      "validation": {
+        "empty": "密码不能为空",
+        "required": "请输入密码"
+      }
+    },
+    "rich_text": {
+      "label": "内容",
+      "validation": {
+        "max_length_with_label": "{{label}}不能超过 {{maxLength}} 个字符",
+        "min_length_with_label": "{{label}}不能少于 {{minLength}} 个字符",
+        "required_with_label": "请输入{{label}}"
+      }
     },
     "type": {
       "label": "类型",
@@ -30,25 +48,8 @@
       "label": "URL",
       "placeholder": "请输入 URL",
       "validation": {
-        "required": "请输入 URL",
-        "invalid_http_https": "请输入有效的 HTTP 或 HTTPS URL"
-      }
-    },
-    "directory": {
-      "label": "目录路径",
-      "placeholder": "请输入目录路径",
-      "choose_button": "选择",
-      "choose_error": "选择目录失败",
-      "validation": {
-        "required": "目录路径为必填项"
-      }
-    },
-    "rich_text": {
-      "label": "内容",
-      "validation": {
-        "required_with_label": "请输入{{label}}",
-        "min_length_with_label": "{{label}}不能少于 {{minLength}} 个字符",
-        "max_length_with_label": "{{label}}不能超过 {{maxLength}} 个字符"
+        "invalid_http_https": "请输入有效的 HTTP 或 HTTPS URL",
+        "required": "请输入 URL"
       }
     }
   }

@@ -1,69 +1,69 @@
 {
-  "toast": {
-    "create": {
-      "success_title": "Create success",
-      "success_description_with_name": "Toolset {{name}} created successfully.",
-      "error_title": "Create failed",
-      "error_description": "Failed to create toolset. Please try again later."
-    },
-    "update": {
-      "success_title": "Update success",
-      "success_description_with_name": "Toolset {{name}} updated successfully.",
-      "error_title": "Update failed",
-      "error_description": "Failed to update toolset. Please try again later."
-    }
-  },
   "form": {
-    "name": {
-      "label": "Name"
-    },
-    "type": {
-      "label": "Type",
-      "placeholder": "Select toolset type",
-      "option": {
-        "built_in": "Built-in",
-        "mcp_local": "Local MCP",
-        "mcp_remote": "Remote MCP"
-      }
-    },
-    "is_enabled": {
-      "label": "Enabled"
-    },
-    "tools": {
-      "label": "Tools"
-    },
-    "tool_item": {
-      "enabled": "Enabled",
-      "auto_approve": "Auto approve"
+    "args": {
+      "description": "One argument per line",
+      "label": "Args",
+      "placeholder": "For example:\n--version\n--help"
     },
     "command": {
       "label": "Command",
       "required": "Please enter command"
     },
-    "args": {
-      "label": "Args",
-      "description": "One argument per line",
-      "placeholder": "For example:\n--version\n--help"
-    },
-    "url": {
-      "label": "URL",
-      "placeholder": "https://api.example.com"
-    },
     "http_headers": {
-      "label": "HTTP headers",
       "description": "Request headers in JSON format",
-      "invalid_json": "Please enter valid JSON"
+      "invalid_json": "Please enter valid JSON",
+      "label": "HTTP headers"
+    },
+    "is_enabled": {
+      "label": "Enabled"
+    },
+    "name": {
+      "label": "Name"
     },
     "submit": {
       "create": "Create",
       "creating": "Creating...",
       "save": "Save",
       "saving": "Saving..."
+    },
+    "tool_item": {
+      "auto_approve": "Auto approve",
+      "enabled": "Enabled"
+    },
+    "tools": {
+      "label": "Tools"
+    },
+    "type": {
+      "label": "Type",
+      "option": {
+        "built_in": "Built-in",
+        "mcp_local": "Local MCP",
+        "mcp_remote": "Remote MCP"
+      },
+      "placeholder": "Select toolset type"
+    },
+    "url": {
+      "label": "URL",
+      "placeholder": "https://api.example.com"
     }
   },
   "panel": {
     "error": {
       "load_description": "Failed to load toolset details. Please try again later."
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "Failed to create toolset. Please try again later.",
+      "error_title": "Create failed",
+      "success_description_with_name": "Toolset {{name}} created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "error_description": "Failed to update toolset. Please try again later.",
+      "error_title": "Update failed",
+      "success_description_with_name": "Toolset {{name}} updated successfully.",
+      "success_title": "Update success"
     }
   }
 }

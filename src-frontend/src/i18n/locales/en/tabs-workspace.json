@@ -1,52 +1,49 @@
 {
-  "toast": {
-    "create": {
-      "success_title": "Create success",
-      "success_description_with_name": "Workspace \"{{name}}\" created successfully.",
-      "error_title": "Create failed",
-      "error_description": "Failed to create workspace. Please try again later."
-    },
-    "update": {
-      "success_title": "Update success",
-      "success_description_with_name": "Workspace \"{{name}}\" updated successfully.",
-      "error_title": "Update failed",
-      "error_description": "Failed to update workspace. Please try again later."
-    }
-  },
   "form": {
-    "name": {
-      "label": "Name",
-      "placeholder": "Enter workspace name"
-    },
-    "directory": {
-      "label": "Directory path"
-    },
     "instruction": {
       "label": "Workspace overview"
     },
-    "usable_agents": {
-      "label": "Available agents",
-      "select": "Select",
-      "search_placeholder": "Search agents...",
-      "empty": "No matching agents found",
-      "load_error": "Failed to load agent list. Please try again later.",
-      "confirm": "Confirm",
-      "cancel": "Cancel"
-    },
-    "usable_tools": {
-      "label": "Available tools",
-      "load_error": "Failed to load tool list. Please try again later."
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter workspace name"
     },
     "submit": {
       "create": "Create",
       "creating": "Creating...",
       "save": "Save",
       "saving": "Saving..."
+    },
+    "usable_agents": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "empty": "No matching agents found",
+      "label": "Available agents",
+      "load_error": "Failed to load agent list. Please try again later.",
+      "search_placeholder": "Search agents...",
+      "select": "Select"
+    },
+    "usable_tools": {
+      "label": "Available tools",
+      "load_error": "Failed to load tool list. Please try again later."
     }
   },
   "panel": {
     "error": {
       "load_description": "Failed to load workspace details. Please try again later."
+    }
+  },
+  "toast": {
+    "create": {
+      "error_description": "Failed to create workspace. Please try again later.",
+      "error_title": "Create failed",
+      "success_description_with_name": "Workspace \"{{name}}\" created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "error_description": "Failed to update workspace. Please try again later.",
+      "error_title": "Update failed",
+      "success_description_with_name": "Workspace \"{{name}}\" updated successfully.",
+      "success_title": "Update success"
     }
   }
 }

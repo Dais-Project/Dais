@@ -1,42 +1,42 @@
 {
-  "select": {
-    "search_placeholder": "Search...",
-    "empty": "No results found.",
-    "footer": {
-      "confirm": "Confirm",
-      "cancel": "Cancel"
-    }
-  },
   "confirm_delete": {
-    "title": "Confirm deletion",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "title": "Confirm deletion"
   },
   "resource": {
     "model": {
-      "trigger": {
-        "loading": "Loading...",
-        "deleted": "Model has been deleted",
-        "select": "Select model"
-      },
-      "search_placeholder": "Search models...",
       "empty": {
-        "no_provider": "No providers yet. Add an LLM provider first to use models.",
-        "no_model": "No models found"
+        "no_model": "No models found",
+        "no_provider": "No providers yet. Add an LLM provider first to use models."
       },
-      "load_error": "Failed to load model list. Please try again later."
+      "load_error": "Failed to load model list. Please try again later.",
+      "search_placeholder": "Search models...",
+      "trigger": {
+        "deleted": "Model has been deleted",
+        "loading": "Loading...",
+        "select": "Select model"
+      }
     },
     "tool": {
-      "trigger": {
-        "select": "Select"
-      },
-      "search_placeholder": "Search tools...",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
       "empty": "No matching tools found",
       "load_error": "Failed to load tool list. Please try again later.",
-      "confirm": "Confirm",
-      "cancel": "Cancel",
-      "select_all": "Select all"
+      "search_placeholder": "Search tools...",
+      "select_all": "Select all",
+      "trigger": {
+        "select": "Select"
+      }
     }
+  },
+  "select": {
+    "empty": "No results found.",
+    "footer": {
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "search_placeholder": "Search..."
   }
 }

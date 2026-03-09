@@ -1,23 +1,41 @@
 {
   "fields": {
-    "name": {
-      "label": "Name",
-      "placeholder": "Enter name",
+    "directory": {
+      "choose_button": "Choose",
+      "choose_error": "Failed to choose directory",
+      "label": "Directory path",
+      "placeholder": "Enter directory path",
       "validation": {
-        "required": "Please enter a name",
-        "empty": "Name cannot be empty",
-        "max_length": "Name cannot exceed 50 characters"
-      }
-    },
-    "password": {
-      "label": "Password",
-      "validation": {
-        "required": "Please enter a password",
-        "empty": "Password cannot be empty"
+        "required": "Directory path is required"
       }
     },
     "enabled": {
       "label": "Enabled"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter name",
+      "validation": {
+        "empty": "Name cannot be empty",
+        "max_length": "Name cannot exceed 50 characters",
+        "required": "Please enter a name"
+      }
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "",
+      "validation": {
+        "empty": "Password cannot be empty",
+        "required": "Please enter a password"
+      }
+    },
+    "rich_text": {
+      "label": "Content",
+      "validation": {
+        "max_length_with_label": "{{label}} cannot exceed {{maxLength}} characters",
+        "min_length_with_label": "{{label}} must be at least {{minLength}} characters",
+        "required_with_label": "Please enter {{label}}"
+      }
     },
     "type": {
       "label": "Type",
@@ -30,25 +48,8 @@
       "label": "URL",
       "placeholder": "Enter URL",
       "validation": {
-        "required": "Please enter URL",
-        "invalid_http_https": "Please enter a valid HTTP or HTTPS URL"
-      }
-    },
-    "directory": {
-      "label": "Directory path",
-      "placeholder": "Enter directory path",
-      "choose_button": "Choose",
-      "choose_error": "Failed to choose directory",
-      "validation": {
-        "required": "Directory path is required"
-      }
-    },
-    "rich_text": {
-      "label": "Content",
-      "validation": {
-        "required_with_label": "Please enter {{label}}",
-        "min_length_with_label": "{{label}} must be at least {{minLength}} characters",
-        "max_length_with_label": "{{label}} cannot exceed {{maxLength}} characters"
+        "invalid_http_https": "Please enter a valid HTTP or HTTPS URL",
+        "required": "Please enter URL"
       }
     }
   }
