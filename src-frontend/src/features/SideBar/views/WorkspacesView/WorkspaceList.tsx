@@ -26,12 +26,13 @@ import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab, WorkspaceTabMetadata } from "@/types/tab";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "workspace",
-    title: i18n.t("workspaces.tab.edit_title_with_name", { ns: "sidebar", name: workspaceName }),
+    title: i18n.t("workspaces.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: workspaceName }),
     icon: "folder-cog",
     metadata: { mode: "edit", id: workspaceId },
   };

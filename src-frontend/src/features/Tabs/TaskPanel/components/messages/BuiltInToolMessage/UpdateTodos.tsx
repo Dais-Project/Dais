@@ -1,4 +1,5 @@
 import { ListTodoIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
@@ -9,6 +10,7 @@ import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolState } from "../../../hooks/use-tool-state";
 
 export function UpdateTodos({ message }: ToolMessageProps) {
+  const { t } = useTranslation("tabs-task");
   const { reviewTool } = useAgentTaskAction();
   const state = useToolState(message);
   const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message, UpdateTodosSchema);
@@ -19,10 +21,10 @@ export function UpdateTodos({ message }: ToolMessageProps) {
       return null;
     }
     if (toolArguments === null) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">待办参数解析失败</p>;
+      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.parse_error")}</p>;
     }
     if (todos.length === 0) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">暂无待办更新</p>;
+      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.empty")}</p>;
     }
     return (
       <div className="px-2 pb-4">
@@ -33,7 +35,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
 
   return (
     <CustomTool
-      title="已更新任务待办"
+      title={t("tool.update_todos.title")}
       icon={<ListTodoIcon className="size-4 text-muted-foreground" />}
       defaultOpen
       state={state}

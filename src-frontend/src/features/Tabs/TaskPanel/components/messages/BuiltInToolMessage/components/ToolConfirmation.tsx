@@ -1,5 +1,6 @@
 import { CheckIcon, XIcon } from "lucide-react";
 import { nanoid } from "nanoid";
+import { useTranslation } from "react-i18next";
 import {
   Confirmation,
   ConfirmationAccepted,
@@ -20,6 +21,7 @@ export function shouldShowConfirmation(state: ToolState): boolean {
 }
 
 export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmationProps) {
+  const { t } = useTranslation("tabs-task");
   let approved: boolean | undefined;
   if (state === "approval-responded") {
     approved = true;
@@ -40,21 +42,21 @@ export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmation
       <ConfirmationAccepted>
         <div className="flex items-center gap-1">
           <CheckIcon className="size-4 text-green-600 dark:text-green-400" />
-          <span>Accepted</span>
+          <span>{t("tool.confirmation.accepted")}</span>
         </div>
       </ConfirmationAccepted>
       <ConfirmationRejected>
         <div className="flex items-center gap-1">
           <XIcon className="size-4 text-destructive" />
-          <span>Rejected</span>
+          <span>{t("tool.confirmation.rejected")}</span>
         </div>
       </ConfirmationRejected>
       <ConfirmationActions>
         <ConfirmationAction onClick={onReject} variant="outline">
-          Reject
+          {t("tool.confirmation.reject")}
         </ConfirmationAction>
         <ConfirmationAction onClick={onAccept} variant="default">
-          Accept
+          {t("tool.confirmation.accept")}
         </ConfirmationAction>
       </ConfirmationActions>
     </Confirmation>

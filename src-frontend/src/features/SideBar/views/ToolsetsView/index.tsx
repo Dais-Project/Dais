@@ -2,6 +2,7 @@ import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
@@ -13,7 +14,7 @@ function openToolsetCreateTab() {
   addTab({
     id: tabIdFactory(),
     type: "toolset",
-    title: i18n.t("toolsets.tab.create_title", { ns: "sidebar" }),
+    title: i18n.t("toolsets.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
     metadata: { mode: "create" },
   });
 }

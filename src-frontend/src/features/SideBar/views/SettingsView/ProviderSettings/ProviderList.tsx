@@ -12,12 +12,13 @@ import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { ProviderTabMetadata, Tab } from "@/types/tab";
 import { ProviderBadge } from "./ProviderBadge";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createProviderEditTab(providerId: number, providerName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "provider",
-    title: i18n.t("settings.providers.tab.edit_title_with_name", { ns: "sidebar", name: providerName }),
+    title: i18n.t("settings.providers.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: providerName }),
     icon: "plug",
     metadata: { mode: "edit", id: providerId },
   };

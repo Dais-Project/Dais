@@ -37,7 +37,6 @@
     "toolsets.status.connecting": "Connecting",
     "toolsets.status.disconnected": "Disconnected",
     "toolsets.status.error": "Error",
-    "toolsets.status.unknown": "Unknown status",
     "toolsets.toast.delete_success_title": "Delete success",
     "toolsets.toast.delete_success_description": "Toolset deleted successfully.",
     "toolsets.toast.delete_error_title": "Delete failed",

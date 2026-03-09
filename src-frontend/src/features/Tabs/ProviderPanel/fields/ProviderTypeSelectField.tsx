@@ -1,7 +1,7 @@
-import { useTranslation } from "react-i18next";
 import { SelectField } from "@/components/custom/form/fields";
 import { SelectItem } from "@/components/custom/form/fields/SelectField";
 import { PROVIDER_TYPE_LABELS } from "@/constants/provider";
+import { i18n } from "@/i18n";
 
 type ProviderTypeSelectFieldProps = {
   fieldName?: string;
@@ -11,15 +11,14 @@ type ProviderTypeSelectFieldProps = {
 
 export function ProviderTypeSelectField({
   fieldName = "type",
-  label,
-  placeholder,
+  label = i18n.t("form.type.label"),
+  placeholder = i18n.t("form.type.placeholder"),
 }: ProviderTypeSelectFieldProps) {
-  const { t } = useTranslation("tabs-provider");
   return (
     <SelectField
       fieldName={fieldName}
-      placeholder={placeholder ?? t("form.type.placeholder")}
-      fieldProps={{ label: label ?? t("form.type.label") }}
+      placeholder={placeholder}
+      fieldProps={{ label }}
     >
       {Object.entries(PROVIDER_TYPE_LABELS).map(
         ([selectionValue, selectionLabel]) => (

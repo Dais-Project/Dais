@@ -1,5 +1,6 @@
 import { CheckIcon } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { ExecutionControlUpdateTodosTodosItem as TodoItem } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +18,7 @@ function getCurrentTodo(todos: TodoItem[]): TodoItem | null {
 }
 
 export function TaskProgress({ className }: { className?: string }) {
+  const { t } = useTranslation("tabs-task");
   const { todos } = useAgentTaskState();
   const currentTodo = useMemo(() => {
     if (!todos) {
@@ -37,7 +39,7 @@ export function TaskProgress({ className }: { className?: string }) {
           {!currentTodo && (
             <div className="flex items-center gap-1 text-success">
               <CheckIcon />
-              任务已完成
+              {t("task_progress.completed")}
             </div>
           )}
         </Button>

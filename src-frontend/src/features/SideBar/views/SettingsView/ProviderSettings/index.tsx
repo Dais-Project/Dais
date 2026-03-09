@@ -8,12 +8,13 @@ import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { ProviderList } from "./ProviderList";
 import { ProviderListSkeleton } from "./ProviderListSkeleton";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createProviderCreateTab(): Tab {
   return {
     id: tabIdFactory(),
     type: "provider",
-    title: i18n.t("settings.providers.tab.create_title", { ns: "sidebar" }),
+    title: i18n.t("settings.providers.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
     icon: "plug-zap",
     metadata: { mode: "create" },
   };

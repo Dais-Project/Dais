@@ -34,7 +34,7 @@ function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
   return (
     <>
       <SelectDialogEmpty>{t("models.select.empty")}</SelectDialogEmpty>
-      {data?.models?.map((model: string) => (
+      {data?.models?.map((model) => (
         <SelectDialogItem key={model} value={model}>
           {model}
         </SelectDialogItem>

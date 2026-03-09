@@ -7,13 +7,14 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { AgentList } from "./AgentList";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function openAgentCreateTab() {
   const addTab = useTabsStore.getState().add;
   addTab({
     id: tabIdFactory(),
     type: "agent",
-    title: i18n.t("agents.tab.create_title", { ns: "sidebar" }),
+    title: i18n.t("agents.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
     icon: "bot",
     metadata: { mode: "create" },
   });

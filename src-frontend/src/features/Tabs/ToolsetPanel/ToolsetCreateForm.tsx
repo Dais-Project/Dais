@@ -20,7 +20,7 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
 
   const createMutation = useCreateMcpToolset({
     mutation: {
-      async onSuccess(newToolset: { name: string }) {
+      async onSuccess(newToolset) {
         await invalidateToolsetQueries();
         toast.success(t("toast.create.success_title"), {
           description: t("toast.create.success_description_with_name", { name: newToolset.name }),

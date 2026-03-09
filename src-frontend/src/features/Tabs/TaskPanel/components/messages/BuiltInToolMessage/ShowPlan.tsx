@@ -1,5 +1,6 @@
 import { ClipboardCopyIcon, SquareKanbanIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Streamdown } from "streamdown";
 import type { UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
@@ -33,6 +34,8 @@ function PlanAlternatives({
   onSelect,
   onFill,
 }: PlanAlternativesProps) {
+  const { t } = useTranslation("tabs-task");
+
   if (alternatives.length === 0) {
     return null;
   }
@@ -90,7 +93,7 @@ function PlanAlternatives({
                     <ClipboardCopyIcon className="size-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>复制到输入框</TooltipContent>
+                <TooltipContent>{t("tool.show_plan.copy_to_input")}</TooltipContent>
               </Tooltip>
               <CardContent className="px-4 text-start text-sm">{alternative}</CardContent>
             </Card>
@@ -103,6 +106,7 @@ function PlanAlternatives({
 }
 
 export function ShowPlan({ message }: ToolMessageProps) {
+  const { t } = useTranslation("tabs-task");
   const { answerTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<UserInteractionShowPlan>(message, ShowPlanToolSchema);
   const hasResult = message.result !== null;
@@ -149,7 +153,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
 
   const content = () => {
     if (toolArguments === null) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">计划参数解析失败</p>;
+      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.show_plan.parse_error")}</p>;
     }
 
     return (
@@ -172,7 +176,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
           value={userFeedback}
           className="px-4 border-none rounded-none shadow-none resize-none focus-visible:ring-0"
           onChange={(e) => setUserFeedback(e.target.value)}
-          placeholder="在此输入对计划的修改意见..."
+          placeholder={t("tool.show_plan.feedback_placeholder")}
           disabled={hasResult}
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.ctrlKey) {
@@ -197,7 +201,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
             "--primary-foreground": "var(--color-white)",
           } as React.CSSProperties}
         >
-          提交修改意见
+          {t("tool.show_plan.submit_feedback")}
         </CustonToolAction>
       );
     }
@@ -207,14 +211,14 @@ export function ShowPlan({ message }: ToolMessageProps) {
         onClick={handleApprove}
         disabled={hasResult}
       >
-        批准计划
+        {t("tool.show_plan.approve")}
       </CustonToolAction>
     );
   };
 
   return (
     <CustomTool
-      title="Dais 想要向你展示计划："
+      title={t("tool.show_plan.title")}
       icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
       defaultOpen
     >

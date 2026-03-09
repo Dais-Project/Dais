@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -47,27 +48,11 @@ function getStatusColor(status: McpToolsetStatus): string {
   }
 }
 
-// TODO: replace this function with I18N
-function getStatusText(status: McpToolsetStatus, t: (key: string) => string): string {
-  switch (status) {
-    case "connected":
-      return t("toolsets.status.connected");
-    case "connecting":
-      return t("toolsets.status.connecting");
-    case "disconnected":
-      return t("toolsets.status.disconnected");
-    case "error":
-      return t("toolsets.status.error");
-    default:
-      return t("toolsets.status.unknown");
-  }
-}
-
 function createToolsetEditTab(toolsetId: number, toolsetName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "toolset",
-    title: i18n.t("toolsets.tab.edit_title_with_name", { ns: "sidebar", name: toolsetName }),
+    title: i18n.t("toolsets.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: toolsetName }),
     icon: "wrench",
     metadata: { mode: "edit", id: toolsetId },
   };
@@ -141,12 +126,12 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
                       <span
                         className={cn(
                           "inline-block size-2 rounded-full",
-                          getStatusColor(toolset.status ?? "connected")
+                          getStatusColor(toolset.status)
                         )}
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{getStatusText(toolset.status ?? "connected", t)}</p>
+                      <p>{t(`toolsets.status.${toolset.status}`)}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

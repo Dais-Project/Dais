@@ -23,12 +23,13 @@ import { i18n } from "@/i18n";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata, Tab } from "@/types/tab";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
     id: tabIdFactory(),
     type: "agent",
-    title: i18n.t("agents.tab.edit_title_with_name", { ns: "sidebar", name: agentName }),
+    title: i18n.t("agents.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: agentName }),
     icon: "bot",
     metadata: { mode: "edit", id: agentId },
   };

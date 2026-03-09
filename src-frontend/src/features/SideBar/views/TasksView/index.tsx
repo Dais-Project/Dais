@@ -2,19 +2,20 @@ import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { DEFAULT_TAB_TITLE } from "@/features/Tabs/TaskPanel";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { TaskList } from "./TaskList";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
+import { i18n } from "@/i18n";
 
 function openTaskCreateTab() {
   const addTab = useTabsStore.getState().add;
   addTab({
     id: tabIdFactory(),
-    title: DEFAULT_TAB_TITLE,
+    title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
     type: "task",
     metadata: {
       isDraft: true,

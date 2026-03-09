@@ -9,6 +9,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "ahooks";
 import { AtSignIcon, FileIcon, FolderIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type OnSelectHandler = (path: string) => void;
 
@@ -37,6 +38,7 @@ type SearchResultsProps = {
 };
 
 function SearchResults({ query, onSelect }: SearchResultsProps) {
+  const { t } = useTranslation("tabs-task");
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   if (currentWorkspace === null) {
     return null;
@@ -46,10 +48,10 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
     { query: { placeholderData: keepPreviousData } },
   );
   if (isLoading && data === undefined) {
-    return <CommandLoading>Loading...</CommandLoading>;
+    return <CommandLoading>{t("prompt.context.loading")}</CommandLoading>;
   }
   if (data === undefined || data.items.length === 0) {
-    return <CommandEmpty>No results found.</CommandEmpty>;
+    return <CommandEmpty>{t("prompt.context.no_results")}</CommandEmpty>;
   }
   return (
     <>
@@ -72,6 +74,7 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
 }
 
 function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
+  const { t } = useTranslation("tabs-task");
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, { wait: 150 });
   const isSearching = query.length > 0;
@@ -80,7 +83,7 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
     <Command shouldFilter={false}>
       <CommandInput
         className="border-none focus-visible:ring-0"
-        placeholder="Add files, folders, docs..."
+        placeholder={t("prompt.context.search_placeholder")}
         value={query} onValueChange={setQuery}
       />
       <CommandList className="p-1">
@@ -88,8 +91,8 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
           <SearchResults query={debouncedQuery} onSelect={onSelect} />
         ) : (
           <AsyncBoundary
-            skeleton={<div className="p-3 text-muted-foreground text-sm">Loading...</div>}
-            errorDescription="Failed to load files."
+            skeleton={<div className="p-3 text-muted-foreground text-sm">{t("prompt.context.loading")}</div>}
+            errorDescription={t("prompt.context.load_error")}
           >
             <FileTreeSuspense onSelect={onSelect} />
           </AsyncBoundary>
@@ -110,6 +113,7 @@ export function contextFileConcat(current: string, path: string): string {
 }
 
 export function ContextSelectPopover({ onSelect }: { onSelect?: OnSelectHandler }) {
+  const { t } = useTranslation("tabs-task");
   const [open, setOpen] = useState(false);
   const handleSelect = (path: string) => {
     onSelect?.(path);
@@ -120,7 +124,7 @@ export function ContextSelectPopover({ onSelect }: { onSelect?: OnSelectHandler 
       <PopoverTrigger asChild>
         <PromptInputButton
           variant="outline"
-          tooltip="Add files, folders, docs..."
+          tooltip={t("prompt.context.trigger_tooltip")}
         >
           <AtSignIcon className="text-muted-foreground" size={12} />
         </PromptInputButton>

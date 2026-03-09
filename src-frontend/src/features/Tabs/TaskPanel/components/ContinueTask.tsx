@@ -1,5 +1,6 @@
 import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { BuiltInTools, type ToolMessageMetadata } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ function shouldShow(message: UiMessage[]): boolean {
 }
 
 export function ContinueTask() {
+  const { t } = useTranslation("tabs-task");
   const { messages } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
   const [show, setShow] = useState(false);
@@ -50,10 +52,10 @@ export function ContinueTask() {
         <InfoIcon className="size-4" />
       </div>
       <AlertTitle className="flex flex-1 items-center justify-between">
-        <div>任务已暂停，点击继续执行</div>
+        <div>{t("continue.banner.title")}</div>
         <Button onClick={() => continueTask()} size="sm">
           <PlayIcon />
-          继续任务
+          {t("continue.banner.action")}
         </Button>
       </AlertTitle>
     </Alert>

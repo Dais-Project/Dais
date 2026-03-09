@@ -37,7 +37,6 @@
     "toolsets.status.connecting": "连接中",
     "toolsets.status.disconnected": "已断开",
     "toolsets.status.error": "错误",
-    "toolsets.status.unknown": "未知状态",
     "toolsets.toast.delete_success_title": "删除成功",
     "toolsets.toast.delete_success_description": "已成功删除工具集。",
     "toolsets.toast.delete_error_title": "删除失败",
