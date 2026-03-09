@@ -73,10 +73,7 @@ export function WorkspaceEditForm({
         controlProps={{ placeholder: t("form.name.placeholder") }}
       />
 
-      <DirectoryField
-        fieldName="directory"
-        fieldProps={{ label: t("form.directory.label") }}
-      />
+      <DirectoryField fieldName="directory" />
 
       <RichTextField
         fieldName="instruction"

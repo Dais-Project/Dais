@@ -1,3 +1,5 @@
+import type { ComponentProps } from "react";
+import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import {
@@ -7,14 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { i18n } from "@/i18n";
 import type { FieldProps } from ".";
 
 type SelectFieldProps<S extends Record<string, string>> = FieldProps<
-  typeof Select,
+  Omit<ComponentProps<typeof Select>, "value" | "onValueChange" | "name">,
   {
     placeholder?: string;
-    required?: boolean;
-    errorMessage?: string;
   } & MustOneOf<{
     selections: S;
     children: React.ReactNode;
@@ -27,48 +28,40 @@ export function SelectField<S extends Record<string, string>>({
   selections,
   children,
   fieldName = "type",
-  placeholder = "请选择类型",
-  required = true,
-  errorMessage = "请选择类型",
-  fieldProps = { label: "类型" },
+  placeholder = i18n.t("fields.type.placeholder"),
+  fieldProps,
   controlProps,
 }: SelectFieldProps<S>) {
+  const { t } = useTranslation("form");
   const { control } = useFormContext<Record<string, string>>();
+  const { label = t("fields.type.label"), ...restFieldProps } = fieldProps ?? {};
+  const { required = true, ...restControlProps } = controlProps ?? {};
   const { field, fieldState } = useController({
     name: fieldName,
     control,
     rules: {
-      required: required ? errorMessage : false,
+      required: required ? t("fields.type.validation.required") : false,
     },
   });
 
-  const {
-    onValueChange: onValueChangeFromProps,
-    value: _ignoredValue,
-    defaultValue: _ignoredDefaultValue,
-    name: _ignoredName,
-    required: requiredFromProps,
-    ...restControlProps
-  } = controlProps ?? {};
-
   return (
-    <FieldItem {...fieldProps} fieldState={fieldState}>
+    <FieldItem
+      {...restFieldProps}
+      label={label}
+      fieldState={fieldState}
+    >
       <Select
+        name={fieldName}
+        value={field.value}
+        onValueChange={field.onChange}
+        required={required}
         {...restControlProps}
-        value={typeof field.value === "string" ? field.value : undefined}
-        onValueChange={(value) => {
-          field.onChange(value);
-          onValueChangeFromProps?.(value);
-        }}
-        name={field.name}
-        required={requiredFromProps ?? required}
       >
         <SelectTrigger onBlur={field.onBlur}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {children ??
-            // biome-ignore lint/style/noNonNullAssertion: selections is guaranteed to be defined if we reach this line
             Object.entries(selections!).map(
               ([selectionLabel, selectionValue]) => (
                 <SelectItem

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Switch } from "@/components/ui/switch";
@@ -5,15 +6,21 @@ import type { FieldProps } from ".";
 
 type SwitchFieldProps = FieldProps<typeof Switch>;
 
-export function SwitchField({ fieldName, fieldProps = { label: "启用" }, controlProps }: SwitchFieldProps) {
+export function SwitchField({ fieldName, fieldProps, controlProps }: SwitchFieldProps) {
+  const { t } = useTranslation("form");
   const { control, getFieldState } = useFormContext<Record<string, boolean>>();
   const { field } = useController({
     name: fieldName,
     control,
   });
+  const { label = t("fields.enabled.label"), ...restFieldProps } = fieldProps ?? {};
 
   return (
-    <FieldItem {...fieldProps} fieldState={getFieldState(fieldName)}>
+    <FieldItem
+      {...restFieldProps}
+      label={label}
+      fieldState={getFieldState(fieldName)}
+    >
       <Switch
         checked={field.value}
         onCheckedChange={field.onChange}

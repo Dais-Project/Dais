@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   type RegisterOptions,
   useController,
@@ -8,6 +9,7 @@ import { Vditor } from "@/components/custom/Vditor";
 import type { FieldProps } from ".";
 
 function createRichTextRules(
+  t: (key: string, options?: Record<string, string | number>) => string,
   label: string,
   required: boolean,
   minLength: number,
@@ -15,18 +17,24 @@ function createRichTextRules(
 ) {
   const rules: RegisterOptions = {};
   if (required) {
-    rules.required = `请输入${label}`;
+    rules.required = t("fields.rich_text.validation.required_with_label", { label });
   }
   if (minLength !== undefined) {
     rules.minLength = {
       value: minLength,
-      message: `${label}不能少于 ${minLength} 个字符`,
+      message: t("fields.rich_text.validation.min_length_with_label", {
+        label,
+        minLength,
+      }),
     };
   }
   if (maxLength !== undefined) {
     rules.maxLength = {
       value: maxLength,
-      message: `${label}不能超过 ${maxLength} 个字符`,
+      message: t("fields.rich_text.validation.max_length_with_label", {
+        label,
+        maxLength,
+      }),
     };
   }
   return rules;
@@ -47,19 +55,24 @@ export function RichTextField({
   minLength = 1,
   maxLength,
   controlProps,
-  fieldProps = { label: "内容" },
+  fieldProps,
 }: RichTextFieldProps) {
+  const { t } = useTranslation("form");
   const { control, getFieldState } = useFormContext();
+  const { label = t("form.rich_text.label"), ...restFieldProps } = fieldProps ?? {};
+
   const { field } = useController({
     name: fieldName,
     control,
-    rules: createRichTextRules(fieldProps.label as string, required, minLength, maxLength),
+    rules: createRichTextRules(t, label as string, required, minLength, maxLength),
   });
+
   return (
     <FieldItem
+      label={label}
       fieldState={getFieldState(fieldName)}
       orientation="vertical"
-      {...fieldProps}
+      {...restFieldProps}
     >
       <Vditor
         initialValue={field.value}

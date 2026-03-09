@@ -16,6 +16,7 @@ import {
 } from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 function ToolQueryList({ onFetched }: { onFetched: (toolsets: ToolsetRead[]) => void }) {
   const { data: toolsets } = useGetToolsetsSuspense();
@@ -49,6 +50,7 @@ type ToolMultiSelectDialogProps = {
 };
 
 export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialogProps) {
+  const { t } = useTranslation("dialog");
   const allToolIdsRef = useRef<number[]>([]);
 
   const handleFetched = (toolsets: ToolsetRead[]) => {
@@ -64,27 +66,27 @@ export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialog
     <SelectDialog<number> mode="multi" value={value}>
       <SelectDialogTrigger>
         <Button type="button" variant="outline">
-          选择
+          {t("resource.tool.trigger.select")}
         </Button>
       </SelectDialogTrigger>
       <SelectDialogContent>
-        <SelectDialogSearch placeholder="搜索工具..." />
+        <SelectDialogSearch placeholder={t("resource.tool.search_placeholder")} />
         <SelectDialogList>
-          <SelectDialogEmpty>未找到匹配的工具</SelectDialogEmpty>
+          <SelectDialogEmpty>{t("resource.tool.empty")}</SelectDialogEmpty>
           <AsyncBoundary
             skeleton={<SelectDialogSkeleton />}
-            errorDescription="无法加载工具列表，请稍后重试。"
+            errorDescription={t("resource.tool.load_error")}
           >
             <ToolQueryList onFetched={handleFetched} />
           </AsyncBoundary>
         </SelectDialogList>
         <SelectDialogFooter
           onConfirm={onChange}
-          confirmText="确定"
-          cancelText="取消"
+          confirmText={t("resource.tool.confirm")}
+          cancelText={t("resource.tool.cancel")}
         >
           <SelectDialogFooterAction onClick={handleSelectAll}>
-            全选
+            {t("resource.tool.select_all")}
           </SelectDialogFooterAction>
         </SelectDialogFooter>
       </SelectDialogContent>
