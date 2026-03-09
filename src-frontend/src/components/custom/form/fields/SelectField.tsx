@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { i18n } from "@/i18n";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 import type { FieldProps } from ".";
 
 type SelectFieldProps<S extends Record<string, string>> = FieldProps<
@@ -28,7 +29,7 @@ export function SelectField<S extends Record<string, string>>({
   selections,
   children,
   fieldName = "type",
-  placeholder = i18n.t("fields.type.placeholder"),
+  placeholder = i18n.t("fields.type.placeholder", { ns: FORM_NAMESPACE }),
   fieldProps,
   controlProps,
 }: SelectFieldProps<S>) {

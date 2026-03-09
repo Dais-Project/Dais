@@ -29,6 +29,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { i18n } from "@/i18n";
+import { DIALOG_NAMESPACE } from "@/i18n/resources";
 
 type Selection = string | number;
 
@@ -227,7 +228,7 @@ export function SelectDialogContent({
 // ============================================================
 
 export function SelectDialogSearch({
-  placeholder = i18n.t("select.search_placeholder"),
+  placeholder = i18n.t("select.search_placeholder", { ns: DIALOG_NAMESPACE }),
 }: {
   placeholder?: string;
 }) {

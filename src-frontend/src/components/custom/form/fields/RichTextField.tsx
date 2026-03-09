@@ -7,17 +7,19 @@ import {
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Vditor } from "@/components/custom/Vditor";
 import type { FieldProps } from ".";
+import { i18n } from "@/i18n";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 
 function createRichTextRules(
-  t: (key: string, options?: Record<string, string | number>) => string,
   label: string,
   required: boolean,
   minLength: number,
   maxLength: number | undefined
 ) {
+  const t = (...args: Parameters<typeof i18n.t>) => i18n.t(...args);
   const rules: RegisterOptions = {};
   if (required) {
-    rules.required = t("fields.rich_text.validation.required_with_label", { label });
+    rules.required = t("fields.rich_text.validation.required_with_label", { label, ns: FORM_NAMESPACE });
   }
   if (minLength !== undefined) {
     rules.minLength = {
@@ -25,6 +27,7 @@ function createRichTextRules(
       message: t("fields.rich_text.validation.min_length_with_label", {
         label,
         minLength,
+        ns: FORM_NAMESPACE
       }),
     };
   }
@@ -34,6 +37,7 @@ function createRichTextRules(
       message: t("fields.rich_text.validation.max_length_with_label", {
         label,
         maxLength,
+        ns: FORM_NAMESPACE
       }),
     };
   }
@@ -64,7 +68,7 @@ export function RichTextField({
   const { field } = useController({
     name: fieldName,
     control,
-    rules: createRichTextRules(t, label as string, required, minLength, maxLength),
+    rules: createRichTextRules(label as string, required, minLength, maxLength),
   });
 
   return (

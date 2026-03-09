@@ -8,5 +8,6 @@ export default defineConfig({
   extract: {
     input: "src/**/*.{js,jsx,ts,tsx}",
     output: "src/i18n/locales/{{language}}/{{namespace}}.json",
+    defaultNS: false,
   }
 });
