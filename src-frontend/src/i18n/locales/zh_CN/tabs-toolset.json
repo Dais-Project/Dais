@@ -1,35 +1,69 @@
 {
-    "toast.create.success_title": "创建成功",
-    "toast.create.success_description_with_name": "已成功创建 Toolset {{name}}。",
-    "toast.create.error_title": "创建失败",
-    "toast.create.error_description": "创建 Toolset 时发生错误，请稍后重试。",
-    "toast.update.success_title": "更新成功",
-    "toast.update.success_description_with_name": "已成功更新 Toolset {{name}}。",
-    "toast.update.error_title": "更新失败",
-    "toast.update.error_description": "更新 Toolset 时发生错误，请稍后重试。",
-    "form.name.label": "名称",
-    "form.type.label": "类型",
-    "form.type.placeholder": "选择 Toolset 类型",
-    "form.type.option.built_in": "Built-in",
-    "form.type.option.mcp_local": "Local MCP",
-    "form.type.option.mcp_remote": "Remote MCP",
-    "form.is_enabled.label": "启用",
-    "form.tools.label": "工具列表",
-    "form.tool_item.enabled": "启用",
-    "form.tool_item.auto_approve": "自动批准",
-    "form.command.label": "命令",
-    "form.command.required": "请输入命令",
-    "form.args.label": "参数",
-    "form.args.description": "每行一个参数",
-    "form.args.placeholder": "例如:\n--version\n--help",
-    "form.url.label": "URL",
-    "form.url.placeholder": "https://api.example.com",
-    "form.http_headers.label": "HTTP Headers",
-    "form.http_headers.description": "JSON 格式的请求头",
-    "form.http_headers.invalid_json": "请输入有效的 JSON 格式",
-    "form.submit.create": "创建",
-    "form.submit.creating": "创建中...",
-    "form.submit.save": "保存",
-    "form.submit.saving": "保存中...",
-    "panel.error.load_description": "无法加载 Toolset 信息，请稍后重试。"
+  "toast": {
+    "create": {
+      "success_title": "创建成功",
+      "success_description_with_name": "已成功创建 Toolset {{name}}。",
+      "error_title": "创建失败",
+      "error_description": "创建 Toolset 时发生错误，请稍后重试。"
+    },
+    "update": {
+      "success_title": "更新成功",
+      "success_description_with_name": "已成功更新 Toolset {{name}}。",
+      "error_title": "更新失败",
+      "error_description": "更新 Toolset 时发生错误，请稍后重试。"
+    }
+  },
+  "form": {
+    "name": {
+      "label": "名称"
+    },
+    "type": {
+      "label": "类型",
+      "placeholder": "选择 Toolset 类型",
+      "option": {
+        "built_in": "Built-in",
+        "mcp_local": "Local MCP",
+        "mcp_remote": "Remote MCP"
+      }
+    },
+    "is_enabled": {
+      "label": "启用"
+    },
+    "tools": {
+      "label": "工具列表"
+    },
+    "tool_item": {
+      "enabled": "启用",
+      "auto_approve": "自动批准"
+    },
+    "command": {
+      "label": "命令",
+      "required": "请输入命令"
+    },
+    "args": {
+      "label": "参数",
+      "description": "每行一个参数",
+      "placeholder": "例如:\n--version\n--help"
+    },
+    "url": {
+      "label": "URL",
+      "placeholder": "https://api.example.com"
+    },
+    "http_headers": {
+      "label": "HTTP Headers",
+      "description": "JSON 格式的请求头",
+      "invalid_json": "请输入有效的 JSON 格式"
+    },
+    "submit": {
+      "create": "创建",
+      "creating": "创建中...",
+      "save": "保存",
+      "saving": "保存中..."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "无法加载 Toolset 信息，请稍后重试。"
+    }
+  }
 }

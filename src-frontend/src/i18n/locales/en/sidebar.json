@@ -1,93 +1,193 @@
 {
-    "agents.header.title": "Agents",
-    "agents.header.create_tooltip": "Create new agent",
-    "agents.tab.create_title": "Create agent",
-    "agents.tab.edit_title_with_name": "Edit: {{name}}",
-    "agents.list.error_load": "Failed to load agents. Please try again later.",
-    "agents.list.no_model": "No model",
-    "agents.menu.edit": "Edit agent",
-    "agents.menu.delete": "Delete",
-    "agents.toast.delete_success_title": "Delete success",
-    "agents.toast.delete_success_description": "Agent deleted successfully.",
-    "agents.toast.delete_error_title": "Delete failed",
-    "agents.toast.delete_error_description": "Failed to delete the agent. Please try again later.",
-    "agents.dialog.delete_description_with_name": "Are you sure you want to delete agent \"{{name}}\"? This action cannot be undone.",
-    "workspaces.header.title": "Workspaces",
-    "workspaces.header.create_tooltip": "Create new workspace",
-    "workspaces.tab.create_title": "Create workspace",
-    "workspaces.tab.edit_title_with_name": "Edit: {{name}}",
-    "workspaces.list.error_load": "Failed to load workspaces. Please try again later.",
-    "workspaces.menu.edit": "Edit workspace",
-    "workspaces.menu.delete": "Delete",
-    "workspaces.toast.delete_success_title": "Delete success",
-    "workspaces.toast.delete_success_description": "Workspace deleted successfully.",
-    "workspaces.toast.delete_error_title": "Delete failed",
-    "workspaces.toast.delete_error_description": "Failed to delete the workspace. Please try again later.",
-    "workspaces.empty.title": "No workspaces",
-    "workspaces.empty.description": "You haven't created any workspaces yet.",
-    "workspaces.dialog.delete_description_with_name": "Are you sure you want to delete workspace \"{{name}}\"? This action cannot be undone.",
-    "toolsets.header.title": "Toolsets",
-    "toolsets.header.create_tooltip": "Connect to MCP server",
-    "toolsets.tab.create_title": "Connect to MCP server",
-    "toolsets.tab.edit_title_with_name": "Edit: {{name}}",
-    "toolsets.list.error_load": "Failed to load toolsets. Please try again later.",
-    "toolsets.menu.edit": "Edit toolset",
-    "toolsets.menu.delete": "Delete",
-    "toolsets.status.connected": "Connected",
-    "toolsets.status.connecting": "Connecting",
-    "toolsets.status.disconnected": "Disconnected",
-    "toolsets.status.error": "Error",
-    "toolsets.toast.delete_success_title": "Delete success",
-    "toolsets.toast.delete_success_description": "Toolset deleted successfully.",
-    "toolsets.toast.delete_error_title": "Delete failed",
-    "toolsets.toast.delete_error_description": "Failed to delete the toolset. Please try again later.",
-    "toolsets.dialog.delete_description_with_name": "Are you sure you want to delete toolset \"{{name}}\"? This action cannot be undone.",
-    "tasks.header.title": "Tasks",
-    "tasks.header.create_tooltip": "Create new task",
-    "tasks.list.error_load": "Failed to load tasks. Please try again later.",
-    "tasks.empty.no_workspace.title": "No workspace selected",
-    "tasks.empty.no_workspace.description": "Please select a workspace first to view tasks.",
-    "tasks.empty.title": "No tasks",
-    "tasks.empty.description": "You haven't created any tasks yet.",
-    "tasks.menu.rename": "Edit task name",
-    "tasks.menu.delete": "Delete",
-    "tasks.toast.rename_feature_title": "Rename feature",
-    "tasks.toast.rename_feature_description": "Rename feature is not implemented yet",
-    "tasks.toast.delete_success_title": "Delete success",
-    "tasks.toast.delete_success_description": "Task deleted successfully.",
-    "tasks.toast.delete_error_title": "Delete failed",
-    "tasks.toast.delete_error_description": "Failed to delete the task. Please try again later.",
-    "tasks.dialog.delete_description_with_name": "Are you sure you want to delete task \"{{name}}\"? This action cannot be undone.",
-    "settings.header.title": "Settings",
-    "settings.tabs.general": "General",
-    "settings.tabs.providers": "Model providers",
-    "settings.tabs.helper_model": "Helper model",
-    "settings.tabs.dev": "Developer tools",
-    "settings.general.theme.title": "Theme",
-    "settings.general.theme.placeholder": "Select theme",
-    "settings.general.theme.system": "System",
-    "settings.general.theme.light": "Light",
-    "settings.general.theme.dark": "Dark",
-    "settings.general.language.title": "Language",
-    "settings.general.language.placeholder": "Select language",
-    "settings.general.reply_language.title": "Model reply language",
-    "settings.general.reply_language.placeholder": "Select language",
-    "settings.helper_model.flash_model.title": "Quick model",
-    "settings.dev.devtools.title": "Developer tools",
-    "settings.dev.devtools.open_button": "Open",
-    "settings.providers.tab.create_title": "Add provider",
-    "settings.providers.tab.edit_title_with_name": "Edit: {{name}}",
-    "settings.providers.list.error_load": "Failed to load providers. Please try again later.",
-    "settings.providers.actions.add": "Add",
-    "settings.providers.list.model_count_with_count": "{{count}} models",
-    "settings.providers.list.edit_provider_title": "Edit provider",
-    "settings.providers.list.delete_provider_title": "Delete",
-    "settings.providers.dialog.delete_description_with_name": "Are you sure you want to delete provider \"{{name}}\"? This action cannot be undone.",
-    "settings.providers.toast.delete_success_title": "Delete success",
-    "settings.providers.toast.delete_success_description": "Provider deleted successfully.",
-    "settings.providers.toast.delete_error_title": "Delete failed",
-    "settings.providers.toast.delete_error_description": "Failed to delete the provider. Please try again later.",
-    "settings.providers.empty.title": "No model providers",
-    "settings.providers.empty.description": "No providers configured yet.",
-    "plugins.placeholder": "Plugins view"
+  "agents": {
+    "header": {
+      "title": "Agents",
+      "create_tooltip": "Create new agent"
+    },
+    "tab": {
+      "create_title": "Create agent",
+      "edit_title_with_name": "Edit: {{name}}"
+    },
+    "list": {
+      "error_load": "Failed to load agents. Please try again later.",
+      "no_model": "No model"
+    },
+    "menu": {
+      "edit": "Edit agent",
+      "delete": "Delete"
+    },
+    "toast": {
+      "delete_success_title": "Delete success",
+      "delete_success_description": "Agent deleted successfully.",
+      "delete_error_title": "Delete failed",
+      "delete_error_description": "Failed to delete the agent. Please try again later."
+    },
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete agent \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "workspaces": {
+    "header": {
+      "title": "Workspaces",
+      "create_tooltip": "Create new workspace"
+    },
+    "tab": {
+      "create_title": "Create workspace",
+      "edit_title_with_name": "Edit: {{name}}"
+    },
+    "list": {
+      "error_load": "Failed to load workspaces. Please try again later."
+    },
+    "menu": {
+      "edit": "Edit workspace",
+      "delete": "Delete"
+    },
+    "toast": {
+      "delete_success_title": "Delete success",
+      "delete_success_description": "Workspace deleted successfully.",
+      "delete_error_title": "Delete failed",
+      "delete_error_description": "Failed to delete the workspace. Please try again later."
+    },
+    "empty": {
+      "title": "No workspaces",
+      "description": "You haven't created any workspaces yet."
+    },
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete workspace \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "toolsets": {
+    "header": {
+      "title": "Toolsets",
+      "create_tooltip": "Connect to MCP server"
+    },
+    "tab": {
+      "create_title": "Connect to MCP server",
+      "edit_title_with_name": "Edit: {{name}}"
+    },
+    "list": {
+      "error_load": "Failed to load toolsets. Please try again later."
+    },
+    "menu": {
+      "edit": "Edit toolset",
+      "delete": "Delete"
+    },
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "disconnected": "Disconnected",
+      "error": "Error"
+    },
+    "toast": {
+      "delete_success_title": "Delete success",
+      "delete_success_description": "Toolset deleted successfully.",
+      "delete_error_title": "Delete failed",
+      "delete_error_description": "Failed to delete the toolset. Please try again later."
+    },
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete toolset \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "tasks": {
+    "header": {
+      "title": "Tasks",
+      "create_tooltip": "Create new task"
+    },
+    "list": {
+      "error_load": "Failed to load tasks. Please try again later."
+    },
+    "empty": {
+      "no_workspace": {
+        "title": "No workspace selected",
+        "description": "Please select a workspace first to view tasks."
+      },
+      "title": "No tasks",
+      "description": "You haven't created any tasks yet."
+    },
+    "menu": {
+      "rename": "Edit task name",
+      "delete": "Delete"
+    },
+    "toast": {
+      "rename_feature_title": "Rename feature",
+      "rename_feature_description": "Rename feature is not implemented yet",
+      "delete_success_title": "Delete success",
+      "delete_success_description": "Task deleted successfully.",
+      "delete_error_title": "Delete failed",
+      "delete_error_description": "Failed to delete the task. Please try again later."
+    },
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete task \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "settings": {
+    "header": {
+      "title": "Settings"
+    },
+    "tabs": {
+      "general": "General",
+      "providers": "Model providers",
+      "helper_model": "Helper model",
+      "dev": "Developer tools"
+    },
+    "general": {
+      "theme": {
+        "title": "Theme",
+        "placeholder": "Select theme",
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "language": {
+        "title": "Language",
+        "placeholder": "Select language"
+      },
+      "reply_language": {
+        "title": "Model reply language",
+        "placeholder": "Select language"
+      }
+    },
+    "helper_model": {
+      "flash_model": {
+        "title": "Quick model"
+      }
+    },
+    "dev": {
+      "devtools": {
+        "title": "Developer tools",
+        "open_button": "Open"
+      }
+    },
+    "providers": {
+      "tab": {
+        "create_title": "Add provider",
+        "edit_title_with_name": "Edit: {{name}}"
+      },
+      "list": {
+        "error_load": "Failed to load providers. Please try again later.",
+        "model_count_with_count": "{{count}} models",
+        "edit_provider_title": "Edit provider",
+        "delete_provider_title": "Delete"
+      },
+      "actions": {
+        "add": "Add"
+      },
+      "dialog": {
+        "delete_description_with_name": "Are you sure you want to delete provider \"{{name}}\"? This action cannot be undone."
+      },
+      "toast": {
+        "delete_success_title": "Delete success",
+        "delete_success_description": "Provider deleted successfully.",
+        "delete_error_title": "Delete failed",
+        "delete_error_description": "Failed to delete the provider. Please try again later."
+      },
+      "empty": {
+        "title": "No model providers",
+        "description": "No providers configured yet."
+      }
+    }
+  },
+  "plugins": {
+    "placeholder": "Plugins view"
+  }
 }

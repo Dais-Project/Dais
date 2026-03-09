@@ -1,35 +1,69 @@
 {
-    "toast.create.success_title": "Create success",
-    "toast.create.success_description_with_name": "Toolset {{name}} created successfully.",
-    "toast.create.error_title": "Create failed",
-    "toast.create.error_description": "Failed to create toolset. Please try again later.",
-    "toast.update.success_title": "Update success",
-    "toast.update.success_description_with_name": "Toolset {{name}} updated successfully.",
-    "toast.update.error_title": "Update failed",
-    "toast.update.error_description": "Failed to update toolset. Please try again later.",
-    "form.name.label": "Name",
-    "form.type.label": "Type",
-    "form.type.placeholder": "Select toolset type",
-    "form.type.option.built_in": "Built-in",
-    "form.type.option.mcp_local": "Local MCP",
-    "form.type.option.mcp_remote": "Remote MCP",
-    "form.is_enabled.label": "Enabled",
-    "form.tools.label": "Tools",
-    "form.tool_item.enabled": "Enabled",
-    "form.tool_item.auto_approve": "Auto approve",
-    "form.command.label": "Command",
-    "form.command.required": "Please enter command",
-    "form.args.label": "Args",
-    "form.args.description": "One argument per line",
-    "form.args.placeholder": "For example:\n--version\n--help",
-    "form.url.label": "URL",
-    "form.url.placeholder": "https://api.example.com",
-    "form.http_headers.label": "HTTP headers",
-    "form.http_headers.description": "Request headers in JSON format",
-    "form.http_headers.invalid_json": "Please enter valid JSON",
-    "form.submit.create": "Create",
-    "form.submit.creating": "Creating...",
-    "form.submit.save": "Save",
-    "form.submit.saving": "Saving...",
-    "panel.error.load_description": "Failed to load toolset details. Please try again later."
+  "toast": {
+    "create": {
+      "success_title": "Create success",
+      "success_description_with_name": "Toolset {{name}} created successfully.",
+      "error_title": "Create failed",
+      "error_description": "Failed to create toolset. Please try again later."
+    },
+    "update": {
+      "success_title": "Update success",
+      "success_description_with_name": "Toolset {{name}} updated successfully.",
+      "error_title": "Update failed",
+      "error_description": "Failed to update toolset. Please try again later."
+    }
+  },
+  "form": {
+    "name": {
+      "label": "Name"
+    },
+    "type": {
+      "label": "Type",
+      "placeholder": "Select toolset type",
+      "option": {
+        "built_in": "Built-in",
+        "mcp_local": "Local MCP",
+        "mcp_remote": "Remote MCP"
+      }
+    },
+    "is_enabled": {
+      "label": "Enabled"
+    },
+    "tools": {
+      "label": "Tools"
+    },
+    "tool_item": {
+      "enabled": "Enabled",
+      "auto_approve": "Auto approve"
+    },
+    "command": {
+      "label": "Command",
+      "required": "Please enter command"
+    },
+    "args": {
+      "label": "Args",
+      "description": "One argument per line",
+      "placeholder": "For example:\n--version\n--help"
+    },
+    "url": {
+      "label": "URL",
+      "placeholder": "https://api.example.com"
+    },
+    "http_headers": {
+      "label": "HTTP headers",
+      "description": "Request headers in JSON format",
+      "invalid_json": "Please enter valid JSON"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load toolset details. Please try again later."
+    }
+  }
 }

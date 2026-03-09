@@ -1,39 +1,79 @@
 {
-    "tab.default_title": "New task",
-    "panel.error.load_description": "Failed to load task. Please try again later.",
-    "create.logo_alt": "Dais logo",
-    "create.title": "What can I help you with?",
-    "create.description": "Start a new task with Dais.",
-    "continue.banner.title": "Task paused, click to continue.",
-    "continue.banner.action": "Continue task",
-    "error.banner.title": "Task failed. Please retry.",
-    "error.banner.action": "Retry",
-    "prompt.agent.loading": "Loading...",
-    "prompt.agent.no_workspace": "No workspace opened",
-    "prompt.agent.workspace_load_failed": "Failed to load workspace",
-    "prompt.agent.select": "Select agent",
-    "prompt.agent.search_placeholder": "Search agent...",
-    "prompt.agent.empty": "No agent found.",
-    "prompt.context.search_placeholder": "Add files, folders, docs...",
-    "prompt.context.loading": "Loading...",
-    "prompt.context.no_results": "No results found.",
-    "prompt.context.load_error": "Failed to load files.",
-    "prompt.context.trigger_tooltip": "Add files, folders, docs...",
-    "task_progress.completed": "Task completed",
-    "tool.ask_user.title": "Dais has a question:",
-    "tool.show_plan.title": "Dais wants to show you a plan:",
-    "tool.show_plan.copy_to_input": "Copy to input",
-    "tool.show_plan.feedback_placeholder": "Enter your plan revision feedback here...",
-    "tool.show_plan.submit_feedback": "Submit feedback",
-    "tool.show_plan.approve": "Approve plan",
-    "tool.show_plan.parse_error": "Failed to parse plan arguments",
-    "tool.update_todos.title": "Task todos updated",
-    "tool.update_todos.parse_error": "Failed to parse todo arguments",
-    "tool.update_todos.empty": "No todo updates",
-    "tool.finish_task.title": "Task completed",
-    "tool.confirmation.accepted": "Accepted",
-    "tool.confirmation.rejected": "Rejected",
-    "tool.confirmation.accept": "Accept",
-    "tool.confirmation.reject": "Reject",
-    "toast.task_failed.title": "Task failed"
+  "tab": {
+    "default_title": "New task"
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load task. Please try again later."
+    }
+  },
+  "create": {
+    "logo_alt": "Dais logo",
+    "title": "What can I help you with?",
+    "description": "Start a new task with Dais."
+  },
+  "continue": {
+    "banner": {
+      "title": "Task paused, click to continue.",
+      "action": "Continue task"
+    }
+  },
+  "error": {
+    "banner": {
+      "title": "Task failed. Please retry.",
+      "action": "Retry"
+    }
+  },
+  "prompt": {
+    "agent": {
+      "loading": "Loading...",
+      "no_workspace": "No workspace opened",
+      "workspace_load_failed": "Failed to load workspace",
+      "select": "Select agent",
+      "search_placeholder": "Search agent...",
+      "empty": "No agent found."
+    },
+    "context": {
+      "search_placeholder": "Add files, folders, docs...",
+      "loading": "Loading...",
+      "no_results": "No results found.",
+      "load_error": "Failed to load files.",
+      "trigger_tooltip": "Add files, folders, docs..."
+    }
+  },
+  "task_progress": {
+    "completed": "Task completed"
+  },
+  "tool": {
+    "ask_user": {
+      "title": "Dais has a question:"
+    },
+    "show_plan": {
+      "title": "Dais wants to show you a plan:",
+      "copy_to_input": "Copy to input",
+      "feedback_placeholder": "Enter your plan revision feedback here...",
+      "submit_feedback": "Submit feedback",
+      "approve": "Approve plan",
+      "parse_error": "Failed to parse plan arguments"
+    },
+    "update_todos": {
+      "title": "Task todos updated",
+      "parse_error": "Failed to parse todo arguments",
+      "empty": "No todo updates"
+    },
+    "finish_task": {
+      "title": "Task completed"
+    },
+    "confirmation": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "accept": "Accept",
+      "reject": "Reject"
+    }
+  },
+  "toast": {
+    "task_failed": {
+      "title": "Task failed"
+    }
+  }
 }

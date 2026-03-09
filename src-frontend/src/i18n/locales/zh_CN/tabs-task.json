@@ -1,39 +1,79 @@
 {
-    "tab.default_title": "新任务",
-    "panel.error.load_description": "无法加载任务，请稍后重试。",
-    "create.logo_alt": "Dais 标志",
-    "create.title": "我可以帮你做什么？",
-    "create.description": "用 Dais 开始一个新任务。",
-    "continue.banner.title": "任务已暂停，点击继续执行",
-    "continue.banner.action": "继续任务",
-    "error.banner.title": "任务出错，请重试",
-    "error.banner.action": "重试",
-    "prompt.agent.loading": "加载中...",
-    "prompt.agent.no_workspace": "当前未打开工作区",
-    "prompt.agent.workspace_load_failed": "工作区加载失败",
-    "prompt.agent.select": "选择 Agent",
-    "prompt.agent.search_placeholder": "搜索 Agent...",
-    "prompt.agent.empty": "未找到 Agent",
-    "prompt.context.search_placeholder": "添加文件、文件夹、文档...",
-    "prompt.context.loading": "加载中...",
-    "prompt.context.no_results": "未找到结果。",
-    "prompt.context.load_error": "加载文件失败。",
-    "prompt.context.trigger_tooltip": "添加文件、文件夹、文档...",
-    "task_progress.completed": "任务已完成",
-    "tool.ask_user.title": "Dais 有个问题：",
-    "tool.show_plan.title": "Dais 想要向你展示计划：",
-    "tool.show_plan.copy_to_input": "复制到输入框",
-    "tool.show_plan.feedback_placeholder": "在此输入对计划的修改意见...",
-    "tool.show_plan.submit_feedback": "提交修改意见",
-    "tool.show_plan.approve": "批准计划",
-    "tool.show_plan.parse_error": "计划参数解析失败",
-    "tool.update_todos.title": "已更新任务待办",
-    "tool.update_todos.parse_error": "待办参数解析失败",
-    "tool.update_todos.empty": "暂无待办更新",
-    "tool.finish_task.title": "任务完成",
-    "tool.confirmation.accepted": "已接受",
-    "tool.confirmation.rejected": "已拒绝",
-    "tool.confirmation.accept": "接受",
-    "tool.confirmation.reject": "拒绝",
-    "toast.task_failed.title": "任务失败"
+  "tab": {
+    "default_title": "新任务"
+  },
+  "panel": {
+    "error": {
+      "load_description": "无法加载任务，请稍后重试。"
+    }
+  },
+  "create": {
+    "logo_alt": "Dais 标志",
+    "title": "我可以帮你做什么？",
+    "description": "用 Dais 开始一个新任务。"
+  },
+  "continue": {
+    "banner": {
+      "title": "任务已暂停，点击继续执行",
+      "action": "继续任务"
+    }
+  },
+  "error": {
+    "banner": {
+      "title": "任务出错，请重试",
+      "action": "重试"
+    }
+  },
+  "prompt": {
+    "agent": {
+      "loading": "加载中...",
+      "no_workspace": "当前未打开工作区",
+      "workspace_load_failed": "工作区加载失败",
+      "select": "选择 Agent",
+      "search_placeholder": "搜索 Agent...",
+      "empty": "未找到 Agent"
+    },
+    "context": {
+      "search_placeholder": "添加文件、文件夹、文档...",
+      "loading": "加载中...",
+      "no_results": "未找到结果。",
+      "load_error": "加载文件失败。",
+      "trigger_tooltip": "添加文件、文件夹、文档..."
+    }
+  },
+  "task_progress": {
+    "completed": "任务已完成"
+  },
+  "tool": {
+    "ask_user": {
+      "title": "Dais 有个问题："
+    },
+    "show_plan": {
+      "title": "Dais 想要向你展示计划：",
+      "copy_to_input": "复制到输入框",
+      "feedback_placeholder": "在此输入对计划的修改意见...",
+      "submit_feedback": "提交修改意见",
+      "approve": "批准计划",
+      "parse_error": "计划参数解析失败"
+    },
+    "update_todos": {
+      "title": "已更新任务待办",
+      "parse_error": "待办参数解析失败",
+      "empty": "暂无待办更新"
+    },
+    "finish_task": {
+      "title": "任务完成"
+    },
+    "confirmation": {
+      "accepted": "已接受",
+      "rejected": "已拒绝",
+      "accept": "接受",
+      "reject": "拒绝"
+    }
+  },
+  "toast": {
+    "task_failed": {
+      "title": "任务失败"
+    }
+  }
 }

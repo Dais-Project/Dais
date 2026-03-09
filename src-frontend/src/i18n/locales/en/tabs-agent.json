@@ -1,35 +1,65 @@
 {
-    "toast.create.success_title": "Create success",
-    "toast.create.success_description_with_name": "Agent {{name}} created successfully.",
-    "toast.create.error_title": "Create failed",
-    "toast.create.error_description": "Failed to create agent. Please try again later.",
-    "toast.update.success_title": "Update success",
-    "toast.update.success_description_with_name": "Agent {{name}} updated successfully.",
-    "toast.update.error_title": "Update failed",
-    "toast.update.error_description": "Failed to update agent. Please try again later.",
-    "form.name.label": "Name",
-    "form.name.placeholder": "Enter agent name",
-    "form.icon.label": "Icon",
-    "form.model.label": "Model",
-    "form.instruction.label": "Agent instruction",
-    "form.usable_tools.label": "Available tools",
-    "form.usable_tools.load_error": "Failed to load tool list. Please try again later.",
-    "form.submit.create": "Create",
-    "form.submit.creating": "Creating...",
-    "form.submit.save": "Save",
-    "form.submit.saving": "Saving...",
-    "panel.error.load_description": "Failed to load agent details. Please try again later.",
-    "icon_dialog.title": "Select icon",
-    "icon_dialog.description": "Search icons...",
-    "icon_dialog.trigger.select": "Select icon",
-    "icon_dialog.search_placeholder": "Search icons...",
-    "icon_dialog.group.ai_core": "AI and core",
-    "icon_dialog.group.development": "Development and tech",
-    "icon_dialog.group.writing": "Writing and content",
-    "icon_dialog.group.data": "Data and analytics",
-    "icon_dialog.group.productivity": "Productivity",
-    "icon_dialog.group.media": "Media and design",
-    "icon_dialog.group.security": "Security and management",
-    "icon_dialog.group.science": "Science and math",
-    "icon_dialog.group.lifestyle": "Lifestyle and roleplay"
+  "toast": {
+    "create": {
+      "success_title": "Create success",
+      "success_description_with_name": "Agent {{name}} created successfully.",
+      "error_title": "Create failed",
+      "error_description": "Failed to create agent. Please try again later."
+    },
+    "update": {
+      "success_title": "Update success",
+      "success_description_with_name": "Agent {{name}} updated successfully.",
+      "error_title": "Update failed",
+      "error_description": "Failed to update agent. Please try again later."
+    }
+  },
+  "form": {
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter agent name"
+    },
+    "icon": {
+      "label": "Icon"
+    },
+    "model": {
+      "label": "Model"
+    },
+    "instruction": {
+      "label": "Agent instruction"
+    },
+    "usable_tools": {
+      "label": "Available tools",
+      "load_error": "Failed to load tool list. Please try again later."
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    }
+  },
+  "panel": {
+    "error": {
+      "load_description": "Failed to load agent details. Please try again later."
+    }
+  },
+  "icon_dialog": {
+    "title": "Select icon",
+    "description": "Search icons...",
+    "trigger": {
+      "select": "Select icon"
+    },
+    "search_placeholder": "Search icons...",
+    "group": {
+      "ai_core": "AI and core",
+      "development": "Development and tech",
+      "writing": "Writing and content",
+      "data": "Data and analytics",
+      "productivity": "Productivity",
+      "media": "Media and design",
+      "security": "Security and management",
+      "science": "Science and math",
+      "lifestyle": "Lifestyle and roleplay"
+    }
+  }
 }

@@ -11,7 +11,7 @@ export function NameField({
 }: FieldProps<typeof Input>) {
   const { t } = useTranslation("form");
   const { register, getFieldState } = useFormContext();
-  const { label = t("form.name.label"), ...restFieldProps } = fieldProps ?? {};
+  const { label = t("fields.name.label"), ...restFieldProps } = fieldProps ?? {};
   const { placeholder = t("fields.name.placeholder"), ...restControlProps } =
     controlProps ?? {};
 

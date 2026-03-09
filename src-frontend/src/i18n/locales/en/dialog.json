@@ -1,24 +1,42 @@
 {
-    "select.search_placeholder": "Search...",
-    "select.empty": "No results found.",
-    "select.footer.confirm": "Confirm",
-    "select.footer.cancel": "Cancel",
-    "confirm_delete.title": "Confirm deletion",
-    "confirm_delete.cancel": "Cancel",
-    "confirm_delete.confirm": "Confirm",
-    "confirm_delete.deleting": "Deleting...",
-    "resource.model.trigger.loading": "Loading...",
-    "resource.model.trigger.deleted": "Model has been deleted",
-    "resource.model.trigger.select": "Select model",
-    "resource.model.search_placeholder": "Search models...",
-    "resource.model.empty.no_provider": "No providers yet. Add an LLM provider first to use models.",
-    "resource.model.empty.no_model": "No models found",
-    "resource.model.load_error": "Failed to load model list. Please try again later.",
-    "resource.tool.trigger.select": "Select",
-    "resource.tool.search_placeholder": "Search tools...",
-    "resource.tool.empty": "No matching tools found",
-    "resource.tool.load_error": "Failed to load tool list. Please try again later.",
-    "resource.tool.confirm": "Confirm",
-    "resource.tool.cancel": "Cancel",
-    "resource.tool.select_all": "Select all"
+  "select": {
+    "search_placeholder": "Search...",
+    "empty": "No results found.",
+    "footer": {
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    }
+  },
+  "confirm_delete": {
+    "title": "Confirm deletion",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "deleting": "Deleting..."
+  },
+  "resource": {
+    "model": {
+      "trigger": {
+        "loading": "Loading...",
+        "deleted": "Model has been deleted",
+        "select": "Select model"
+      },
+      "search_placeholder": "Search models...",
+      "empty": {
+        "no_provider": "No providers yet. Add an LLM provider first to use models.",
+        "no_model": "No models found"
+      },
+      "load_error": "Failed to load model list. Please try again later."
+    },
+    "tool": {
+      "trigger": {
+        "select": "Select"
+      },
+      "search_placeholder": "Search tools...",
+      "empty": "No matching tools found",
+      "load_error": "Failed to load tool list. Please try again later.",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "select_all": "Select all"
+    }
+  }
 }

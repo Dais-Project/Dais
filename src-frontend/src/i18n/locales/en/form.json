@@ -1,27 +1,55 @@
 {
-    "fields.name.label": "Name",
-    "fields.name.placeholder": "Enter name",
-    "fields.name.validation.required": "Please enter a name",
-    "fields.name.validation.empty": "Name cannot be empty",
-    "fields.name.validation.max_length": "Name cannot exceed 50 characters",
-    "fields.password.label": "Password",
-    "fields.password.validation.required": "Please enter a password",
-    "fields.password.validation.empty": "Password cannot be empty",
-    "fields.enabled.label": "Enabled",
-    "fields.type.label": "Type",
-    "fields.type.placeholder": "Select a type",
-    "fields.type.validation.required": "Please select a type",
-    "fields.url.label": "URL",
-    "fields.url.placeholder": "Enter URL",
-    "fields.url.validation.required": "Please enter URL",
-    "fields.url.validation.invalid_http_https": "Please enter a valid HTTP or HTTPS URL",
-    "fields.directory.label": "Directory path",
-    "fields.directory.placeholder": "Enter directory path",
-    "fields.directory.choose_button": "Choose",
-    "fields.directory.choose_error": "Failed to choose directory",
-    "fields.directory.validation.required": "Directory path is required",
-    "fields.rich_text.label": "Content",
-    "fields.rich_text.validation.required_with_label": "Please enter {{label}}",
-    "fields.rich_text.validation.min_length_with_label": "{{label}} must be at least {{minLength}} characters",
-    "fields.rich_text.validation.max_length_with_label": "{{label}} cannot exceed {{maxLength}} characters"
+  "fields": {
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter name",
+      "validation": {
+        "required": "Please enter a name",
+        "empty": "Name cannot be empty",
+        "max_length": "Name cannot exceed 50 characters"
+      }
+    },
+    "password": {
+      "label": "Password",
+      "validation": {
+        "required": "Please enter a password",
+        "empty": "Password cannot be empty"
+      }
+    },
+    "enabled": {
+      "label": "Enabled"
+    },
+    "type": {
+      "label": "Type",
+      "placeholder": "Select a type",
+      "validation": {
+        "required": "Please select a type"
+      }
+    },
+    "url": {
+      "label": "URL",
+      "placeholder": "Enter URL",
+      "validation": {
+        "required": "Please enter URL",
+        "invalid_http_https": "Please enter a valid HTTP or HTTPS URL"
+      }
+    },
+    "directory": {
+      "label": "Directory path",
+      "placeholder": "Enter directory path",
+      "choose_button": "Choose",
+      "choose_error": "Failed to choose directory",
+      "validation": {
+        "required": "Directory path is required"
+      }
+    },
+    "rich_text": {
+      "label": "Content",
+      "validation": {
+        "required_with_label": "Please enter {{label}}",
+        "min_length_with_label": "{{label}} must be at least {{minLength}} characters",
+        "max_length_with_label": "{{label}} cannot exceed {{maxLength}} characters"
+      }
+    }
+  }
 }

@@ -1,27 +1,55 @@
 {
-    "fields.name.label": "名称",
-    "fields.name.placeholder": "请输入名称",
-    "fields.name.validation.required": "请输入名称",
-    "fields.name.validation.empty": "名称不能为空",
-    "fields.name.validation.max_length": "名称长度不能超过 50 个字符",
-    "fields.password.label": "密码",
-    "fields.password.validation.required": "请输入密码",
-    "fields.password.validation.empty": "密码不能为空",
-    "fields.enabled.label": "启用",
-    "fields.type.label": "类型",
-    "fields.type.placeholder": "请选择类型",
-    "fields.type.validation.required": "请选择类型",
-    "fields.url.label": "URL",
-    "fields.url.placeholder": "请输入 URL",
-    "fields.url.validation.required": "请输入 URL",
-    "fields.url.validation.invalid_http_https": "请输入有效的 HTTP 或 HTTPS URL",
-    "fields.directory.label": "目录路径",
-    "fields.directory.placeholder": "请输入目录路径",
-    "fields.directory.choose_button": "选择",
-    "fields.directory.choose_error": "选择目录失败",
-    "fields.directory.validation.required": "目录路径为必填项",
-    "fields.rich_text.label": "内容",
-    "fields.rich_text.validation.required_with_label": "请输入{{label}}",
-    "fields.rich_text.validation.min_length_with_label": "{{label}}不能少于 {{minLength}} 个字符",
-    "fields.rich_text.validation.max_length_with_label": "{{label}}不能超过 {{maxLength}} 个字符"
+  "fields": {
+    "name": {
+      "label": "名称",
+      "placeholder": "请输入名称",
+      "validation": {
+        "required": "请输入名称",
+        "empty": "名称不能为空",
+        "max_length": "名称长度不能超过 50 个字符"
+      }
+    },
+    "password": {
+      "label": "密码",
+      "validation": {
+        "required": "请输入密码",
+        "empty": "密码不能为空"
+      }
+    },
+    "enabled": {
+      "label": "启用"
+    },
+    "type": {
+      "label": "类型",
+      "placeholder": "请选择类型",
+      "validation": {
+        "required": "请选择类型"
+      }
+    },
+    "url": {
+      "label": "URL",
+      "placeholder": "请输入 URL",
+      "validation": {
+        "required": "请输入 URL",
+        "invalid_http_https": "请输入有效的 HTTP 或 HTTPS URL"
+      }
+    },
+    "directory": {
+      "label": "目录路径",
+      "placeholder": "请输入目录路径",
+      "choose_button": "选择",
+      "choose_error": "选择目录失败",
+      "validation": {
+        "required": "目录路径为必填项"
+      }
+    },
+    "rich_text": {
+      "label": "内容",
+      "validation": {
+        "required_with_label": "请输入{{label}}",
+        "min_length_with_label": "{{label}}不能少于 {{minLength}} 个字符",
+        "max_length_with_label": "{{label}}不能超过 {{maxLength}} 个字符"
+      }
+    }
+  }
 }

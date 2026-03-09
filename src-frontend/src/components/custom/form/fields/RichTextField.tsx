@@ -59,7 +59,7 @@ export function RichTextField({
 }: RichTextFieldProps) {
   const { t } = useTranslation("form");
   const { control, getFieldState } = useFormContext();
-  const { label = t("form.rich_text.label"), ...restFieldProps } = fieldProps ?? {};
+  const { label = t("fields.rich_text.label"), ...restFieldProps } = fieldProps ?? {};
 
   const { field } = useController({
     name: fieldName,

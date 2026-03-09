@@ -1,3 +1,7 @@
 {
-    "tabs.empty.no_tabs_open": "No tabs open"
+  "tabs": {
+    "empty": {
+      "no_tabs_open": "No tabs open"
+    }
+  }
 }

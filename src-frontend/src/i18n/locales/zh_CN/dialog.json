@@ -1,24 +1,42 @@
 {
-    "select.search_placeholder": "搜索...",
-    "select.empty": "未找到结果。",
-    "select.footer.confirm": "确定",
-    "select.footer.cancel": "取消",
-    "confirm_delete.title": "确认删除",
-    "confirm_delete.cancel": "取消",
-    "confirm_delete.confirm": "确认",
-    "confirm_delete.deleting": "删除中...",
-    "resource.model.trigger.loading": "加载中...",
-    "resource.model.trigger.deleted": "模型已被删除",
-    "resource.model.trigger.select": "选择模型",
-    "resource.model.search_placeholder": "搜索模型...",
-    "resource.model.empty.no_provider": "暂无供应商，请先添加 LLM 供应商以使用模型。",
-    "resource.model.empty.no_model": "未找到模型",
-    "resource.model.load_error": "无法加载模型列表，请稍后重试。",
-    "resource.tool.trigger.select": "选择",
-    "resource.tool.search_placeholder": "搜索工具...",
-    "resource.tool.empty": "未找到匹配的工具",
-    "resource.tool.load_error": "无法加载工具列表，请稍后重试。",
-    "resource.tool.confirm": "确定",
-    "resource.tool.cancel": "取消",
-    "resource.tool.select_all": "全选"
+  "select": {
+    "search_placeholder": "搜索...",
+    "empty": "未找到结果。",
+    "footer": {
+      "confirm": "确定",
+      "cancel": "取消"
+    }
+  },
+  "confirm_delete": {
+    "title": "确认删除",
+    "cancel": "取消",
+    "confirm": "确认",
+    "deleting": "删除中..."
+  },
+  "resource": {
+    "model": {
+      "trigger": {
+        "loading": "加载中...",
+        "deleted": "模型已被删除",
+        "select": "选择模型"
+      },
+      "search_placeholder": "搜索模型...",
+      "empty": {
+        "no_provider": "暂无供应商，请先添加 LLM 供应商以使用模型。",
+        "no_model": "未找到模型"
+      },
+      "load_error": "无法加载模型列表，请稍后重试。"
+    },
+    "tool": {
+      "trigger": {
+        "select": "选择"
+      },
+      "search_placeholder": "搜索工具...",
+      "empty": "未找到匹配的工具",
+      "load_error": "无法加载工具列表，请稍后重试。",
+      "confirm": "确定",
+      "cancel": "取消",
+      "select_all": "全选"
+    }
+  }
 }

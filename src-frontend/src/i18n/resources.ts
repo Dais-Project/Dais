@@ -1,4 +1,4 @@
-import type { Resource } from "i18next";
+import type { Resource, ResourceLanguage } from "i18next";
 import type { Language } from "@/types/common";
 import enDialog from "./locales/en/dialog.json";
 import enForm from "./locales/en/form.json";
@@ -32,56 +32,50 @@ export const DIALOG_NAMESPACE = "dialog";
 export const FALLBACK_LANGUAGE: Language = "en";
 export const SUPPORTED_LANGUAGES = ["en", "zh_CN"] as const satisfies readonly Language[];
 
-type TranslationBundle = Record<string, string>;
 
-const COMMON_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: {},
-  zh_CN: {},
+const SIDEBAR_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enSideBar,
+  zh_CN: zhCnSideBar,
 };
 
-const SIDEBAR_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enSideBar as TranslationBundle,
-  zh_CN: zhCnSideBar as TranslationBundle,
+const TABS_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enTabs,
+  zh_CN: zhCnTabs,
 };
 
-const TABS_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enTabs as TranslationBundle,
-  zh_CN: zhCnTabs as TranslationBundle,
+const TABS_AGENT_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enTabsAgent,
+  zh_CN: zhCnTabsAgent,
 };
 
-const TABS_AGENT_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enTabsAgent as TranslationBundle,
-  zh_CN: zhCnTabsAgent as TranslationBundle,
+const TABS_PROVIDER_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enTabsProvider,
+  zh_CN: zhCnTabsProvider,
 };
 
-const TABS_PROVIDER_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enTabsProvider as TranslationBundle,
-  zh_CN: zhCnTabsProvider as TranslationBundle,
+const TABS_TOOLSET_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enTabsToolset,
+  zh_CN: zhCnTabsToolset,
 };
 
-const TABS_TOOLSET_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enTabsToolset as TranslationBundle,
-  zh_CN: zhCnTabsToolset as TranslationBundle,
+const TABS_WORKSPACE_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enTabsWorkspace,
+  zh_CN: zhCnTabsWorkspace,
 };
 
-const TABS_WORKSPACE_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enTabsWorkspace as TranslationBundle,
-  zh_CN: zhCnTabsWorkspace as TranslationBundle,
+const TABS_TASK_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enTabsTask,
+  zh_CN: zhCnTabsTask,
 };
 
-const TABS_TASK_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enTabsTask as TranslationBundle,
-  zh_CN: zhCnTabsTask as TranslationBundle,
+const FORM_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enForm,
+  zh_CN: zhCnForm,
 };
 
-const FORM_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enForm as TranslationBundle,
-  zh_CN: zhCnForm as TranslationBundle,
-};
-
-const DIALOG_TRANSLATIONS: Record<Language, TranslationBundle> = {
-  en: enDialog as TranslationBundle,
-  zh_CN: zhCnDialog as TranslationBundle,
+const DIALOG_TRANSLATIONS: Record<Language, ResourceLanguage> = {
+  en: enDialog,
+  zh_CN: zhCnDialog,
 };
 
 export const namespaces = [
@@ -99,7 +93,6 @@ export const namespaces = [
 
 export const resources: Resource = {
   en: {
-    [DEFAULT_NAMESPACE]: COMMON_TRANSLATIONS.en,
     [SIDEBAR_NAMESPACE]: SIDEBAR_TRANSLATIONS.en,
     [TABS_NAMESPACE]: TABS_TRANSLATIONS.en,
     [TABS_AGENT_NAMESPACE]: TABS_AGENT_TRANSLATIONS.en,
@@ -111,7 +104,6 @@ export const resources: Resource = {
     [DIALOG_NAMESPACE]: DIALOG_TRANSLATIONS.en,
   },
   zh_CN: {
-    [DEFAULT_NAMESPACE]: COMMON_TRANSLATIONS.zh_CN,
     [SIDEBAR_NAMESPACE]: SIDEBAR_TRANSLATIONS.zh_CN,
     [TABS_NAMESPACE]: TABS_TRANSLATIONS.zh_CN,
     [TABS_AGENT_NAMESPACE]: TABS_AGENT_TRANSLATIONS.zh_CN,
