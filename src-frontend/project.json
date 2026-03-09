@@ -53,6 +53,9 @@
     "type-check": {
       "command": "pnpm tsc --noEmit"
     },
+    "i18n": {
+      "command": "pnpm exec i18next-cli -c config/i18next.config.ts"
+    },
     "generate-api": {
       "command": "pnpm orval",
       "inputs": [
