@@ -35,10 +35,18 @@
 
 .vditor--fullscreen {
   max-height: unset !important;
+}
 
-  .vditor-toolbar {
-    padding-left: 215px !important;
-  }
+.vditor-sm {
+  --padding: 2.4rem;
+}
+
+.vditor-md {
+  --padding: 5rem;
+}
+
+.vditor-lg {
+  --padding: 12rem;
 }
 
 .resizable-panel-resizing .vditor {
@@ -67,7 +75,7 @@
 .vditor-toolbar {
   display: flex;
   flex-wrap: wrap;
-  padding-left: 2rem !important;
+  padding-left: var(--padding) !important;
   border-bottom-color: var(--border) !important;
   background-color: var(--card) !important;
   border-radius: var(--radius) var(--radius) 0 0;
@@ -124,6 +132,12 @@
   background-color: var(--popover) !important;
   color: var(--popover-foreground) !important;
   border-radius: var(--radius-sm) !important;
+}
+
+/* 内容区域 */
+.vditor-reset {
+  padding-left: var(--padding) !important;
+  padding-right: var(--padding) !important;
 }
 
 /* 行内代码块 */

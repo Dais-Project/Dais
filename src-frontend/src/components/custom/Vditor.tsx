@@ -1,4 +1,4 @@
-import { useMemoizedFn, useMount, useUnmount } from "ahooks";
+import { useDebounce, useMemoizedFn, useMount, useSize, useUnmount } from "ahooks";
 import { useEffect, useRef } from "react";
 import VditorType from "vditor";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,21 @@ export function Vditor({
     );
   };
 
+  const size = useSize(containerRef);
+  const debouncedSize = useDebounce(size, { wait: 100 });
+  const containerSize = (() => {
+    if (!debouncedSize) {
+      return "md"; // fallback
+    }
+    if (debouncedSize.width > 1024) {
+      return "lg";
+    }
+    if (debouncedSize.width > 640) {
+      return "md";
+    }
+    return "sm";
+  })();
+
   useMount(() => {
     const vditor = new VditorType(containerRef.current!, {
       placeholder: placeholder ?? "",
@@ -101,7 +116,11 @@ export function Vditor({
   return (
     <div
       ref={containerRef}
-      className={cn("vditor max-h-[60vh] overflow-hidden", className)}
+      className={cn(
+        "vditor max-h-[60vh] overflow-hidden",
+        `vditor-${containerSize}`,
+        className
+      )}
     />
   );
 }
