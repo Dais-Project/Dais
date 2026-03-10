@@ -7,7 +7,6 @@ import { API_BASE } from "./api";
 import { i18n } from "./i18n";
 import SseDispatcher from "./lib/sse-dispatcher";
 import queryClient from "./query-client";
-import "vditor/dist/index.css";
 import "./index.css";
 import "./lib";
 

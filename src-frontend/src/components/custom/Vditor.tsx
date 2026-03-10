@@ -1,6 +1,8 @@
 import { useDebounce, useMemoizedFn, useMount, useSize, useUnmount } from "ahooks";
 import { useEffect, useRef } from "react";
 import VditorType from "vditor";
+import "vditor/dist/index.css";
+import 'vditor/dist/js/highlight.js/styles/github.min.css';
 import { cn } from "@/lib/utils";
 
 const CUSTOM_VDITOR_TOOLBAR = [

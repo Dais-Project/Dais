@@ -64,7 +64,7 @@
   --selected-background-color:   color-mix(in oklch, var(--primary) 20%, transparent);
 
   .vditor-reset:focus-within {
-      background-color: color-mix(in oklch, var(--background) 90%, white) !important;
+    background-color: color-mix(in oklch, var(--background) 90%, white) !important;
   }
 }
 
