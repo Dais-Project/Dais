@@ -156,7 +156,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 
 export function ToolsetList() {
   const { t } = useTranslation("sidebar");
-  const removeTabsPattern = useTabsStore((state) => state.removePattern);
+  const removeTabs = useTabsStore((state) => state.remove);
 
   const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
@@ -164,12 +164,9 @@ export function ToolsetList() {
       await deleteToolsetMutation.mutateAsync({ toolsetId: toolset.id });
       await invalidateToolsetQueries(toolset.id);
 
-      removeTabsPattern(
-        (tab) =>
-          tab.type === "toolset" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === toolset.id
-      );
+      removeTabs((tab) => (tab.type === "toolset" &&
+                           tab.metadata.mode === "edit" &&
+                           tab.metadata.id === toolset.id));
 
       toast.success(t("toolsets.toast.delete_success_title"), {
         description: t("toolsets.toast.delete_success_description"),

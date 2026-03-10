@@ -15,8 +15,7 @@ type TabsActions = {
   setActive: (id: string) => void;
   update: (id: string, data: Partial<TabBase>) => void;
   updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
-  remove: (id: string) => void;
-  removePattern: (pattern: (tab: Tab) => boolean) => void;
+  remove: (pattern: string | ((tab: Tab) => boolean)) => void;
 };
 
 type TabsStore = TabsState & TabsActions;
@@ -82,7 +81,17 @@ export const useTabsStore = create<TabsStore>()(
             tab.metadata = metadata;
           });
         },
-        remove(id) {
+        remove(pattern) {
+          if (typeof pattern === "function") {
+            set((state: TabsState) => {
+              state.tabs = state.tabs.filter((t) => !pattern(t));
+              if (!state.tabs.find((t) => t.id === state.activeTabId)) {
+                state.activeTabId = state.tabs.at(-1)?.id ?? null;
+              }
+            });
+            return;
+          }
+          const id = pattern;
           set((state: TabsState) => {
             const idx = state.tabs.findIndex((t) => t.id === id);
             if (idx === -1) {
@@ -99,11 +108,6 @@ export const useTabsStore = create<TabsStore>()(
             }
             const hasTabOnRight = idx < state.tabs.length;
             state.activeTabId = hasTabOnRight ? state.tabs[idx].id : state.tabs[idx - 1].id;
-          });
-        },
-        removePattern(pattern) {
-          set((state: TabsState) => {
-            state.tabs = state.tabs.filter((t) => !pattern(t));
           });
         },
       };

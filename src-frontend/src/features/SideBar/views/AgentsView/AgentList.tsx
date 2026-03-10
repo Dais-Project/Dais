@@ -104,14 +104,16 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 
 export function AgentList() {
   const { t } = useTranslation("sidebar");
-  const removePattern = useTabsStore((state) => state.removePattern);
+  const removeTabs = useTabsStore((state) => state.remove);
 
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     async onConfirm(agent) {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
       await invalidateAgentQueries(agent.id);
 
-      removePattern((tab) => tab.type === "agent" && tab.metadata.mode === "edit" && tab.metadata.id === agent.id);
+      removeTabs((tab) => (tab.type === "agent" &&
+                           tab.metadata.mode === "edit" &&
+                           tab.metadata.id === agent.id));
 
       toast.success(t("agents.toast.delete_success_title"), {
         description: t("agents.toast.delete_success_description"),

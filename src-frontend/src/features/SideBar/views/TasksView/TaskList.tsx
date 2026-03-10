@@ -55,8 +55,10 @@ function openTaskTab(task: TaskBrief) {
 }
 
 function removeTaskTab(taskId: number) {
-  const removeTabsPattern = useTabsStore.getState().removePattern;
-  removeTabsPattern((tab) => tab.type === "task" && !tab.metadata.isDraft && tab.metadata.id === taskId);
+  const removeTabs = useTabsStore.getState().remove;
+  removeTabs((tab) => (tab.type === "task" &&
+                       !tab.metadata.isDraft &&
+                       tab.metadata.id === taskId));
 }
 
 type TaskItemProps = {

@@ -125,7 +125,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
 
 export function WorkspaceList() {
   const { t } = useTranslation("sidebar");
-  const removeTabsPattern = useTabsStore((state) => state.removePattern);
+  const removeTabs = useTabsStore((state) => state.remove);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore((state) => state.isLoading);
@@ -135,9 +135,9 @@ export function WorkspaceList() {
       await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
       await invalidateWorkspaceQueries(workspace.id);
 
-      removeTabsPattern(
-        (tab) => tab.type === "workspace" && tab.metadata.mode === "edit" && tab.metadata.id === workspace.id
-      );
+      removeTabs((tab) => (tab.type === "workspace" &&
+                           tab.metadata.mode === "edit" &&
+                           tab.metadata.id === workspace.id));
 
       // clear current workspace if deleted
       if (workspace.id === currentWorkspace?.id) {
