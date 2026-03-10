@@ -90,11 +90,11 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
-          <PencilIcon className="mr-2 size-4" />
+          <PencilIcon />
           <span>{t("agents.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem className="text-destructive hover:text-destructive!" onClick={() => onDelete(agent)}>
-          <TrashIcon className="mr-2 size-4 text-destructive" />
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(agent)}>
+          <TrashIcon />
           <span>{t("agents.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
@@ -104,14 +104,16 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 
 export function AgentList() {
   const { t } = useTranslation("sidebar");
-  const removePattern = useTabsStore((state) => state.removePattern);
+  const removeTabs = useTabsStore((state) => state.remove);
 
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     async onConfirm(agent) {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
       await invalidateAgentQueries(agent.id);
 
-      removePattern((tab) => tab.type === "agent" && tab.metadata.mode === "edit" && tab.metadata.id === agent.id);
+      removeTabs((tab) => (tab.type === "agent" &&
+                           tab.metadata.mode === "edit" &&
+                           tab.metadata.id === agent.id));
 
       toast.success(t("agents.toast.delete_success_title"), {
         description: t("agents.toast.delete_success_description"),

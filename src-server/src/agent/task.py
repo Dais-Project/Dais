@@ -141,7 +141,7 @@ class AgentTask:
         if tool.metadata["auto_approve"] == False:
             match message.metadata["user_approval"]:
                 case UserApprovalStatus.PENDING:
-                    return ToolRequirePermissionEvent(call_id=message.call_id)
+                    return ToolRequirePermissionEvent(call_id=message.call_id, tool_name=tool.name)
                 case UserApprovalStatus.DENIED:
                     message.result = USER_DENIED_TOOL_CALL_RESULT
                     return ToolDeniedEvent(call_id=message.call_id)

@@ -142,14 +142,11 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
-          <PencilIcon className="mr-2 size-4" />
+          <PencilIcon />
           <span>{t("toolsets.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem
-          className="text-destructive hover:text-destructive!"
-          onClick={() => onDelete(toolset)}
-        >
-          <TrashIcon className="mr-2 size-4 text-destructive" />
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(toolset)}>
+          <TrashIcon />
           <span>{t("toolsets.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
@@ -159,7 +156,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 
 export function ToolsetList() {
   const { t } = useTranslation("sidebar");
-  const removeTabsPattern = useTabsStore((state) => state.removePattern);
+  const removeTabs = useTabsStore((state) => state.remove);
 
   const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
@@ -167,12 +164,9 @@ export function ToolsetList() {
       await deleteToolsetMutation.mutateAsync({ toolsetId: toolset.id });
       await invalidateToolsetQueries(toolset.id);
 
-      removeTabsPattern(
-        (tab) =>
-          tab.type === "toolset" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === toolset.id
-      );
+      removeTabs((tab) => (tab.type === "toolset" &&
+                           tab.metadata.mode === "edit" &&
+                           tab.metadata.id === toolset.id));
 
       toast.success(t("toolsets.toast.delete_success_title"), {
         description: t("toolsets.toast.delete_success_description"),

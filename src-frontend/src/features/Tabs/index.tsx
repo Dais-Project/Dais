@@ -21,7 +21,6 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
-
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";

@@ -58,7 +58,7 @@
     },
     "helper_model": {
       "flash_model": {
-        "title": "Quick model"
+        "title": "Flash model"
       }
     },
     "providers": {
@@ -91,7 +91,7 @@
       }
     },
     "tabs": {
-      "dev": "Developer tools",
+      "dev": "Development",
       "general": "General",
       "helper_model": "Helper model",
       "providers": "Model providers"

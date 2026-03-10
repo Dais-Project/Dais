@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { BuiltInTools, type ToolMessageMetadata } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ClosableWrapper } from "@/components/custom/ClosableWrapper";
 import { type UiMessage, isToolMessageCompleted,  } from "@/types/message";
 import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
 
@@ -47,17 +48,19 @@ export function ContinueTask() {
   }
 
   return (
-    <Alert className="min-w-fit items-stretch rounded-b-none border-b-0">
-      <div className="mr-2 flex items-center">
-        <InfoIcon className="size-4" />
-      </div>
-      <AlertTitle className="flex flex-1 items-center justify-between">
-        <div>{t("continue.banner.title")}</div>
-        <Button onClick={() => continueTask()} size="sm">
-          <PlayIcon />
-          {t("continue.banner.action")}
-        </Button>
-      </AlertTitle>
-    </Alert>
+    <ClosableWrapper onClose={() => setShow(false)}>
+      <Alert className="min-w-fit items-stretch rounded-b-none border-b-0">
+        <div className="mr-2 flex items-center">
+          <InfoIcon className="size-4" />
+        </div>
+        <AlertTitle className="flex flex-1 items-center justify-between">
+          <div>{t("continue.banner.title")}</div>
+          <Button onClick={() => continueTask()} size="sm">
+            <PlayIcon />
+            {t("continue.banner.action")}
+          </Button>
+        </AlertTitle>
+      </Alert>
+    </ClosableWrapper>
   );
 }

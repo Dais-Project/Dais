@@ -45,6 +45,11 @@
   "task_progress": {
     "completed": "任务已完成"
   },
+  "notification": {
+    "require_response": "Dais 正在等待你的回复",
+    "require_permission": "Dais 想要使用 {{toolName}}",
+    "task_done": "Dais 已完成任务"
+  },
   "toast": {
     "task_failed": {
       "title": "任务失败"

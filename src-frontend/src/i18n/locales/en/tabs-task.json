@@ -45,6 +45,11 @@
   "task_progress": {
     "completed": "Task completed"
   },
+  "notification": {
+    "require_response": "Dais is waiting for your response",
+    "require_permission": "Dais wants to use {{toolName}}",
+    "task_done": "Dais has finished the task"
+  },
   "toast": {
     "task_failed": {
       "title": "Task failed"

@@ -1,8 +1,8 @@
-import { produce } from "immer";
-import { i18n } from "@/i18n";
-import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { produce } from "immer";
 import { toast } from "sonner";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
   ErrorEvent,
@@ -12,6 +12,8 @@ import {
   TextChunkEvent,
   ToolCallChunkEvent,
   ToolCallEndEvent,
+  ToolRequirePermissionEvent,
+  ToolRequireUserResponseEvent,
   UsageChunkEvent,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
@@ -28,11 +30,13 @@ import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import { UiUserMessage, type SdkMessage } from "@/types/message";
 import { useMessageLifecycle } from "./use-message-lifecycle";
+import { UiMessage } from "@/types/message";
+import { toUiMessage } from "@/types/message";
+import { sendNotification } from "@/lib/notification";
+import { useTabsStore } from "@/stores/tabs-store";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { UiMessage } from "@/types/message";
-import { toUiMessage } from "@/types/message";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -83,6 +87,14 @@ type AgentTaskProviderProps = {
 };
 
 export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const setActiveTab = useTabsStore((state) => state.setActive);
+  const backToCurrentTab = () => setActiveTab((tab) => (
+    tab.type === "task" &&
+    !tab.metadata.isDraft &&
+    tab.metadata.id === taskId
+  ));
+
   const { data } = useGetTaskSuspense(taskId, {
     query: {
       staleTime: Number.POSITIVE_INFINITY,
@@ -124,82 +136,86 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     sseCallbacksRef,
   });
 
-  const onMessageStart = useCallback(
-    (eventData: MessageStartEvent) => {
-      setState("running");
-      messageLifecycle.handleMessageStart(eventData.message_id);
-    },
-    [setState, messageLifecycle.handleMessageStart]
-  );
+  const onMessageStart = (eventData: MessageStartEvent) => {
+    setState("running");
+    messageLifecycle.handleMessageStart(eventData.message_id);
+  };
 
-  const onTextChunk = useCallback(
-    (chunk: TextChunkEvent) => {
-      textBuffer.accumulate(chunk.message_id, chunk.content);
-    },
-    [textBuffer]
-  );
+  const onTextChunk = (chunk: TextChunkEvent) => {
+    textBuffer.accumulate(chunk.message_id, chunk.content);
+  };
 
-  const onToolCallChunk = useCallback(
-    (chunk: ToolCallChunkEvent) => {
-      const {event_id, ...toolCallChunk} = chunk;
-      toolCallsBuffer.accumulate(toolCallChunk);
-    },
-    [toolCallsBuffer]
-  );
+  const onToolCallChunk = (chunk: ToolCallChunkEvent) => {
+    const {event_id, ...toolCallChunk} = chunk;
+    toolCallsBuffer.accumulate(toolCallChunk);
+  };
 
-  const onUsageChunk = useCallback(
-    (chunk: UsageChunkEvent) => {
-      const { event_id, ...usage } = chunk;
-      setUsage(usage);
-    },
-    [setUsage]
-  );
+  const onUsageChunk = (chunk: UsageChunkEvent) => {
+    const { event_id, ...usage } = chunk;
+    setUsage(usage);
+  }
 
-  const onMessageEnd = useCallback(
-    (eventData: MessageEndEvent) => {
+  const onMessageEnd = (eventData: MessageEndEvent) => {
       textBuffer.clear();
       toolCallsBuffer.clear();
       messageLifecycle.handleMessageEnd(eventData.message);
-    },
-    [textBuffer, toolCallsBuffer, messageLifecycle.handleMessageEnd]
-  );
+  };
 
-  const onMessageReplace = useCallback(
-    (eventData: MessageReplaceEvent) => {
-      messageLifecycle.handleMessageReplace(eventData.message);
-    },
-    [messageLifecycle.handleMessageReplace]
-  );
+  const onMessageReplace = (eventData: MessageReplaceEvent) => {
+    messageLifecycle.handleMessageReplace(eventData.message);
+  }
 
-  const onToolCallEnd = useCallback(
-    (eventData: ToolCallEndEvent) => {
-      messageLifecycle.handleToolCallEnd(eventData.message);
+  const onToolCallEnd = (eventData: ToolCallEndEvent) => {
+    const { message } = eventData;
+    messageLifecycle.handleToolCallEnd(message);
 
-      // refresh todo list
-      if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
-        const todoList = tryParseSchema(UpdateTodosSchema, eventData.message.arguments);
+    switch (message.name) {
+      case BuiltInTools.ExecutionControl__finish_task:
+        if (document.visibilityState === "hidden") {
+          sendNotification(t("notification.task_done"), {
+            onClick: backToCurrentTab,
+          });
+        }
+        break;
+      case BuiltInTools.ExecutionControl__update_todos:
+        const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
         if (todoList) {
           setTodos(todoList.todos);
         }
-      }
-    },
-    [messageLifecycle.handleToolCallEnd, setTodos]
-  );
+        break;
+    }
+  };
 
-  const onError = useCallback(
-    (eventData: ErrorEvent) => {
-      toast.error(i18n.t("toast.task_failed.title", { ns: TABS_TASK_NAMESPACE }), {
-        description: eventData.error,
+  const onToolRequireUserResponse = (_: ToolRequireUserResponseEvent) => {
+    if (document.visibilityState === "hidden") {
+      sendNotification(t("notification.require_response"), {
+        onClick: backToCurrentTab,
       });
-      setState("error");
-    },
-    [setState]
-  );
+    }
+  };
 
-  const onClose = useCallback(() => {
+  const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
+    if (document.visibilityState === "hidden") {
+      sendNotification(
+        t("notification.require_permission", {
+          toolName: eventData.tool_name,
+        }),
+        { onClick: backToCurrentTab }
+      );
+    }
+  };
+
+  const onError = (eventData: ErrorEvent) => {
+    toast.error(t("toast.task_failed.title"), {
+      description: eventData.error,
+    });
+    setState("error");
+  };
+
+  const onClose = () => {
     messageLifecycle.handleClose();
     setState("idle");
-  }, [messageLifecycle.handleClose, setState]);
+  };
 
   sseCallbacksRef.current = {
     onMessageStart,
@@ -209,6 +225,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     onMessageEnd,
     onMessageReplace,
     onToolCallEnd,
+    onToolRequireUserResponse,
+    onToolRequirePermission,
     onError,
     onClose,
   };

@@ -7,9 +7,12 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-show",
+    "core:window:allow-request-user-attention",
     "opener:default",
     "dialog:allow-open",
     "dialog:default",
+    "notification:default",
     "window-state:default"
   ]
 }

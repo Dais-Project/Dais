@@ -12,11 +12,10 @@ type TabsState = {
 type TabsActions = {
   add: (tab: Tab) => void;
   replace: (tabs: Tab[]) => void;
-  setActive: (id: string) => void;
+  setActive: (pattern: string | ((tab: Tab) => boolean)) => void;
   update: (id: string, data: Partial<TabBase>) => void;
   updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
-  remove: (id: string) => void;
-  removePattern: (pattern: (tab: Tab) => boolean) => void;
+  remove: (pattern: string | ((tab: Tab) => boolean)) => void;
 };
 
 type TabsStore = TabsState & TabsActions;
@@ -55,7 +54,17 @@ export const useTabsStore = create<TabsStore>()(
             activeTabId: activeStillExists ? currentActive : (tabs[0]?.id ?? null),
           });
         },
-        setActive(id) {
+        setActive(pattern) {
+          if (typeof pattern === "function") {
+            set((state) => {
+              const tab = state.tabs.find(pattern);
+              if (tab) {
+                state.activeTabId = tab.id;
+              }
+            });
+            return;
+          }
+          const id = pattern;
           set((state) => {
             const exists = state.tabs.some((t) => t.id === id);
             if (!exists) {
@@ -82,7 +91,17 @@ export const useTabsStore = create<TabsStore>()(
             tab.metadata = metadata;
           });
         },
-        remove(id) {
+        remove(pattern) {
+          if (typeof pattern === "function") {
+            set((state: TabsState) => {
+              state.tabs = state.tabs.filter((t) => !pattern(t));
+              if (!state.tabs.find((t) => t.id === state.activeTabId)) {
+                state.activeTabId = state.tabs.at(-1)?.id ?? null;
+              }
+            });
+            return;
+          }
+          const id = pattern;
           set((state: TabsState) => {
             const idx = state.tabs.findIndex((t) => t.id === id);
             if (idx === -1) {
@@ -99,11 +118,6 @@ export const useTabsStore = create<TabsStore>()(
             }
             const hasTabOnRight = idx < state.tabs.length;
             state.activeTabId = hasTabOnRight ? state.tabs[idx].id : state.tabs[idx - 1].id;
-          });
-        },
-        removePattern(pattern) {
-          set((state: TabsState) => {
-            state.tabs = state.tabs.filter((t) => !pattern(t));
           });
         },
       };
