@@ -12,6 +12,7 @@ import {
   TextChunkEvent,
   ToolCallChunkEvent,
   ToolCallEndEvent,
+  ToolRequireUserResponseEvent,
   UsageChunkEvent,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
@@ -33,6 +34,7 @@ import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { UiMessage } from "@/types/message";
 import { toUiMessage } from "@/types/message";
+import { sendNotification } from "@/lib/notification";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -124,82 +126,62 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     sseCallbacksRef,
   });
 
-  const onMessageStart = useCallback(
-    (eventData: MessageStartEvent) => {
-      setState("running");
-      messageLifecycle.handleMessageStart(eventData.message_id);
-    },
-    [setState, messageLifecycle.handleMessageStart]
-  );
+  const onMessageStart = (eventData: MessageStartEvent) => {
+    setState("running");
+    messageLifecycle.handleMessageStart(eventData.message_id);
+  };
 
-  const onTextChunk = useCallback(
-    (chunk: TextChunkEvent) => {
-      textBuffer.accumulate(chunk.message_id, chunk.content);
-    },
-    [textBuffer]
-  );
+  const onTextChunk = (chunk: TextChunkEvent) => {
+    textBuffer.accumulate(chunk.message_id, chunk.content);
+  };
 
-  const onToolCallChunk = useCallback(
-    (chunk: ToolCallChunkEvent) => {
-      const {event_id, ...toolCallChunk} = chunk;
-      toolCallsBuffer.accumulate(toolCallChunk);
-    },
-    [toolCallsBuffer]
-  );
+  const onToolCallChunk = (chunk: ToolCallChunkEvent) => {
+    const {event_id, ...toolCallChunk} = chunk;
+    toolCallsBuffer.accumulate(toolCallChunk);
+  };
 
-  const onUsageChunk = useCallback(
-    (chunk: UsageChunkEvent) => {
-      const { event_id, ...usage } = chunk;
-      setUsage(usage);
-    },
-    [setUsage]
-  );
+  const onUsageChunk = (chunk: UsageChunkEvent) => {
+    const { event_id, ...usage } = chunk;
+    setUsage(usage);
+  }
 
-  const onMessageEnd = useCallback(
-    (eventData: MessageEndEvent) => {
+  const onMessageEnd = (eventData: MessageEndEvent) => {
       textBuffer.clear();
       toolCallsBuffer.clear();
       messageLifecycle.handleMessageEnd(eventData.message);
-    },
-    [textBuffer, toolCallsBuffer, messageLifecycle.handleMessageEnd]
-  );
+  };
 
-  const onMessageReplace = useCallback(
-    (eventData: MessageReplaceEvent) => {
-      messageLifecycle.handleMessageReplace(eventData.message);
-    },
-    [messageLifecycle.handleMessageReplace]
-  );
+  const onMessageReplace = (eventData: MessageReplaceEvent) => {
+    messageLifecycle.handleMessageReplace(eventData.message);
+  }
 
-  const onToolCallEnd = useCallback(
-    (eventData: ToolCallEndEvent) => {
-      messageLifecycle.handleToolCallEnd(eventData.message);
+  const onToolCallEnd = (eventData: ToolCallEndEvent) => {
+    messageLifecycle.handleToolCallEnd(eventData.message);
 
-      // refresh todo list
-      if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
-        const todoList = tryParseSchema(UpdateTodosSchema, eventData.message.arguments);
-        if (todoList) {
-          setTodos(todoList.todos);
-        }
+    // refresh todo list
+    if (eventData.message.name === BuiltInTools.ExecutionControl__update_todos) {
+      const todoList = tryParseSchema(UpdateTodosSchema, eventData.message.arguments);
+      if (todoList) {
+        setTodos(todoList.todos);
       }
-    },
-    [messageLifecycle.handleToolCallEnd, setTodos]
-  );
+    }
+  };
 
-  const onError = useCallback(
-    (eventData: ErrorEvent) => {
-      toast.error(i18n.t("toast.task_failed.title", { ns: TABS_TASK_NAMESPACE }), {
-        description: eventData.error,
-      });
-      setState("error");
-    },
-    [setState]
-  );
+  const onToolRequireUserResponse = (eventData: ToolRequireUserResponseEvent) => {
+    sendNotification("Dais waiting for your response");
+  };
 
-  const onClose = useCallback(() => {
+  const onError = (eventData: ErrorEvent) => {
+    toast.error(i18n.t("toast.task_failed.title", { ns: TABS_TASK_NAMESPACE }), {
+      description: eventData.error,
+    });
+    setState("error");
+  };
+
+  const onClose = () => {
     messageLifecycle.handleClose();
     setState("idle");
-  }, [messageLifecycle.handleClose, setState]);
+  };
 
   sseCallbacksRef.current = {
     onMessageStart,

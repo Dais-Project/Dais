@@ -10,10 +10,12 @@ export async function openDevtools() {
   await invoke(TauriCommand.OpenDevtools);
 }
 
-export async function sendNotification(title: string, body: string) {
-  if (!isTauri()) return;
-  const { isPermissionGranted, requestPermission, sendNotification } = await import("@tauri-apps/plugin-notification");
+export async function sendNotification(title: string, body?: string) {
+  if (!isTauri()) {
+    return;
+  }
 
+  const { isPermissionGranted, requestPermission, sendNotification } = await import("@tauri-apps/plugin-notification");
   let permissionGranted = await isPermissionGranted();
 
   if (!permissionGranted) {
