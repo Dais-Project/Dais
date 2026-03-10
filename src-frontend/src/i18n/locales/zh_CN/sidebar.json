@@ -59,7 +59,8 @@
     "helper_model": {
       "flash_model": {
         "title": "快速模型"
-      }
+      },
+      "error_load": "无法加载助手模型设置，请稍后重试。"
     },
     "providers": {
       "actions": {

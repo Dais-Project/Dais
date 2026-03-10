@@ -37,6 +37,7 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
+import { isForeground } from "@/lib/is-foreground";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -171,7 +172,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
     switch (message.name) {
       case BuiltInTools.ExecutionControl__finish_task:
-        if (document.visibilityState === "hidden") {
+        if (!isForeground()) {
           sendNotification(t("notification.task_done"), {
             onClick: backToCurrentTab,
           });
@@ -187,7 +188,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const onToolRequireUserResponse = (_: ToolRequireUserResponseEvent) => {
-    if (document.visibilityState === "hidden") {
+    if (!isForeground()) {
       sendNotification(t("notification.require_response"), {
         onClick: backToCurrentTab,
       });
@@ -195,7 +196,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
-    if (document.visibilityState === "hidden") {
+    if (!isForeground()) {
       sendNotification(
         t("notification.require_permission", {
           toolName: eventData.tool_name,

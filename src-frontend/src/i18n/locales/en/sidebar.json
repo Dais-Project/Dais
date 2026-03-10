@@ -59,7 +59,8 @@
     "helper_model": {
       "flash_model": {
         "title": "Flash model"
-      }
+      },
+      "error_load": "Failed to load helper model settings. Please try again later."
     },
     "providers": {
       "actions": {

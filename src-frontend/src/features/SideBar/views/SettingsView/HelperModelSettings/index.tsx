@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import { ModelSelectDialog } from "@/components/custom/dialog/resource-dialog/ModelSelectDialog";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export function HelperModelSettings() {
-  const { t } = useTranslation("sidebar");
+function HelperModelSettingsSuspense() {
   const { currentPromise: serverSettingsPromise, setPartial: setPartialServerSettings } = useServerSettingsStore();
   const serverSettings = use(serverSettingsPromise);
 
@@ -14,10 +15,27 @@ export function HelperModelSettings() {
   };
 
   return (
+    <ModelSelectDialog value={serverSettings.flash_model} onChange={handleValueChange} />
+  )
+}
+
+export function HelperModelSettings() {
+  const { t } = useTranslation("sidebar");
+
+  return (
     <div className="px-4 py-2">
-      <SettingItem title={t("settings.helper_model.flash_model.title")}>
-        <ModelSelectDialog value={serverSettings.flash_model} onChange={handleValueChange} />
-      </SettingItem>
+      <AsyncBoundary
+        skeleton={(
+          <SettingItem title={t("settings.helper_model.flash_model.title")}>
+            <Skeleton className="h-9 w-24" />
+          </SettingItem>
+        )}
+        errorDescription={t("settings.helper_model.flash_model.error_load")}
+      >
+        <SettingItem title={t("settings.helper_model.flash_model.title")}>
+            <HelperModelSettingsSuspense />
+        </SettingItem>
+      </AsyncBoundary>
     </div>
   );
 }

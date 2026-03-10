@@ -35,7 +35,7 @@ export function TextMessage({ text, from, isStreaming }: TextMessageProps) {
 
       {from === "user" && (
         <MessageActions className="justify-end">
-          <CopyButton variant="ghost" size="icon-sm" content={messageText} />
+          <CopyButton variant="ghost" size="icon-sm" content={messageText.trim()} />
         </MessageActions>
       )}
     </Message>

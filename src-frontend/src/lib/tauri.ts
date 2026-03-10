@@ -20,11 +20,11 @@ export async function sendNotification(title: string, body?: string) {
 
   if (!permissionGranted) {
     const permission = await requestPermission();
-    permissionGranted = permission === 'granted';
+    permissionGranted = permission === "granted";
   }
 
   if (permissionGranted) {
-    sendNotification({ title, body });
+    sendNotification({ title, body, sound: "Default" });
   }
 }
 
