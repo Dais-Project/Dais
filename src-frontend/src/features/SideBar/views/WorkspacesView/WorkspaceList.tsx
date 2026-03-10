@@ -111,14 +111,11 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
 
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
-          <PencilIcon className="mr-2 size-4" />
+          <PencilIcon />
           <span>{t("workspaces.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem
-          className="text-destructive hover:text-destructive!"
-          onClick={() => onDelete(workspace)}
-        >
-          <TrashIcon className="mr-2 size-4 text-destructive" />
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(workspace)}>
+          <TrashIcon />
           <span>{t("workspaces.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>

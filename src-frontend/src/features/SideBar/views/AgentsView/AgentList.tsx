@@ -90,11 +90,11 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
-          <PencilIcon className="mr-2 size-4" />
+          <PencilIcon />
           <span>{t("agents.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem className="text-destructive hover:text-destructive!" onClick={() => onDelete(agent)}>
-          <TrashIcon className="mr-2 size-4 text-destructive" />
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(agent)}>
+          <TrashIcon />
           <span>{t("agents.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>

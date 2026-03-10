@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
+import { DynamicIcon, IconName } from "lucide-react/dynamic";
 import type { PageTaskBrief, TaskBrief, TaskTitleUpdatedEvent } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
@@ -31,7 +32,6 @@ import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import SseDispatcher from "@/lib/sse-dispatcher";
-import { DynamicIcon, IconName } from "lucide-react/dynamic";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
 
@@ -96,11 +96,11 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
 
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleRename}>
-          <PencilIcon className="mr-2 size-4" />
+          <PencilIcon />
           <span>{t("tasks.menu.rename")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem className="text-destructive" onClick={() => onDelete(task)}>
-          <TrashIcon className="mr-2 size-4" />
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(task)}>
+          <TrashIcon />
           <span>{t("tasks.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>

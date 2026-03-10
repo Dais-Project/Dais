@@ -142,14 +142,11 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
-          <PencilIcon className="mr-2 size-4" />
+          <PencilIcon />
           <span>{t("toolsets.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem
-          className="text-destructive hover:text-destructive!"
-          onClick={() => onDelete(toolset)}
-        >
-          <TrashIcon className="mr-2 size-4 text-destructive" />
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(toolset)}>
+          <TrashIcon />
           <span>{t("toolsets.menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>

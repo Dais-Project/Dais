@@ -91,7 +91,7 @@
       }
     },
     "tabs": {
-      "dev": "开发工具",
+      "dev": "开发",
       "general": "通用",
       "helper_model": "助手模型",
       "providers": "模型服务"
