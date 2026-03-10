@@ -36,9 +36,9 @@
     "type": {
       "label": "类型",
       "option": {
-        "built_in": "Built-in",
-        "mcp_local": "Local MCP",
-        "mcp_remote": "Remote MCP"
+        "built_in": "内置",
+        "mcp_local": "本地 MCP",
+        "mcp_remote": "远程 MCP"
       },
       "placeholder": "选择 Toolset 类型"
     },

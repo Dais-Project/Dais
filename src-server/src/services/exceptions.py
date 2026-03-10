@@ -9,6 +9,7 @@ class ServiceErrorCode(str, Enum):
     NOT_FOUND = "NOT_FOUND"
     CONFLICT = "CONFLICT"
     BAD_REQUEST = "BAD_REQUEST"
+    UNAVAILABLE = "UNAVAILABLE"
 
 class ServiceError(Exception):
     """Base class for all service layer errors."""
@@ -35,3 +36,8 @@ class BadRequestError(ServiceError):
     """Raised when the request is invalid or cannot be processed."""
     def __init__(self, message: str) -> None:
         super().__init__(ServiceErrorCode.BAD_REQUEST, message)
+
+class UnavailableError(ServiceError):
+    """Raised when the resource is temporarily unavailable."""
+    def __init__(self, message: str) -> None:
+        super().__init__(ServiceErrorCode.UNAVAILABLE, message)

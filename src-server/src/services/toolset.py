@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from dais_sdk.mcp_client import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .service_base import ServiceBase
-from .exceptions import NotFoundError, ConflictError, BadRequestError
+from .exceptions import NotFoundError, ConflictError, BadRequestError, UnavailableError
 from ..db.models import toolset as toolset_models
 from ..schemas import toolset as toolset_schemas
 
@@ -20,6 +20,13 @@ class ToolsetInternalKeyAlreadyExistsError(ConflictError):
 
     def __init__(self, name: str) -> None:
         super().__init__(f"Toolset '{name}' already exists")
+
+
+class FailedToConnectMcpServerError(UnavailableError):
+    """Raised when failed to connect to MCP server."""
+
+    def __init__(self, mcp_server_name: str) -> None:
+        super().__init__(f"Failed to connect to MCP server '{mcp_server_name}'")
 
 
 class ToolNotFoundError(NotFoundError):
@@ -110,11 +117,14 @@ class ToolsetService(ServiceBase):
         await client.connect()
         try:
             tools = await client.list_tools()
+        except Exception as e:
+            raise FailedToConnectMcpServerError(data.name) from e
         finally:
             await client.disconnect()
 
         new_toolset = toolset_models.Toolset(
-            **data.model_dump(),
+            **data.model_dump(exclude={"params"}),
+            params=data.params,
             internal_key=data.name,
             tools=[toolset_models.Tool.from_mcp_tool(tool) for tool in tools],
         )
@@ -133,7 +143,10 @@ class ToolsetService(ServiceBase):
             for tool_data in data.tools:
                 await self.update_tool(id, tool_data.id, tool_data)
 
-        update_data = data.model_dump(exclude={"tools"}, exclude_unset=True)
+        if data.params is not None:
+            toolset.params = data.params
+
+        update_data = data.model_dump(exclude={"params", "tools"}, exclude_unset=True)
         for key, value in update_data.items():
             if hasattr(toolset, key) and value is not None:
                 setattr(toolset, key, value)
