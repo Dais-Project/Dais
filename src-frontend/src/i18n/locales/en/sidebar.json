@@ -173,7 +173,8 @@
     },
     "menu": {
       "delete": "Delete",
-      "edit": "Edit workspace"
+      "edit": "Edit workspace",
+      "set_current": "Set as current"
     },
     "tab": {
       "create_title": "Create workspace",

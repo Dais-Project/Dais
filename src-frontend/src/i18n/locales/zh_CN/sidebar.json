@@ -173,7 +173,8 @@
     },
     "menu": {
       "delete": "删除",
-      "edit": "编辑工作区"
+      "edit": "编辑工作区",
+      "set_current": "设为当前工作区"
     },
     "tab": {
       "create_title": "创建工作区",

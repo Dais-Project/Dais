@@ -1,4 +1,4 @@
-import { FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { CircleIcon, FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
@@ -110,6 +110,10 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
+        <ActionableItemMenuItem onClick={handleSelect} disabled={isSelected}>
+          <CircleIcon />
+          <span>设为当前工作区</span>
+        </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
           <span>{t("workspaces.menu.edit")}</span>
