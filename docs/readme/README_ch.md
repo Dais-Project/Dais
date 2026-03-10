@@ -1,0 +1,38 @@
+<div align="center">
+    <br />
+    <img src="../../public/icon.png" alt="Dais 标志" width="160" height="160" />
+    <h1>Dais</h1>
+    你的桌面 AI 员工
+    <br />
+    <a href="./docs/readme/README_ch.md">简体中文</a> |
+    English
+    <br />
+    <br />
+</div>
+
+## 快速开始
+
+<p>
+  <a href="https://github.com/Dais-Project/Dais/releases">
+    <img src="https://img.shields.io/badge/Download-Latest%20Release-32CD32?style=for-the-badge&logo=github&logoColor=white" alt="下载最新版本" height="50">
+  </a>
+</p>
+
+## 开发
+
+本项目使用 Nx 来管理全部开发命令，使用 `pnpm` 运行 [`package.json`](package.json) 中提供的脚本。
+
+安装依赖（postinstall 会为子项目执行 `nx run-many -t install`）
+```
+pnpm install
+```
+
+启动开发服务器
+```
+pnpm run dev
+```
+
+构建所有项目
+```
+pnpm run build
+```

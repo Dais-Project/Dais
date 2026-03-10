@@ -4,8 +4,8 @@
     <h1>Dais</h1>
     Your <b>D</b>esktop <b>AI</b> <b>S</b>taffs
     <br />
-    <a href="./docs/README/README_ch.md">简体中文</a> |
-    <a href="./docs/README/README.md">English</a>
+    <a href="./docs/readme/README_ch.md">简体中文</a> |
+    English
     <br />
     <br />
 </div>
