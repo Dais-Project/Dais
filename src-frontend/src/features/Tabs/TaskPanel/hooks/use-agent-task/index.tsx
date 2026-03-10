@@ -131,14 +131,13 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
-  const { state, setState, startStream, cancel } = useTaskStream({
+  const { state, startStream, cancel } = useTaskStream({
     taskId,
     agentId,
     sseCallbacksRef,
   });
 
   const onMessageStart = (eventData: MessageStartEvent) => {
-    setState("running");
     messageLifecycle.handleMessageStart(eventData.message_id);
   };
 
@@ -210,13 +209,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });
-    setState("error");
   };
 
-  const onClose = () => {
-    messageLifecycle.handleClose();
-    setState("idle");
-  };
+  const onClose = () => messageLifecycle.handleClose();
 
   sseCallbacksRef.current = {
     onMessageStart,
@@ -234,7 +229,6 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const continue_ = useCallback(
     (message?: UiUserMessage) => {
-      setState("waiting");
       if (message) {
         setData((draft) => {
           draft.push(toUiMessage(message));
@@ -242,27 +236,25 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       }
       startStream(continueTask, { message });
     },
-    [setState, setData, startStream]
+    [setData, startStream]
   );
 
   const answerTool = useCallback(
     (toolCallId: string, answer: string) => {
-      setState("waiting");
       startStream(toolAnswer, { call_id: toolCallId, answer });
     },
-    [setState, startStream]
+    [startStream]
   );
 
   const reviewTool = useCallback(
     (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
-      setState("waiting");
       startStream(toolReview, {
         call_id: toolCallId,
         auto_approve: autoApprove,
         status,
       });
     },
-    [setState, startStream]
+    [startStream]
   );
 
   const stateValue = useMemo(

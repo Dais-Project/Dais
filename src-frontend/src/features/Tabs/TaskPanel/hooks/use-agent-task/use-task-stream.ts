@@ -1,5 +1,5 @@
 import { useUnmount } from "ahooks";
-import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef, useState } from "react";
+import { type RefObject, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
 import type { TaskState } from ".";
@@ -12,7 +12,6 @@ type TaskStreamProps = {
 
 type TaskStreamResult = {
   state: TaskState;
-  setState: Dispatch<SetStateAction<TaskState>>;
   startStream: <Body extends Record<string, unknown>>(
     streamApi: TaskStreamFn<Body & { agent_id: number }>,
     body: Body
@@ -26,6 +25,27 @@ export type TaskStreamFn<Body extends { agent_id: number }> = (
   callbacks: TaskSseCallbacks
 ) => AbortController;
 
+function createOverrideCallbacks(
+  sseCallbacksRef: RefObject<TaskSseCallbacks>,
+  setState: (state: TaskState) => void
+): TaskSseCallbacks {
+  return {
+    ...sseCallbacksRef.current,
+    onMessageStart(...args) {
+      setState("running");
+      sseCallbacksRef.current.onMessageStart?.(...args);
+    },
+    onError() {
+      setState("error");
+      sseCallbacksRef.current.onTaskDone?.();
+    },
+    onClose() {
+      setState("idle");
+      sseCallbacksRef.current.onClose?.();
+    },
+  };
+}
+
 export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
   const abortController = useRef<AbortController | null>(null);
@@ -33,19 +53,19 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
 
   const startStream = useCallback(
     <Body extends Record<string, unknown>>(streamApi: TaskStreamFn<Body & { agent_id: number }>, body: Body) => {
-      const overrideCallbacks: TaskSseCallbacks = {
-        ...sseCallbacksRef.current,
-        onClose() {
-          abortController.current = null;
-          sseCallbacksRef.current.onClose?.();
-        },
-      };
+      const overrideCallbacks = createOverrideCallbacks(sseCallbacksRef, setState);
       if (agentId === null) {
         toast.error("任务失败", {
           description: "请先选择一个 Agent。",
         });
         return;
       }
+
+      if (state !== "idle" && state !== "error") {
+        console.warn("Previous stream is not finished yet.");
+        return;
+      }
+
       setState("waiting");
       if (abortController.current) {
         console.warn("Aborting previous stream...");
@@ -60,7 +80,7 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
         overrideCallbacks
       );
     },
-    [taskId, agentId, sseCallbacksRef]
+    [taskId, agentId, sseCallbacksRef, setState]
   );
 
   const cancel = () => {
@@ -71,7 +91,6 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
 
   return {
     state,
-    setState,
     startStream,
     cancel,
   };
