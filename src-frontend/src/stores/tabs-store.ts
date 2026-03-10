@@ -12,7 +12,7 @@ type TabsState = {
 type TabsActions = {
   add: (tab: Tab) => void;
   replace: (tabs: Tab[]) => void;
-  setActive: (id: string) => void;
+  setActive: (pattern: string | ((tab: Tab) => boolean)) => void;
   update: (id: string, data: Partial<TabBase>) => void;
   updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
   remove: (pattern: string | ((tab: Tab) => boolean)) => void;
@@ -54,7 +54,17 @@ export const useTabsStore = create<TabsStore>()(
             activeTabId: activeStillExists ? currentActive : (tabs[0]?.id ?? null),
           });
         },
-        setActive(id) {
+        setActive(pattern) {
+          if (typeof pattern === "function") {
+            set((state) => {
+              const tab = state.tabs.find(pattern);
+              if (tab) {
+                state.activeTabId = tab.id;
+              }
+            });
+            return;
+          }
+          const id = pattern;
           set((state) => {
             const exists = state.tabs.some((t) => t.id === id);
             if (!exists) {

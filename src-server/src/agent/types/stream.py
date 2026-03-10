@@ -97,6 +97,7 @@ class ToolRequireUserResponseEvent(BaseModel):
 
 class ToolRequirePermissionEvent(BaseModel):
     call_id: str
+    tool_name: str
     event_id: Literal["TOOL_REQUIRE_PERMISSION"] = "TOOL_REQUIRE_PERMISSION"
 
 
