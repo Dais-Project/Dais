@@ -4,11 +4,15 @@
     <h1>Dais</h1>
     你的桌面 AI 员工
     <br />
-    <a href="./docs/readme/README_ch.md">简体中文</a> |
-    English
+    简体中文 |
+    <a href="../../README.md">English</a>
     <br />
     <br />
 </div>
+
+## 屏幕截图
+
+![主界面](../screenshots/mainscreen-zh_CN-split.png)
 
 ## 快速开始
 

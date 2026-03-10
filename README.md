@@ -4,11 +4,15 @@
     <h1>Dais</h1>
     Your <b>D</b>esktop <b>AI</b> <b>S</b>taffs
     <br />
-    <a href="./docs/readme/README_ch.md">简体中文</a> |
+    <a href="./docs/readme/README_zh_CN.md">简体中文</a> |
     English
     <br />
     <br />
 </div>
+
+## Screenshot
+
+![mainscreen](./docs/screenshots/mainscreen-en-split.png)
 
 ## Quick Start
 
