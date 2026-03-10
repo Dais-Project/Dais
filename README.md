@@ -4,8 +4,19 @@
     <h1>Dais</h1>
     Your <b>D</b>esktop <b>AI</b> <b>S</b>taffs
     <br />
+    <a href="./docs/README/README_ch.md">简体中文</a> |
+    <a href="./docs/README/README.md">English</a>
+    <br />
     <br />
 </div>
+
+## Quick Start
+
+<p>
+  <a href="https://github.com/Dais-Project/Dais/releases">
+    <img src="https://img.shields.io/badge/Download-Latest%20Release-32CD32?style=for-the-badge&logo=github&logoColor=white" alt="Download Latest Release" height="50">
+  </a>
+</p>
 
 ## Development
 
