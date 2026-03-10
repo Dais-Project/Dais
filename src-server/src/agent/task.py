@@ -189,14 +189,9 @@ class AgentTask:
                 return MessageReplaceEvent(message=message)
         raise ToolCallNotFoundError(call_id)
 
-    async def approve_tool_call(self, call_id: str, approved: bool) -> tuple[ToolEvent | None, MessageReplaceEvent | None]:
+    async def approve_tool_call(self, call_id: str, approved: bool) -> AsyncGenerator[ToolEvent | MessageReplaceEvent, None]:
         """
         Approve or deny a tool call
-
-        Returns:
-            A tuple of (ToolEvent, MessageReplaceEvent)
-            - ToolEvent: The tool execution event (if any)
-            - MessageReplaceEvent: The message replace event for frontend sync
 
         Raises:
             ToolCallNotFoundError
@@ -218,20 +213,20 @@ class AgentTask:
 
         if metadata["user_approval"] != UserApprovalStatus.PENDING:
             # The tool call has been approved or denied before.
-            return None, None
+            return
         metadata["user_approval"] = (UserApprovalStatus.APPROVED
                                      if approved
                                      else UserApprovalStatus.DENIED)
+
+        yield MessageReplaceEvent(message=target_message.model_copy())
 
         request_params = self._request_param_factory()
         tool = request_params.find_tool(target_message.name)
         if tool is None:
             self._logger.error(f"Tool called '{target_message.name}' is not defined.")
-            return None, None
-
-        tool_event = await self._process_tool_call_to_event(tool, target_message)
-        replace_event = MessageReplaceEvent(message=target_message)
-        return tool_event, replace_event
+            return
+        yield await self._process_tool_call_to_event(tool, target_message)
+        yield MessageReplaceEvent(message=target_message)
 
     async def run(self) -> AgentGenerator:
         _exited_by_generator_close = False

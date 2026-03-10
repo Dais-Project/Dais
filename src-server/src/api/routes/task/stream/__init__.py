@@ -89,13 +89,9 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request):
     """
     task = await retrieve_task(task_id, body.agent_id)
     try:
-        tool_event, replace_event = await task.approve_tool_call(
-                                          body.call_id, body.status == "approved")
+        async for event in task.approve_tool_call(body.call_id, body.status == "approved"):
+            yield event
     except ToolCallNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.call_id)
-
-    if replace_event is not None: yield replace_event
-    if tool_event    is not None: yield tool_event
-
     async for event in agent_stream(task, request):
         yield event
