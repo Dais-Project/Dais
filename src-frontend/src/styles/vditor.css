@@ -76,6 +76,7 @@
   display: flex;
   flex-wrap: wrap;
   padding-left: var(--editor-padding) !important;
+  padding-right: var(--editor-padding) !important;
   border-bottom-color: var(--border) !important;
   background-color: var(--card) !important;
   border-radius: var(--radius) var(--radius) 0 0;
