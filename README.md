@@ -17,8 +17,8 @@
 ## Quick Start
 
 <p>
-  <a href="https://github.com/Dais-Project/Dais/releases">
-    <img src="https://img.shields.io/badge/Download-Latest%20Release-32CD32?style=for-the-badge&logo=github&logoColor=white" alt="Download Latest Release" height="50">
+  <a href="https://github.com/Dais-Project/Dais/releases/latest">
+    <img src="https://img.shields.io/badge/Download-Latest/Release-32CD32?style=for-the-badge&logo=github&logoColor=white" alt="Download Latest Release" height="50">
   </a>
 </p>
 
