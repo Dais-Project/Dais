@@ -38,15 +38,15 @@
 }
 
 .vditor-sm {
-  --padding: 2.4rem;
+  --editor-padding: 2.4rem;
 }
 
 .vditor-md {
-  --padding: 5rem;
+  --editor-padding: 5rem;
 }
 
 .vditor-lg {
-  --padding: 12rem;
+  --editor-padding: 12rem;
 }
 
 .resizable-panel-resizing .vditor {
@@ -75,7 +75,7 @@
 .vditor-toolbar {
   display: flex;
   flex-wrap: wrap;
-  padding-left: var(--padding) !important;
+  padding-left: var(--editor-padding) !important;
   border-bottom-color: var(--border) !important;
   background-color: var(--card) !important;
   border-radius: var(--radius) var(--radius) 0 0;
@@ -136,8 +136,8 @@
 
 /* 内容区域 */
 .vditor-reset {
-  padding-left: var(--padding) !important;
-  padding-right: var(--padding) !important;
+  padding-left: var(--editor-padding) !important;
+  padding-right: var(--editor-padding) !important;
 }
 
 /* 行内代码块 */

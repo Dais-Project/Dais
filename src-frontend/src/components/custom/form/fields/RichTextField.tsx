@@ -4,7 +4,6 @@ import {
   useController,
   useFormContext,
 } from "react-hook-form";
-import { useMount, useTheme } from "ahooks";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Vditor } from "@/components/custom/Vditor";
 import { i18n } from "@/i18n";
@@ -12,6 +11,7 @@ import { FORM_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { FieldProps } from ".";
 import { VDITOR_LOCALE_MAP } from "@/i18n/locale-maps/vditor";
+import { resolveTheme } from "@/lib/resolve-theme";
 
 function createRichTextRules(
   label: string,
@@ -74,9 +74,7 @@ export function RichTextField({
     rules: createRichTextRules(label as string, required, minLength, maxLength),
   });
 
-  const { theme: themeMode, language } = useSettingsStore((state) => state.current);
-  const { theme, setThemeMode } = useTheme();
-  useMount(() => setThemeMode(themeMode));
+  const { theme, language } = useSettingsStore((state) => state.current);
 
   return (
     <FieldItem
@@ -88,7 +86,7 @@ export function RichTextField({
       <Vditor
         initialValue={field.value}
         onChange={field.onChange}
-        theme={theme}
+        theme={resolveTheme(theme)}
         lang={VDITOR_LOCALE_MAP[language]}
         {...controlProps}
       />

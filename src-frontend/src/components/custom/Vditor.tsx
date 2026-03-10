@@ -32,6 +32,18 @@ const CUSTOM_VDITOR_TOOLBAR = [
 type SupportedLanguage = keyof II18n;
 type SupportedTheme = "light" | "dark";
 
+function getTheme(isDark: boolean): {
+  theme: "dark" | "classic";
+  contentTheme: "dark" | "light";
+  codeTheme: "dark" | "light";
+} {
+  return {
+    theme: isDark ? "dark" : "classic",
+    contentTheme: isDark ? "dark" : "light",
+    codeTheme: isDark ? "dark" : "light",
+  }
+}
+
 export type VditorProps = {
   initialValue?: string;
   className?: string;
@@ -53,15 +65,14 @@ export function Vditor({
 }: VditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const vditorRef = useRef<VditorType | null>(null);
-  const themeRef = useRef<SupportedTheme>(theme);
   const changeHandler = useMemoizedFn((value: string) => onChange?.(value));
 
   const setVditorTheme = (theme: SupportedTheme) => {
-    const isDark = theme === "dark";
+    const themes = getTheme(theme === "dark");
     vditorRef.current?.setTheme(
-      isDark ? "dark" : "classic",
-      isDark ? "dark" : "light",
-      isDark ? "dark" : "light",
+      themes.theme,
+      themes.contentTheme,
+      themes.codeTheme,
     );
   };
 
@@ -81,6 +92,7 @@ export function Vditor({
   })();
 
   useMount(() => {
+    const themes = getTheme(theme === "dark");
     const vditor = new VditorType(containerRef.current!, {
       placeholder: placeholder ?? "",
       mode: "ir",
@@ -88,14 +100,20 @@ export function Vditor({
       minHeight: 160,
       cdn: "/vditor",
       lang,
+      theme: themes.theme,
+      preview: {
+        theme: {
+          current: themes.contentTheme,
+        },
+        hljs: {
+          style: themes.codeTheme,
+        },
+      },
       cache: { enable: false },
       value: initialValue,
       toolbar: CUSTOM_VDITOR_TOOLBAR,
       blur: changeHandler,
-      after: () => {
-        vditorRef.current = vditor;
-        setVditorTheme(themeRef.current);
-      },
+      after: () => vditorRef.current = vditor,
     });
   });
 
@@ -112,18 +130,12 @@ export function Vditor({
   }, [disabled]);
 
   useEffect(() => {
-    themeRef.current = theme;
     setVditorTheme(theme);
   }, [theme]);
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "vditor max-h-[60vh] overflow-hidden",
-        `vditor-${containerSize}`,
-        className
-      )}
-    />
+    <div className={cn("w-full", `vditor-${containerSize}`, className)}>
+      <div ref={containerRef} className="vditor max-h-[60vh] overflow-hidden"></div>
+    </div>
   );
 }
