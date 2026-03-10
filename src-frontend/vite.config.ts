@@ -1,13 +1,24 @@
+import fs from "node:fs";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    viteStaticCopy({
+      targets: [{
+        src: "node_modules/vditor/dist/**/*",
+        dest: "vditor/dist",
+      }],
+    }),
+  ],
 
   resolve: {
     alias: {

@@ -86,6 +86,7 @@ export function Vditor({
       mode: "ir",
       width: "100%",
       minHeight: 160,
+      cdn: "/vditor",
       lang,
       cache: { enable: false },
       value: initialValue,
