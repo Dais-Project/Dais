@@ -1,4 +1,5 @@
 import argparse
+import logging
 import uvicorn
 from typing import Callable
 from loguru import logger
@@ -6,8 +7,8 @@ from uvicorn.server import Server
 from . import IS_DEV
 from .api import app
 from .db import migrate_db
+from .logger import get_log_level, setup_logging
 from .parent_watchdog import ParentWatchdog
-from .common import DATA_DIR
 
 
 def prevent_port_occupancy(port: int):
@@ -38,7 +39,7 @@ def prevent_port_occupancy(port: int):
             continue
     time.sleep(1)
 
-def create_server(port: int) -> tuple[Server, Callable[[], None]]:
+def create_server(port: int, log_level: int) -> tuple[Server, Callable[[], None]]:
     def stop_server():
         server.should_exit = True
 
@@ -46,8 +47,7 @@ def create_server(port: int) -> tuple[Server, Callable[[], None]]:
                                            host="127.0.0.1",
                                            port=port,
                                            workers=1,
-                                           log_config=None,
-                                           log_level="debug" if IS_DEV else "info")
+                                           log_level=log_level)
     server = uvicorn.Server(server_config)
     return server, stop_server
 
@@ -59,13 +59,12 @@ async def main():
     if IS_DEV:
         prevent_port_occupancy(args.port)
 
-    logger.add(DATA_DIR / "server.log",
-               rotation="256 MB",
-               mode="w",
-               enqueue=True)
     await migrate_db()
 
-    server, stop_server = create_server(args.port)
+    log_level = get_log_level(IS_DEV)
+    server, stop_server = create_server(args.port, log_level)
     ParentWatchdog(stop_server).start()
+    setup_logging(log_level)
+
     await server.serve()
     await logger.complete()
