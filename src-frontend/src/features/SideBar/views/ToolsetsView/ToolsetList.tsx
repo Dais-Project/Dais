@@ -180,10 +180,7 @@ export function ToolsetList() {
   });
 
   const { data: toolsets } = useGetToolsetsBriefSuspense({
-    query: {
-      // TODO: replace refetch polling with sse
-      refetchInterval: 3000,
-    },
+    query: { refetchInterval: 3000 },
   });
 
   return (

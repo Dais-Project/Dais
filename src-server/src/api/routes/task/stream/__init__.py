@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.sse import EventSourceResponse
 from dais_sdk.types import UserMessage
 from pydantic import BaseModel
-from .utils import agent_stream
+from .stream_connector import agent_stream
 from .....agent.context import AgentContext
 from .....agent.task import AgentTask, ToolCallNotFoundError
 from .....agent.types import AgentEvent

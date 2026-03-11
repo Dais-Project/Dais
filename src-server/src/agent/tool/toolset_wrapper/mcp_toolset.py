@@ -9,6 +9,10 @@ from ....db import db_context
 from ....db.models import toolset as toolset_models
 
 
+class McpToolsetNotConnectedError(Exception):
+    def __init__(self, toolset_name: str):
+        super().__init__(f"MCP toolset '{toolset_name}' not connected")
+
 class McpToolsetStatus(str, Enum):
     CONNECTING = "connecting"
     CONNECTED = "connected"
@@ -28,7 +32,7 @@ class McpToolset(Toolset):
                 raise ValueError(f"Unsupported toolset type: {toolset_ent.type}")
         self._inner_toolset = inner_toolset
         self._toolset_id = toolset_ent.id
-        self._status = McpToolsetStatus.CONNECTING
+        self._status = McpToolsetStatus.DISCONNECTED
         self._error: BaseException | None = None
         self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
                           for tool in toolset_ent.tools}
@@ -45,11 +49,6 @@ class McpToolset(Toolset):
     @property
     def error(self) -> BaseException | None:
         return self._error
-
-    @error.setter
-    def error(self, error: BaseException):
-        self._status = McpToolsetStatus.ERROR
-        self._error = error
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
         from ....services import ToolsetService
@@ -79,21 +78,29 @@ class McpToolset(Toolset):
                                     needs_user_interaction=False)))
         return result
 
-    def refresh_metadata(self, tools: list[toolset_models.Tool]):
+    async def sync(self):
+        if self._status != McpToolsetStatus.CONNECTED:
+            raise McpToolsetNotConnectedError(self.name)
+
+        inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
+        latest_tool_list = inner_toolset.get_tools(namespaced_tool_name=False)
+        merged_tool_list = await self._merge_tools(latest_tool_list)
         self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
-                          for tool in tools}
+                          for tool in merged_tool_list}
 
     async def connect(self):
         inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
-        await inner_toolset.connect()
-
-        latest_tool_list = inner_toolset.get_tools(namespaced_tool_name=False)
-        merged_tool_list = await self._merge_tools(latest_tool_list)
-
-        self.refresh_metadata(merged_tool_list)
-        self._status = McpToolsetStatus.CONNECTED
+        self._status = McpToolsetStatus.CONNECTING
+        try:
+            await inner_toolset.connect()
+            self._status = McpToolsetStatus.CONNECTED
+            await self.sync()
+        except Exception as e:
+            self._status = McpToolsetStatus.ERROR
+            self._error = e
+            raise
 
     async def disconnect(self):
-        inner_toolset = cast(McpToolset, self._inner_toolset)
+        inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
         await inner_toolset.disconnect()
         self._status = McpToolsetStatus.DISCONNECTED

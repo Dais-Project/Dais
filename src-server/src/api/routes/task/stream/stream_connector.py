@@ -9,7 +9,7 @@ from .....agent.types import (
 )
 
 
-_logger = logger.bind(name="TaskStreamRoute")
+_logger = logger.bind(name="AgentStream")
 
 async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
     pending_terminal_event = None

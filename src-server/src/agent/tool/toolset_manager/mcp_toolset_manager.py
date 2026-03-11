@@ -1,26 +1,35 @@
 import asyncio
-import threading
+from enum import Enum
 from typing import Sequence, override
 from loguru import logger
 from dais_sdk.tool import Toolset
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
-from ....db import db_context
+from ....db import db_context, toolset_models
 
-_logger = logger.bind(name="McpToolsetManager")
+
+class McpToolsetManagerNotInitializedError(Exception):
+    def __init__(self):
+        super().__init__("MCP toolset manager not initialized")
+
+class McpToolsetManagerState(Enum):
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    DISCONNECTING = "disconnecting"
+    DISCONNECTED = "disconnected"
 
 class McpToolsetManager(ToolsetManager):
+    _logger = logger.bind(name="McpToolsetManager")
+
     def __init__(self):
-        self._lock = threading.Lock()
-        self._connecting = False
-        self._connected = False
+        self._state = McpToolsetManagerState.DISCONNECTED
         self._toolset_map: dict[int, McpToolset] | None = None
 
     @property
     @override
     def toolsets(self) -> Sequence[Toolset]:
         if self._toolset_map is None:
-            raise ValueError("Toolset manager not initialized")
+            raise McpToolsetManagerNotInitializedError()
         return list(self._toolset_map.values())
 
     async def initialize(self):
@@ -28,69 +37,68 @@ class McpToolsetManager(ToolsetManager):
 
         async with db_context() as db_session:
             toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
-        with self._lock:
-            self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
+        self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
-    async def refresh_toolset_metadata(self):
-        from ....services import ToolsetService
-
+    async def append(self, toolset_ent: toolset_models.Toolset):
         if self._toolset_map is None:
-            raise ValueError("Toolset manager not initialized")
+            raise McpToolsetManagerNotInitializedError()
 
-        async with db_context() as db_session:
-            toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
+        new_toolset = McpToolset(toolset_ent)
+        self._toolset_map[toolset_ent.id] = new_toolset
+        try:
+            await new_toolset.connect()
+        except Exception:
+            self._logger.exception(f"Failed to connect to MCP server {new_toolset.name}")
 
-        toolsets = []
-        toolset_connect_tasks = []
-        with self._lock:
-            for toolset in toolset_ents:
-                existing_toolset = self._toolset_map.get(toolset.id)
-                if existing_toolset is None:
-                    new_toolset = McpToolset(toolset)
-                    self._toolset_map[toolset.id] = new_toolset
-                    toolsets.append(new_toolset)
-                    toolset_connect_tasks.append(new_toolset.connect())
-                    continue
-                toolsets.append(existing_toolset)
-                existing_toolset.refresh_metadata(toolset.tools)
+    async def refresh(self, toolset_ent: toolset_models.Toolset):
+        if self._toolset_map is None:
+            raise McpToolsetManagerNotInitializedError()
 
-        results = await asyncio.gather(*toolset_connect_tasks, return_exceptions=True)
-        for toolset, result in zip(toolsets, results):
-            if not isinstance(result, BaseException): continue
-            _logger.exception(f"Failed to connect to MCP server {toolset.name}")
-            toolset.error = result
+        toolset = self._toolset_map.get(toolset_ent.id)
+        if toolset is None:
+            raise ValueError(f"Toolset {toolset_ent.id} not found")
+        await toolset.sync()
+
+    async def remove(self, toolset_id: int):
+        if self._toolset_map is None:
+            raise McpToolsetManagerNotInitializedError()
+
+        toolset = self._toolset_map.pop(toolset_id, None)
+        if toolset is None:
+            self._logger.warning(f"Toolset {toolset_id} not found, skip disconnecting")
+            return
+
+        try:
+            await toolset.disconnect()
+        except Exception as e:
+            self._logger.opt(exception=e).warning(f"Failed to disconnect from MCP server {toolset.name}")
 
     async def connect_mcp_servers(self):
         if self._toolset_map is None:
             raise ValueError("Toolset manager not initialized")
 
-        with self._lock:
-            if self._connected or self._connecting: return
-            self._connecting = True
+        if self._state != McpToolsetManagerState.DISCONNECTED: return
+        self._state = McpToolsetManagerState.CONNECTING
 
         toolsets = list(self._toolset_map.values())
         tasks = [toolset.connect() for toolset in toolsets]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for toolset, result in zip(toolsets, results):
             if not isinstance(result, BaseException): continue
-            _logger.exception(f"Failed to connect to MCP server {toolset.name}")
-            toolset.error = result
+            self._logger.exception(f"Failed to connect to MCP server {toolset.name}")
 
-        with self._lock:
-            self._connecting = False
-            self._connected = True
+        self._state = McpToolsetManagerState.CONNECTED
 
     async def disconnect_mcp_servers(self):
         if self._toolset_map is None:
             raise ValueError("Toolset manager not initialized")
 
-        with self._lock:
-            if not self._connected or self._connecting: return
-            self._connecting = False
-            self._connected = False
+        if self._state != McpToolsetManagerState.CONNECTED: return
+        self._state = McpToolsetManagerState.DISCONNECTING
 
         tasks = [toolset.disconnect() for toolset in self._toolset_map.values()]
         await asyncio.gather(*tasks, return_exceptions=True)
+        self._state = McpToolsetManagerState.DISCONNECTED
 
 __instance: McpToolsetManager | None = None
 

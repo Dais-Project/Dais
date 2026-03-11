@@ -56,7 +56,7 @@ async def get_toolset(toolset_id: int, db_session: DbSessionDep):
     return await ToolsetService(db_session).get_toolset_by_id(toolset_id)
 
 @toolset_router.post("/", status_code=status.HTTP_201_CREATED, response_model=toolset_schemas.ToolsetRead)
-async def create_mcp_toolset(
+async def create_toolset(
     body: toolset_schemas.ToolsetCreate,
     db_session: DbSessionDep,
     mcp_toolset_manager: McpToolsetManagerDep,
@@ -64,7 +64,7 @@ async def create_mcp_toolset(
     new_toolset = await ToolsetService(db_session).create_toolset(body)
     if (body.type == toolset_schemas.ToolsetType.MCP_LOCAL or
         body.type == toolset_schemas.ToolsetType.MCP_REMOTE):
-        await mcp_toolset_manager.refresh_toolset_metadata()
+        await mcp_toolset_manager.append(new_toolset)
     return new_toolset
 
 @toolset_router.put("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)
@@ -77,7 +77,7 @@ async def update_toolset(
     updated_toolset = await ToolsetService(db_session).update_toolset(toolset_id, body)
     if (updated_toolset.type == toolset_schemas.ToolsetType.MCP_LOCAL or
         updated_toolset.type == toolset_schemas.ToolsetType.MCP_REMOTE):
-        await mcp_toolset_manager.refresh_toolset_metadata()
+        await mcp_toolset_manager.refresh(updated_toolset)
     return updated_toolset
 
 @toolset_router.delete("/{toolset_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -87,4 +87,4 @@ async def delete_toolset(
     mcp_toolset_manager: McpToolsetManagerDep,
 ):
     await ToolsetService(db_session).delete_toolset(toolset_id)
-    await mcp_toolset_manager.refresh_toolset_metadata()
+    await mcp_toolset_manager.remove(toolset_id)
