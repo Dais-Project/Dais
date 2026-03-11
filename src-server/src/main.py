@@ -42,7 +42,12 @@ def create_server(port: int) -> tuple[Server, Callable[[], None]]:
     def stop_server():
         server.should_exit = True
 
-    server_config = uvicorn.Config(app, host="127.0.0.1", port=port, workers=1)
+    server_config = uvicorn.Config(app,
+                                           host="127.0.0.1",
+                                           port=port,
+                                           workers=1,
+                                           log_config=None,
+                                           log_level="debug" if IS_DEV else "info")
     server = uvicorn.Server(server_config)
     return server, stop_server
 
@@ -54,7 +59,10 @@ async def main():
     if IS_DEV:
         prevent_port_occupancy(args.port)
 
-    logger.add(DATA_DIR / "server.log", mode="w", enqueue=True)
+    logger.add(DATA_DIR / "server.log",
+               rotation="256 MB",
+               mode="w",
+               enqueue=True)
     await migrate_db()
 
     server, stop_server = create_server(args.port)

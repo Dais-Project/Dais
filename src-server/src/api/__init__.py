@@ -25,6 +25,7 @@ from .exception_handlers import (
     handle_unexpected_exception,
 )
 from .lifespan import lifespan
+from .logger import setup_logging
 from ..services.exceptions import ServiceError
 
 
@@ -41,6 +42,7 @@ app = FastAPI(
         500: {"model": ErrorResponseSchema},
     },
 )
+setup_logging()
 
 app.add_middleware(
     CORSMiddleware,
