@@ -1,10 +1,10 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
-from rapidfuzz import process, fuzz
-from ....services.exceptions import BadRequestError, NotFoundError
+from rapidfuzz import fuzz
+from ...exceptions import ApiError, ApiErrorCode
 from ....db import DbSessionDep
 from ....services.workspace import WorkspaceService
 from ....schemas import task as task_schemas
@@ -12,40 +12,31 @@ from ....utils.scandir_recursive import scandir_recursive_bfs
 
 context_file_router = APIRouter(tags=["context_file"])
 
-class ContextPathError(BadRequestError):
-    """Raised when the provided context path is invalid."""
-
+class ContextFileInternalError(ValueError):
     def __init__(self, message: str) -> None:
         super().__init__(message)
-
-class ContextDirectoryNotFoundError(NotFoundError):
-    """Raised when the requested context directory does not exist."""
-
-    def __init__(self, path: str) -> None:
-        super().__init__("Context directory", path)
-
 
 def _list_directory(workspace_root: Path, path: str) -> list[task_schemas.ContextFileItem]:
     normalized_path = path.strip() or "."
     requested_path = Path(normalized_path)
     if requested_path.is_absolute():
-        raise ContextPathError("Path must be a relative path")
+        raise ContextFileInternalError("Path must be a relative path")
 
     target_directory = (workspace_root / requested_path).resolve()
     try:
         target_directory.relative_to(workspace_root)
     except ValueError as error:
-        raise ContextPathError("Path is outside workspace directory") from error
+        raise ContextFileInternalError("Path is outside workspace directory") from error
 
     if not target_directory.exists():
-        raise ContextDirectoryNotFoundError(normalized_path)
+        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.PATH_NOT_FOUND, f"Path not found: {normalized_path}")
     if not target_directory.is_dir():
-        raise ContextPathError("Path is not a directory")
+        raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.PATH_NOT_DIRECTORY, "Path is not a directory")
 
     try:
         entries = list(target_directory.iterdir())
-    except PermissionError as error:
-        raise ContextPathError("Permission denied for target directory") from error
+    except PermissionError:
+        raise ApiError(status.HTTP_403_FORBIDDEN, ApiErrorCode.PATH_ACCESS_DENIED, "Permission denied for target directory")
 
     items: list[task_schemas.ContextFileItem] = []
     for entry in entries:

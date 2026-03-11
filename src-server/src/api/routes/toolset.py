@@ -1,5 +1,7 @@
+import anyio
 from typing import Annotated, cast
 from fastapi import APIRouter, Depends, Request, status
+from ..exceptions import ApiError, ApiErrorCode
 from ...agent.tool import McpToolset
 from ...agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ...db import DbSessionDep
@@ -64,7 +66,13 @@ async def create_toolset(
     new_toolset = await ToolsetService(db_session).create_toolset(body)
     if (body.type == toolset_schemas.ToolsetType.MCP_LOCAL or
         body.type == toolset_schemas.ToolsetType.MCP_REMOTE):
-        await mcp_toolset_manager.append(new_toolset)
+        try:
+            with anyio.fail_after(15):
+                await mcp_toolset_manager.append(new_toolset)
+        except TimeoutError:
+            raise ApiError(status.HTTP_408_REQUEST_TIMEOUT, ApiErrorCode.MCP_CONNECTION_TIMEOUT, f"Connect to MCP server timeout: {new_toolset.name}")
+        except (ConnectionError, OSError):
+            raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, ApiErrorCode.MCP_CONNECTION_ERROR, f"Failed to connect to MCP server: {new_toolset.name}")
     return new_toolset
 
 @toolset_router.put("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)

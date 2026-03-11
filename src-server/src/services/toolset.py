@@ -3,44 +3,30 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from dais_sdk.mcp_client import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .service_base import ServiceBase
-from .exceptions import NotFoundError, ConflictError, BadRequestError, UnavailableError
+from .exceptions import NotFoundError, ConflictError, BadRequestError, UnavailableError, ServiceErrorCode
 from ..db.models import toolset as toolset_models
 from ..schemas import toolset as toolset_schemas
 
 
 class ToolsetNotFoundError(NotFoundError):
-    """Raised when a toolset is not found."""
-
     def __init__(self, toolset_identifier: int | str) -> None:
-        super().__init__("Toolset", toolset_identifier)
-
+        super().__init__(ServiceErrorCode.TOOLSET_NOT_FOUND, "Toolset", toolset_identifier)
 
 class ToolsetInternalKeyAlreadyExistsError(ConflictError):
-    """Raised when attempting to create a toolset with a name that already exists."""
-
     def __init__(self, name: str) -> None:
-        super().__init__(f"Toolset '{name}' already exists")
-
+        super().__init__(ServiceErrorCode.TOOLSET_INTERNAL_KEY_ALREADY_EXISTS, f"Toolset '{name}' already exists")
 
 class FailedToConnectMcpServerError(UnavailableError):
-    """Raised when failed to connect to MCP server."""
-
     def __init__(self, mcp_server_name: str) -> None:
-        super().__init__(f"Failed to connect to MCP server '{mcp_server_name}'")
-
+        super().__init__(ServiceErrorCode.FAILED_TO_CONNECT_MCP_SERVER, f"Failed to connect to MCP server '{mcp_server_name}'")
 
 class ToolNotFoundError(NotFoundError):
-    """Raised when a tool is not found."""
-
     def __init__(self, tool_id: int) -> None:
-        super().__init__("Tool", tool_id)
-
+        super().__init__(ServiceErrorCode.TOOL_NOT_FOUND, "Tool", tool_id)
 
 class CannotCreateBuiltinToolsetError(BadRequestError):
-    """Raised when attempting to create a builtin toolset."""
-
     def __init__(self) -> None:
-        super().__init__("Cannot create builtin toolset")
+        super().__init__(ServiceErrorCode.CANNOT_CREATE_BUILTIN_TOOLSET, "Cannot create builtin toolset")
 
 
 class ToolsetService(ServiceBase):
