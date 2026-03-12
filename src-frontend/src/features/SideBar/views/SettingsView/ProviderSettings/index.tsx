@@ -31,10 +31,7 @@ export function ProviderSettings() {
 
   return (
     <div className="flex flex-col">
-      <AsyncBoundary
-        skeleton={<ProviderListSkeleton />}
-        errorDescription={t("settings.providers.list.error_load")}
-      >
+      <AsyncBoundary skeleton={<ProviderListSkeleton />}>
         <ProviderList />
       </AsyncBoundary>
 

@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 import { useGetProviderSuspense } from "@/api/provider";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProviderCreateForm } from "@/features/Tabs/ProviderPanel/ProviderCreateForm";
 import { ProviderEditForm } from "@/features/Tabs/ProviderPanel/ProviderEditForm";
@@ -34,8 +32,6 @@ export function ProviderPanel({
   tabId,
   metadata,
 }: TabPanelProps<ProviderTabMetadata>) {
-  const { t } = useTranslation("tabs-provider");
-
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -45,14 +41,7 @@ export function ProviderPanel({
   }
 
   return (
-    <TabPanelFrame
-      errorRender={({ resetErrorBoundary }) => (
-        <FailedToLoad
-          refetch={resetErrorBoundary}
-          description={t("panel.error.load_description")}
-        />
-      )}
-    >
+    <TabPanelFrame>
       <ProviderEditPanel tabId={tabId} providerId={metadata.id} />
     </TabPanelFrame>
   );

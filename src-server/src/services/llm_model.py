@@ -1,15 +1,12 @@
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ServiceErrorCode
 from ..db.models import provider as provider_models
 
 
 class ModelNotFoundError(NotFoundError):
-    """Raised when a model is not found."""
-
     def __init__(self, model_id: int) -> None:
-        super().__init__("Model", model_id)
-
+        super().__init__(ServiceErrorCode.MODEL_NOT_FOUND, "Model", model_id)
 
 class LlmModelService(ServiceBase):
     async def get_model_by_id(self, model_id: int) -> provider_models.LlmModel:

@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 import { useGetAgentSuspense } from "@/api/agent";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { AgentCreateForm } from "@/features/Tabs/AgentPanel/AgentCreateForm";
 import { AgentEditForm } from "@/features/Tabs/AgentPanel/AgentEditForm";
@@ -41,7 +39,6 @@ export function AgentPanel({
   tabId,
   metadata,
 }: TabPanelProps<AgentTabMetadata>) {
-  const { t } = useTranslation("tabs-agent");
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -52,14 +49,7 @@ export function AgentPanel({
   }
 
   return (
-    <TabPanelFrame
-      errorRender={({ resetErrorBoundary }) => (
-        <FailedToLoad
-          refetch={resetErrorBoundary}
-          description={t("panel.error.load_description")}
-        />
-      )}
-    >
+    <TabPanelFrame>
       <AgentEditPanel tabId={tabId} agentId={metadata.id} />
     </TabPanelFrame>
   );

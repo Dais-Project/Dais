@@ -47,21 +47,12 @@
       "placeholder": "https://api.example.com"
     }
   },
-  "panel": {
-    "error": {
-      "load_description": "无法加载 Toolset 信息，请稍后重试。"
-    }
-  },
   "toast": {
     "create": {
-      "error_description": "创建 Toolset 时发生错误，请稍后重试。",
-      "error_title": "创建失败",
       "success_description_with_name": "已成功创建 Toolset {{name}}。",
       "success_title": "创建成功"
     },
     "update": {
-      "error_description": "更新 Toolset 时发生错误，请稍后重试。",
-      "error_title": "更新失败",
       "success_description_with_name": "已成功更新 Toolset {{name}}。",
       "success_title": "更新成功"
     }

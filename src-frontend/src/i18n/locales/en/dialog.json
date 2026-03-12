@@ -11,7 +11,6 @@
         "no_model": "No models found",
         "no_provider": "No providers yet. Add an LLM provider first to use models."
       },
-      "load_error": "Failed to load model list. Please try again later.",
       "search_placeholder": "Search models...",
       "trigger": {
         "deleted": "Model has been deleted",
@@ -23,7 +22,6 @@
       "cancel": "Cancel",
       "confirm": "Confirm",
       "empty": "No matching tools found",
-      "load_error": "Failed to load tool list. Please try again later.",
       "search_placeholder": "Search tools...",
       "select_all": "Select all",
       "trigger": {

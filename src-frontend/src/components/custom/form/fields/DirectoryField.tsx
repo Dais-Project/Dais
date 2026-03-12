@@ -29,6 +29,7 @@ export function DirectoryField({
 
   async function chooseDirectory() {
     try {
+      // TODO: use unified api
       const selected = await open({ directory: true });
       if (typeof selected === "string") {
         setValue(fieldName, selected, {

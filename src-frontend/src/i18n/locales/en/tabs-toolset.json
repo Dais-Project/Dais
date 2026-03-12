@@ -47,21 +47,12 @@
       "placeholder": "https://api.example.com"
     }
   },
-  "panel": {
-    "error": {
-      "load_description": "Failed to load toolset details. Please try again later."
-    }
-  },
   "toast": {
     "create": {
-      "error_description": "Failed to create toolset. Please try again later.",
-      "error_title": "Create failed",
       "success_description_with_name": "Toolset {{name}} created successfully.",
       "success_title": "Create success"
     },
     "update": {
-      "error_description": "Failed to update toolset. Please try again later.",
-      "error_title": "Update failed",
       "success_description_with_name": "Toolset {{name}} updated successfully.",
       "success_title": "Update success"
     }

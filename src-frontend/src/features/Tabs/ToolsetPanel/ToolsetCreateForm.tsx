@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { invalidateToolsetQueries, useCreateMcpToolset } from "@/api/toolset";
+import { invalidateToolsetQueries, useCreateToolset } from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ type ToolsetCreateProps = {
 export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
   const { t } = useTranslation("tabs-toolset");
 
-  const createMutation = useCreateMcpToolset({
+  const createMutation = useCreateToolset({
     mutation: {
       async onSuccess(newToolset) {
         await invalidateToolsetQueries();
@@ -26,12 +26,7 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
           description: t("toast.create.success_description_with_name", { name: newToolset.name }),
         });
         onConfirm?.();
-      },
-      onError(error: Error) {
-        toast.error(t("toast.create.error_title"), {
-          description: error.message || t("toast.create.error_description"),
-        });
-      },
+      }
     },
   });
 

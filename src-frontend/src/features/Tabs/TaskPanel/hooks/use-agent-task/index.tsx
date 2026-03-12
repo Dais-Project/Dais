@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
@@ -21,6 +22,7 @@ import {
 } from "@/api/generated/schemas";
 import {
   continueTask,
+  getGetTaskQueryKey,
   type TaskSseCallbacks,
   toolAnswer,
   toolReview,
@@ -29,15 +31,15 @@ import {
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import { UiUserMessage, type SdkMessage } from "@/types/message";
-import { useMessageLifecycle } from "./use-message-lifecycle";
 import { UiMessage } from "@/types/message";
 import { toUiMessage } from "@/types/message";
 import { sendNotification } from "@/lib/notification";
 import { useTabsStore } from "@/stores/tabs-store";
+import { isForeground } from "@/lib/is-foreground";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
-import { isForeground } from "@/lib/is-foreground";
+import { useMessageLifecycle } from "./use-message-lifecycle";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -89,6 +91,7 @@ type AgentTaskProviderProps = {
 
 export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const queryClient = useQueryClient();
   const setActiveTab = useTabsStore((state) => state.setActive);
   const backToCurrentTab = () => setActiveTab((tab) => (
     tab.type === "task" &&
@@ -211,7 +214,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     });
   };
 
-  const onClose = () => messageLifecycle.handleClose();
+  const onClose = () => {
+    messageLifecycle.handleClose();
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+  }
 
   sseCallbacksRef.current = {
     onMessageStart,

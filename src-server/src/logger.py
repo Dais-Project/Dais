@@ -42,7 +42,4 @@ def setup_logging(log_level: int):
 
     logger.remove()
     logger.add(sys.stderr)
-    logger.add(DATA_DIR / "server.log",
-               rotation="256 MB",
-               mode="w",
-               enqueue=True)
+    logger.add(DATA_DIR / "server.log", rotation="256 MB", mode="w")

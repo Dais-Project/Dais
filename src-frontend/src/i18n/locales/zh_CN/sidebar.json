@@ -8,7 +8,6 @@
       "title": "Agents"
     },
     "list": {
-      "error_load": "无法加载 Agent 列表，请稍后重试。",
       "no_model": "无模型"
     },
     "menu": {
@@ -20,8 +19,6 @@
       "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "delete_error_description": "删除 Agent 时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除 Agent。",
       "delete_success_title": "删除成功"
     }
@@ -59,8 +56,7 @@
     "helper_model": {
       "flash_model": {
         "title": "快速模型"
-      },
-      "error_load": "无法加载助手模型设置，请稍后重试。"
+      }
     },
     "providers": {
       "actions": {
@@ -76,7 +72,6 @@
       "list": {
         "delete_provider_title": "删除",
         "edit_provider_title": "编辑服务提供商",
-        "error_load": "无法加载服务提供商列表，请稍后重试。",
         "model_count_with_count_one": "",
         "model_count_with_count_other": ""
       },
@@ -85,8 +80,6 @@
         "edit_title_with_name": "编辑：{{name}}"
       },
       "toast": {
-        "delete_error_description": "删除服务提供商时发生错误，请稍后重试。",
-        "delete_error_title": "删除失败",
         "delete_success_description": "已成功删除服务提供商。",
         "delete_success_title": "删除成功"
       }
@@ -114,16 +107,11 @@
       "create_tooltip": "创建任务",
       "title": "任务"
     },
-    "list": {
-      "error_load": "无法加载任务列表，请稍后重试。"
-    },
     "menu": {
       "delete": "删除",
       "rename": "编辑任务名称"
     },
     "toast": {
-      "delete_error_description": "删除任务时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除任务。",
       "delete_success_title": "删除成功",
       "rename_feature_description": "重命名功能待实现",
@@ -138,20 +126,21 @@
       "create_tooltip": "连接到 MCP 服务",
       "title": "工具集"
     },
-    "list": {
-      "error_load": "无法加载工具集列表，请稍后重试。"
-    },
     "menu": {
       "delete": "删除",
       "edit": "编辑工具集"
+    },
+    "status": {
+      "connected": "已连接",
+      "connecting": "连接中",
+      "disconnected": "已断开",
+      "error": "错误"
     },
     "tab": {
       "create_title": "连接到 MCP 服务",
       "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "delete_error_description": "删除工具集时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除工具集。",
       "delete_success_title": "删除成功"
     }
@@ -168,21 +157,16 @@
       "create_tooltip": "创建工作区",
       "title": "工作区"
     },
-    "list": {
-      "error_load": "无法加载工作区列表，请稍后重试。"
-    },
     "menu": {
       "delete": "删除",
       "edit": "编辑工作区",
-      "set_current": "设为当前工作区"
+      "select": "设为当前工作区"
     },
     "tab": {
       "create_title": "创建工作区",
       "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "delete_error_description": "删除工作区时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除工作区。",
       "delete_success_title": "删除成功"
     }

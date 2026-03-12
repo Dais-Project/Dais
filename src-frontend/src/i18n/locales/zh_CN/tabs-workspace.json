@@ -18,30 +18,19 @@
       "confirm": "确定",
       "empty": "未找到匹配的 Agent",
       "label": "可用的 Agent",
-      "load_error": "无法加载 Agent 列表，请稍后重试。",
       "search_placeholder": "搜索 Agent...",
       "select": "选择"
     },
     "usable_tools": {
-      "label": "可用的工具",
-      "load_error": "无法加载工具列表，请稍后重试。"
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "无法加载工作区信息，请稍后重试。"
+      "label": "可用的工具"
     }
   },
   "toast": {
     "create": {
-      "error_description": "创建工作区时发生错误，请稍后重试。",
-      "error_title": "创建失败",
       "success_description_with_name": "已成功创建工作区 \"{{name}}\"。",
       "success_title": "创建成功"
     },
     "update": {
-      "error_description": "更新工作区时发生错误，请稍后重试。",
-      "error_title": "更新失败",
       "success_description_with_name": "已成功更新工作区 \"{{name}}\"。",
       "success_title": "更新成功"
     }

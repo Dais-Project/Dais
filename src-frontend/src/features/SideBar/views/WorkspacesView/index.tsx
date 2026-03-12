@@ -33,10 +33,7 @@ export function WorkspacesView() {
         />
       </SideBarHeader>
       <div className="flex-1">
-        <AsyncBoundary
-          skeleton={<SideBarListSkeleton />}
-          errorDescription={t("workspaces.list.error_load")}
-        >
+        <AsyncBoundary skeleton={<SideBarListSkeleton />}>
           <WorkspaceList />
         </AsyncBoundary>
       </div>

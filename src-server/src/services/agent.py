@@ -1,18 +1,15 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ServiceErrorCode
 from ..db.models import agent as agent_models
 from ..db.models import toolset as toolset_models
 from ..schemas import agent as agent_schemas
 
 
 class AgentNotFoundError(NotFoundError):
-    """Raised when an agent is not found."""
-
     def __init__(self, agent_id: int) -> None:
-        super().__init__("Agent", agent_id)
-
+        super().__init__(ServiceErrorCode.AGENT_NOT_FOUND, "Agent", agent_id)
 
 class AgentService(ServiceBase):
     def get_agents_query(self):
@@ -73,7 +70,5 @@ class AgentService(ServiceBase):
         return updated_agent
 
     async def delete_agent(self, id: int) -> None:
-        agent = await self._db_session.get(agent_models.Agent, id)
-        if not agent:
-            raise AgentNotFoundError(id)
+        agent = await self.get_agent_by_id(id)
         await self._db_session.delete(agent)

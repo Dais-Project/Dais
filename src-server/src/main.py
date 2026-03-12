@@ -67,4 +67,3 @@ async def main():
     setup_logging(log_level)
 
     await server.serve()
-    await logger.complete()

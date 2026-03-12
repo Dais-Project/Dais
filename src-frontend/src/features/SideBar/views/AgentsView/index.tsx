@@ -33,10 +33,7 @@ export function AgentsView() {
         />
       </SideBarHeader>
       <div className="flex-1">
-        <AsyncBoundary
-          skeleton={<SideBarListSkeleton />}
-          errorDescription={t("agents.list.error_load")}
-        >
+        <AsyncBoundary skeleton={<SideBarListSkeleton />}>
           <AgentList />
         </AsyncBoundary>
       </div>

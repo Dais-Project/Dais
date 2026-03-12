@@ -112,7 +112,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleSelect} disabled={isSelected}>
           <CircleIcon />
-          <span>设为当前工作区</span>
+          <span>{t("workspaces.menu.select")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
@@ -151,12 +151,7 @@ export function WorkspaceList() {
       toast.success(t("workspaces.toast.delete_success_title"), {
         description: t("workspaces.toast.delete_success_description"),
       });
-    },
-    onError(error: Error) {
-      toast.error(t("workspaces.toast.delete_error_title"), {
-        description: error.message || t("workspaces.toast.delete_error_description"),
-      });
-    },
+    }
   });
 
   const query = useGetWorkspacesSuspenseInfinite(undefined, {

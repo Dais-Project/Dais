@@ -77,7 +77,7 @@ export function ToolMultiSelectField() {
         <ToolMultiSelectDialog value={selectedToolIds} onChange={onChange} />
       </FieldItem>
 
-      <AsyncBoundary errorDescription={t("form.usable_tools.load_error")}>
+      <AsyncBoundary>
         <ToolSelectedList selectedToolIds={selectedToolIds} />
       </AsyncBoundary>
     </div>

@@ -26,11 +26,6 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
         });
         onConfirm?.();
       },
-      onError(error: Error) {
-        toast.error(t("toast.create.error_title"), {
-          description: error.message || t("toast.create.error_description"),
-        });
-      },
     },
   });
 

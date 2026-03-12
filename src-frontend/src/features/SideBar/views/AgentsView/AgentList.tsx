@@ -106,6 +106,21 @@ export function AgentList() {
   const { t } = useTranslation("sidebar");
   const removeTabs = useTabsStore((state) => state.remove);
 
+  const query = useGetAgentsSuspenseInfinite(undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+  });
+
+  const deleteAgentMutation = useDeleteAgent({
+    mutation: {
+      async onSuccess(_, variables) {
+        await invalidateAgentQueries(variables.agentId);
+        toast.success(t("agents.toast.delete_success_title"), {
+          description: t("agents.toast.delete_success_description"),
+        });
+      }
+    },
+  });
+
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     async onConfirm(agent) {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
@@ -118,32 +133,7 @@ export function AgentList() {
       toast.success(t("agents.toast.delete_success_title"), {
         description: t("agents.toast.delete_success_description"),
       });
-    },
-    onError(error: Error) {
-      toast.error(t("agents.toast.delete_error_title"), {
-        description: error.message || t("agents.toast.delete_error_description"),
-      });
-    },
-  });
-
-  const query = useGetAgentsSuspenseInfinite(undefined, {
-    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
-  });
-
-  const deleteAgentMutation = useDeleteAgent({
-    mutation: {
-      async onSuccess(_, variables) {
-        await invalidateAgentQueries(variables.agentId);
-        toast.success(t("agents.toast.delete_success_title"), {
-          description: t("agents.toast.delete_success_description"),
-        });
-      },
-      onError(error: Error) {
-        toast.error(t("agents.toast.delete_error_title"), {
-          description: error.message || t("agents.toast.delete_error_description"),
-        });
-      },
-    },
+    }
   });
 
   return (
@@ -152,7 +142,13 @@ export function AgentList() {
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}
-          itemRender={(agent) => <AgentItem key={agent.id} agent={agent} onDelete={asyncConfirm.trigger} />}
+          itemRender={(agent) => (
+            <AgentItem
+              key={agent.id}
+              agent={agent}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
         />
       </ScrollArea>
       <ConfirmDeleteDialog

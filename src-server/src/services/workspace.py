@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ServiceErrorCode
 from ..db.models import workspace as workspace_models
 from ..db.models import agent as agent_models
 from ..db.models import toolset as toolset_models
@@ -9,11 +9,8 @@ from ..schemas import workspace as workspace_schemas
 
 
 class WorkspaceNotFoundError(NotFoundError):
-    """Raised when a workspace is not found."""
-
     def __init__(self, workspace_id: int) -> None:
-        super().__init__("Workspace", workspace_id)
-
+        super().__init__(ServiceErrorCode.WORKSPACE_NOT_FOUND, "Workspace", workspace_id)
 
 class WorkspaceService(ServiceBase):
     def get_workspaces_query(self):
@@ -66,8 +63,6 @@ class WorkspaceService(ServiceBase):
 
     async def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
         workspace = await self.get_workspace_by_id(id)
-        if not workspace:
-            raise WorkspaceNotFoundError(id)
 
         update_data = data.model_dump(exclude_unset=True,
                                                       exclude={"usable_agent_ids", "usable_tool_ids"})
@@ -82,7 +77,5 @@ class WorkspaceService(ServiceBase):
         return updated_workspace
 
     async def delete_workspace(self, id: int) -> None:
-        workspace = await self._db_session.get(workspace_models.Workspace, id)
-        if not workspace:
-            raise WorkspaceNotFoundError(id)
+        workspace = await self.get_workspace_by_id(id)
         await self._db_session.delete(workspace)
