@@ -1,13 +1,7 @@
+import { ErrorResponseSchema } from "../generated/schemas";
 import { API_BASE } from "..";
-import { ApiErrorCode, McpConnectErrorCode, ServiceErrorCode } from "../generated/schemas";
 
-export type ErrorCode = 
-  | ApiErrorCode
-  | McpConnectErrorCode
-  | ServiceErrorCode
-  | "VALIDATION_ERROR"
-  | "NETWORK_ERROR"
-  | "UNEXPECTED_ERROR";
+export type ErrorCode = ErrorResponseSchema["error_code"] | "NETWORK_ERROR";
 
 export type ErrorResponse = {
   error_code: ErrorCode;
