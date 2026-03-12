@@ -1,12 +1,12 @@
 import functools
-from typing import Any, Callable, Coroutine, TypedDict
+from typing import Any, Callable, Coroutine, Literal, TypedDict
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
 from pydantic import BaseModel
 from loguru import logger
-from .exceptions import ApiError
-from ..services.exceptions import ServiceError, ServiceStatusCode
+from .exceptions import ApiError, ApiErrorCode
+from ..services.exceptions import ServiceError, ServiceErrorCode, ServiceStatusCode
 
 
 class ErrorResponseContent(TypedDict):
@@ -14,7 +14,7 @@ class ErrorResponseContent(TypedDict):
     message: str
 
 class ErrorResponseSchema(BaseModel):
-    error_code: str
+    error_code: ServiceErrorCode | ApiErrorCode | Literal["VALIDATION_ERROR", "UNEXPECTED_ERROR"]
     message: str
 
 def _specific_exception_handler[E: Exception](expected_exception: type[E]):
@@ -64,11 +64,11 @@ async def handle_validation_error(_: Request, exc: RequestValidationError) -> JS
 @_specific_exception_handler(HTTPException)
 async def handle_http_exception(_: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code,
-                        content=ErrorResponseContent(error_code="UNKNOWN",
+                        content=ErrorResponseContent(error_code="UNEXPECTED_ERROR",
                                                      message=exc.detail))
 
 async def handle_unexpected_exception(_: Request, exc: Exception) -> JSONResponse:
     _logger.error("Unexpected server error: ", exc_info=exc)
     return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        content=ErrorResponseContent(error_code="UNKNOWN",
+                        content=ErrorResponseContent(error_code="UNEXPECTED_ERROR",
                                                      message="Unexpected server error"))

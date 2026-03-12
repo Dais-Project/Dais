@@ -5,6 +5,7 @@ export type ErrorCode =
   | ApiErrorCode
   | McpConnectErrorCode
   | ServiceErrorCode
+  | "VALIDATION_ERROR"
   | "NETWORK_ERROR"
   | "UNEXPECTED_ERROR";
 
