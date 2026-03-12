@@ -40,6 +40,9 @@ class McpToolsetManager(ToolsetManager):
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
     def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):
+        """
+        Append a newly connected MCP toolset to the manager.
+        """
         if self._toolset_map is None:
             raise McpToolsetManagerNotInitializedError()
 

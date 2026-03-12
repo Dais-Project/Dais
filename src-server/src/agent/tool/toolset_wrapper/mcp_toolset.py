@@ -89,6 +89,9 @@ class McpToolset(Toolset):
         self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
                           for tool in toolset_ent.tools}
 
+        if self._inner_toolset.connected:
+            self._status = McpToolsetStatus.CONNECTED
+
     @property
     @override
     def name(self) -> str:

@@ -123,7 +123,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
               {toolset.name}
               {
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
