@@ -75,10 +75,7 @@ export function ModelSelectDialog({
         <SelectDialogSearch placeholder={t("models.select.search_placeholder")} />
         <SelectDialogList>
           <SelectDialogGroup>
-            <AsyncBoundary
-              skeleton={<SelectDialogSkeleton />}
-              errorDescription={t("models.select.error_load")}
-            >
+            <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
               <ModelQueryList enabled={open} provider={provider} />
             </AsyncBoundary>
           </SelectDialogGroup>

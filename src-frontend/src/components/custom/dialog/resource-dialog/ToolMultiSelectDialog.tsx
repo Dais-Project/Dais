@@ -73,10 +73,7 @@ export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialog
         <SelectDialogSearch placeholder={t("resource.tool.search_placeholder")} />
         <SelectDialogList>
           <SelectDialogEmpty>{t("resource.tool.empty")}</SelectDialogEmpty>
-          <AsyncBoundary
-            skeleton={<SelectDialogSkeleton />}
-            errorDescription={t("resource.tool.load_error")}
-          >
+          <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
             <ToolQueryList onFetched={handleFetched} />
           </AsyncBoundary>
         </SelectDialogList>

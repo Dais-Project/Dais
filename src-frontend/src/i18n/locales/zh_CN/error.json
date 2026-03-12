@@ -1,0 +1,19 @@
+{
+  "AGENT_NOT_FOUND": "未找到该代理。",
+  "CANNOT_CREATE_BUILTIN_TOOLSET": "无法创建内置工具集。",
+  "MCP_CONNECTION_ERROR": "无法连接到服务器，请稍后重试。",
+  "MCP_CONNECTION_TIMEOUT": "连接超时，请稍后重试。",
+  "MODEL_NOT_FOUND": "未找到该模型。",
+  "NETWORK_ERROR": "网络错误，请检查连接后重试。",
+  "PATH_ACCESS_DENIED": "没有权限访问该路径。",
+  "PATH_NOT_DIRECTORY": "该路径不是文件夹。",
+  "PATH_NOT_FOUND": "未找到指定路径。",
+  "PROVIDER_NOT_FOUND": "未找到该提供商。",
+  "TASK_NOT_FOUND": "未找到该任务。",
+  "TOOL_CALL_NOT_FOUND": "未找到对应的操作。",
+  "TOOL_NOT_FOUND": "未找到该工具。",
+  "TOOLSET_INTERNAL_KEY_ALREADY_EXISTS": "该工具集已存在。",
+  "TOOLSET_NOT_FOUND": "未找到该工具集。",
+  "UNEXPECTED_ERROR": "发生错误，请稍后重试。",
+  "WORKSPACE_NOT_FOUND": "未找到该工作区。"
+}

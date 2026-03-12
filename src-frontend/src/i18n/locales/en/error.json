@@ -1,0 +1,19 @@
+{
+  "AGENT_NOT_FOUND": "The agent was not found.",
+  "CANNOT_CREATE_BUILTIN_TOOLSET": "Built-in toolsets cannot be created.",
+  "MCP_CONNECTION_ERROR": "Unable to connect to the server. Please try again.",
+  "MCP_CONNECTION_TIMEOUT": "Connection timed out. Please try again.",
+  "MODEL_NOT_FOUND": "The model was not found.",
+  "NETWORK_ERROR": "Network error. Check your connection and try again.",
+  "PATH_ACCESS_DENIED": "You do not have permission to access the path.",
+  "PATH_NOT_DIRECTORY": "The selected path is not a folder.",
+  "PATH_NOT_FOUND": "The selected path was not found.",
+  "PROVIDER_NOT_FOUND": "The provider was not found.",
+  "TASK_NOT_FOUND": "The task was not found.",
+  "TOOL_CALL_NOT_FOUND": "The requested operation was not found.",
+  "TOOL_NOT_FOUND": "The tool was not found.",
+  "TOOLSET_INTERNAL_KEY_ALREADY_EXISTS": "This toolset already exists.",
+  "TOOLSET_NOT_FOUND": "The toolset was not found.",
+  "UNEXPECTED_ERROR": "Something went wrong. Please try again.",
+  "WORKSPACE_NOT_FOUND": "The workspace was not found."
+}

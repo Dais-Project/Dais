@@ -121,7 +121,7 @@ export function AgentMultiSelectField() {
             <SelectDialogList>
               <SelectDialogEmpty>{t("form.usable_agents.empty")}</SelectDialogEmpty>
               <SelectDialogGroup>
-                <AsyncBoundary skeleton={<SelectDialogSkeleton />} errorDescription={t("form.usable_agents.load_error")}>
+                <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
                   <AgentQueryList />
                 </AsyncBoundary>
               </SelectDialogGroup>
@@ -135,7 +135,7 @@ export function AgentMultiSelectField() {
         </SelectDialog>
       </FieldItem>
 
-      <AsyncBoundary errorDescription={t("form.usable_agents.load_error")}>
+      <AsyncBoundary>
         <AgentSelectedList selectedAgentIds={value} />
       </AsyncBoundary>
     </div>

@@ -16,10 +16,10 @@
       "title": "任务出错，请重试"
     }
   },
-  "panel": {
-    "error": {
-      "load_description": "无法加载任务，请稍后重试。"
-    }
+  "notification": {
+    "require_permission": "Dais 想要使用 {{toolName}}",
+    "require_response": "Dais 正在等待你的回复",
+    "task_done": "Dais 已完成任务"
   },
   "prompt": {
     "agent": {
@@ -31,7 +31,6 @@
       "workspace_load_failed": "工作区加载失败"
     },
     "context": {
-      "load_error": "加载文件失败。",
       "loading": "加载中...",
       "no_results": "未找到结果。",
       "search_placeholder": "添加文件、文件夹、文档...",
@@ -44,11 +43,6 @@
   },
   "task_progress": {
     "completed": "任务已完成"
-  },
-  "notification": {
-    "require_response": "Dais 正在等待你的回复",
-    "require_permission": "Dais 想要使用 {{toolName}}",
-    "task_done": "Dais 已完成任务"
   },
   "toast": {
     "task_failed": {

@@ -59,13 +59,7 @@
       "cancel": "Cancel",
       "confirm": "Confirm",
       "empty": "No models found",
-      "error_load": "Failed to load model list. Please try again later.",
       "search_placeholder": "Search models..."
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "Failed to load provider details. Please try again later."
     }
   },
   "toast": {

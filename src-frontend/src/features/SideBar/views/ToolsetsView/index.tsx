@@ -32,10 +32,7 @@ export function ToolsetsView() {
         />
       </SideBarHeader>
       <div className="flex-1">
-        <AsyncBoundary
-          skeleton={<SideBarListSkeleton />}
-          errorDescription={t("toolsets.list.error_load")}
-        >
+        <AsyncBoundary skeleton={<SideBarListSkeleton />}>
           <ToolsetList />
         </AsyncBoundary>
       </div>

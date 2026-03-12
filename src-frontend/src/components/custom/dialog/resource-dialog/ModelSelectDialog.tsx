@@ -98,10 +98,7 @@ export function ModelSelectDialog({ value, onChange: onSelect }: ModelSelectDial
       <SelectDialogContent>
         <SelectDialogSearch placeholder={t("resource.model.search_placeholder")} />
         <SelectDialogList className="max-h-96">
-          <AsyncBoundary
-            skeleton={<SelectDialogSkeleton />}
-            errorDescription={t("resource.model.load_error")}
-          >
+          <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
             <ModelQueryList />
           </AsyncBoundary>
         </SelectDialogList>

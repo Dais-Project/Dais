@@ -47,11 +47,6 @@
       "placeholder": "https://api.example.com"
     }
   },
-  "panel": {
-    "error": {
-      "load_description": "Failed to load toolset details. Please try again later."
-    }
-  },
   "toast": {
     "create": {
       "error_description": "Failed to create toolset. Please try again later.",

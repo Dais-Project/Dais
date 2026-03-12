@@ -18,18 +18,11 @@
       "confirm": "确定",
       "empty": "未找到匹配的 Agent",
       "label": "可用的 Agent",
-      "load_error": "无法加载 Agent 列表，请稍后重试。",
       "search_placeholder": "搜索 Agent...",
       "select": "选择"
     },
     "usable_tools": {
-      "label": "可用的工具",
-      "load_error": "无法加载工具列表，请稍后重试。"
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "无法加载工作区信息，请稍后重试。"
+      "label": "可用的工具"
     }
   },
   "toast": {

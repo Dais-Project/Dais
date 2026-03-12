@@ -112,7 +112,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleSelect} disabled={isSelected}>
           <CircleIcon />
-          <span>设为当前工作区</span>
+          <span>{t("workspaces.menu.select")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />

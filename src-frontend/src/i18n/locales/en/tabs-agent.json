@@ -20,8 +20,7 @@
       "saving": "Saving..."
     },
     "usable_tools": {
-      "label": "Available tools",
-      "load_error": "Failed to load tool list. Please try again later."
+      "label": "Available tools"
     }
   },
   "icon_dialog": {
@@ -41,11 +40,6 @@
     "title": "Select icon",
     "trigger": {
       "select": "Select icon"
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "Failed to load agent details. Please try again later."
     }
   },
   "toast": {

@@ -47,11 +47,6 @@
       "placeholder": "https://api.example.com"
     }
   },
-  "panel": {
-    "error": {
-      "load_description": "无法加载 Toolset 信息，请稍后重试。"
-    }
-  },
   "toast": {
     "create": {
       "error_description": "创建 Toolset 时发生错误，请稍后重试。",

@@ -59,13 +59,7 @@
       "cancel": "取消",
       "confirm": "确认",
       "empty": "未找到模型",
-      "error_load": "无法加载模型列表，请稍后重试。",
       "search_placeholder": "搜索模型..."
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "无法加载服务提供商信息，请稍后重试。"
     }
   },
   "toast": {

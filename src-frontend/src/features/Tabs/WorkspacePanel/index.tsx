@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 import { useGetWorkspaceSuspense } from "@/api/workspace";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { WorkspaceTabMetadata } from "@/types/tab";
@@ -34,8 +32,6 @@ export function WorkspacePanel({
   tabId,
   metadata,
 }: TabPanelProps<WorkspaceTabMetadata>) {
-  const { t } = useTranslation("tabs-workspace");
-
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -46,14 +42,7 @@ export function WorkspacePanel({
   }
 
   return (
-    <TabPanelFrame
-      errorRender={({ resetErrorBoundary }) => (
-        <FailedToLoad
-          refetch={resetErrorBoundary}
-          description={t("panel.error.load_description")}
-        />
-      )}
-    >
+    <TabPanelFrame>
       <WorkspaceEditPanel tabId={tabId} workspaceId={metadata.id} />
     </TabPanelFrame>
   );

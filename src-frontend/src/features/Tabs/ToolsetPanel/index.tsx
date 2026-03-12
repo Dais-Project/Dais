@@ -1,6 +1,4 @@
-import { useTranslation } from "react-i18next";
 import { useGetToolsetSuspense } from "@/api/toolset";
-import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToolsetEditForm } from "@/features/Tabs/ToolsetPanel/ToolsetEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -37,8 +35,6 @@ export function ToolsetPanel({
   tabId,
   metadata,
 }: TabPanelProps<ToolsetTabMetadata>) {
-  const { t } = useTranslation("tabs-toolset");
-
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
@@ -48,14 +44,7 @@ export function ToolsetPanel({
   }
 
   return (
-    <TabPanelFrame
-      errorRender={({ resetErrorBoundary }) => (
-        <FailedToLoad
-          refetch={resetErrorBoundary}
-          description={t("panel.error.load_description")}
-        />
-      )}
-    >
+    <TabPanelFrame>
       <ToolsetEditPanel tabId={tabId} toolsetId={metadata.id} />
     </TabPanelFrame>
   );

@@ -20,8 +20,7 @@
       "saving": "保存中..."
     },
     "usable_tools": {
-      "label": "可用的工具",
-      "load_error": "无法加载工具列表，请稍后重试。"
+      "label": "可用的工具"
     }
   },
   "icon_dialog": {
@@ -41,11 +40,6 @@
     "title": "选择图标",
     "trigger": {
       "select": "选择图标"
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "无法加载 Agent 信息，请稍后重试。"
     }
   },
   "toast": {

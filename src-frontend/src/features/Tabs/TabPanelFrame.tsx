@@ -1,7 +1,7 @@
-import type { FallbackProps } from "react-error-boundary";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 
 function TabPanelFrameSkeleton() {
   return (
@@ -33,16 +33,15 @@ function TabPanelFrameSkeleton() {
 
 type TabPanelFrameProps = {
   children: React.ReactNode;
-  errorRender: (props: FallbackProps) => React.ReactNode;
 };
 
-export function TabPanelFrame({ children, errorRender }: TabPanelFrameProps) {
+export function TabPanelFrame({ children }: TabPanelFrameProps) {
   return (
     <AsyncBoundary
       skeleton={<TabPanelFrameSkeleton />}
       errorRender={(props) => (
         <div className="flex h-full items-center justify-center p-4">
-          {errorRender(props)}
+          <FailedToLoad error={props.error} retry={props.resetErrorBoundary} />
         </div>
       )}
     >
