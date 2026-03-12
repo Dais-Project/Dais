@@ -40,18 +40,12 @@ async def init(db_session: AsyncSession):
         .where(Toolset.type == ToolsetType.BUILT_IN)
     )
     builtin_tools = (await db_session.scalars(builtin_tools_stmt)).all()
-
-    builtin_agents_stmt = select(Agent).where(Agent.name == "Terminal Interpreter")
-    builtin_agents = await db_session.scalar(builtin_agents_stmt)
-    usable_agents = []
-    if builtin_agents is not None:
-        usable_agents.append(builtin_agents)
-
+    builtin_agents = (await db_session.scalars(select(Agent))).all()
     user_directory_workspace = Workspace(
         name="User Directory",
         directory="~",
         instruction="",
-        usable_agents=usable_agents,
+        usable_agents=builtin_agents,
         usable_tools=list(builtin_tools),
     )
 

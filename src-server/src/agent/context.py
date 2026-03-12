@@ -1,8 +1,8 @@
 import platform
 import time
-from typing import Self
+from typing import Self, cast
 from dais_sdk.tool import Toolset
-from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
+from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
 from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
 from .types import ContextUsage
 from ..db import db_context
@@ -19,6 +19,26 @@ from ..services.provider import ProviderService
 from ..services.task import TaskService
 from ..schemas import task as task_schemas
 from ..settings import use_app_setting_manager
+
+
+class BuiltInToolAliases:
+    def __init__(self, builtin_toolset_manager: BuiltinToolsetManager):
+        self._toolset_manager = builtin_toolset_manager
+        self._map = self._init_map()
+
+    def _init_map(self) -> dict[str, str]:
+        result = {}
+        for toolset in self._toolset_manager.toolsets:
+            toolset = cast(BuiltInToolset, toolset)
+            namespaced_tool_names = [tool.name for tool in toolset.get_tools(namespaced_tool_name=True)]
+            non_namespaced_tool_names = [tool.name for tool in toolset.get_tools(namespaced_tool_name=False)]
+            for namespaced_tool_name, non_namespaced_tool_name in zip(namespaced_tool_names, non_namespaced_tool_names):
+                result[non_namespaced_tool_name] = namespaced_tool_name
+        return result
+
+    @property
+    def map(self) -> dict[str, str]:
+        return self._map
 
 class AgentContext:
     def __init__(self,
@@ -42,6 +62,7 @@ class AgentContext:
 
         self._builtin_toolset_manager = builtin_toolset_manager
         self._mcp_toolset_manager = mcp_toolset_manager
+        self._builtin_tool_aliases = BuiltInToolAliases(builtin_toolset_manager)
 
     @classmethod
     async def create(cls, task: task_schemas.TaskRead) -> Self:
@@ -72,14 +93,16 @@ class AgentContext:
         settings = use_app_setting_manager().settings
         workspace_instruction = self._workspace.instruction or NO_WORKSPACE_INSTRUCTION
         agent_instruction = self._agent.instruction or NO_AGENT_INSTRUCTION
+        builtin_tool_aliases = self._builtin_tool_aliases.map
         return BASE_INSTRUCTION.format(
             os_platform=platform.system(),
             user_language=settings.reply_language,
             workspace_name=self._workspace.name,
             workspace_directory=self._workspace.directory,
-            workspace_instruction=workspace_instruction,
+            workspace_instruction=workspace_instruction.format_map(builtin_tool_aliases),
             agent_role=self._agent.name,
-            agent_instruction=agent_instruction,
+            agent_instruction=agent_instruction.format_map(builtin_tool_aliases),
+            **builtin_tool_aliases,
         ).strip()
 
     @property

@@ -40,9 +40,13 @@ class Agent(Base):
 async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType
     from ...agent.tool.builtin_tools import (
-        OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset
+        FileSystemToolset,
+        OsInteractionsToolset,
+        UserInteractionToolset,
+        ExecutionControlToolset,
     )
     from ...agent.prompts.built_in_agents import (
+        DAILY_ASSISTANT_AGENT_INSTRUCTION,
         SOFTWARE_ENGINEER_AGENT_INSTRUCTION,
         TERMINAL_INTERPRETER_AGENT_INSTRUCTION,
     )
@@ -62,6 +66,13 @@ async def init(db_session: AsyncSession):
 
     ALL_TOOLS = object()
     builtin_agents = [
+        ("Daily Assistant", DAILY_ASSISTANT_AGENT_INSTRUCTION, "chat", [
+            UserInteractionToolset.ask_user,
+            ExecutionControlToolset.finish_task,
+            FileSystemToolset.read_file,
+            FileSystemToolset.list_directory,
+            FileSystemToolset.search_file,
+        ]),
         ("Terminal Interpreter", TERMINAL_INTERPRETER_AGENT_INSTRUCTION, "terminal", [
             OsInteractionsToolset.shell,
             UserInteractionToolset.ask_user,

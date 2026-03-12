@@ -37,8 +37,15 @@ def setup_logging(log_level: int):
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
 
-    for noisy_logger in ("aiosqlite", "httpcore", "httpx", "mcp"):
-        logging.getLogger(noisy_logger).setLevel(logging.WARNING)
+    NOISY_LIBS = (
+        "aiosqlite",
+        "httpcore",
+        "httpx",
+        "mcp",
+        "openai",
+    )
+    for lib_name in NOISY_LIBS:
+        logging.getLogger(lib_name).setLevel(logging.WARNING)
 
     logger.remove()
     logger.add(sys.stderr)
