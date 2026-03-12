@@ -1,9 +1,9 @@
 from typing import NamedTuple
+from dais_sdk.types import ToolDef
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from dais_sdk.mcp_client import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .service_base import ServiceBase
-from .exceptions import NotFoundError, ConflictError, BadRequestError, UnavailableError, ServiceErrorCode
+from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
 from ..db.models import toolset as toolset_models
 from ..schemas import toolset as toolset_schemas
 
@@ -16,18 +16,9 @@ class ToolsetInternalKeyAlreadyExistsError(ConflictError):
     def __init__(self, name: str) -> None:
         super().__init__(ServiceErrorCode.TOOLSET_INTERNAL_KEY_ALREADY_EXISTS, f"Toolset '{name}' already exists")
 
-class FailedToConnectMcpServerError(UnavailableError):
-    def __init__(self, mcp_server_name: str) -> None:
-        super().__init__(ServiceErrorCode.FAILED_TO_CONNECT_MCP_SERVER, f"Failed to connect to MCP server '{mcp_server_name}'")
-
 class ToolNotFoundError(NotFoundError):
     def __init__(self, tool_id: int) -> None:
         super().__init__(ServiceErrorCode.TOOL_NOT_FOUND, "Tool", tool_id)
-
-class CannotCreateBuiltinToolsetError(BadRequestError):
-    def __init__(self) -> None:
-        super().__init__(ServiceErrorCode.CANNOT_CREATE_BUILTIN_TOOLSET, "Cannot create builtin toolset")
-
 
 class ToolsetService(ServiceBase):
     class ToolLike(NamedTuple):
@@ -82,17 +73,7 @@ class ToolsetService(ServiceBase):
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    async def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
-        match data.type:
-            case toolset_models.ToolsetType.BUILT_IN:
-                raise CannotCreateBuiltinToolsetError()
-            case toolset_models.ToolsetType.MCP_LOCAL:
-                assert isinstance(data.params, LocalServerParams)
-                client = LocalMcpClient(data.name, data.params)
-            case toolset_models.ToolsetType.MCP_REMOTE:
-                assert isinstance(data.params, RemoteServerParams)
-                client = RemoteMcpClient(data.name, data.params)
-
+    async def create_toolset(self, data: toolset_schemas.ToolsetCreate, tools: list[ToolDef]) -> toolset_models.Toolset:
         try:
             await self.get_toolset_by_internal_key(data.name)
         except ToolsetNotFoundError:
@@ -100,19 +81,15 @@ class ToolsetService(ServiceBase):
         else:
             raise ToolsetInternalKeyAlreadyExistsError(data.name)
 
-        await client.connect()
-        try:
-            tools = await client.list_tools()
-        except Exception as e:
-            raise FailedToConnectMcpServerError(data.name) from e
-        finally:
-            await client.disconnect()
-
         new_toolset = toolset_models.Toolset(
             **data.model_dump(exclude={"params"}),
             params=data.params,
             internal_key=data.name,
-            tools=[toolset_models.Tool.from_mcp_tool(tool) for tool in tools],
+            tools=[toolset_models.Tool(
+                name=tool.name,
+                internal_key=tool.name,
+                description=tool.description,
+            ) for tool in tools],
         )
 
         self._db_session.add(new_toolset)

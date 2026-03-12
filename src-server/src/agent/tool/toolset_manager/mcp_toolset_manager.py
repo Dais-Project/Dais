@@ -2,7 +2,7 @@ import asyncio
 from enum import Enum
 from typing import Sequence, override
 from loguru import logger
-from dais_sdk.tool import Toolset
+from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
 from ....db import db_context, toolset_models
@@ -39,25 +39,12 @@ class McpToolsetManager(ToolsetManager):
             toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
-    async def append(self, toolset_ent: toolset_models.Toolset):
+    def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):
         if self._toolset_map is None:
             raise McpToolsetManagerNotInitializedError()
 
-        new_toolset = McpToolset(toolset_ent)
+        new_toolset = McpToolset(toolset_ent, inner_toolset)
         self._toolset_map[toolset_ent.id] = new_toolset
-        try:
-            await new_toolset.connect()
-        except Exception:
-            self._logger.exception(f"Failed to connect to MCP server {new_toolset.name}")
-
-    async def refresh(self, toolset_ent: toolset_models.Toolset):
-        if self._toolset_map is None:
-            raise McpToolsetManagerNotInitializedError()
-
-        toolset = self._toolset_map.get(toolset_ent.id)
-        if toolset is None:
-            raise ValueError(f"Toolset {toolset_ent.id} not found")
-        await toolset.sync()
 
     async def remove(self, toolset_id: int):
         if self._toolset_map is None:
@@ -86,7 +73,6 @@ class McpToolsetManager(ToolsetManager):
         for toolset, result in zip(toolsets, results):
             if not isinstance(result, BaseException): continue
             self._logger.exception(f"Failed to connect to MCP server {toolset.name}")
-
         self._state = McpToolsetManagerState.CONNECTED
 
     async def disconnect_mcp_servers(self):

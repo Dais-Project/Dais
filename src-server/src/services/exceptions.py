@@ -30,10 +30,8 @@ class ServiceErrorCode(str, Enum):
 
     TOOLSET_NOT_FOUND = "TOOLSET_NOT_FOUND"
     TOOLSET_INTERNAL_KEY_ALREADY_EXISTS = "TOOLSET_INTERNAL_KEY_ALREADY_EXISTS"
-    FAILED_TO_CONNECT_MCP_SERVER = "FAILED_TO_CONNECT_MCP_SERVER"
 
     TOOL_NOT_FOUND = "TOOL_NOT_FOUND"
-    CANNOT_CREATE_BUILTIN_TOOLSET = "CANNOT_CREATE_BUILTIN_TOOLSET"
 
 class ServiceError(Exception):
     def __init__(self, status_code: ServiceStatusCode, error_code: ServiceErrorCode, message: str) -> None:
