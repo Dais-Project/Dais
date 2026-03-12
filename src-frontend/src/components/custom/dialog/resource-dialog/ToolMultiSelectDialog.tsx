@@ -51,15 +51,14 @@ type ToolMultiSelectDialogProps = {
 
 export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialogProps) {
   const { t } = useTranslation("dialog");
-  const allToolIdsRef = useRef<number[]>([]);
+  const allToolsRef = useRef<ToolsetRead[]>([]);
 
-  const handleFetched = (toolsets: ToolsetRead[]) => {
-    const allToolIds = toolsets.flatMap((toolset) => toolset.tools.map((tool) => tool.id));
-    allToolIdsRef.current = allToolIds;
-  };
+  const handleFetched = (toolsets: ToolsetRead[]) => (allToolsRef.current = toolsets);
 
-  const handleSelectAll = () => {
-    onChange(allToolIdsRef.current);
+  const handleSelectAllBuiltin = () => {
+    onChange(allToolsRef.current
+      .filter((toolset) => toolset.type === "built_in")
+      .flatMap((toolset) => toolset.tools.map((tool) => tool.id)));
   };
 
   return (
@@ -82,8 +81,8 @@ export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialog
           confirmText={t("resource.tool.confirm")}
           cancelText={t("resource.tool.cancel")}
         >
-          <SelectDialogFooterAction onClick={handleSelectAll}>
-            {t("resource.tool.select_all")}
+          <SelectDialogFooterAction onClick={handleSelectAllBuiltin}>
+            {t("resource.tool.select_builtins")}
           </SelectDialogFooterAction>
         </SelectDialogFooter>
       </SelectDialogContent>

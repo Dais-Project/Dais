@@ -23,7 +23,7 @@
       "confirm": "Confirm",
       "empty": "No matching tools found",
       "search_placeholder": "Search tools...",
-      "select_all": "Select all",
+      "select_builtins": "Select built-ins",
       "trigger": {
         "select": "Select"
       }

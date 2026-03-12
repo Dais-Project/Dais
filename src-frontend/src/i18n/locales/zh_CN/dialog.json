@@ -23,7 +23,7 @@
       "confirm": "确定",
       "empty": "未找到匹配的工具",
       "search_placeholder": "搜索工具...",
-      "select_all": "全选",
+      "select_builtins": "选择内置工具",
       "trigger": {
         "select": "选择"
       }
