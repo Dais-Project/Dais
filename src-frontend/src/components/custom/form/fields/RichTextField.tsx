@@ -9,9 +9,9 @@ import { Vditor } from "@/components/custom/Vditor";
 import { i18n } from "@/i18n";
 import { FORM_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";
-import type { FieldProps } from ".";
 import { VDITOR_LOCALE_MAP } from "@/i18n/locale-maps/vditor";
-import { resolveTheme } from "@/lib/resolve-theme";
+import { useResolvedTheme } from "@/hooks/use-resolve-theme";
+import type { FieldProps } from ".";
 
 function createRichTextRules(
   label: string,
@@ -75,6 +75,7 @@ export function RichTextField({
   });
 
   const { theme, language } = useSettingsStore((state) => state.current);
+  const resolvedTheme = useResolvedTheme(theme);
 
   return (
     <FieldItem
@@ -86,7 +87,7 @@ export function RichTextField({
       <Vditor
         initialValue={field.value}
         onChange={field.onChange}
-        theme={resolveTheme(theme)}
+        theme={resolvedTheme}
         lang={VDITOR_LOCALE_MAP[language]}
         {...controlProps}
       />

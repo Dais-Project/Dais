@@ -35,12 +35,12 @@ type SupportedTheme = "light" | "dark";
 function getTheme(isDark: boolean): {
   theme: "dark" | "classic";
   contentTheme: "dark" | "light";
-  codeTheme: "dark" | "light";
+  codeTheme: string;
 } {
   return {
     theme: isDark ? "dark" : "classic",
     contentTheme: isDark ? "dark" : "light",
-    codeTheme: isDark ? "dark" : "light",
+    codeTheme: isDark ? "github-dark" : "github",
   }
 }
 
