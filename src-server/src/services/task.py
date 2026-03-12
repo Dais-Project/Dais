@@ -1,17 +1,14 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ServiceErrorCode
 from ..db.models import task as task_models
 from ..schemas import task as task_schemas
 
 
 class TaskNotFoundError(NotFoundError):
-    """Raised when a task is not found."""
-
     def __init__(self, task_id: int) -> None:
-        super().__init__("Task", task_id)
-
+        super().__init__(ServiceErrorCode.TASK_NOT_FOUND, "Task", task_id)
 
 class TaskService(ServiceBase):
     def get_tasks_query(self, workspace_id: int):
@@ -61,7 +58,5 @@ class TaskService(ServiceBase):
         return task
 
     async def delete_task(self, id: int) -> None:
-        task = await self._db_session.get(task_models.Task, id)
-        if not task:
-            raise TaskNotFoundError(id)
+        task = await self.get_task_by_id(id)
         await self._db_session.delete(task)

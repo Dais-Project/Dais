@@ -29,11 +29,6 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
         });
         onConfirm?.();
       },
-      onError(error: Error) {
-        toast.error(t("toast.update.error_title"), {
-          description: error.message || t("toast.update.error_description"),
-        });
-      },
     },
   });
 

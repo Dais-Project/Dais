@@ -35,7 +35,7 @@ export function FormShell<T extends FieldValues>({
         onSubmit={methods.handleSubmit(onSubmit)}
         className={cn(
           "py-4",
-          "pr-1", // prevent outline of form controls from being cut off
+          "px-1", // prevent outline of form controls from being cut off
           className)}
       >
         <FieldGroup className="gap-y-2">{children}</FieldGroup>

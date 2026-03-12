@@ -119,7 +119,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
 
-  useEffect(() => 
+  useEffect(() =>
     SseDispatcher.subscribe("TASK_TITLE_UPDATED", ({ task_id, title }: TaskTitleUpdatedEvent) => {
       const queryKey = getGetTasksInfiniteQueryKey({ workspace_id: workspaceId });
       queryClient.setQueryData<InfiniteData<PageTaskBrief>>(
@@ -151,21 +151,12 @@ export function TaskList({ workspaceId }: TaskListProps) {
       toast.success(t("tasks.toast.delete_success_title"), {
         description: t("tasks.toast.delete_success_description"),
       });
-    },
-    onError(error: Error) {
-      toast.error(t("tasks.toast.delete_error_title"), {
-        description: error.message || t("tasks.toast.delete_error_description"),
-      });
-    },
+    }
   });
 
   const query = useGetTasksSuspenseInfinite(
-    {
-      workspace_id: workspaceId,
-    },
-    {
-      query: PAGINATED_QUERY_DEFAULT_OPTIONS,
-    }
+    { workspace_id: workspaceId },
+    { query: PAGINATED_QUERY_DEFAULT_OPTIONS }
   );
 
   if (query.data.pages.length === 0) {

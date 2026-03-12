@@ -125,12 +125,7 @@ export function ProviderList() {
         toast.success(t("settings.providers.toast.delete_success_title"), {
           description: t("settings.providers.toast.delete_success_description"),
         });
-      },
-      onError(error: Error) {
-        toast.error(t("settings.providers.toast.delete_error_title"), {
-          description: error.message || t("settings.providers.toast.delete_error_description"),
-        });
-      },
+      }
     },
   });
 

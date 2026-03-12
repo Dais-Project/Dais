@@ -40,7 +40,7 @@ export function TasksView() {
     }
 
     return (
-      <AsyncBoundary skeleton={<SideBarListSkeleton />} errorDescription={t("tasks.list.error_load")}>
+      <AsyncBoundary skeleton={<SideBarListSkeleton />}>
         <TaskList workspaceId={currentWorkspace.id} />
       </AsyncBoundary>
     );

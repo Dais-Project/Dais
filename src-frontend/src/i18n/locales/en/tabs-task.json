@@ -16,10 +16,10 @@
       "title": "Task failed. Please retry."
     }
   },
-  "panel": {
-    "error": {
-      "load_description": "Failed to load task. Please try again later."
-    }
+  "notification": {
+    "require_permission": "Dais wants to use {{toolName}}",
+    "require_response": "Dais is waiting for your response",
+    "task_done": "Dais has finished the task"
   },
   "prompt": {
     "agent": {
@@ -31,7 +31,6 @@
       "workspace_load_failed": "Failed to load workspace"
     },
     "context": {
-      "load_error": "Failed to load files.",
       "loading": "Loading...",
       "no_results": "No results found.",
       "search_placeholder": "Add files, folders, docs...",
@@ -44,11 +43,6 @@
   },
   "task_progress": {
     "completed": "Task completed"
-  },
-  "notification": {
-    "require_response": "Dais is waiting for your response",
-    "require_permission": "Dais wants to use {{toolName}}",
-    "task_done": "Dais has finished the task"
   },
   "toast": {
     "task_failed": {

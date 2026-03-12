@@ -1,40 +1,24 @@
 from typing import NamedTuple
+from dais_sdk.types import ToolDef
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from dais_sdk.mcp_client import LocalMcpClient, RemoteMcpClient, LocalServerParams, RemoteServerParams
 from .service_base import ServiceBase
-from .exceptions import NotFoundError, ConflictError, BadRequestError
+from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
 from ..db.models import toolset as toolset_models
 from ..schemas import toolset as toolset_schemas
 
 
 class ToolsetNotFoundError(NotFoundError):
-    """Raised when a toolset is not found."""
-
     def __init__(self, toolset_identifier: int | str) -> None:
-        super().__init__("Toolset", toolset_identifier)
-
+        super().__init__(ServiceErrorCode.TOOLSET_NOT_FOUND, "Toolset", toolset_identifier)
 
 class ToolsetInternalKeyAlreadyExistsError(ConflictError):
-    """Raised when attempting to create a toolset with a name that already exists."""
-
     def __init__(self, name: str) -> None:
-        super().__init__(f"Toolset '{name}' already exists")
-
+        super().__init__(ServiceErrorCode.TOOLSET_INTERNAL_KEY_ALREADY_EXISTS, f"Toolset '{name}' already exists")
 
 class ToolNotFoundError(NotFoundError):
-    """Raised when a tool is not found."""
-
     def __init__(self, tool_id: int) -> None:
-        super().__init__("Tool", tool_id)
-
-
-class CannotCreateBuiltinToolsetError(BadRequestError):
-    """Raised when attempting to create a builtin toolset."""
-
-    def __init__(self) -> None:
-        super().__init__("Cannot create builtin toolset")
-
+        super().__init__(ServiceErrorCode.TOOL_NOT_FOUND, "Tool", tool_id)
 
 class ToolsetService(ServiceBase):
     class ToolLike(NamedTuple):
@@ -89,17 +73,7 @@ class ToolsetService(ServiceBase):
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    async def create_toolset(self, data: toolset_schemas.ToolsetCreate) -> toolset_models.Toolset:
-        match data.type:
-            case toolset_models.ToolsetType.BUILT_IN:
-                raise CannotCreateBuiltinToolsetError()
-            case toolset_models.ToolsetType.MCP_LOCAL:
-                assert isinstance(data.params, LocalServerParams)
-                client = LocalMcpClient(data.name, data.params)
-            case toolset_models.ToolsetType.MCP_REMOTE:
-                assert isinstance(data.params, RemoteServerParams)
-                client = RemoteMcpClient(data.name, data.params)
-
+    async def create_toolset(self, data: toolset_schemas.ToolsetCreate, tools: list[ToolDef]) -> toolset_models.Toolset:
         try:
             await self.get_toolset_by_internal_key(data.name)
         except ToolsetNotFoundError:
@@ -107,16 +81,15 @@ class ToolsetService(ServiceBase):
         else:
             raise ToolsetInternalKeyAlreadyExistsError(data.name)
 
-        await client.connect()
-        try:
-            tools = await client.list_tools()
-        finally:
-            await client.disconnect()
-
         new_toolset = toolset_models.Toolset(
-            **data.model_dump(),
+            **data.model_dump(exclude={"params"}),
+            params=data.params,
             internal_key=data.name,
-            tools=[toolset_models.Tool.from_mcp_tool(tool) for tool in tools],
+            tools=[toolset_models.Tool(
+                name=tool.name,
+                internal_key=tool.name,
+                description=tool.description,
+            ) for tool in tools],
         )
 
         self._db_session.add(new_toolset)
@@ -133,7 +106,10 @@ class ToolsetService(ServiceBase):
             for tool_data in data.tools:
                 await self.update_tool(id, tool_data.id, tool_data)
 
-        update_data = data.model_dump(exclude={"tools"}, exclude_unset=True)
+        if data.params is not None:
+            toolset.params = data.params
+
+        update_data = data.model_dump(exclude={"params", "tools"}, exclude_unset=True)
         for key, value in update_data.items():
             if hasattr(toolset, key) and value is not None:
                 setattr(toolset, key, value)

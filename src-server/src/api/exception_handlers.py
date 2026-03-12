@@ -5,13 +5,9 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
 from pydantic import BaseModel
 from loguru import logger
-from ..services.exceptions import ServiceError, ServiceErrorCode
+from .exceptions import ApiError
+from ..services.exceptions import ServiceError, ServiceStatusCode
 
-SERVICE_ERROR_STATUS_CODES: dict[ServiceErrorCode, int] = {
-    ServiceErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
-    ServiceErrorCode.CONFLICT: status.HTTP_409_CONFLICT,
-    ServiceErrorCode.BAD_REQUEST: status.HTTP_400_BAD_REQUEST,
-}
 
 class ErrorResponseContent(TypedDict):
     error_code: str
@@ -46,15 +42,21 @@ _logger = logger.bind(name="ExceptionHandlers")
 @_specific_exception_handler(ServiceError)
 async def handle_service_error(_: Request, exc: ServiceError) -> JSONResponse:
     """Handle service layer errors and convert them to HTTP responses."""
-    status_code = SERVICE_ERROR_STATUS_CODES.get(exc.code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+    status_code = ServiceStatusCode.status_code_map(exc.status_code)
     return JSONResponse(status_code=status_code,
-                        content=ErrorResponseContent(error_code=exc.code.value,
+                        content=ErrorResponseContent(error_code=exc.error_code.value,
                                                      message=exc.message))
+
+@_specific_exception_handler(ApiError)
+async def handle_api_error(_: Request, exc: ApiError) -> JSONResponse:
+    return JSONResponse(status_code=exc.status_code,
+                        content=ErrorResponseContent(error_code=exc.error_code.value,
+                                                     message=str(exc)))
 
 # pydantic schema validation error
 @_specific_exception_handler(RequestValidationError)
 async def handle_validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
-    _logger.error(exc)
+    _logger.warning(exc)
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST,
                         content=ErrorResponseContent(error_code="VALIDATION_ERROR",
                                                      message="Invalid request parameters"))
@@ -66,7 +68,7 @@ async def handle_http_exception(_: Request, exc: HTTPException) -> JSONResponse:
                                                      message=exc.detail))
 
 async def handle_unexpected_exception(_: Request, exc: Exception) -> JSONResponse:
-    _logger.error(f"Unexpected server error: ", exc_info=exc)
+    _logger.error("Unexpected server error: ", exc_info=exc)
     return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         content=ErrorResponseContent(error_code="UNKNOWN",
                                                      message="Unexpected server error"))

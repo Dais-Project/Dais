@@ -30,10 +30,9 @@ export function HelperModelSettings() {
             <Skeleton className="h-9 w-24" />
           </SettingItem>
         )}
-        errorDescription={t("settings.helper_model.flash_model.error_load")}
       >
         <SettingItem title={t("settings.helper_model.flash_model.title")}>
-            <HelperModelSettingsSuspense />
+          <HelperModelSettingsSuspense />
         </SettingItem>
       </AsyncBoundary>
     </div>

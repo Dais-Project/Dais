@@ -19,12 +19,14 @@ from .routes import (
 )
 from .exception_handlers import (
     ErrorResponseSchema,
+    handle_api_error,
     handle_service_error,
     handle_validation_error,
     handle_http_exception,
     handle_unexpected_exception,
 )
 from .lifespan import lifespan
+from .exceptions import ApiError
 from ..services.exceptions import ServiceError
 
 
@@ -51,6 +53,7 @@ app.add_middleware(
 )
 
 app.add_exception_handler(ServiceError, handle_service_error)
+app.add_exception_handler(ApiError, handle_api_error)
 app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(Exception, handle_unexpected_exception)

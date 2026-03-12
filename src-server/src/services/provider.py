@@ -2,19 +2,16 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
-from .exceptions import NotFoundError
+from .exceptions import NotFoundError, ServiceErrorCode
 from ..db.models import provider as provider_models
 from ..schemas import provider as provider_schemas
 
+
 _logger = logger.bind(name="ProviderService")
 
-
 class ProviderNotFoundError(NotFoundError):
-    """Raised when a provider is not found."""
-
     def __init__(self, provider_id: int) -> None:
-        super().__init__("Provider", provider_id)
-
+        super().__init__(ServiceErrorCode.PROVIDER_NOT_FOUND, "Provider", provider_id)
 
 class ProviderService(ServiceBase):
     def get_providers_query(self):
@@ -128,7 +125,5 @@ class ProviderService(ServiceBase):
         return updated_provider
 
     async def delete_provider(self, id: int) -> None:
-        provider = await self._db_session.get(provider_models.Provider, id)
-        if not provider:
-            raise ProviderNotFoundError(id)
+        provider = await self.get_provider_by_id(id)
         await self._db_session.delete(provider)

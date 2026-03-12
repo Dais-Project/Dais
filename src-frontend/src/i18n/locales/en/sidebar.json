@@ -8,7 +8,6 @@
       "title": "Agents"
     },
     "list": {
-      "error_load": "Failed to load agents. Please try again later.",
       "no_model": "No model"
     },
     "menu": {
@@ -20,8 +19,6 @@
       "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the agent. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Agent deleted successfully.",
       "delete_success_title": "Delete success"
     }
@@ -59,8 +56,7 @@
     "helper_model": {
       "flash_model": {
         "title": "Flash model"
-      },
-      "error_load": "Failed to load helper model settings. Please try again later."
+      }
     },
     "providers": {
       "actions": {
@@ -76,7 +72,6 @@
       "list": {
         "delete_provider_title": "Delete",
         "edit_provider_title": "Edit provider",
-        "error_load": "Failed to load providers. Please try again later.",
         "model_count_with_count_one": "",
         "model_count_with_count_other": ""
       },
@@ -85,8 +80,6 @@
         "edit_title_with_name": "Edit: {{name}}"
       },
       "toast": {
-        "delete_error_description": "Failed to delete the provider. Please try again later.",
-        "delete_error_title": "Delete failed",
         "delete_success_description": "Provider deleted successfully.",
         "delete_success_title": "Delete success"
       }
@@ -114,16 +107,11 @@
       "create_tooltip": "Create new task",
       "title": "Tasks"
     },
-    "list": {
-      "error_load": "Failed to load tasks. Please try again later."
-    },
     "menu": {
       "delete": "Delete",
       "rename": "Edit task name"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the task. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Task deleted successfully.",
       "delete_success_title": "Delete success",
       "rename_feature_description": "Rename feature is not implemented yet",
@@ -138,20 +126,21 @@
       "create_tooltip": "Connect to MCP server",
       "title": "Toolsets"
     },
-    "list": {
-      "error_load": "Failed to load toolsets. Please try again later."
-    },
     "menu": {
       "delete": "Delete",
       "edit": "Edit toolset"
+    },
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "disconnected": "Disconnected",
+      "error": "Error"
     },
     "tab": {
       "create_title": "Connect to MCP server",
       "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the toolset. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Toolset deleted successfully.",
       "delete_success_title": "Delete success"
     }
@@ -168,21 +157,16 @@
       "create_tooltip": "Create new workspace",
       "title": "Workspaces"
     },
-    "list": {
-      "error_load": "Failed to load workspaces. Please try again later."
-    },
     "menu": {
       "delete": "Delete",
       "edit": "Edit workspace",
-      "set_current": "Set as current"
+      "select": "Set as current"
     },
     "tab": {
       "create_title": "Create workspace",
       "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the workspace. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Workspace deleted successfully.",
       "delete_success_title": "Delete success"
     }

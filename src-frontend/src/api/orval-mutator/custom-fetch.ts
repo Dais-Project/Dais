@@ -1,19 +1,29 @@
 import { API_BASE } from "..";
+import { ApiErrorCode, McpConnectErrorCode, ServiceErrorCode } from "../generated/schemas";
+
+export type ErrorCode = 
+  | ApiErrorCode
+  | McpConnectErrorCode
+  | ServiceErrorCode
+  | "NETWORK_ERROR"
+  | "UNEXPECTED_ERROR";
 
 export type ErrorResponse = {
-  error_code: string;
+  error_code: ErrorCode;
   message: string;
 };
 
 export class FetchError<E extends ErrorResponse> extends Error {
   statusCode: number;
-  errorCode: string;
+  errorCode: ErrorCode;
+  message: string;
 
   constructor(statusCode: number, error: E) {
     super(error.message);
     this.name = "FetchError";
     this.statusCode = statusCode;
     this.errorCode = error.error_code;
+    this.message = error.message;
   }
 }
 
@@ -24,7 +34,16 @@ export async function fetchApi<T>(
   init?: RequestInit
 ): Promise<T> {
   const url = new URL(input.toString(), API_BASE);
-  const res = await fetch(url, init);
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch {
+    throw new FetchError(500, {
+      error_code: "NETWORK_ERROR",
+      message: "Network error when fetching",
+    });
+  }
+
   if (res.ok) {
     if (res.status === 204) {
       return undefined as T;
@@ -32,16 +51,15 @@ export async function fetchApi<T>(
     return (await res.json()) as T;
   }
 
+  let errorBody: ErrorResponse;
   try {
-    const errorBody = (await res.json()) as ErrorResponse;
-    throw new FetchError(res.status, errorBody);
+    errorBody = (await res.json()) as ErrorResponse;
   } catch {
-    console.warn(
-      `Failed to parse error response as JSON: ${res.status} ${res.statusText}`
-    );
+    console.warn(`Failed to parse error response as JSON: ${res.status} ${res.statusText}`);
     throw new FetchError(res.status, {
-      error_code: "HTTP_ERROR",
+      error_code: "UNEXPECTED_ERROR",
       message: res.statusText,
     });
   }
+  throw new FetchError(res.status, errorBody);
 }

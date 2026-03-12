@@ -6,17 +6,14 @@ import { FailedToLoad } from "./FailedToLoad";
 type AsyncBoundaryProps = {
   children: React.ReactNode;
   skeleton?: React.ReactNode;
+  errorRender?: (props: FallbackProps) => React.ReactNode;
   onError?: (error: unknown, info: React.ErrorInfo) => void;
-} & MustOneOf<{
-  errorDescription: string | ((error: unknown) => string);
-  errorRender: (props: FallbackProps) => React.ReactNode;
-}>;
+};
 
 export function AsyncBoundary({
   children,
   skeleton,
   onError,
-  errorDescription,
   errorRender,
 }: AsyncBoundaryProps) {
   return (
@@ -29,12 +26,8 @@ export function AsyncBoundary({
             errorRender ??
             ((props) => (
               <FailedToLoad
-                refetch={props.resetErrorBoundary}
-                description={
-                  typeof errorDescription === "string"
-                    ? errorDescription
-                    : errorDescription(props.error)
-                }
+                error={props.error}
+                retry={props.resetErrorBoundary}
               />
             ))
           }

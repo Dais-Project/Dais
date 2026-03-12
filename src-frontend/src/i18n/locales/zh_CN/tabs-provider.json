@@ -59,25 +59,15 @@
       "cancel": "取消",
       "confirm": "确认",
       "empty": "未找到模型",
-      "error_load": "无法加载模型列表，请稍后重试。",
       "search_placeholder": "搜索模型..."
-    }
-  },
-  "panel": {
-    "error": {
-      "load_description": "无法加载服务提供商信息，请稍后重试。"
     }
   },
   "toast": {
     "create": {
-      "error_description": "创建服务提供商时发生错误，请稍后重试。",
-      "error_title": "创建失败",
       "success_description_with_name": "已成功创建服务提供商 {{name}}。",
       "success_title": "创建成功"
     },
     "update": {
-      "error_description": "更新服务提供商时发生错误，请稍后重试。",
-      "error_title": "更新失败",
       "success_description_with_name": "已成功更新服务提供商 {{name}}。",
       "success_title": "更新成功"
     }

@@ -27,11 +27,6 @@ export function ProviderCreateForm({ onConfirm }: ProviderCreateFormProps) {
         });
         onConfirm?.();
       },
-      onError(error: Error) {
-        toast.error(t("toast.create.error_title"), {
-          description: error.message || t("toast.create.error_description"),
-        });
-      },
     },
   });
 

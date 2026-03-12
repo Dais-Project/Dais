@@ -44,10 +44,6 @@ class Tool(Base):
     _agents: Mapped[list[Agent]] = relationship(secondary=agent_tool_association_table,
                                                 back_populates="usable_tools")
 
-    @staticmethod
-    def from_mcp_tool(tool: McpTool) -> Tool:
-        return Tool(name=tool.name, description=tool.description, internal_key=tool.name)
-
 class Toolset(Base):
     __tablename__ = "toolsets"
     id: Mapped[int] = mapped_column(primary_key=True)

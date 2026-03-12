@@ -1,0 +1,6 @@
+{
+  "load_failed": {
+    "retry": "Retry",
+    "title": "Failed to load"
+  }
+}

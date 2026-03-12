@@ -1,9 +1,10 @@
 from typing import Literal
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, status
 from fastapi.sse import EventSourceResponse
 from dais_sdk.types import UserMessage
 from pydantic import BaseModel
-from .utils import agent_stream
+from .stream_connector import agent_stream
+from ....exceptions import ApiError, ApiErrorCode
 from .....agent.context import AgentContext
 from .....agent.task import AgentTask, ToolCallNotFoundError
 from .....agent.types import AgentEvent
@@ -72,7 +73,9 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request):
     try:
         replace_event = task.set_tool_call_result(body.call_id, body.answer)
     except ToolCallNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.call_id)
+        raise ApiError(status.HTTP_404_NOT_FOUND,
+                       ApiErrorCode.TOOL_CALL_NOT_FOUND,
+                       e.call_id)
 
     yield replace_event
     async for event in agent_stream(task, request):
@@ -92,6 +95,7 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request):
         async for event in task.approve_tool_call(body.call_id, body.status == "approved"):
             yield event
     except ToolCallNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.call_id)
+        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND, e.call_id)
+
     async for event in agent_stream(task, request):
         yield event

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import TypedDict
@@ -23,11 +24,16 @@ async def lifespan(_: FastAPI) -> AsyncIterator[AppState]:
 
     mcp_toolset_manager = use_mcp_toolset_manager()
     await mcp_toolset_manager.initialize()
-    await mcp_toolset_manager.connect_mcp_servers()
+    mcp_toolset_connect_task = asyncio.create_task(mcp_toolset_manager.connect_mcp_servers())
 
     try:
         yield AppState(sse_dispatcher=sse_dispatcher,
                        mcp_toolset_manager=mcp_toolset_manager)
+
+        mcp_toolset_connect_task.cancel()
+        await mcp_toolset_connect_task
+    except asyncio.CancelledError:
+        pass
     finally:
         await mcp_toolset_manager.disconnect_mcp_servers()
         await app_setting_manager.persist()

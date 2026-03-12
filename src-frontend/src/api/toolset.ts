@@ -2,7 +2,7 @@ export {
   getGetToolsetQueryKey,
   getGetToolsetsQueryKey,
   getGetToolsetsBriefQueryKey,
-  useCreateMcpToolset,
+  useCreateToolset,
   useDeleteToolset,
   useGetToolsetSuspense,
   useGetToolsetsSuspense,

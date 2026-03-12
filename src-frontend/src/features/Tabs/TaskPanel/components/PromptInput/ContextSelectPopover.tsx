@@ -91,8 +91,11 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
           <SearchResults query={debouncedQuery} onSelect={onSelect} />
         ) : (
           <AsyncBoundary
-            skeleton={<div className="p-3 text-muted-foreground text-sm">{t("prompt.context.loading")}</div>}
-            errorDescription={t("prompt.context.load_error")}
+            skeleton={(
+              <div className="p-3 text-muted-foreground text-sm">
+                {t("prompt.context.loading")}
+              </div>
+            )}
           >
             <FileTreeSuspense onSelect={onSelect} />
           </AsyncBoundary>
