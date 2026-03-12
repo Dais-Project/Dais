@@ -31,7 +31,9 @@ import { tabIdFactory } from "@/lib/tab";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab, ToolsetTabMetadata } from "@/types/tab";
+import { getErrorMessage } from "@/i18n/error-message";
 import { ToolsetIcon } from "./ToolsetIcon";
+
 
 function getStatusColor(status: McpToolsetStatus): string {
   switch (status) {
@@ -123,7 +125,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span
+                      <div
                         className={cn(
                           "inline-block size-2 rounded-full",
                           getStatusColor(toolset.status)
@@ -131,7 +133,11 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{t(`toolsets.status.${toolset.status}`)}</p>
+                      <p>{
+                        toolset.error_code
+                          ? getErrorMessage(toolset.error_code)
+                          : t(`toolsets.status.${toolset.status}`)
+                      }</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -171,12 +177,7 @@ export function ToolsetList() {
       toast.success(t("toolsets.toast.delete_success_title"), {
         description: t("toolsets.toast.delete_success_description"),
       });
-    },
-    onError(error: Error) {
-      toast.error(t("toolsets.toast.delete_error_title"), {
-        description: error.message || t("toolsets.toast.delete_error_description"),
-      });
-    },
+    }
   });
 
   const { data: toolsets } = useGetToolsetsBriefSuspense({

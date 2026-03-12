@@ -64,14 +64,10 @@
   },
   "toast": {
     "create": {
-      "error_description": "Failed to create provider. Please try again later.",
-      "error_title": "Create failed",
       "success_description_with_name": "Provider {{name}} created successfully.",
       "success_title": "Create success"
     },
     "update": {
-      "error_description": "Failed to update provider. Please try again later.",
-      "error_title": "Update failed",
       "success_description_with_name": "Provider {{name}} updated successfully.",
       "success_title": "Update success"
     }

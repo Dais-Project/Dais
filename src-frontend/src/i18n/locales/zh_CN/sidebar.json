@@ -19,8 +19,6 @@
       "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "delete_error_description": "删除 Agent 时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除 Agent。",
       "delete_success_title": "删除成功"
     }
@@ -82,8 +80,6 @@
         "edit_title_with_name": "编辑：{{name}}"
       },
       "toast": {
-        "delete_error_description": "删除服务提供商时发生错误，请稍后重试。",
-        "delete_error_title": "删除失败",
         "delete_success_description": "已成功删除服务提供商。",
         "delete_success_title": "删除成功"
       }
@@ -116,8 +112,6 @@
       "rename": "编辑任务名称"
     },
     "toast": {
-      "delete_error_description": "删除任务时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除任务。",
       "delete_success_title": "删除成功",
       "rename_feature_description": "重命名功能待实现",
@@ -136,13 +130,17 @@
       "delete": "删除",
       "edit": "编辑工具集"
     },
+    "status": {
+      "connected": "已连接",
+      "connecting": "连接中",
+      "disconnected": "已断开",
+      "error": "错误"
+    },
     "tab": {
       "create_title": "连接到 MCP 服务",
       "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "delete_error_description": "删除工具集时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除工具集。",
       "delete_success_title": "删除成功"
     }
@@ -169,8 +167,6 @@
       "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "delete_error_description": "删除工作区时发生错误，请稍后重试。",
-      "delete_error_title": "删除失败",
       "delete_success_description": "已成功删除工作区。",
       "delete_success_title": "删除成功"
     }

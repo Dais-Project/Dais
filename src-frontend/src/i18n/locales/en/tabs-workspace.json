@@ -27,14 +27,10 @@
   },
   "toast": {
     "create": {
-      "error_description": "Failed to create workspace. Please try again later.",
-      "error_title": "Create failed",
       "success_description_with_name": "Workspace \"{{name}}\" created successfully.",
       "success_title": "Create success"
     },
     "update": {
-      "error_description": "Failed to update workspace. Please try again later.",
-      "error_title": "Update failed",
       "success_description_with_name": "Workspace \"{{name}}\" updated successfully.",
       "success_title": "Update success"
     }

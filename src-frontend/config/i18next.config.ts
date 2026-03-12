@@ -10,6 +10,7 @@ export default defineConfig({
     output: "src/i18n/locales/{{language}}/{{namespace}}.json",
     preservePatterns: [
       "error:*",
+      "sidebar:toolsets.status.*",
     ],
     defaultNS: false,
   }

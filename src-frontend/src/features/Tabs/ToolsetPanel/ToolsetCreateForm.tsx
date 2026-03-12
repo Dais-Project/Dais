@@ -26,12 +26,7 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
           description: t("toast.create.success_description_with_name", { name: newToolset.name }),
         });
         onConfirm?.();
-      },
-      onError(error: Error) {
-        toast.error(t("toast.create.error_title"), {
-          description: error.message || t("toast.create.error_description"),
-        });
-      },
+      }
     },
   });
 

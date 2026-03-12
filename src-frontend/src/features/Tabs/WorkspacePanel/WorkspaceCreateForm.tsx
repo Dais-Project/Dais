@@ -25,11 +25,6 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
         });
         onConfirm?.();
       },
-      onError(error: Error) {
-        toast.error(t("toast.create.error_title"), {
-          description: error.message || t("toast.create.error_description"),
-        });
-      },
     },
   });
 

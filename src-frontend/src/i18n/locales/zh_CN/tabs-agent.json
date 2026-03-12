@@ -44,14 +44,10 @@
   },
   "toast": {
     "create": {
-      "error_description": "创建 Agent 时发生错误，请稍后重试。",
-      "error_title": "创建失败",
       "success_description_with_name": "已成功创建 Agent {{name}}。",
       "success_title": "创建成功"
     },
     "update": {
-      "error_description": "更新 Agent 时发生错误，请稍后重试。",
-      "error_title": "更新失败",
       "success_description_with_name": "已成功更新 Agent {{name}}。",
       "success_title": "更新成功"
     }

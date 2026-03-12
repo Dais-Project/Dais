@@ -151,12 +151,7 @@ export function WorkspaceList() {
       toast.success(t("workspaces.toast.delete_success_title"), {
         description: t("workspaces.toast.delete_success_description"),
       });
-    },
-    onError(error: Error) {
-      toast.error(t("workspaces.toast.delete_error_title"), {
-        description: error.message || t("workspaces.toast.delete_error_description"),
-      });
-    },
+    }
   });
 
   const query = useGetWorkspacesSuspenseInfinite(undefined, {

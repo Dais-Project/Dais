@@ -19,8 +19,6 @@
       "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the agent. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Agent deleted successfully.",
       "delete_success_title": "Delete success"
     }
@@ -82,8 +80,6 @@
         "edit_title_with_name": "Edit: {{name}}"
       },
       "toast": {
-        "delete_error_description": "Failed to delete the provider. Please try again later.",
-        "delete_error_title": "Delete failed",
         "delete_success_description": "Provider deleted successfully.",
         "delete_success_title": "Delete success"
       }
@@ -116,8 +112,6 @@
       "rename": "Edit task name"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the task. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Task deleted successfully.",
       "delete_success_title": "Delete success",
       "rename_feature_description": "Rename feature is not implemented yet",
@@ -136,13 +130,17 @@
       "delete": "Delete",
       "edit": "Edit toolset"
     },
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "disconnected": "Disconnected",
+      "error": "Error"
+    },
     "tab": {
       "create_title": "Connect to MCP server",
       "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the toolset. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Toolset deleted successfully.",
       "delete_success_title": "Delete success"
     }
@@ -169,8 +167,6 @@
       "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "delete_error_description": "Failed to delete the workspace. Please try again later.",
-      "delete_error_title": "Delete failed",
       "delete_success_description": "Workspace deleted successfully.",
       "delete_success_title": "Delete success"
     }
