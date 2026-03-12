@@ -12,9 +12,9 @@ type CapabilityConfig = {
 };
 
 const CAPABILITY_CONFIGS: CapabilityConfig[] = [
-  { key: "vision", labelKey: "models.capability.vision" },
-  { key: "reasoning", labelKey: "models.capability.reasoning" },
-  { key: "tool_use", labelKey: "models.capability.tool_use" },
+  { key: "vision", labelKey: "models.edit_dialog.capability.vision" },
+  { key: "reasoning", labelKey: "models.edit_dialog.capability.reasoning" },
+  { key: "tool_use", labelKey: "models.edit_dialog.capability.tool_use" },
 ];
 
 export function ModelCapabilityBadges({
@@ -30,12 +30,12 @@ export function ModelCapabilityBadges({
   }
 
   return (
-    <div className="flex gap-1">
+    <span className="space-x-1">
       {activeBadges.map((config) => (
         <Badge key={config.key} variant="secondary">
           {t(config.labelKey)}
         </Badge>
       ))}
-    </div>
+    </span>
   );
 }

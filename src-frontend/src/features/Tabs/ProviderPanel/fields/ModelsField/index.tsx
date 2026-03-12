@@ -1,9 +1,10 @@
 import { DownloadIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { LlmModelCreate } from "@/api/generated/schemas";
 import type {
   ProviderCreateFormValues,
   ProviderEditFormValues,
@@ -11,6 +12,7 @@ import type {
 import { ModelItem } from "./ModelItem";
 import { ModelSelectDialog } from "./ModelSelectDialog";
 import { useModelManagement } from "./use-model-management";
+import { ModelEditDialog } from "./ModelEditDialog";
 
 export function ModelsField() {
   const { t } = useTranslation("tabs-provider");
@@ -22,9 +24,8 @@ export function ModelsField() {
     name: ["type", "base_url", "api_key"],
   });
   const { models, handleDeleteModel, handleEditModel, handleSelectModels } =
-    useModelManagement({
-      control,
-    });
+    useModelManagement({ control });
+
   const existingModelNames = useMemo(() => {
     return models.map((model) => model.name);
   }, [models]);
@@ -35,6 +36,13 @@ export function ModelsField() {
       e.preventDefault();
       e.stopPropagation();
     }
+  };
+
+  const [editingModel, setEditingModel] = useState<LlmModelCreate | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const handleOpenModelEditDialog = (index: number) => {
+    setEditingModel(models[index]);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -71,10 +79,20 @@ export function ModelsField() {
             model={model}
             index={index}
             onDelete={handleDeleteModel}
-            onEdit={handleEditModel}
+            onEdit={handleOpenModelEditDialog}
           />
         ))}
       </div>
+
+      <ModelEditDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        model={editingModel}
+        onConfirm={(updatedModel) => {
+          handleEditModel(updatedModel);
+          setIsEditDialogOpen(false);
+        }}
+      />
     </div>
   );
 }

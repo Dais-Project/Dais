@@ -42,10 +42,7 @@
         "required": "Please enter context size"
       },
       "name": {
-        "empty": "Model name cannot be empty",
-        "label": "Model name",
-        "placeholder": "Enter model name",
-        "required": "Please enter model name"
+        "label": "Model name"
       },
       "save": "Save",
       "saving": "Saving...",

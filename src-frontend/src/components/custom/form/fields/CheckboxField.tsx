@@ -30,8 +30,6 @@ export function CheckboxField({
         onCheckedChange={field.onChange}
         onBlur={field.onBlur}
         name={field.name}
-        disabled={controlProps?.disabled}
-        required={controlProps?.required}
         {...controlProps}
       />
     </FieldItem>

@@ -42,10 +42,7 @@
         "required": "请输入上下文大小"
       },
       "name": {
-        "empty": "模型名称不能为空",
-        "label": "模型名称",
-        "placeholder": "请输入模型名称",
-        "required": "请输入模型名称"
+        "label": "模型名称"
       },
       "save": "保存",
       "saving": "保存中...",
