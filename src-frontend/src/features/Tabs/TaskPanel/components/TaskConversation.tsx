@@ -3,7 +3,8 @@ import { Conversation, ConversationContent, ConversationScrollButton } from "@/c
 import { cn } from "@/lib/utils";
 import { useAgentTaskState } from "../hooks/use-agent-task";
 import { ToolMessage } from "./messages/BuiltInToolMessage";
-import { TextMessage } from "./messages/TextMessage";
+import { AssistantMessage } from "./messages/AssistantMessage";
+import { UserMessage } from "./messages/UserMessage";
 
 export function TaskConversationProvider({className, ...props}: ComponentProps<typeof Conversation>) {
   return (
@@ -30,18 +31,22 @@ export function TaskConversationContent() {
               <ToolMessage
                 key={message.id ?? message.call_id}
                 message={message}
+              />
+            );
+          }
+          if (message.role === "user") {
+            return (
+              <UserMessage
+                key={message.id ?? message.content}
+                text={message.content}
                 isStreaming={message.isStreaming}
               />
             );
           }
           return (
-            <TextMessage
+            <AssistantMessage
               key={message.id ?? message.content}
-              text={message.role === "user"
-                      ? message.content
-                      // for assistant message, we use reasoning_content as fallback when content is null
-                      : (message.content ?? message.reasoning_content)}
-              from={message.role}
+              text={message.content ?? message.reasoning_content}
               isStreaming={message.isStreaming}
             />
           );
