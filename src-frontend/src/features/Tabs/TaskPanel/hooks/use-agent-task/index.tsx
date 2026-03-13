@@ -212,6 +212,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+  };
+
+  const onCancel = () => {
+    cancel();
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
   };
 
   const onClose = () => {
@@ -280,9 +286,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       continue: continue_,
       answerTool,
       reviewTool,
-      cancel,
+      cancel: onCancel,
     }),
-    [continue_, answerTool, reviewTool, cancel]
+    [continue_, answerTool, reviewTool, onCancel]
   );
 
   return (

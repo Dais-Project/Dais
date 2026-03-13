@@ -35,9 +35,9 @@ function createOverrideCallbacks(
       setState("running");
       sseCallbacksRef.current.onMessageStart?.(...args);
     },
-    onError() {
+    onError(...args) {
       setState("error");
-      sseCallbacksRef.current.onTaskDone?.();
+      sseCallbacksRef.current.onError?.(...args);
     },
     onClose() {
       setState("idle");
