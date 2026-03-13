@@ -29,8 +29,7 @@ function createOverrideCallbacks(
   sseCallbacksRef: RefObject<TaskSseCallbacks>,
   setState: (state: TaskState) => void
 ): TaskSseCallbacks {
-  return {
-    ...sseCallbacksRef.current,
+  const overrides: TaskSseCallbacks = {
     onMessageStart(...args) {
       setState("running");
       sseCallbacksRef.current.onMessageStart?.(...args);
@@ -44,6 +43,12 @@ function createOverrideCallbacks(
       sseCallbacksRef.current.onClose?.();
     },
   };
+  return new Proxy({} as TaskSseCallbacks, {
+    get(_, key: string) {
+      return overrides[key as keyof TaskSseCallbacks]
+        ?? sseCallbacksRef.current[key as keyof TaskSseCallbacks];
+    },
+  });
 }
 
 export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {

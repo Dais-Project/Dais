@@ -135,10 +135,9 @@ class AgentTask:
         if tool.metadata["needs_user_interaction"]:
             return ToolRequireUserResponseEvent(tool_name=message.name)
 
-        if "user_approval" not in message.metadata:
-            message.metadata["user_approval"] = UserApprovalStatus.PENDING
-
         if tool.metadata["auto_approve"] == False:
+            if "user_approval" not in message.metadata:
+                message.metadata["user_approval"] = UserApprovalStatus.PENDING
             match message.metadata["user_approval"]:
                 case UserApprovalStatus.PENDING:
                     return ToolRequirePermissionEvent(call_id=message.call_id, tool_name=tool.name)
