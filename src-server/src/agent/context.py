@@ -1,4 +1,5 @@
 import platform
+import re
 import time
 from typing import Self, cast
 from dais_sdk.tool import Toolset
@@ -39,6 +40,14 @@ class BuiltInToolAliases:
     @property
     def map(self) -> dict[str, str]:
         return self._map
+
+    def substitute(self, text: str) -> str:
+        aliases = self._map
+        def replacer(match: re.Match[str]):
+            key = match.group(1)
+            return aliases.get(key, match.group(0))
+        return re.sub(r'\$\{(\w+)\}', replacer, text)
+
 
 class AgentContext:
     def __init__(self,
@@ -93,16 +102,18 @@ class AgentContext:
         settings = use_app_setting_manager().settings
         workspace_instruction = self._workspace.instruction or NO_WORKSPACE_INSTRUCTION
         agent_instruction = self._agent.instruction or NO_AGENT_INSTRUCTION
-        builtin_tool_aliases = self._builtin_tool_aliases.map
-        return BASE_INSTRUCTION.format(
+        builtin_tool_aliases = self._builtin_tool_aliases
+        resolved_base_instruction = builtin_tool_aliases.substitute(BASE_INSTRUCTION)
+        resolved_workspace_instruction = builtin_tool_aliases.substitute(workspace_instruction)
+        resolved_agent_instruction = builtin_tool_aliases.substitute(agent_instruction)
+        return resolved_base_instruction.format(
             os_platform=platform.system(),
             user_language=settings.reply_language,
             workspace_name=self._workspace.name,
             workspace_directory=self._workspace.directory,
-            workspace_instruction=workspace_instruction.format_map(builtin_tool_aliases),
+            workspace_instruction=resolved_workspace_instruction,
             agent_role=self._agent.name,
-            agent_instruction=agent_instruction.format_map(builtin_tool_aliases),
-            **builtin_tool_aliases,
+            agent_instruction=resolved_agent_instruction,
         ).strip()
 
     @property

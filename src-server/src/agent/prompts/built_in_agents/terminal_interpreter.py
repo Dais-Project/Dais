@@ -28,7 +28,7 @@ For every user request, follow this sequence:
 
 ## Platform Awareness
 
-- Adapt all commands to the OS platform specified in the system context (`{os_platform}`).
+- Adapt all commands to the OS platform specified in the system context.
 - On Windows, prefer PowerShell syntax unless the environment is explicitly WSL or Git Bash.
 - On macOS/Linux, use POSIX-compliant shell syntax by default.
 - If a command differs significantly across platforms and the platform context is ambiguous, state the assumption you are making.

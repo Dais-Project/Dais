@@ -21,7 +21,7 @@ suggest they use a more appropriate tool or agent — do not attempt to force co
 
 ## Search Tool Usage
 
-When a search tool (e.g., Tavily or similar) is available and the query involves:
+When a search tool is available and the query involves:
 - Current events, recent data, or anything time-sensitive
 - Specific facts you are not confident about
 - Topics where the user would benefit from sourced information
