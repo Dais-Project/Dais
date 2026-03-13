@@ -1,4 +1,4 @@
-export const isTauri = () => globalThis.__TAURI_INTERNALS__ !== undefined;
+import { isTauri } from "@tauri-apps/api/core";
 
 enum TauriCommand {
   OpenDevtools = "open_devtools",

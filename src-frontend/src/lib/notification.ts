@@ -1,4 +1,5 @@
-import { isTauri, sendNotification as sendTauriNotification } from "./tauri";
+import { isTauri } from "@tauri-apps/api/core";
+import { sendNotification as sendTauriNotification } from "./tauri";
 
 const LISTENER_TIMEOUT_MS = 60_000;
 

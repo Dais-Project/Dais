@@ -1,4 +1,5 @@
-import { Message, MessageActions, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { Message, MessageActions, MessageContent } from "@/components/ai-elements/message";
+import { Markdown } from "@/components/custom/Markdown";
 import { CopyButton } from "@/components/ui/copy-button";
 
 type TextMessageProps = {
@@ -25,12 +26,12 @@ export function TextMessage({ text, from, isStreaming }: TextMessageProps) {
   return (
     <Message className="selectable-text" from={from}>
       <MessageContent>
-        <MessageResponse
+        <Markdown
           mode={!isStreaming ? "static" : "streaming"}
           parseIncompleteMarkdown={isStreaming}
         >
           {normalizeText(messageText, from)}
-        </MessageResponse>
+        </Markdown>
       </MessageContent>
 
       {from === "user" && (

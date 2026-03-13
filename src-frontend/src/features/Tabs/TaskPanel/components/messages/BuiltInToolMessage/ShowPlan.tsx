@@ -1,7 +1,6 @@
 import { ClipboardCopyIcon, SquareKanbanIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Streamdown } from "streamdown";
 import type { UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { CustomTool, CustomToolContent, CustomToolFooter, CustonToolAction } fro
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
+import { Markdown } from "@/components/custom/Markdown";
 import { cn } from "@/lib/utils";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
@@ -158,9 +158,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
 
     return (
       <CustomToolContent>
-        <Streamdown className="px-4 pb-4 text-foreground text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-          {toolArguments.plan}
-        </Streamdown>
+        <Markdown className="px-4 pb-4">{toolArguments.plan}</Markdown>
         {toolArguments.alternatives && (
           <PlanAlternatives
             alternatives={toolArguments.alternatives}

@@ -1,16 +1,16 @@
 import { MessageCircleQuestionMark, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Streamdown } from "streamdown";
 import type { UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
 import { AskUserToolSchema } from "@/api/tool-schema";
+import { Markdown } from "@/components/custom/Markdown";
+import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
-import { ToolMessageProps } from ".";
 
 export function AskUser({ message }: ToolMessageProps) {
   const { t } = useTranslation("tabs-task");
@@ -44,9 +44,7 @@ export function AskUser({ message }: ToolMessageProps) {
     >
       <CustomToolContent>
         {question && (
-          <Streamdown className="px-4 pb-2 font-medium text-sm">
-            {question}
-          </Streamdown>
+          <Markdown className="px-4 pb-2">{question}</Markdown>
         )}
         {options && (
           <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
