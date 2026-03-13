@@ -6,6 +6,7 @@ import {
   useFieldArray,
   useFormContext,
 } from "react-hook-form";
+import { TABS_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
@@ -30,7 +31,7 @@ type ToolItemProps = {
 };
 
 function ToolItem({ tool, index, control }: ToolItemProps) {
-  const { t } = useTranslation("tabs-toolset");
+  const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
   const textRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
@@ -81,7 +82,7 @@ function ToolItem({ tool, index, control }: ToolItemProps) {
 }
 
 export function ToolList() {
-  const { t } = useTranslation("tabs-toolset");
+  const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
   const { control } = useFormContext<ToolsetEditFormValues>();
   const { fields } = useFieldArray({
     control,

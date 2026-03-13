@@ -4,7 +4,6 @@ import type { Language } from "@/types/common";
 import {
   resources,
   namespaces,
-  DEFAULT_NAMESPACE,
   FALLBACK_LANGUAGE,
   SUPPORTED_LANGUAGES,
 } from "./resources";
@@ -20,7 +19,6 @@ i18n.use(initReactI18next).init({
   resources,
   lng: FALLBACK_LANGUAGE,
   fallbackLng: FALLBACK_LANGUAGE,
-  defaultNS: DEFAULT_NAMESPACE,
   ns: namespaces,
   initImmediate: false,
   interpolation: {

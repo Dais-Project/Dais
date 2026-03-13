@@ -1,12 +1,13 @@
-import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { PencilIcon, TrashIcon } from "lucide-react";
+import { DynamicIcon, IconName } from "lucide-react/dynamic";
 import type React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
-import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import type { PageTaskBrief, TaskBrief, TaskTitleUpdatedEvent } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
@@ -67,7 +68,7 @@ type TaskItemProps = {
 };
 
 function TaskItem({ task, onDelete }: TaskItemProps) {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
   const handleClick = () => {
@@ -115,7 +116,7 @@ type TaskListProps = {
 };
 
 export function TaskList({ workspaceId }: TaskListProps) {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
 

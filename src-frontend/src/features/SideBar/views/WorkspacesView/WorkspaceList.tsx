@@ -17,16 +17,21 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab, WorkspaceTabMetadata } from "@/types/tab";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
@@ -71,7 +76,7 @@ type WorkspaceItemProps = {
 };
 
 function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: WorkspaceItemProps) {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const tabs = useTabsStore((state) => state.tabs);
   const addTab = useTabsStore((state) => state.add);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -128,7 +133,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
 }
 
 export function WorkspaceList() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);

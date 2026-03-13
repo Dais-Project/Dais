@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import type { WorkspaceRead } from "@/api/generated/schemas";
 import { invalidateWorkspaceQueries, useUpdateWorkspace } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -27,7 +28,7 @@ export function WorkspaceEditForm({
   workspace,
   onConfirm,
 }: WorkspaceEditFormProps) {
-  const { t } = useTranslation("tabs-workspace");
+  const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const syncCurrentWorkspace = useWorkspaceStore((state) => state.syncCurrent);
 

@@ -1,11 +1,12 @@
 import { CircleXIcon, RotateCcwIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAgentTaskAction } from "../hooks/use-agent-task";
 
 export function ErrorRetry() {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { continue: continueTask } = useAgentTaskAction();
   return (
     <Alert className="flex min-w-fit items-stretch rounded-b-none border-b-0">

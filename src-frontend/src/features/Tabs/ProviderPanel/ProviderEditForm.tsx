@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import type { ProviderRead } from "@/api/generated/schemas";
 import { useUpdateProvider, invalidateProviderQueries } from "@/api/provider";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -19,7 +20,7 @@ export function ProviderEditForm({
   provider,
   onConfirm,
 }: ProviderEditFormProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const formValues: ProviderEditFormValues = provider;
 
   const updateMutation = useUpdateProvider({

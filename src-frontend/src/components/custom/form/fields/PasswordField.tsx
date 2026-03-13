@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { PasswordInput } from "@/components/custom/PasswordInput";
 import type { FieldProps } from ".";
@@ -11,7 +12,7 @@ export function PasswordField({
   fieldProps,
   controlProps,
 }: PasswordFieldProps) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { register, getFieldState } = useFormContext();
   const { label = t("fields.password.label"), ...restFieldProps } = fieldProps ?? {};
   const { placeholder = t("fields.password.placeholder"), ...restControlProps } =

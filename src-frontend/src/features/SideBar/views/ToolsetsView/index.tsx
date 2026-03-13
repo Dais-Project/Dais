@@ -20,7 +20,7 @@ function openToolsetCreateTab() {
 }
 
 export function ToolsetsView() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   return (
     <div className="flex h-full flex-col">

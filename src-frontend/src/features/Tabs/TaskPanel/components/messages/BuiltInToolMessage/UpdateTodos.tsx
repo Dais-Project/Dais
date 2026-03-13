@@ -1,5 +1,6 @@
 import { ListTodoIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
@@ -10,7 +11,7 @@ import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolState } from "../../../hooks/use-tool-state";
 
 export function UpdateTodos({ message }: ToolMessageProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const state = useToolState(message);
   const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message, UpdateTodosSchema);

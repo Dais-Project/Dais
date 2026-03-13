@@ -1,3 +1,8 @@
+import { useDebounce } from "ahooks";
+import { AtSignIcon, FileIcon, FolderIcon } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { useListDirectorySuspense, listDirectory, useSearchFile } from "@/api/task";
 import { PromptInputButton } from "@/components/ai-elements/prompt-input";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -6,10 +11,6 @@ import { Command, CommandEmpty, CommandLoading, CommandInput, CommandItem, Comma
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { keepPreviousData } from "@tanstack/react-query";
-import { useDebounce } from "ahooks";
-import { AtSignIcon, FileIcon, FolderIcon } from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 type OnSelectHandler = (path: string) => void;
 
@@ -38,7 +39,7 @@ type SearchResultsProps = {
 };
 
 function SearchResults({ query, onSelect }: SearchResultsProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   if (currentWorkspace === null) {
     return null;
@@ -74,7 +75,7 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
 }
 
 function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, { wait: 150 });
   const isSearching = query.length > 0;
@@ -116,7 +117,7 @@ export function contextFileConcat(current: string, path: string): string {
 }
 
 export function ContextSelectPopover({ onSelect }: { onSelect?: OnSelectHandler }) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const [open, setOpen] = useState(false);
   const handleSelect = (path: string) => {
     onSelect?.(path);

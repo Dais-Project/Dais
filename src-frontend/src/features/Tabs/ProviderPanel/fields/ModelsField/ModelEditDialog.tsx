@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { FormProvider, useForm } from "react-hook-form";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import type { LlmModelCreate } from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export function ModelEditDialog({
   model,
   onConfirm,
 }: ModelEditDialogProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const dialogForm = useForm<LlmModelCreate>({ defaultValues: DEFAULT_LLM_MODEL });
   const { reset, handleSubmit, register, getFieldState, formState } = dialogForm;
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import type { FetchModelsParams, LlmProviders } from "@/api/generated/schemas";
 import { useFetchModelsSuspense } from "@/api/llm";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -22,7 +23,7 @@ type ModelQueryListProps = {
 };
 
 function ModelQueryList({ enabled, provider }: ModelQueryListProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const { data, refetch } = useFetchModelsSuspense(provider);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export function ModelSelectDialog({
   existingModelNames,
   onConfirm,
 }: ModelSelectDialogProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const [open, setOpen] = useState(false);
 
   return (

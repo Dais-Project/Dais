@@ -1,15 +1,20 @@
 import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { i18n } from "@/i18n";
+import { TABS_TASK_NAMESPACE, SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyTitle,
+  EmptyContent,
+  EmptyDescription,
+} from "@/components/ui/empty";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { TaskList } from "./TaskList";
-import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import { i18n } from "@/i18n";
 
 function openTaskCreateTab() {
   const addTab = useTabsStore.getState().add;
@@ -24,7 +29,7 @@ function openTaskCreateTab() {
 }
 
 export function TasksView() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   const Content = () => {

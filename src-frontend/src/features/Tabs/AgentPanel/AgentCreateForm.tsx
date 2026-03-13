@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { TABS_AGENT_NAMESPACE } from "@/i18n/resources";
 import { invalidateAgentQueries, useCreateAgent } from "@/api/agent";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
@@ -15,7 +16,7 @@ type AgentCreateFormProps = {
 };
 
 export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
-  const { t } = useTranslation("tabs-agent");
+  const { t } = useTranslation(TABS_AGENT_NAMESPACE);
 
   const createMutation = useCreateAgent({
     mutation: {

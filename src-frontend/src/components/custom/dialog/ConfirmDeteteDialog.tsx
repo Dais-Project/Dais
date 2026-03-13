@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { DIALOG_NAMESPACE } from "@/i18n/resources";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +31,7 @@ export function ConfirmDeleteDialog({
   onConfirm,
   onCancel,
 }: ConfirmDeleteDialogProps) {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
 
   const handleOpenChange = (open_: boolean) => {
     if (open_) {

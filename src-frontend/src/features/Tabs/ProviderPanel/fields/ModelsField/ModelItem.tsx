@@ -1,5 +1,6 @@
 import { Edit2Icon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import type { LlmModelCreate } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,7 @@ type ModelItemProps = {
 };
 
 export function ModelItem({ model, index, onDelete, onEdit }: ModelItemProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
 
   return (
     <Item variant="outline" className="py-2">

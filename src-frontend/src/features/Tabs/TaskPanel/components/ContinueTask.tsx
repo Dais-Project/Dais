@@ -1,6 +1,7 @@
 import { InfoIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { BuiltInTools, type ToolMessageMetadata } from "@/api/generated/schemas";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ function shouldShow(message: UiMessage[]): boolean {
 }
 
 export function ContinueTask() {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { messages } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
   const [show, setShow] = useState(false);

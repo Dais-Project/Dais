@@ -1,6 +1,7 @@
 import logo from "@shared/icon-square.png";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { getGetTaskQueryKey, invalidateTaskQueries, useNewTask } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -9,7 +10,7 @@ import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
 
 export function CreateView({ tabId }: { tabId: string }) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);

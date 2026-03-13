@@ -1,6 +1,7 @@
 import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TABS_AGENT_NAMESPACE } from "@/i18n/resources";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -254,7 +255,7 @@ type IconSelectDialogProps = {
 };
 
 export function IconSelectDialog({ value, onChange }: IconSelectDialogProps) {
-  const { t } = useTranslation("tabs-agent");
+  const { t } = useTranslation(TABS_AGENT_NAMESPACE);
   const [open, setOpen] = useState(false);
 
   const iconGroups = useMemo(

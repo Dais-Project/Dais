@@ -264,7 +264,7 @@ export function SelectDialogEmpty({
 }: {
   children?: React.ReactNode;
 }) {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
   return <CommandEmpty>{children ?? t("select.empty")}</CommandEmpty>;
 }
 
@@ -364,7 +364,7 @@ export function SelectDialogFooter<V extends Selection>({
   onCancel,
   children,
 }: SelectDialogFooterProps<V>) {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
   const { mode, selectedKeys, setOpen } = useSelectDialog<V>();
 
   if (mode === "single") {

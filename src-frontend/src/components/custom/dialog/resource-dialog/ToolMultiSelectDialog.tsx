@@ -1,3 +1,6 @@
+import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { DIALOG_NAMESPACE } from "@/i18n/resources";
 import { ToolsetRead } from "@/api/generated/schemas";
 import { useGetToolsetsSuspense } from "@/api/toolset";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -15,8 +18,6 @@ import {
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
-import { useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 
 function ToolQueryList({ onFetched }: { onFetched: (toolsets: ToolsetRead[]) => void }) {
   const { data: toolsets } = useGetToolsetsSuspense();
@@ -50,7 +51,7 @@ type ToolMultiSelectDialogProps = {
 };
 
 export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialogProps) {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
   const allToolsRef = useRef<ToolsetRead[]>([]);
 
   const handleFetched = (toolsets: ToolsetRead[]) => (allToolsRef.current = toolsets);

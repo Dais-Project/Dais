@@ -1,6 +1,7 @@
 import { ClipboardCopyIcon, SquareKanbanIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,7 +35,7 @@ function PlanAlternatives({
   onSelect,
   onFill,
 }: PlanAlternativesProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
 
   if (alternatives.length === 0) {
     return null;
@@ -106,7 +107,7 @@ function PlanAlternatives({
 }
 
 export function ShowPlan({ message }: ToolMessageProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { answerTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<UserInteractionShowPlan>(message, ShowPlanToolSchema);
   const hasResult = message.result !== null;

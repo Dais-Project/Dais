@@ -1,5 +1,6 @@
 import { use } from "react";
 import { useTranslation } from "react-i18next";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { ModelSelectDialog } from "@/components/custom/dialog/resource-dialog/ModelSelectDialog";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
@@ -20,7 +21,7 @@ function HelperModelSettingsSuspense() {
 }
 
 export function HelperModelSettings() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   return (
     <div className="px-4 py-2">

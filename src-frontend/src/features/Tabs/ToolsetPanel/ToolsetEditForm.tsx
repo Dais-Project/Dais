@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { TABS_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import type { ToolsetRead } from "@/api/generated/schemas";
 import { invalidateToolsetQueries, useUpdateToolset } from "@/api/toolset";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -17,7 +18,7 @@ type ToolsetEditFormProps = {
 };
 
 export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
-  const { t } = useTranslation("tabs-toolset");
+  const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
   const formValues = useMemo(() => toolsetToEditFormValues(toolset), [toolset]);
 
   const updateMutation = useUpdateToolset({

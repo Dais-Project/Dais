@@ -2,6 +2,7 @@ import type { ChatStatus } from "ai";
 import { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   PromptInput as BasePromptInput,
   PromptInputActionAddAttachmentsButton,
@@ -45,7 +46,7 @@ type PromptInputAgentStateProps = {
 };
 
 function PromptInputAgentState({ agentId, onChange }: PromptInputAgentStateProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   return (
     <ErrorBoundary fallbackRender={(props) => <AgentSelectErrorFallback {...props} />}>
       <Suspense
@@ -67,7 +68,7 @@ type PromptInputDraftProps = {
 
 export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { textInput } = usePromptInputController();
   const ableToSubmit = agentId !== null;
 
@@ -108,7 +109,7 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
 }
 
 export function PromptInput({ className }: { className?: string }) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { agentId, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
   const { textInput } = usePromptInputController();

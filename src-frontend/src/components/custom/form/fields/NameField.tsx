@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
 import type { FieldProps } from ".";
@@ -9,7 +10,7 @@ export function NameField({
   fieldProps,
   controlProps,
 }: FieldProps<typeof Input>) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { register, getFieldState } = useFormContext();
   const { label = t("fields.name.label"), ...restFieldProps } = fieldProps ?? {};
   const { placeholder = t("fields.name.placeholder"), ...restControlProps } =

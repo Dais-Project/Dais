@@ -5,6 +5,7 @@
 import { useCallback, useState } from "react";
 import { CheckIcon, CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { COMPONENTS_STREAMDOWN_NAMESPACE } from "@/i18n/resources";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,7 +31,7 @@ export function LinkSafetyModal({
   onConfirm,
 }: LinkSafetyModalProps) {
   const [copied, setCopied] = useState(false);
-  const { t } = useTranslation("components-streamdown");
+  const { t } = useTranslation(COMPONENTS_STREAMDOWN_NAMESPACE);
 
   const handleCopy = useCallback(async () => {
     try {

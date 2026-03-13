@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { DIALOG_NAMESPACE } from "@/i18n/resources";
 import { useGetModelById } from "@/api/llm-model";
 import { useGetProvidersSuspenseInfinite } from "@/api/provider";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -24,7 +25,7 @@ type ModelSelectTriggerProps = {
 } & React.ComponentProps<typeof Button>;
 
 function ModelSelectTrigger({ model_id, ...props }: ModelSelectTriggerProps) {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
   const { data, isLoading } = useGetModelById(model_id);
   if (isLoading) {
     return <Button variant="outline" {...props} disabled>{t("resource.model.trigger.loading")}</Button>;
@@ -36,7 +37,7 @@ function ModelSelectTrigger({ model_id, ...props }: ModelSelectTriggerProps) {
 }
 
 function ModelQueryList() {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
   const query = useGetProvidersSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -83,7 +84,7 @@ type ModelSelectDialogProps = {
 };
 
 export function ModelSelectDialog({ value, onChange: onSelect }: ModelSelectDialogProps) {
-  const { t } = useTranslation("dialog");
+  const { t } = useTranslation(DIALOG_NAMESPACE);
 
   return (
     <SelectDialog<number> value={value ?? undefined} onValueChange={onSelect}>

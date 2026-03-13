@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
@@ -6,7 +7,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import type { AppTheme, Language } from "@/types/common";
 
 export function GeneralSettings() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { current: settings, setPartial: setPartialConfig } = useSettingsStore();
   const {
     current: serverSettings,

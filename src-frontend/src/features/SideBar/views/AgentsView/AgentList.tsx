@@ -20,10 +20,10 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-opt
 import type { IconName } from "@/features/Tabs/AgentPanel/IconSelectDialog";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata, Tab } from "@/types/tab";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
@@ -65,7 +65,7 @@ type AgentItemProps = {
 };
 
 function AgentItem({ agent, onDelete }: AgentItemProps) {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const tabs = useTabsStore((state) => state.tabs);
   const addTab = useTabsStore((state) => state.add);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -103,7 +103,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
 }
 
 export function AgentList() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetAgentsSuspenseInfinite(undefined, {

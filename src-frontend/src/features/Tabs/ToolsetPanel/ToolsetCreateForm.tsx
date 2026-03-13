@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateToolsetQueries, useCreateToolset } from "@/api/toolset";
+import { TABS_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ type ToolsetCreateProps = {
 };
 
 export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
-  const { t } = useTranslation("tabs-toolset");
+  const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
 
   const createMutation = useCreateToolset({
     mutation: {

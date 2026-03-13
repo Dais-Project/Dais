@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
+import { TABS_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
 import type { ToolsetCreateFormValues } from "../form-types";
 
 export function CommandField() {
-  const { t } = useTranslation("tabs-toolset");
+  const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
   const { register, getFieldState } = useFormContext<ToolsetCreateFormValues>();
 
   return (

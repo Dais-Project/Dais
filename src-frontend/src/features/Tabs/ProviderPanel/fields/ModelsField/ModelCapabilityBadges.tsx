@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import type { LlmModelCapability } from "@/api/generated/schemas";
 import { Badge } from "@/components/ui/badge";
 
@@ -20,7 +21,7 @@ const CAPABILITY_CONFIGS: CapabilityConfig[] = [
 export function ModelCapabilityBadges({
   capability,
 }: ModelCapabilityBadgesProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const activeBadges = CAPABILITY_CONFIGS.filter(
     (config) => capability[config.key]
   );

@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { SideBarHeader } from "../../components/SideBarHeader";
@@ -9,7 +10,7 @@ import { HelperModelSettings } from "./HelperModelSettings";
 import { ProviderSettings } from "./ProviderSettings";
 
 export function SettingsView() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   const settingItems = [
     {

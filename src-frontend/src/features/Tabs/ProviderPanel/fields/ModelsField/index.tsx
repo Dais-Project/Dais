@@ -2,6 +2,7 @@ import { DownloadIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { LlmModelCreate } from "@/api/generated/schemas";
@@ -15,7 +16,7 @@ import { useModelManagement } from "./use-model-management";
 import { ModelEditDialog } from "./ModelEditDialog";
 
 export function ModelsField() {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const { control, trigger } = useFormContext<
     ProviderCreateFormValues | ProviderEditFormValues
   >();

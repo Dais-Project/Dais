@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import type { ProviderCreate } from "@/api/generated/schemas";
 import { useCreateProvider, invalidateProviderQueries } from "@/api/provider";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -16,7 +17,7 @@ type ProviderCreateFormProps = {
 };
 
 export function ProviderCreateForm({ onConfirm }: ProviderCreateFormProps) {
-  const { t } = useTranslation("tabs-provider");
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
 
   const createMutation = useCreateProvider({
     mutation: {

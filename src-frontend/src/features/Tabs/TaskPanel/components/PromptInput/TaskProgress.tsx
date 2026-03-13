@@ -1,6 +1,7 @@
 import { CheckIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { ExecutionControlUpdateTodosTodosItem as TodoItem } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,7 +19,7 @@ function getCurrentTodo(todos: TodoItem[]): TodoItem | null {
 }
 
 export function TaskProgress({ className }: { className?: string }) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { todos } = useAgentTaskState();
   const currentTodo = useMemo(() => {
     if (!todos) {

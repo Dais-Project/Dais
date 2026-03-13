@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { FieldProps } from ".";
@@ -11,7 +12,7 @@ export function CheckboxField({
   fieldProps,
   controlProps,
 }: CheckboxFieldProps) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { control, getFieldState } = useFormContext<Record<string, boolean>>();
   const { field } = useController({
     name: fieldName,

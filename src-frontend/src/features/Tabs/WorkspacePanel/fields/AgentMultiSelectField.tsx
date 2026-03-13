@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
+import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import { useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -97,7 +98,7 @@ function AgentSelectedList({ selectedAgentIds }: { selectedAgentIds: number[] })
 }
 
 export function AgentMultiSelectField() {
-  const { t } = useTranslation("tabs-workspace");
+  const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
   const { control } = useFormContext<WorkspaceCreateFormValues | WorkspaceEditFormValues>();
   const {
     field: { value, onChange },

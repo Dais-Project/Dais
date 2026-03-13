@@ -1,4 +1,4 @@
-import type { Resource, ResourceLanguage } from "i18next";
+import type { Resource } from "i18next";
 import type { Language } from "@/types/common";
 import enDialog from "./locales/en/dialog.json";
 import enForm from "./locales/en/form.json";
@@ -25,7 +25,6 @@ import zhCnError from "./locales/zh_CN/error.json";
 import zhCnComponentsCustom from "./locales/zh_CN/components-custom.json";
 import zhCnComponentsStreamdown from "./locales/zh_CN/components-streamdown.json";
 
-export const DEFAULT_NAMESPACE = "common";
 export const SIDEBAR_NAMESPACE = "sidebar";
 export const TABS_NAMESPACE = "tabs";
 export const TABS_AGENT_NAMESPACE = "tabs-agent";
@@ -42,7 +41,6 @@ export const FALLBACK_LANGUAGE: Language = "en";
 export const SUPPORTED_LANGUAGES = ["en", "zh_CN"] as const satisfies readonly Language[];
 
 export const namespaces = [
-  DEFAULT_NAMESPACE,
   SIDEBAR_NAMESPACE,
   TABS_NAMESPACE,
   TABS_AGENT_NAMESPACE,

@@ -3,12 +3,12 @@ import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Button } from "@/components/ui/button";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { ProviderList } from "./ProviderList";
 import { ProviderListSkeleton } from "./ProviderListSkeleton";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createProviderCreateTab(): Tab {
   return {
@@ -21,7 +21,7 @@ function createProviderCreateTab(): Tab {
 }
 
 export function ProviderSettings() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const addTab = useTabsStore((state) => state.add);
 
   const handleAddProvider = () => {

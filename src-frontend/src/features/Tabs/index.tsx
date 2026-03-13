@@ -21,6 +21,7 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
+import { TABS_NAMESPACE } from "@/i18n/resources";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -140,7 +141,7 @@ function TabPanelRenderer({ tab }: { tab: Tab }) {
 }
 
 export function Tabs() {
-  const { t } = useTranslation("tabs");
+  const { t } = useTranslation(TABS_NAMESPACE);
   const tabs = useTabsStore((state) => state.tabs);
   const activeTabId = useTabsStore((state) => state.activeTabId);
   const setActiveTab = useTabsStore((state) => state.setActive);

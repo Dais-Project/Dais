@@ -96,7 +96,7 @@ type ToolsetItemProps = {
 };
 
 function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const tabs = useTabsStore((state) => state.tabs);
   const addTab = useTabsStore((state) => state.add);
   const setActiveTab = useTabsStore((state) => state.setActive);
@@ -161,7 +161,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 }
 
 export function ToolsetList() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const deleteToolsetMutation = useDeleteToolset();

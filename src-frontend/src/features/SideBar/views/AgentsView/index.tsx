@@ -2,12 +2,12 @@ import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { AgentList } from "./AgentList";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function openAgentCreateTab() {
   const addTab = useTabsStore.getState().add;
@@ -21,7 +21,7 @@ function openAgentCreateTab() {
 }
 
 export function AgentsView() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   return (
     <div className="flex h-full flex-col">

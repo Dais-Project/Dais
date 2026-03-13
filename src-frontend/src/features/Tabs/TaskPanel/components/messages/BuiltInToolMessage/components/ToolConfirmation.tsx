@@ -1,6 +1,7 @@
 import { CheckIcon, XIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useTranslation } from "react-i18next";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   Confirmation,
   ConfirmationAccepted,
@@ -21,7 +22,7 @@ export function shouldShowConfirmation(state: ToolState): boolean {
 }
 
 export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmationProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   let approved: boolean | undefined;
   if (state === "approval-responded") {
     approved = true;

@@ -17,7 +17,7 @@ function createRichTextRules(
   label: string,
   required: boolean,
   minLength: number,
-  maxLength: number | undefined
+  maxLength?: number
 ) {
   const t = (...args: Parameters<typeof i18n.t>) => i18n.t(...args);
   const rules: RegisterOptions = {};
@@ -64,7 +64,7 @@ export function RichTextField({
   controlProps,
   fieldProps,
 }: RichTextFieldProps) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { control, getFieldState } = useFormContext();
   const { label = t("fields.rich_text.label"), ...restFieldProps } = fieldProps ?? {};
 

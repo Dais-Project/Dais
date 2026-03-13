@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { i18n } from "@/i18n";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { ProviderTabMetadata, Tab } from "@/types/tab";
 import { ProviderBadge } from "./ProviderBadge";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 
 function createProviderEditTab(providerId: number, providerName: string): Tab {
   return {
@@ -56,7 +56,7 @@ type ProviderItemProps = {
 };
 
 function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemProps) {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   const handleEditClick = () => {
     onEdit(provider);
@@ -113,7 +113,7 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
 }
 
 export function ProviderList() {
-  const { t } = useTranslation("sidebar");
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { data } = useGetProvidersBriefSuspense();
 
   const deleteProviderMutation = useDeleteProvider({

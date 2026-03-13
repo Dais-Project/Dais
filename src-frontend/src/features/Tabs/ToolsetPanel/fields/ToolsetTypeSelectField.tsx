@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
+import { TABS_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import type { ToolsetType } from "@/api/generated/schemas";
 import { SelectField } from "@/components/custom/form/fields";
 import type { ToolsetCreateFormValues } from "../form-types";
 
 export function ToolsetTypeSelectField() {
-  const { t } = useTranslation("tabs-toolset");
+  const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
   const { control } = useFormContext<ToolsetCreateFormValues>();
   const type = useWatch({
     control,

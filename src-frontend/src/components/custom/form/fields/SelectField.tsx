@@ -33,7 +33,7 @@ export function SelectField<S extends Record<string, string>>({
   fieldProps,
   controlProps,
 }: SelectFieldProps<S>) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { control } = useFormContext<Record<string, string>>();
   const { label = t("fields.type.label"), ...restFieldProps } = fieldProps ?? {};
   const { required = true, ...restControlProps } = controlProps ?? {};

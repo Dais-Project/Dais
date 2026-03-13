@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateWorkspaceQueries, useCreateWorkspace } from "@/api/workspace";
+import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { DirectoryField, NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ type WorkspaceCreateFormProps = {
 };
 
 export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
-  const { t } = useTranslation("tabs-workspace");
+  const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
 
   const createMutation = useCreateWorkspace({
     mutation: {

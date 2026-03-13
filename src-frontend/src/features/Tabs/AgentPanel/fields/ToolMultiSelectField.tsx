@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useController, useFormContext } from "react-hook-form";
+import { TABS_AGENT_NAMESPACE } from "@/i18n/resources";
 import { useGetToolsetsSuspense } from "@/api/toolset";
 import { ToolBreadcrumb } from "@/components/ai-elements/tool";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
@@ -58,7 +59,7 @@ function ToolSelectedList({ selectedToolIds }: { selectedToolIds: number[] }) {
 }
 
 export function ToolMultiSelectField() {
-  const { t } = useTranslation("tabs-agent");
+  const { t } = useTranslation(TABS_AGENT_NAMESPACE);
   const { control } =
     useFormContext<AgentCreateFormValues | AgentEditFormValues>();
   const {

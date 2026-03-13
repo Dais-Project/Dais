@@ -2,6 +2,7 @@ import { ChevronsUpDownIcon } from "lucide-react";
 import { use, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { FallbackProps } from "react-error-boundary";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   SelectDialog,
   SelectDialogContent,
@@ -23,7 +24,7 @@ class NoCurrentWorkspaceError extends Error {
 }
 
 export function AgentSelectErrorFallback({ error }: FallbackProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
 
   if (error instanceof NoCurrentWorkspaceError) {
     return (
@@ -48,7 +49,7 @@ export function AgentSelectDialog({
   agentId,
   onChange,
 }: AgentSelectDialogProps) {
-  const { t } = useTranslation("tabs-task");
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const currentWorkspacePromise = useWorkspaceStore(
     (state) => state.currentPromise
   );

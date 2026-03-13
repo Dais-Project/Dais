@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
 import isURL from "validator/lib/isURL";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Input } from "@/components/ui/input";
 import type { FieldProps } from ".";
@@ -18,7 +19,7 @@ export function UrlField({
   fieldProps,
   controlProps,
 }: UrlFieldProps) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { register, getFieldState } = useFormContext();
   const { label = t("fields.url.label"), ...restFieldProps } = fieldProps ?? {};
   const { placeholder = t("fields.url.placeholder"), ...restControlProps } =

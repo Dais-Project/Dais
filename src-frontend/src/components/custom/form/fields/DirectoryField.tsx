@@ -1,7 +1,8 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+import { open } from "@tauri-apps/plugin-dialog";
+import { FORM_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,7 @@ export function DirectoryField({
   fieldProps,
   controlProps,
 }: DirectoryFieldProps) {
-  const { t } = useTranslation("form");
+  const { t } = useTranslation(FORM_NAMESPACE);
   const { register, getFieldState, setValue } = useFormContext();
   const {
     className: controlClassName,

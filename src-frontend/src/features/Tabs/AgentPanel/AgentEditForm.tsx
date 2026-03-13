@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { TABS_AGENT_NAMESPACE } from "@/i18n/resources";
 import { invalidateAgentQueries, useUpdateAgent } from "@/api/agent";
 import type { AgentRead } from "@/api/generated/schemas";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
@@ -17,7 +18,7 @@ type AgentEditFormProps = {
 };
 
 export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
-  const { t } = useTranslation("tabs-agent");
+  const { t } = useTranslation(TABS_AGENT_NAMESPACE);
   const formValues = useMemo(() => agentToEditFormValues(agent), [agent]);
 
   const updateMutation = useUpdateAgent({
