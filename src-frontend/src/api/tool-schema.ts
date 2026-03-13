@@ -8,12 +8,12 @@ import type {
 
 export const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
   question: z.string(),
-  options: z.array(z.string()).optional(),
+  options: z.array(z.string()).nullish(),
 });
 
 export const ShowPlanToolSchema: z.ZodType<UserInteractionShowPlan> = z.object({
   plan: z.string(),
-  alternatives: z.array(z.string()).optional(),
+  alternatives: z.array(z.string()).nullish(),
 });
 
 export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.object({
