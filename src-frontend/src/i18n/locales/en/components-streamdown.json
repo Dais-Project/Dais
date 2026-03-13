@@ -1,10 +1,10 @@
 {
-    "link_safety_modal": {
-        "close": "Close",
-        "open_external_link": "Open external link",
-        "external_link_warning": "You're about to open an external link. Make sure you trust the source before proceeding.",
-        "copied": "Copied",
-        "copy_link": "Copy link",
-        "open_link": "Open link"
-    }
+  "link_safety_modal": {
+    "close": "Close",
+    "copied": "Copied",
+    "copy_link": "Copy link",
+    "external_link_warning": "You're about to open an external link. Make sure you trust the source before proceeding.",
+    "open_external_link": "Open external link",
+    "open_link": "Open link"
+  }
 }
