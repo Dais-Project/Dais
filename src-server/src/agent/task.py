@@ -108,8 +108,8 @@ class AgentTask:
                     case SdkToolCallChunkEvent() as chunk:
                         yield ToolCallChunkEvent.from_sdk(chunk)
                     case SdkUsageChunkEvent() as chunk:
-                        yield UsageChunkEvent.from_sdk(chunk, self._ctx.model.context_size)
-                        self._ctx.usage.set_usage(chunk)
+                        self._ctx.usage.accumulate(chunk)
+                        yield UsageChunkEvent.from_task_usage(self._ctx.usage)
                     case AssistantMessageEvent(message):
                         message.id = assistant_message_id
                         yield MessageEndEvent.from_sdk(message)

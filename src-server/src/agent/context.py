@@ -1,6 +1,7 @@
 import platform
 import re
 import time
+from dataclasses import asdict
 from typing import Self, cast
 from dais_sdk.tool import Toolset
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
@@ -52,6 +53,8 @@ class BuiltInToolAliases:
 class AgentContext:
     def __init__(self,
                  task_id: int,
+                 *,
+                 usage: task_models.TaskUsage,
                  messages: list[task_models.TaskMessage],
                  workspace: workspace_schemas.WorkspaceRead,
                  agent: agent_schemas.AgentRead,
@@ -64,10 +67,9 @@ class AgentContext:
         self._agent = agent
         self._provider = provider
         self._model = model
-        self._messages = messages
 
-        self._usage = ContextUsage.default()
-        self._usage.max_tokens = self._model.context_size
+        self._messages = messages
+        self._usage = ContextUsage(**asdict(usage))
 
         self._builtin_toolset_manager = builtin_toolset_manager
         self._mcp_toolset_manager = mcp_toolset_manager
@@ -77,7 +79,6 @@ class AgentContext:
     async def create(cls, task: task_schemas.TaskRead) -> Self:
         assert task.agent_id is not None
 
-        messages = task.messages
         async with db_context() as db_session:
             agent = await AgentService(db_session).get_agent_by_id(task.agent_id)
             workspace = await WorkspaceService(db_session).get_workspace_by_id(task.workspace_id)
@@ -86,12 +87,22 @@ class AgentContext:
             model = await LlmModelService(db_session).get_model_by_id(agent.model_id)
             provider = await ProviderService(db_session).get_provider_by_id(model.provider_id)
 
+        usage = task.usage
+        usage.max_tokens = model.context_size
+        messages = task.messages
+
         builtin_toolset_manager = BuiltinToolsetManager(workspace.directory, ContextUsage.default())
         await builtin_toolset_manager.initialize()
         mcp_toolset_manager = use_mcp_toolset_manager()
         return cls(task.id,
-                   messages, workspace, agent, provider, model,
-                   builtin_toolset_manager, mcp_toolset_manager)
+                   usage=usage,
+                   messages=messages,
+                   workspace=workspace,
+                   agent=agent,
+                   provider=provider,
+                   model=model,
+                   builtin_toolset_manager=builtin_toolset_manager,
+                   mcp_toolset_manager=mcp_toolset_manager)
 
     @property
     def usage(self) -> ContextUsage:

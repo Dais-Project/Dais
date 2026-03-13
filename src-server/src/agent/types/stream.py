@@ -4,11 +4,10 @@ from typing import Annotated, Literal, Self
 from dais_sdk.types import (
     ToolMessage, AssistantMessage,
     TextChunkEvent as SdkTextChunkEvent,
-    UsageChunkEvent as SdkUsageChunkEvent,
     ToolCallChunkEvent as SdkToolCallChunkEvent
 )
 from pydantic import BaseModel, Discriminator
-from ...db.models.task import TaskMessage
+from ...db.models.task import TaskMessage, TaskUsage
 
 
 class MessageStartEvent(BaseModel):
@@ -43,17 +42,21 @@ class ToolCallChunkEvent(BaseModel):
 class UsageChunkEvent(BaseModel):
     input_tokens: int
     output_tokens: int
-    total_tokens: int
     max_tokens: int
+    total_tokens: int
+    accumulated_input_tokens: int
+    accumulated_output_tokens: int
     event_id: Literal["USAGE_CHUNK"] = "USAGE_CHUNK"
 
     @classmethod
-    def from_sdk(cls, chunk: SdkUsageChunkEvent, max_tokens: int) -> Self:
+    def from_task_usage(cls, usage: TaskUsage) -> Self:
         return cls(
-            input_tokens=chunk.input_tokens,
-            output_tokens=chunk.output_tokens,
-            total_tokens=chunk.total_tokens,
-            max_tokens=max_tokens
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            max_tokens=usage.max_tokens,
+            total_tokens=usage.total_tokens,
+            accumulated_input_tokens=usage.accumulated_input_tokens,
+            accumulated_output_tokens=usage.accumulated_output_tokens,
         )
 
 class MessageEndEvent(BaseModel):
