@@ -8,12 +8,12 @@ import { useToolName } from "../../hooks/use-tool-name";
 import { useToolState } from "../../hooks/use-tool-state";
 import { shouldShowConfirmation, ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmation";
 
-
 export function GeneralToolMessage({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = message.arguments;
   const toolState = useToolState(message);
   const { toolName, toolsetName } = useToolName(message.name);
+  const hasResult = message.result !== null || message.error !== null;
   return (
     <Tool className="selectable-text mb-0" defaultOpen={toolState === "approval-requested"}>
       <ToolHeader
@@ -24,8 +24,8 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
       />
       <ToolContent>
         <ToolInput input={toolArguments} />
-        <Activity mode={activityVisible(message.result ?? message.error)}>
-          <ToolOutput output={message.result} errorText={message.error ?? undefined} />
+        <Activity mode={activityVisible(hasResult)}>
+          <ToolOutput output={message.result} errorText={message.error} />
         </Activity>
       </ToolContent>
       <Activity mode={activityVisible(shouldShowConfirmation(toolState))}>

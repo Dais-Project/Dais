@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string;
-  language: BundledLanguage;
+  language: BundledLanguage | "text";
   showLineNumbers?: boolean;
 };
 
@@ -51,7 +51,7 @@ const lineNumberTransformer: ShikiTransformer = {
 
 export async function highlightCode(
   code: string,
-  language: BundledLanguage,
+  language: BundledLanguage | "text",
   showLineNumbers = false
 ) {
   const transformers: ShikiTransformer[] = showLineNumbers

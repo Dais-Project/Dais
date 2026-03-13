@@ -146,8 +146,8 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 );
 
 export type ToolOutputProps = ComponentProps<"div"> & {
-  output?: unknown;
-  errorText?: string;
+  output: unknown | null;
+  errorText: string | null;
 };
 
 export const ToolOutput = ({
@@ -156,7 +156,7 @@ export const ToolOutput = ({
   errorText,
   ...props
 }: ToolOutputProps) => {
-  if (!(output || errorText)) {
+  if (!(output !== null || errorText !== null)) {
     return null;
   }
 
@@ -181,7 +181,7 @@ export const ToolOutput = ({
             {errorText.replace(/\\n/g, "\n")}
           </div>
         )}
-        {errorText === undefined && Output}
+        {errorText === null && Output}
       </div>
     </div>
   );
