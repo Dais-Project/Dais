@@ -4,7 +4,7 @@ export {
   useDeleteTask,
   useGetTaskSuspense,
   useGetTasksSuspenseInfinite,
-  useNewTask,
+  useCreateTask,
 } from "../generated/endpoints/task/task";
 
 import queryClient from "@/query-client";

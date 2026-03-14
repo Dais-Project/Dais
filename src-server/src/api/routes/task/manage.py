@@ -33,7 +33,7 @@ async def get_task(task_id: int, db_session: DbSessionDep):
     return await TaskService(db_session).get_task_by_id(task_id)
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
-async def new_task(
+async def create_task(
     body: task_schemas.TaskCreate,
     db_session: DbSessionDep,
     sse_dispatcher: SseDispatcherDep,

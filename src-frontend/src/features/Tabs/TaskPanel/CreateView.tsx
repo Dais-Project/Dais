@@ -2,7 +2,7 @@ import logo from "@shared/icon-square.png";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import { getGetTaskQueryKey, invalidateTaskQueries, useNewTask } from "@/api/task";
+import { getGetTaskQueryKey, invalidateTaskQueries, useCreateTask } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
@@ -14,7 +14,7 @@ export function CreateView({ tabId }: { tabId: string }) {
   const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
-  const createTaskMutation = useNewTask({
+  const createTaskMutation = useCreateTask({
     mutation: {
       async onSuccess(taskRead) {
         if (currentWorkspace) {
