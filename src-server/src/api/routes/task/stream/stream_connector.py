@@ -16,18 +16,15 @@ async def agent_stream(task: AgentTask, request: Request) -> AgentGenerator:
     try:
         async for event in task.run():
             if await request.is_disconnected():
-                task.stop()
+                await task.stop()
                 break
 
             if isinstance(event, (TaskDoneEvent, TaskInterruptedEvent)):
                 pending_terminal_event = event
                 continue
             yield event
-    except asyncio.CancelledError:
-        task.stop()
-        raise
-    except GeneratorExit:
-        task.stop()
+    except asyncio.CancelledError, GeneratorExit:
+        await task.stop()
         raise
     except Exception as e:
         _logger.exception("Error in agent stream")

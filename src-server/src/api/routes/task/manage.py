@@ -32,6 +32,14 @@ async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
 async def get_task(task_id: int, db_session: DbSessionDep):
     return await TaskService(db_session).get_task_by_id(task_id)
 
+@task_manage_router.patch("/{task_id}/messages", response_model=task_schemas.TaskRead)
+async def edit_task_message(task_id: int, body: task_schemas.TaskMessageEdit, db_session: DbSessionDep):
+    return await TaskService(db_session).edit_task_message(
+        task_id,
+        body.message_id,
+        body.content,
+    )
+
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
 async def create_task(
     body: task_schemas.TaskCreate,

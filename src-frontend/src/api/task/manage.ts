@@ -5,6 +5,7 @@ export {
   useGetTaskSuspense,
   useGetTasksSuspenseInfinite,
   useCreateTask,
+  useEditTaskMessage
 } from "../generated/endpoints/task/task";
 
 import queryClient from "@/query-client";

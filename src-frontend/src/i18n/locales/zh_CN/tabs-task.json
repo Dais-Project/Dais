@@ -18,6 +18,7 @@
   },
   "notification": {
     "require_permission": "Dais 想要使用 {{toolName}}",
+    "require_permission_multiple": "Dais 想要调用多个工具",
     "require_response": "Dais 正在等待你的回复",
     "task_done": "Dais 已完成任务"
   },

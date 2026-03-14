@@ -10,7 +10,7 @@ type UseMessageLifecycleOptions = {
 type UseMessageLifecycleResult = {
   handleMessageStart: (message_id: string) => void;
   handleTextAccumulated: (messageId: string, allText: string) => void;
-  handleToolCallAccumulated: (toolCallId: string, toolCall: ToolCallBuffer) => void;
+  handleToolCallAccumulated: (toolCalls: ToolCallBuffer[]) => void;
   handleToolCallEnd: (message: SdkToolMessage) => void;
   handleMessageEnd: (message: SdkAssistantMessage) => void;
   handleMessageReplace: (updatedMessage: SdkMessage) => void;
@@ -53,16 +53,18 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   );
 
   const handleToolCallAccumulated = useCallback(
-    (toolCallId: string, toolCall: ToolCallBuffer) => {
+    (toolCalls: ToolCallBuffer[]) => {
       setData((draft) => {
-        for (const message of draft.reverseIter()) {
-          if (isToolMessage(message) && message.call_id === toolCallId) {
-            message.name = toolCall.name;
-            message.arguments = toolCall.arguments;
-            return;
+        outer: for (const toolCall of toolCalls) {
+          for (const message of draft.reverseIter()) {
+            if (isToolMessage(message) && message.call_id === toolCall.call_id) {
+              message.name = toolCall.name;
+              message.arguments = toolCall.arguments;
+              continue outer;
+            }
           }
+          draft.push(uiToolMessageFactory(toolCall.call_id, toolCall.name, toolCall.arguments));
         }
-        draft.push(uiToolMessageFactory(toolCall.call_id, toolCall.name, toolCall.arguments));
       });
     },
     [setData]

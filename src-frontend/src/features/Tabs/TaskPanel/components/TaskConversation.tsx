@@ -38,6 +38,7 @@ export function TaskConversationContent() {
             return (
               <UserMessage
                 key={message.id ?? message.content}
+                messageId={message.id ?? null}
                 text={message.content}
                 isStreaming={message.isStreaming}
               />

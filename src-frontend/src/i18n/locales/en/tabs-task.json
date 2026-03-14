@@ -18,6 +18,7 @@
   },
   "notification": {
     "require_permission": "Dais wants to use {{toolName}}",
+    "require_permission_multiple": "Dais wants to use multiple tools",
     "require_response": "Dais is waiting for your response",
     "task_done": "Dais has finished the task"
   },

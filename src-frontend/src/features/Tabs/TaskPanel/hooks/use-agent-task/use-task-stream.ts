@@ -88,11 +88,11 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
     [taskId, agentId, sseCallbacksRef, setState]
   );
 
-  const cancel = () => {
+  const cancel = useCallback(() => {
     abortController.current?.abort();
     abortController.current = null;
     setState("idle");
-  };
+  }, [setState]);
 
   return {
     state,

@@ -26,6 +26,7 @@ import {
   type TaskSseCallbacks,
   toolAnswer,
   toolReview,
+  useEditTaskMessage,
   useGetTaskSuspense,
 } from "@/api/task";
 import { UpdateTodosSchema } from "@/api/tool-schema";
@@ -40,6 +41,7 @@ import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { useMessageLifecycle } from "./use-message-lifecycle";
+import { useNotificationBuffer } from "./use-notification-buffer";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -78,6 +80,7 @@ export type AgentTaskActions = {
   continue: (message?: UiUserMessage) => void;
   answerTool: (toolCallId: string, answer: string) => void;
   reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
+  editMessage: (messageId: string, content: string) => void;
   cancel: () => void;
 };
 
@@ -132,6 +135,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const toolCallsBuffer = useToolCallBuffer({
     onAccumulated: messageLifecycle.handleToolCallAccumulated,
   });
+  const permissionNotificationBuffer = useNotificationBuffer({
+    multipleTitle: t("notification.require_permission_multiple"),
+    options: { onClick: backToCurrentTab },
+  });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
   const { state, startStream, cancel } = useTaskStream({
@@ -159,9 +166,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   }
 
   const onMessageEnd = (eventData: MessageEndEvent) => {
-      textBuffer.clear();
-      toolCallsBuffer.clear();
-      messageLifecycle.handleMessageEnd(eventData.message);
+    textBuffer.clear();
+    toolCallsBuffer.flush();
+    toolCallsBuffer.clear();
+    messageLifecycle.handleMessageEnd(eventData.message);
   };
 
   const onMessageReplace = (eventData: MessageReplaceEvent) => {
@@ -199,11 +207,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
     if (!isForeground()) {
-      sendNotification(
+      permissionNotificationBuffer.enqueue(
         t("notification.require_permission", {
           toolName: eventData.tool_name,
-        }),
-        { onClick: backToCurrentTab }
+        })
       );
     }
   };
@@ -212,11 +219,6 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  };
-
-  const onCancel = () => {
-    cancel();
     queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
   };
 
@@ -239,7 +241,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     onClose,
   };
 
-  const continue_ = useCallback(
+  const handleTaskContinue = useCallback(
     (message?: UiUserMessage) => {
       if (message) {
         setData((draft) => {
@@ -250,6 +252,11 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     },
     [setData, startStream]
   );
+  
+  const handleTaskCancel = useCallback(() => {
+    cancel();
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+  }, [cancel]);
 
   const answerTool = useCallback(
     (toolCallId: string, answer: string) => {
@@ -269,6 +276,21 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     [startStream]
   );
 
+  const editMessageMutation = useEditTaskMessage({
+    mutation: {
+      onSuccess: (taskRead) => {
+        setMessages(toUiMessage(taskRead.messages));
+        handleTaskContinue();
+      },
+    },
+  });
+  const editMessage = useCallback(
+    (messageId: string, content: string) => {
+      editMessageMutation.mutate({ taskId, data: { message_id: messageId, content } });
+    },
+    [editMessageMutation, taskId]
+  );
+
   const stateValue = useMemo(
     () => ({
       state,
@@ -283,12 +305,19 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const actionValue = useMemo(
     () => ({
       setAgentId,
-      continue: continue_,
       answerTool,
       reviewTool,
-      cancel: onCancel,
+      editMessage,
+      continue: handleTaskContinue,
+      cancel: handleTaskCancel,
     }),
-    [continue_, answerTool, reviewTool, onCancel]
+    [
+      answerTool,
+      reviewTool,
+      editMessage,
+      handleTaskContinue,
+      handleTaskCancel,
+    ]
   );
 
   return (
