@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useAgentTaskAction } from "../../hooks/use-agent-task";
 
 type UserMessageProps = {
+  messageId: string | null;
   text: string;
   isStreaming: boolean;
 };
@@ -20,7 +22,8 @@ function normalizeUserText(text: string) {
   return normalized;
 }
 
-export function UserMessage({ text, isStreaming }: UserMessageProps) {
+export function UserMessage({ messageId, text, isStreaming }: UserMessageProps) {
+  const { editMessage } = useAgentTaskAction();
   const [mode, setMode] = useState<UserMessageMode>("view");
   const [draft, setDraft] = useState(text);
   const [editedText, setEditedText] = useState<string | null>(null);
@@ -63,6 +66,9 @@ export function UserMessage({ text, isStreaming }: UserMessageProps) {
                 variant="default"
                 size="sm"
                 onClick={() => {
+                  if (messageId) {
+                    editMessage(messageId, draft);
+                  }
                   setEditedText(draft);
                   setMode("view");
                 }}
@@ -84,7 +90,7 @@ export function UserMessage({ text, isStreaming }: UserMessageProps) {
             type="button"
             variant="ghost"
             size="icon-sm"
-            disabled={isStreaming}
+            disabled={isStreaming || !messageId}
             aria-label="Edit message"
             title="Edit message"
             onClick={() => setMode("edit")}

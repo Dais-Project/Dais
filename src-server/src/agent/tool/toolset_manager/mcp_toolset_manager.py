@@ -4,7 +4,7 @@ from typing import Sequence, override
 from loguru import logger
 from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset
 from .types import ToolsetManager
-from ..toolset_wrapper import McpToolset
+from ..toolset_wrapper import McpToolset, McpToolsetStatus
 from ....db import db_context, toolset_models
 
 
@@ -30,7 +30,9 @@ class McpToolsetManager(ToolsetManager):
     def toolsets(self) -> Sequence[Toolset]:
         if self._toolset_map is None:
             raise McpToolsetManagerNotInitializedError()
-        return list(self._toolset_map.values())
+        return [toolset
+                for toolset in self._toolset_map.values()
+                if toolset.status == McpToolsetStatus.CONNECTED]
 
     async def initialize(self):
         from ....services import ToolsetService

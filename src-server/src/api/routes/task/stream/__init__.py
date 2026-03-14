@@ -29,7 +29,7 @@ class ToolReviewBody(TaskStreamBody):
     status: Literal["approved", "denied"]
     auto_approve: bool = False
 
-async def retrieve_task(task_id: int, agent_id: int) -> AgentTask:
+async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
     async with db_context() as db_session:
         task = await TaskService(db_session).get_task_by_id(task_id)
         task.agent_id = agent_id
@@ -51,7 +51,7 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
     This endpoint is used to directly continue the existing task,
     or continue with a new UserMessage
     """
-    task = await retrieve_task(task_id, body.agent_id)
+    task = await create_agent_task(task_id, body.agent_id)
 
     if body.message is not None:
         for event in task.discard_pending_tool_calls():
@@ -70,15 +70,14 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request):
     This endpoint is used for the HumanInTheLoop tool calls.
     The frontend should send the tool call id and the answer to this endpoint.
     """
-    task = await retrieve_task(task_id, body.agent_id)
+    task = await create_agent_task(task_id, body.agent_id)
     try:
-        replace_event = task.set_tool_call_result(body.call_id, body.answer)
+        yield task.set_tool_call_result(body.call_id, body.answer)
     except ToolCallNotFoundError as e:
         raise ApiError(status.HTTP_404_NOT_FOUND,
                        ApiErrorCode.TOOL_CALL_NOT_FOUND,
                        e.call_id)
 
-    yield replace_event
     if task.has_pending_tool_calls():
         await asyncio.shield(task.persist())
         yield TaskDoneEvent()
@@ -95,7 +94,7 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request):
     """
     This endpoint is used to submit the tool call permissions.
     """
-    task = await retrieve_task(task_id, body.agent_id)
+    task = await create_agent_task(task_id, body.agent_id)
     try:
         async for event in task.approve_tool_call(body.call_id, body.status == "approved"):
             yield event

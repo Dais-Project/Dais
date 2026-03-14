@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
-from .exceptions import NotFoundError, ServiceErrorCode
+from .exceptions import BadRequestError, NotFoundError, ServiceErrorCode
 from ..db.models import task as task_models
 from ..schemas import task as task_schemas
 
@@ -9,6 +9,14 @@ from ..schemas import task as task_schemas
 class TaskNotFoundError(NotFoundError):
     def __init__(self, task_id: int) -> None:
         super().__init__(ServiceErrorCode.TASK_NOT_FOUND, "Task", task_id)
+
+class TaskMessageNotFoundError(NotFoundError):
+    def __init__(self, message_id: str) -> None:
+        super().__init__(ServiceErrorCode.TASK_MESSAGE_NOT_FOUND, "Task message", message_id)
+
+class TaskMessageNotEditableError(BadRequestError):
+    def __init__(self, message_id: str) -> None:
+        super().__init__(ServiceErrorCode.TASK_MESSAGE_NOT_EDITABLE, f"Task message '{message_id}' is not editable")
 
 class TaskService(ServiceBase):
     def get_tasks_query(self, workspace_id: int):
@@ -60,3 +68,26 @@ class TaskService(ServiceBase):
     async def delete_task(self, id: int) -> None:
         task = await self.get_task_by_id(id)
         await self._db_session.delete(task)
+
+    async def edit_task_message(self, id: int, message_id: str, content: str) -> task_models.Task:
+        task = await self.get_task_by_id(id)
+        target_index = None
+
+        for index, message in enumerate(task.messages):
+            if getattr(message, "id", None) == message_id:
+                target_index = index
+                break
+
+        if target_index is None:
+            raise TaskMessageNotFoundError(message_id)
+
+        target_message = task.messages[target_index]
+        if target_message.role != "user":
+            raise TaskMessageNotEditableError(message_id)
+
+        target_message.content = content
+        task.messages = task.messages[: target_index + 1]
+
+        await self._db_session.flush()
+        await self._db_session.refresh(task)
+        return task

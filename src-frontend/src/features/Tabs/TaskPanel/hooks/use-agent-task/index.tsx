@@ -26,6 +26,7 @@ import {
   type TaskSseCallbacks,
   toolAnswer,
   toolReview,
+  useEditTaskMessage,
   useGetTaskSuspense,
 } from "@/api/task";
 import { UpdateTodosSchema } from "@/api/tool-schema";
@@ -78,6 +79,7 @@ export type AgentTaskActions = {
   continue: (message?: UiUserMessage) => void;
   answerTool: (toolCallId: string, answer: string) => void;
   reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
+  editMessage: (messageId: string, content: string) => void;
   cancel: () => void;
 };
 
@@ -246,6 +248,11 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     },
     [setData, startStream]
   );
+  
+  const handleTaskCancel = useCallback(() => {
+    cancel();
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+  }, [cancel]);
 
   const answerTool = useCallback(
     (toolCallId: string, answer: string) => {
@@ -265,11 +272,20 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     [startStream]
   );
 
-  const handleTaskCancel = useCallback(() => {
-    cancel();
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  }, [cancel]);
-
+  const editMessageMutation = useEditTaskMessage({
+    mutation: {
+      onSuccess: (taskRead) => {
+        setMessages(toUiMessage(taskRead.messages));
+        handleTaskContinue();
+      },
+    },
+  });
+  const editMessage = useCallback(
+    (messageId: string, content: string) => {
+      editMessageMutation.mutate({ taskId, data: { message_id: messageId, content } });
+    },
+    [editMessageMutation, taskId]
+  );
 
   const stateValue = useMemo(
     () => ({
@@ -285,12 +301,19 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const actionValue = useMemo(
     () => ({
       setAgentId,
-      continue: handleTaskContinue,
       answerTool,
       reviewTool,
+      editMessage,
+      continue: handleTaskContinue,
       cancel: handleTaskCancel,
     }),
-    [handleTaskContinue, answerTool, reviewTool, handleTaskCancel]
+    [
+      answerTool,
+      reviewTool,
+      editMessage,
+      handleTaskContinue,
+      handleTaskCancel,
+    ]
   );
 
   return (
