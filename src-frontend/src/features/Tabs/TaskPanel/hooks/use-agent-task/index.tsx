@@ -41,6 +41,7 @@ import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { useMessageLifecycle } from "./use-message-lifecycle";
+import { useNotificationBuffer } from "./use-notification-buffer";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -134,6 +135,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const toolCallsBuffer = useToolCallBuffer({
     onAccumulated: messageLifecycle.handleToolCallAccumulated,
   });
+  const permissionNotificationBuffer = useNotificationBuffer({
+    multipleTitle: t("notification.require_permission_multiple"),
+    options: { onClick: backToCurrentTab },
+  });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
   const { state, startStream, cancel } = useTaskStream({
@@ -202,11 +207,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
     if (!isForeground()) {
-      sendNotification(
+      permissionNotificationBuffer.enqueue(
         t("notification.require_permission", {
           toolName: eventData.tool_name,
-        }),
-        { onClick: backToCurrentTab }
+        })
       );
     }
   };
