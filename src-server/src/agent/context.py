@@ -4,6 +4,7 @@ import time
 from dataclasses import asdict
 from typing import Self, cast
 from dais_sdk.tool import Toolset
+from dais_sdk.types import ToolDef
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
 from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
 from .types import ContextUsage
@@ -158,6 +159,13 @@ class AgentContext:
         if len(agent_usable_tool_ids) == 0:
             return workspace_usable_tool_ids
         return workspace_usable_tool_ids & agent_usable_tool_ids
+
+    def find_tool(self, tool_name: str) -> ToolDef | None:
+        for toolset in self.toolsets:
+            for tool in toolset.get_tools():
+                if tool.name == tool_name:
+                    return tool
+        return None
 
     async def persist(self):
         async with db_context() as db_session:

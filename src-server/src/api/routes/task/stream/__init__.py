@@ -1,3 +1,4 @@
+import asyncio
 from typing import Literal
 from fastapi import APIRouter, Request, status
 from fastapi.sse import EventSourceResponse
@@ -7,7 +8,7 @@ from .stream_connector import agent_stream
 from ....exceptions import ApiError, ApiErrorCode
 from .....agent.context import AgentContext
 from .....agent.task import AgentTask, ToolCallNotFoundError
-from .....agent.types import AgentEvent
+from .....agent.types import AgentEvent, TaskDoneEvent
 from .....db import db_context
 from .....services.task import TaskService
 from .....schemas import task as task_schemas
@@ -53,9 +54,9 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
     task = await retrieve_task(task_id, body.agent_id)
 
     if body.message is not None:
-        replace_event = task.append_message(body.message)
-        if replace_event is not None:
-            yield replace_event
+        for event in task.discard_pending_tool_calls():
+            yield event
+        task.append_message(body.message)
     async for event in agent_stream(task, request):
         yield event
 
@@ -78,6 +79,10 @@ async def tool_answer(task_id: int, body: ToolAnswerBody, request: Request):
                        e.call_id)
 
     yield replace_event
+    if task.has_pending_tool_calls():
+        await asyncio.shield(task.persist())
+        yield TaskDoneEvent()
+        return
     async for event in agent_stream(task, request):
         yield event
 
@@ -97,5 +102,9 @@ async def tool_reviews(task_id: int, body: ToolReviewBody, request: Request):
     except ToolCallNotFoundError as e:
         raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND, e.call_id)
 
+    if task.has_pending_tool_calls():
+        await asyncio.shield(task.persist())
+        yield TaskDoneEvent()
+        return
     async for event in agent_stream(task, request):
         yield event

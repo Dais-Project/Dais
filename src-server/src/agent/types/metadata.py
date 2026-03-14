@@ -10,5 +10,5 @@ class ToolMessageMetadata(TypedDict, total=False):
     user_approval: UserApprovalStatus
 
 @staticmethod
-def is_agent_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
+def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
     return True

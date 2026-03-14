@@ -60,7 +60,11 @@ class UsageChunkEvent(BaseModel):
         )
 
 class MessageEndEvent(BaseModel):
-    message: AssistantMessage # This message contains the final assistant message
+    """
+    This event contains the final assistant message,
+    will be sent immediately after receiving the last stream chunk from API.
+    """
+    message: AssistantMessage
     event_id: Literal["MESSAGE_END"] = "MESSAGE_END"
 
     @classmethod

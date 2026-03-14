@@ -159,9 +159,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   }
 
   const onMessageEnd = (eventData: MessageEndEvent) => {
-      textBuffer.clear();
-      toolCallsBuffer.clear();
-      messageLifecycle.handleMessageEnd(eventData.message);
+    textBuffer.clear();
+    toolCallsBuffer.flush();
+    toolCallsBuffer.clear();
+    messageLifecycle.handleMessageEnd(eventData.message);
   };
 
   const onMessageReplace = (eventData: MessageReplaceEvent) => {
@@ -215,11 +216,6 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
   };
 
-  const onCancel = () => {
-    cancel();
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  };
-
   const onClose = () => {
     messageLifecycle.handleClose();
     queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
@@ -239,7 +235,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     onClose,
   };
 
-  const continue_ = useCallback(
+  const handleTaskContinue = useCallback(
     (message?: UiUserMessage) => {
       if (message) {
         setData((draft) => {
@@ -269,6 +265,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     [startStream]
   );
 
+  const handleTaskCancel = useCallback(() => {
+    cancel();
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+  }, [cancel]);
+
+
   const stateValue = useMemo(
     () => ({
       state,
@@ -283,12 +285,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const actionValue = useMemo(
     () => ({
       setAgentId,
-      continue: continue_,
+      continue: handleTaskContinue,
       answerTool,
       reviewTool,
-      cancel: onCancel,
+      cancel: handleTaskCancel,
     }),
-    [continue_, answerTool, reviewTool, onCancel]
+    [handleTaskContinue, answerTool, reviewTool, handleTaskCancel]
   );
 
   return (

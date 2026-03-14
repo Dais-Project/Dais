@@ -70,68 +70,6 @@ class FileSystemToolset(BuiltInToolset):
             return "\n".join(lines)
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    def read_file_batch(self,
-                        paths: Annotated[list[str],
-                            "The paths of the files to read (relative to the current working directory)."],
-                        enable_line_numbers: Annotated[bool,
-                            "(Default: False) Whether to add line numbers to the file content. Enable this if you may edit the file later."] = False
-                        ) -> str:
-        """
-        Request to read the contents of multiple files at the specified paths.
-        This tool will directly return the file content for text files;
-        for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
-        Use this when you need to examine the contents of multiple existing files you do not know the contents of,
-        for example to analyze code, review text files, or extract information from configuration files.
-
-        Returns:
-            The contents of the files with XML wrapper, with optional line numbers added.
-
-        Examples:
-            Read single file with line numbers:
-            >>> read_file_batch(["test.txt"], True)
-
-            <file_content path="test.txt">
-            1 | Hello World!
-            2 | This is a test file.
-            3 | It contains multiple lines.
-            4 | And some special characters like !@#$%^&*()_+{}|:"<>?
-            </file_content>
-
-            - - -
-
-            Read multiple files when some files do not exist:
-            >>> read_file_batch(["test.txt", "test.pdf", "not_exist.txt"], False)
-
-            <file_content path="test.txt">
-            Hello World!
-            This is a test file.
-            It contains multiple lines.
-            And some special characters like !@#$%^&*()_+{}|:"<>?
-            </file_content>
-            <file_content path="test.pdf">
-            # Test PDF File
-            This is a test PDF file.
-            It contains multiple pages.
-            And some special characters like !@#$%^&*()_+{}|:"<>?
-            </file_content>
-            <file_content path="not_exist.txt">
-            Error: File not found at not_exist.txt
-            </file_content>
-        """
-        result = ""
-        for path in paths:
-            try:
-                file_content = self.read_file(path, enable_line_numbers)
-            except Exception as e:
-                file_content = f"Error: {e}"
-            result += f"""\
-<file_content path="{path}">
-{file_content}
-</file_content>
-"""
-        return result
-
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def list_directory(self,
                        path: Annotated[str,
                         "(Default: \".\") The path of the directory to list contents for (relative to the current working directory)."] = ".",
