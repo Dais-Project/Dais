@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
+from src.api.exceptions import ApiError, ApiErrorCode
 from src.api.routes.task.context_file import (
-    ContextDirectoryNotFoundError,
-    ContextPathError,
+    ContextFileInternalError,
     _list_directory,
     _search_file,
 )
@@ -60,18 +60,22 @@ def test_list_directory_empty_directory(temp_workspace: Path):
 def test_list_directory_path_is_file(temp_workspace: Path):
     (temp_workspace / "note.txt").write_text("note", encoding="utf-8")
 
-    with pytest.raises(ContextPathError, match="Path is not a directory"):
+    with pytest.raises(ApiError) as exc_info:
         _list_directory(temp_workspace.resolve(), "note.txt")
+
+    assert exc_info.value.error_code == ApiErrorCode.PATH_NOT_DIRECTORY
 
 
 def test_list_directory_outside_workspace(temp_workspace: Path):
-    with pytest.raises(ContextPathError, match="outside workspace"):
+    with pytest.raises(ContextFileInternalError, match="outside workspace"):
         _list_directory(temp_workspace.resolve(), "../")
 
 
 def test_list_directory_nonexistent_path(temp_workspace: Path):
-    with pytest.raises(ContextDirectoryNotFoundError):
+    with pytest.raises(ApiError) as exc_info:
         _list_directory(temp_workspace.resolve(), "missing")
+
+    assert exc_info.value.error_code == ApiErrorCode.PATH_NOT_FOUND
 
 
 def test_search_file_applies_cutoff_and_formats_folder_path(monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
@@ -139,5 +143,5 @@ def test_search_file_respects_match_limit(monkeypatch: pytest.MonkeyPatch, temp_
 
 
 def test_list_directory_rejects_absolute_path(temp_workspace: Path):
-    with pytest.raises(ContextPathError, match="relative path"):
+    with pytest.raises(ContextFileInternalError, match="relative path"):
         _list_directory(temp_workspace.resolve(), str(temp_workspace.resolve()))
