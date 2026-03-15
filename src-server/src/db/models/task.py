@@ -1,8 +1,8 @@
 import time
 from dataclasses import dataclass
-from typing import Annotated, TYPE_CHECKING, Self
-from dais_sdk.types import AssistantMessage, SystemMessage, ToolMessage, UserMessage
-from pydantic import Discriminator, TypeAdapter
+from typing import TYPE_CHECKING, Self
+from dais_sdk.types import Message
+from pydantic import TypeAdapter
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,12 +13,8 @@ if TYPE_CHECKING:
     from .agent import Agent
     from .workspace import Workspace
 
-TaskMessage = Annotated[
-    UserMessage | AssistantMessage | SystemMessage | ToolMessage,
-    Discriminator("role")
-]
-message_adapter = TypeAdapter(TaskMessage)
-messages_adapter = TypeAdapter(list[TaskMessage])
+message_adapter = TypeAdapter(Message)
+messages_adapter = TypeAdapter(list[Message])
 
 @dataclass
 class TaskUsage:
@@ -45,7 +41,7 @@ class Task(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str]
     usage: Mapped[TaskUsage] = mapped_column(DataClassJSON(TaskUsage), default=TaskUsage.default)
-    messages: Mapped[list[TaskMessage]] = mapped_column(PydanticJSON(messages_adapter), default=list)
+    messages: Mapped[list[Message]] = mapped_column(PydanticJSON(messages_adapter), default=list)
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
     agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id", ondelete="SET NULL"))
 

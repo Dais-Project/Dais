@@ -86,6 +86,7 @@ class SearchFileResult(BaseModel):
     items: list[task_schemas.ContextFileItem]
     total: int
 
+# TODO: use to_thread
 @context_file_router.get("/files/list", response_model=ListDirectoryResult)
 async def list_directory(
     db_session: DbSessionDep,

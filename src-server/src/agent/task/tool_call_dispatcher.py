@@ -25,7 +25,7 @@ class ToolCallDispatcher:
         self._tool_call_executor = tool_call_executor
         self._tool_call_reviewer = tool_call_reviewer
 
-    async def execute(self, tool: ToolLike, message: ToolMessage) -> ToolEvent:
+    async def execute(self, tool: ToolDef, message: ToolMessage) -> ToolEvent:
         """
         Execute tool call and attach the result to the corresponding message.
         This method should not throw any exceptions.
@@ -46,7 +46,7 @@ class ToolCallDispatcher:
                                                  | ErrorEvent, None]:
         executables = list[tuple[ToolDef, ToolMessage]]()
         for message in tool_call_messages:
-            tool: ToolLike | None = self._ctx.find_tool(message.name)
+            tool = self._ctx.find_tool(message.name)
             if tool is None:
                 message.error = handle_tool_does_not_exist_error(ToolDoesNotExistError(message.name))
                 yield MessageReplaceEvent(message=message)
@@ -59,13 +59,23 @@ class ToolCallDispatcher:
             if tool.executes(ExecutionControlToolset.finish_task):
                 result.has_finished_task = True
 
-            permission_check_result = self._tool_call_reviewer.check_permission(tool, message)
+            permission_check_result = await self._tool_call_reviewer.check_permission(tool, message)
             match permission_check_result:
                 case ToolCallBlocked(event):
                     yield event
                     yield MessageReplaceEvent(message=message)
                     result.pendings.append(message)
                 case ToolCallApproved():
+                    executables.append((tool, message))
+
+        if len(result.pendings) > 0:
+            audit_result = await self._tool_call_reviewer.audit_tool_calls(result.pendings)
+            if audit_result is not None:
+                high_risk, low_risk = audit_result
+                result.pendings = high_risk
+                for message in low_risk:
+                    tool = self._ctx.find_tool(message.name)
+                    if tool is None: continue
                     executables.append((tool, message))
 
         if len(executables) > 0:

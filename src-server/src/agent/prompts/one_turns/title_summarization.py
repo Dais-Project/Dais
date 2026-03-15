@@ -1,4 +1,4 @@
-TITLE_SUMMARIZATION_INSTRUCTION = """\
+INSTRUCTION = """\
 Generate a concise title for the following task/conversation in {LANGUAGE}.
 
 CRITICAL: Your response must contain ONLY the title itself - no explanations, no "Here is the title:", no quotes, no punctuation at the end.
@@ -10,3 +10,11 @@ Rules:
 - Use {LANGUAGE} language
 - Output format: plain text title only
 """
+
+# --- --- --- --- --- ---
+
+from dais_sdk import LLM, OneTurn
+
+class TitleSummarization(OneTurn):
+    def __init__(self, llm: LLM):
+        super().__init__(llm, INSTRUCTION, output="text")

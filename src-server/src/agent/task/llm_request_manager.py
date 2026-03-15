@@ -1,7 +1,6 @@
 import asyncio
 import uuid
 from collections.abc import AsyncGenerator
-from dais_sdk.providers import OpenAIProvider
 from loguru import logger
 from dais_sdk import LLM
 from dais_sdk.types import (
@@ -33,14 +32,13 @@ class LlmRequestManager:
         return self._llm
 
     def _llm_factory(self) -> LLM:
-        provider = OpenAIProvider(
-            self._ctx.provider.base_url,
-            api_key=self._ctx.provider.api_key)
-        return LLM(provider=provider)
+        provider = LLM.create_provider(self._ctx.provider.type,
+                                                     self._ctx.provider.base_url,
+                                                     api_key=self._ctx.provider.api_key)
+        return LLM(self._ctx.model.name, provider=provider)
 
     def _create_request_param(self) -> LlmRequestParams:
         params = LlmRequestParams(
-            model=self._ctx.model.name,
             instructions=self._ctx.system_instruction,
             messages=self._ctx.messages)
         usable_tool_ids = self._ctx.usable_tool_ids

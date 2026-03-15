@@ -1,13 +1,11 @@
 import time
 from typing import TYPE_CHECKING
 from loguru import logger
-from dais_sdk.types import UserMessage
-from ....db.models.task import TaskMessage
+from dais_sdk.types import Message, UserMessage
 from ....db import db_context
 from ....services.task import TaskService
 from ....schemas import task as task_schemas
-from ....agent.prompts import TITLE_SUMMARIZATION_INSTRUCTION
-from ....agent.temp_generation import TempGeneration
+from ....agent.prompts import create_one_turn_llm, TitleSummarization
 from ....settings import use_app_setting_manager
 from ....api.sse_dispatcher.types import TaskTitleUpdatedEvent
 
@@ -18,15 +16,16 @@ _logger = logger.bind(name="TaskBackgroundRoute")
 
 async def summarize_title_in_background(
     task_id: int,
-    context: list[TaskMessage],
+    context: list[Message],
     sse_dispatcher: SseDispatcher,
 ):
     settings = use_app_setting_manager().settings
     if settings.flash_model is None: return
     try:
-        temp_generation = await TempGeneration.create(TITLE_SUMMARIZATION_INSTRUCTION, settings.flash_model)
+        llm = await create_one_turn_llm(settings.flash_model)
+        summarizer = TitleSummarization(llm)
         assert isinstance(context[0], UserMessage)
-        title = await temp_generation.generate(context[0].content)
+        title = await summarizer(context[0].content)
     except Exception:
         _logger.exception("Failed to request title summarization for task {}", task_id)
         return

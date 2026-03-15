@@ -1,13 +1,13 @@
 from collections.abc import AsyncGenerator
-from dataclasses import dataclass
 from typing import Annotated, Literal, Self
 from dais_sdk.types import (
+    Message,
     ToolMessage, AssistantMessage,
     TextChunkEvent as SdkTextChunkEvent,
     ToolCallChunkEvent as SdkToolCallChunkEvent
 )
 from pydantic import BaseModel, Discriminator
-from ...db.models.task import TaskMessage, TaskUsage
+from ...db.models.task import TaskUsage
 
 
 class MessageStartEvent(BaseModel):
@@ -72,7 +72,7 @@ class MessageEndEvent(BaseModel):
         return cls(message=message)
 
 class MessageReplaceEvent(BaseModel):
-    message: TaskMessage
+    message: Message
     event_id: Literal["MESSAGE_REPLACE"] = "MESSAGE_REPLACE"
 
 class ToolCallEndEvent(BaseModel):
