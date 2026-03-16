@@ -3,11 +3,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { SideBarHeader } from "../../components/SideBarHeader";
-import { DevSettings } from "./DevSettings";
 import { GeneralSettings } from "./GeneralSettings";
-import { HelperModelSettings } from "./HelperModelSettings";
 import { ProviderSettings } from "./ProviderSettings";
+import { HelperModelSettings } from "./HelperModelSettings";
+import { AgentSettings } from "./AgentSettings";
+import { DevSettings } from "./DevSettings";
+import { SideBarHeader } from "../../components/SideBarHeader";
 
 export function SettingsView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
@@ -27,6 +28,11 @@ export function SettingsView() {
       id: "helper-model",
       title: t("settings.tabs.helper_model"),
       content: <HelperModelSettings />,
+    },
+    {
+      id: "agents",
+      title: t("settings.tabs.agents"),
+      content: <AgentSettings />,
     },
     {
       id: "dev",

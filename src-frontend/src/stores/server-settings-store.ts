@@ -6,7 +6,7 @@ type ServerSettingsStore = {
   current: AppSettings | null;
   currentPromise: Promise<AppSettings>;
   isLoading: boolean;
-  setPartial: (settings: Partial<AppSettings>) => void;
+  setPartial: (settings: Partial<AppSettings>) => Promise<AppSettings> | null;
 };
 
 export const useServerSettingsStore = create<ServerSettingsStore>()((set, get) => ({
@@ -28,5 +28,6 @@ export const useServerSettingsStore = create<ServerSettingsStore>()((set, get) =
       return settings;
     });
     set({ currentPromise: updatePromise });
+    return updatePromise;
   },
 }));

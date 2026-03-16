@@ -11,3 +11,7 @@ body {
 input[type="password"]::-ms-reveal {
   display: none !important;
 }
+
+.dark input[type="number"] {
+  color-scheme: dark;
+}

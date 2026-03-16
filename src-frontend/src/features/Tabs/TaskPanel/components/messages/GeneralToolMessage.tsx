@@ -7,6 +7,7 @@ import { useAgentTaskAction } from "../../hooks/use-agent-task";
 import { useToolName } from "../../hooks/use-tool-name";
 import { useToolState } from "../../hooks/use-tool-state";
 import { shouldShowConfirmation, ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmation";
+import { ToolMessageMetadata } from "@/api/generated/schemas";
 
 export function GeneralToolMessage({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
@@ -21,6 +22,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
         toolName={toolName}
         toolsetName={toolsetName}
         state={toolState}
+        riskLevel={(message.metadata as ToolMessageMetadata).risk_level}
       />
       <ToolContent>
         <ToolInput input={toolArguments} />

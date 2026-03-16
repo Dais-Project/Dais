@@ -42,6 +42,7 @@ export type ToolHeaderProps = {
   toolsetName?: string;
   className?: string;
   state: ToolState;
+  riskLevel?: number;
 };
 
 export const getStatusBadge = (status: ToolState) => {
@@ -73,6 +74,51 @@ export const getStatusBadge = (status: ToolState) => {
   );
 };
 
+const getRiskBadge = (riskLevel: number) => {
+  const normalizedRisk = Math.min(
+    100,
+    Math.max(0, Math.ceil(riskLevel / 10) * 10)
+  );
+
+  const configs = [
+    {
+      label: "安全",
+      range: [0, 20],
+      className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
+    },
+    {
+      label: "低风险",
+      range: [30, 50],
+      className: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400",
+    },
+    {
+      label: "中风险",
+      range: [60, 70],
+      className: "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400",
+    },
+    {
+      label: "高风险",
+      range: [80, 100],
+      className: "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400",
+    },
+  ] as const;
+
+  const match = configs.find(
+    (config) =>
+      normalizedRisk >= config.range[0] && normalizedRisk <= config.range[1]
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  return (
+    <Badge className={match.className}>
+      {match.label} {normalizedRisk}
+    </Badge>
+  );
+};
+
 export type ToolBreadcrumbProps = {
   toolsetName?: string;
   toolName: string;
@@ -100,6 +146,7 @@ export const ToolHeader = ({
   toolsetName,
   state,
   toolName,
+  riskLevel,
   ...props
 }: ToolHeaderProps) => (
   <CollapsibleTrigger
@@ -114,7 +161,10 @@ export const ToolHeader = ({
       <ToolBreadcrumb toolsetName={toolsetName} toolName={toolName} />
       {getStatusBadge(state)}
     </div>
-    <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+    <div className="flex items-center gap-2">
+      {riskLevel && getRiskBadge(riskLevel)}
+      <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+    </div>
   </CollapsibleTrigger>
 );
 
