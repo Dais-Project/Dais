@@ -118,7 +118,7 @@ class AgentTask:
             case ToolCallBlocked(event):
                 yield event
             case ToolCallApproved():
-                yield await self._tool_call_dispatcher.execute(tool, message=target_message)
+                yield await self._tool_call_dispatcher.execute(tool, target_message)
         yield MessageReplaceEvent(message=target_message)
 
     async def run(self) -> AgentGenerator:
@@ -161,7 +161,9 @@ class AgentTask:
                     self._tool_call_dispatcher.dispatch(tool_call_messages)
                 async for event in dispatch_stream:
                     yield event
-                if dispatch_result.has_finished_task or len(dispatch_result.pendings) > 0:
+                if (dispatch_result.has_finished_task or
+                    dispatch_result.has_blocked_tool_calls):
+                    self._is_running = False
                     break
         except GeneratorExit:
             _exited_by_generator_close = True
