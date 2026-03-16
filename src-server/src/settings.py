@@ -71,6 +71,9 @@ class AppSettings(JsonSettings):
     reply_language: str = "zh_CN"
     flash_model: int | None = None
 
+    smart_approve: bool = True
+    smart_approve_threshold: int = 50 # 0 ~ 100
+
     async def validate_self(self):
         if self.flash_model is not None:
             async with db_context() as db_session:

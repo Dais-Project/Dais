@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from loguru import logger
 from dais_sdk.tool import ToolCallExecutor
 from dais_sdk.types import (
-    ToolMessage, UserMessage, AssistantMessage,
+    Message, ToolMessage, UserMessage, AssistantMessage,
     ToolDef, ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
 from ..context import AgentContext
@@ -40,10 +40,10 @@ class AgentTask:
         self._tool_call_executor.exception_handler.set_handler(ToolArgumentDecodeError, handle_tool_argument_decode_error)
         self._tool_call_executor.exception_handler.set_handler(ToolExecutionError, handle_tool_execution_error)
 
-        self._tool_call_reviewer = ToolCallReviewer()
+        self._tool_call_reviewer = ToolCallReviewer(ctx)
         self._tool_call_dispatcher = ToolCallDispatcher(self._ctx, self._tool_call_executor, self._tool_call_reviewer)
 
-    def _find_message(self, predicate: Callable[[task_models.TaskMessage], bool]) -> task_models.TaskMessage:
+    def _find_message(self, predicate: Callable[[Message], bool]) -> Message:
         for message in reversed(self._ctx.messages):
             if predicate(message):
                 return message
@@ -113,12 +113,12 @@ class AgentTask:
         # so we can safely assert the type of tool_def to ToolDef here.
         assert isinstance(tool, ToolDef)
 
-        permission_check_result = self._tool_call_reviewer.check_permission(tool, target_message)
+        permission_check_result = await self._tool_call_reviewer.check_permission(tool, target_message)
         match permission_check_result:
             case ToolCallBlocked(event):
                 yield event
             case ToolCallApproved():
-                yield await self._tool_call_dispatcher.execute(tool, message=target_message)
+                yield await self._tool_call_dispatcher.execute(tool, target_message)
         yield MessageReplaceEvent(message=target_message)
 
     async def run(self) -> AgentGenerator:
@@ -161,7 +161,9 @@ class AgentTask:
                     self._tool_call_dispatcher.dispatch(tool_call_messages)
                 async for event in dispatch_stream:
                     yield event
-                if dispatch_result.has_finished_task or len(dispatch_result.pendings) > 0:
+                if (dispatch_result.has_finished_task or
+                    dispatch_result.has_blocked_tool_calls):
+                    self._is_running = False
                     break
         except GeneratorExit:
             _exited_by_generator_close = True

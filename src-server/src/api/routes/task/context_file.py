@@ -56,7 +56,7 @@ def _list_directory(workspace_root: Path, path: str) -> list[task_schemas.Contex
 type SearchCandidate = tuple[str, str, Literal["folder", "file"]]
 @lru_cache(maxsize=8)
 def _scan_cached(root: Path, scan_limit: int) -> list[SearchCandidate]:
-    candidates = list[SearchCandidate]()
+    candidates: list[SearchCandidate] = []
     for entry in scandir_recursive_bfs(root, scan_limit):
         rel_path = Path(entry.path).relative_to(root).as_posix()
         candidates.append((entry.name, rel_path, "folder" if entry.is_dir() else "file"))
@@ -67,7 +67,7 @@ def _search_file(query: str, workspace_root: Path, match_limit: int) -> list[tas
     SCORE_CUTOFF = 60
     candidates = _scan_cached(workspace_root, MAX_SCAN_LIMIT)
 
-    results = list[tuple[float, task_schemas.ContextFileItem]]()
+    results: list[tuple[float, task_schemas.ContextFileItem]] = []
     for basename, rel_path, node_type in candidates:
         name_score = fuzz.WRatio(query, basename)
         path_score = fuzz.WRatio(query, rel_path)
@@ -86,6 +86,7 @@ class SearchFileResult(BaseModel):
     items: list[task_schemas.ContextFileItem]
     total: int
 
+# TODO: use to_thread
 @context_file_router.get("/files/list", response_model=ListDirectoryResult)
 async def list_directory(
     db_session: DbSessionDep,

@@ -27,6 +27,14 @@
     "placeholder": "Plugins view"
   },
   "settings": {
+    "agents": {
+      "smart_approve": {
+        "title": "Smart approve"
+      },
+      "smart_approve_threshold": {
+        "title": "Smart approve threshold"
+      }
+    },
     "dev": {
       "devtools": {
         "open_button": "Open",
@@ -85,6 +93,7 @@
       }
     },
     "tabs": {
+      "agents": "Agents",
       "dev": "Development",
       "general": "General",
       "helper_model": "Helper model",

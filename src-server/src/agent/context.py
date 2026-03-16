@@ -4,7 +4,7 @@ import time
 from dataclasses import asdict
 from typing import Self, cast
 from dais_sdk.tool import Toolset
-from dais_sdk.types import ToolDef
+from dais_sdk.types import Message, ToolDef
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
 from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
 from .types import ContextUsage
@@ -56,7 +56,7 @@ class AgentContext:
                  task_id: int,
                  *,
                  usage: task_models.TaskUsage,
-                 messages: list[task_models.TaskMessage],
+                 messages: list[Message],
                  workspace: workspace_schemas.WorkspaceRead,
                  agent: agent_schemas.AgentRead,
                  provider: provider_schemas.ProviderRead,
@@ -142,7 +142,7 @@ class AgentContext:
         return self._model
 
     @property
-    def messages(self) -> list[task_models.TaskMessage]:
+    def messages(self) -> list[Message]:
         return self._messages
 
     @property

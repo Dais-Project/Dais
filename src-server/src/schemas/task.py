@@ -1,10 +1,11 @@
 from typing import Literal
 from . import DTOBase
-from ..db.models.task import TaskMessage, TaskUsage
+from dais_sdk.types import Message
+from ..db.models.task import TaskUsage
 
 class TaskBase(DTOBase):
     title: str
-    messages: list[TaskMessage]
+    messages: list[Message]
 
 class TaskBrief(TaskBase):
     id: int
@@ -36,7 +37,7 @@ class TaskUpdate(DTOBase):
     usage: TaskUsage | None
     last_run_at: int
     agent_id: int | None
-    messages: list[TaskMessage] | None
+    messages: list[Message] | None
 
 # --- --- --- --- --- ---
 

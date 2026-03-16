@@ -1,4 +1,3 @@
-import asyncio
 from fastapi import APIRouter
 from ...settings import AppSettings, use_app_setting_manager
 

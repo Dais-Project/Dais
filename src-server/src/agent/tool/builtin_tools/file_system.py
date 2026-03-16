@@ -10,6 +10,8 @@ from ....db.models import toolset as toolset_models
 from ....utils.scandir_recursive import scandir_recursive_bfs
 from ....utils.ignore_rules import load_gitignore_spec, should_exclude
 
+# TODO: use to_thread to prevent blocking
+
 class FileSystemToolset(BuiltInToolset):
     def __init__(self,
                  ctx: BuiltInToolsetContext,
