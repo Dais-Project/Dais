@@ -19,7 +19,7 @@ type CustomToolProps = {
 
 export function CustomTool({ icon, title, children, state, defaultOpen = true, onUserReaction }: CustomToolProps) {
   return (
-    <Collapsible defaultOpen={defaultOpen} className="group selectable-text mb-4 w-full rounded-md border">
+    <Collapsible defaultOpen={defaultOpen} className="group selectable-text w-full rounded-md border">
       <CollapsibleTrigger className="sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3">
         <div className="flex items-center gap-2">
           {icon}
