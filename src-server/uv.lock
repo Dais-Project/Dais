@@ -57,6 +57,25 @@ wheels = [
 ]
 
 [[package]]
+name = "anthropic"
+version = "0.85.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "docstring-parser" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/08/c620a0eb8625539a8ea9f5a6e06f13d131be0bc8b5b714c235d4b25dd1b5/anthropic-0.85.0.tar.gz", hash = "sha256:d45b2f38a1efb1a5d15515a426b272179a0d18783efa2bb4c3925fa773eb50b9", size = 542034, upload-time = "2026-03-16T17:00:44.324Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/5a/9d85b85686d5cdd79f5488c8667e668d7920d06a0a1a1beb454a5b77b2db/anthropic-0.85.0-py3-none-any.whl", hash = "sha256:b4f54d632877ed7b7b29c6d9ba7299d5e21c4c92ae8de38947e9d862bff74adf", size = 458237, upload-time = "2026-03-16T17:00:45.877Z" },
+]
+
+[[package]]
 name = "anyio"
 version = "4.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -298,9 +317,10 @@ wheels = [
 
 [[package]]
 name = "dais-sdk"
-version = "0.8.16"
+version = "0.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "anthropic" },
     { name = "httpx" },
     { name = "mcp" },
     { name = "openai" },
@@ -308,9 +328,9 @@ dependencies = [
     { name = "starlette" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/c0/44208da7d77661bb206a66610da5b8a7e9eb981876abee8f24b41876f2a9/dais_sdk-0.8.16.tar.gz", hash = "sha256:b91daba337738d854cd5fcfdc7a8681ff468cd791f48fa51a06c61e9b0e12239", size = 19547, upload-time = "2026-03-16T03:23:11.601Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b4/cf/82e9a28872580e85f9b2091fe95054ce205f8f9e2a714592a9bbe7b9628d/dais_sdk-0.9.1.tar.gz", hash = "sha256:8f2b8fd0a68b4873dd9fd5cc1c2e2f64361f78662d21ecd0aa61b8bf28b4a800", size = 21266, upload-time = "2026-03-18T13:33:59.3Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/b7/eab632242fa26df0e4aa837f554024f71421b99f3311c87314b59b7f2e7b/dais_sdk-0.8.16-py3-none-any.whl", hash = "sha256:4103f6420093e9fbc971ac0d98e106351afd7038248d1e646c1452099b81e98c", size = 29492, upload-time = "2026-03-16T03:23:10.031Z" },
+    { url = "https://files.pythonhosted.org/packages/85/c9/bef89cb439dca120c057ec1ba0771bc62128a745431baae166f1c77da39a/dais_sdk-0.9.1-py3-none-any.whl", hash = "sha256:1ed3a5ce08b5411a7e6bcfbf7f7b2c59786bfb213486788da975e5cfa827ff93", size = 32561, upload-time = "2026-03-18T13:33:58.234Z" },
 ]
 
 [[package]]
@@ -358,7 +378,7 @@ requires-dist = [
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "alembic", specifier = "==1.18.4" },
     { name = "binaryornot", specifier = "==0.4.4" },
-    { name = "dais-sdk", specifier = "==0.8.16" },
+    { name = "dais-sdk", specifier = "==0.9.1" },
     { name = "dais-shell", specifier = "==0.1.2" },
     { name = "fastapi", specifier = "==0.135.1" },
     { name = "fastapi-pagination", specifier = "==0.15.10" },
@@ -413,6 +433,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
+]
+
+[[package]]
+name = "docstring-parser"
+version = "0.17.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b2/9d/c3b43da9515bd270df0f80548d9944e389870713cc1fe2b8fb35fe2bcefd/docstring_parser-0.17.0.tar.gz", hash = "sha256:583de4a309722b3315439bb31d64ba3eebada841f2e2cee23b99df001434c912", size = 27442, upload-time = "2025-07-21T07:35:01.868Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/e2/2537ebcff11c1ee1ff17d8d0b6f4db75873e3b0fb32c2d4a2ee31ecb310a/docstring_parser-0.17.0-py3-none-any.whl", hash = "sha256:cf2569abd23dce8099b300f9b4fa8191e9582dda731fd533daf54c4551658708", size = 36896, upload-time = "2025-07-21T07:35:00.684Z" },
 ]
 
 [[package]]

@@ -45,7 +45,7 @@ class ToolCallReviewer:
 
         Returns:
             - Tuple of (high_risk, low_risk)
-            - None if smart approve is disabled or no flash model is configured.
+            - None if smart approve is disabled or no flash model is configured or audit execution failed.
         """
         if len(dispatches) == 0:
             return [], []
@@ -58,24 +58,23 @@ class ToolCallReviewer:
             self._logger.warning("No flash model configured, skipping smart approve")
             return None
 
-        try:
-            llm = await create_one_turn_llm(settings.flash_model)
-        except Exception:
-            self._logger.exception("Failed to create LLM for smart approve")
-            return None
-
         audit_context_size = 5
         context = self._ctx.messages[-audit_context_size:]
-        safety_audit = ToolCallSafetyAudit(llm, settings.reply_language)
 
-        tools = [dispatch.tool for dispatch in dispatches]
-        messages = [dispatch.message for dispatch in dispatches]
-        input = ToolCallSafetyAuditInput(
-            tool_definitions=prepare_tools(tools),
-            context=context,
-            pending_tool_calls=messages
-        )
-        output = await safety_audit(input)
+        try:
+            llm = await create_one_turn_llm(settings.flash_model)
+            safety_audit = ToolCallSafetyAudit(llm, settings.reply_language)
+            tools = [dispatch.tool for dispatch in dispatches]
+            messages = [dispatch.message for dispatch in dispatches]
+            input = ToolCallSafetyAuditInput(
+                tool_definitions=prepare_tools(tools),
+                context=context,
+                pending_tool_calls=messages
+            )
+            output = await safety_audit(input)
+        except Exception:
+            self._logger.exception("Failed to audit tool calls")
+            return None
 
         # attach risk level and reason to each message
         for item in output.results:

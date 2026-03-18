@@ -16,10 +16,31 @@ type UserMessageProps = {
 
 type UserMessageMode = "view" | "edit";
 
-function normalizeUserText(text: string) {
-  let normalized = text.trim();
-  normalized = normalized.replace("\n", "<br>");
-  return normalized;
+function formatUserMessage(text: string) {
+  const segments = [];
+  const codeBlockRegex = /(```[\s\S]*?```|`[^`]+`)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ code: false, content: text.slice(lastIndex, match.index) });
+    }
+    segments.push({ code: true, content: match[0] });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    segments.push({ code: false, content: text.slice(lastIndex) });
+  }
+
+  return segments
+    .map(seg =>
+      seg.code
+        ? seg.content
+        : seg.content.replace(/(?<!\n)\n(?!\n)/g, '  \n')
+    )
+    .join('');
 }
 
 export function UserMessage({ messageId, text, isStreaming }: UserMessageProps) {
@@ -79,7 +100,7 @@ export function UserMessage({ messageId, text, isStreaming }: UserMessageProps) 
           </div>
         ) : (
           <Markdown mode={!isStreaming ? "static" : "streaming"} parseIncompleteMarkdown={isStreaming}>
-            {normalizeUserText(viewText)}
+            {formatUserMessage(viewText)}
           </Markdown>
         )}
       </MessageContent>

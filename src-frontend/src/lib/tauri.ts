@@ -29,10 +29,29 @@ export async function sendNotification(title: string, body?: string) {
 }
 
 (() => {
-  if (!isTauri() || globalThis.__INJECTED__.dev === "true"){
+  if (!isTauri()) {
     return;
   }
-  // ignore devtools keydown
+
+  // ignore side mouse buttons
+  window.addEventListener("mousedown", (e) => {
+    if (e.button === 3 || e.button === 4) {
+      e.preventDefault();
+    }
+  });
+
+  // ignore alt + arrowleft or arrowright keys
+  window.addEventListener("keydown", (e) => {
+    if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+    }
+  })
+
+  // ignore devtools keydown under production
+  if (globalThis.__INJECTED__.dev === "true") {
+    return;
+  }
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "F12") {
       e.preventDefault();
