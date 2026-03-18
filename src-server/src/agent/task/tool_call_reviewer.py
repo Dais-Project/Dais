@@ -66,7 +66,7 @@ class ToolCallReviewer:
 
         audit_context_size = 5
         context = self._ctx.messages[-audit_context_size:]
-        safety_audit = ToolCallSafetyAudit(llm)
+        safety_audit = ToolCallSafetyAudit(llm, settings.reply_language)
 
         tools = [dispatch.tool for dispatch in dispatches]
         messages = [dispatch.message for dispatch in dispatches]
@@ -77,12 +77,13 @@ class ToolCallReviewer:
         )
         output = await safety_audit(input)
 
-        # attach risk level to each message
+        # attach risk level and reason to each message
         for item in output.results:
             for dispatch in dispatches:
                 if dispatch.message.call_id == item.call_id:
                     assert is_agent_tool_metadata(dispatch.message.metadata)
                     dispatch.message.metadata["risk_level"] = item.risk_level
+                    dispatch.message.metadata["risk_reason"] = item.reason
                     break
             else:
                 self._logger.warning(f"Tool call {item.call_id} not found")

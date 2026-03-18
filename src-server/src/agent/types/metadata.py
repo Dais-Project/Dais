@@ -9,6 +9,7 @@ class UserApprovalStatus(str, Enum):
 class ToolMessageMetadata(TypedDict, total=False):
     user_approval: UserApprovalStatus
     risk_level: int
+    risk_reason: str
 
 @staticmethod
 def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:

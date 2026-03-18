@@ -23,6 +23,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
         toolsetName={toolsetName}
         state={toolState}
         riskLevel={(message.metadata as ToolMessageMetadata).risk_level}
+        riskReason={(message.metadata as ToolMessageMetadata).risk_reason}
       />
       <ToolContent>
         <ToolInput input={toolArguments} />

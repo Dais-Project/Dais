@@ -319,9 +319,7 @@ class FileSystemToolset(BuiltInToolset):
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
 
-        with open(abs_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
+        content = abs_path.read_text(encoding="utf-8")
         count = content.count(old_content)
         if count == 0:
             raise ValueError(f"Content not found in file: {path}")

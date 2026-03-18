@@ -23,7 +23,7 @@ async def summarize_title_in_background(
     if settings.flash_model is None: return
     try:
         llm = await create_one_turn_llm(settings.flash_model)
-        summarizer = TitleSummarization(llm)
+        summarizer = TitleSummarization(llm, settings.reply_language)
         assert isinstance(context[0], UserMessage)
         title = await summarizer(context[0].content)
     except Exception:

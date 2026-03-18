@@ -16,6 +16,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "./code-block";
 
@@ -43,6 +48,7 @@ export type ToolHeaderProps = {
   className?: string;
   state: ToolState;
   riskLevel?: number;
+  riskReason?: string;
 };
 
 export const getStatusBadge = (status: ToolState) => {
@@ -74,7 +80,12 @@ export const getStatusBadge = (status: ToolState) => {
   );
 };
 
-const getRiskBadge = (riskLevel: number) => {
+type RiskBadgeProps = {
+  riskLevel: number;
+  riskReason?: string;
+};
+
+function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
   const normalizedRisk = Math.min(
     100,
     Math.max(0, Math.ceil(riskLevel / 10) * 10)
@@ -112,12 +123,23 @@ const getRiskBadge = (riskLevel: number) => {
     return null;
   }
 
-  return (
+  const badge = (
     <Badge className={match.className}>
       {match.label} {normalizedRisk}
     </Badge>
   );
-};
+
+  if (!riskReason) {
+    return badge;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{badge}</TooltipTrigger>
+      <TooltipContent>{riskReason}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export type ToolBreadcrumbProps = {
   toolsetName?: string;
@@ -147,6 +169,7 @@ export const ToolHeader = ({
   state,
   toolName,
   riskLevel,
+  riskReason,
   ...props
 }: ToolHeaderProps) => (
   <CollapsibleTrigger
@@ -162,7 +185,9 @@ export const ToolHeader = ({
       {getStatusBadge(state)}
     </div>
     <div className="flex items-center gap-2">
-      {riskLevel && getRiskBadge(riskLevel)}
+      {typeof riskLevel === "number" && (
+        <RiskBadge riskLevel={riskLevel} riskReason={riskReason} />
+      )}
       <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
     </div>
   </CollapsibleTrigger>
