@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { isValidElement } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
@@ -21,6 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { COMPONENTS_AI_ELEMENTS_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "./code-block";
 
@@ -52,14 +54,15 @@ export type ToolHeaderProps = {
 };
 
 export const getStatusBadge = (status: ToolState) => {
+  const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
   const labels: Record<ToolState, string> = {
-    "input-streaming": "Pending",
-    "input-available": "Running",
-    "approval-requested": "Awaiting Approval",
-    "approval-responded": "Responded",
-    "output-available": "Completed",
-    "output-error": "Error",
-    "output-denied": "Denied",
+    "input-streaming": t("status.input_streaming"),
+    "input-available": t("status.input_available"),
+    "approval-requested": t("status.approval_requested"),
+    "approval-responded": t("status.approval_responded"),
+    "output-available": t("status.output_available"),
+    "output-error": t("status.output_error"),
+    "output-denied": t("status.output_denied"),
   };
 
   const icons: Record<ToolState, ReactNode> = {
@@ -86,6 +89,7 @@ type RiskBadgeProps = {
 };
 
 export function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
+  const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
   const normalizedRisk = Math.min(
     100,
     Math.max(0, Math.ceil(riskLevel / 10) * 10)
@@ -93,22 +97,22 @@ export function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
 
   const configs = [
     {
-      label: "安全",
+      label: t("risk.safe"),
       range: [0, 20],
       className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
     },
     {
-      label: "较安全",
+      label: t("risk.mostly_safe"),
       range: [30, 50],
       className: "bg-lime-50 text-lime-700 dark:bg-lime-950/60 dark:text-lime-400",
     },
     {
-      label: "中风险",
+      label: t("risk.risky"),
       range: [60, 70],
       className: "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400",
     },
     {
-      label: "高风险",
+      label: t("risk.dangerous"),
       range: [80, 100],
       className: "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400",
     },
@@ -209,16 +213,20 @@ export type ToolInputProps = ComponentProps<"div"> & {
   input: unknown;
 };
 
-export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
-  <div className={cn("space-y-2 overflow-hidden p-4", className)} {...props}>
-    <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-      Parameters
-    </h4>
-    <div className="rounded-md bg-muted/50">
-      <CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+export const ToolInput = ({ className, input, ...props }: ToolInputProps) => {
+  const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
+
+  return (
+    <div className={cn("space-y-2 overflow-hidden p-4", className)} {...props}>
+      <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+        {t("labels.parameters")}
+      </h4>
+      <div className="rounded-md bg-muted/50">
+        <CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export type ToolOutputProps = ComponentProps<"div"> & {
   output: unknown | null;
@@ -231,6 +239,8 @@ export const ToolOutput = ({
   errorText,
   ...props
 }: ToolOutputProps) => {
+  const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
+
   if (!(output !== null || errorText !== null)) {
     return null;
   }
@@ -248,7 +258,7 @@ export const ToolOutput = ({
   return (
     <div className={cn("space-y-2 p-4", className)} {...props}>
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        {errorText ? "Error" : "Result"}
+        {errorText ? t("labels.error") : t("labels.result")}
       </h4>
       <div className="overflow-x-auto rounded-md bg-muted/50 text-foreground text-xs [&_table]:w-full">
         {errorText && (

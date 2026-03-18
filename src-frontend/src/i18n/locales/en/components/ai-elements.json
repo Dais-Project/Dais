@@ -1,0 +1,22 @@
+{
+    "status": {
+        "input_streaming": "Pending",
+        "input_available": "Running",
+        "approval_requested": "Awaiting approval",
+        "approval_responded": "Responded",
+        "output_available": "Completed",
+        "output_error": "Error",
+        "output_denied": "Denied"
+    },
+    "risk": {
+        "safe": "Safe",
+        "mostly_safe": "Mostly safe",
+        "risky": "Risky",
+        "dangerous": "Dangerous"
+    },
+    "labels": {
+        "parameters": "Parameters",
+        "result": "Result",
+        "error": "Error"
+    }
+}
