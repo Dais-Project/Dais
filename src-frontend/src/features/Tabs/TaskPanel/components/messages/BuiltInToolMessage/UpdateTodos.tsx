@@ -38,12 +38,12 @@ export function UpdateTodos({ message }: ToolMessageProps) {
     <CustomTool
       title={t("tool.update_todos.title")}
       icon={<ListTodoIcon className="size-4 text-muted-foreground" />}
-      defaultOpen
       state={state}
-      onUserReaction={(approved) => {
+      onUserReviewed={(approved) => {
         const reaction = approved ? "approved" : "denied";
         reviewTool(message.call_id, reaction, false);
       }}
+      defaultOpen
     >
       <CustomToolContent>
         {content}

@@ -219,7 +219,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
     <CustomTool
       title={t("tool.show_plan.title")}
       icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
-      defaultOpen
+      defaultOpen={!hasResult}
     >
       {content()}
       {!hasResult && (

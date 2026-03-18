@@ -1,6 +1,6 @@
 import { ChevronDownIcon } from "lucide-react";
 import { Activity } from "react";
-import type { ToolState } from "@/components/ai-elements/tool";
+import { RiskBadge, type ToolState } from "@/components/ai-elements/tool";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { activityVisible } from "@/lib/activity-visible";
 import { shouldShowConfirmation, ToolConfirmation } from "./ToolConfirmation";
@@ -13,11 +13,23 @@ type CustomToolProps = {
   icon: React.ReactNode;
   children: React.ReactNode;
   state?: ToolState;
+  risk?: {
+    level?: number;
+    reason?: string;
+  };
   defaultOpen?: boolean;
-  onUserReaction?: (approved: boolean) => void;
+  onUserReviewed?: (approved: boolean) => void;
 };
 
-export function CustomTool({ icon, title, children, state, defaultOpen = true, onUserReaction }: CustomToolProps) {
+export function CustomTool({
+  icon,
+  title,
+  children,
+  state,
+  risk = {},
+  defaultOpen = true,
+  onUserReviewed,
+}: CustomToolProps) {
   return (
     <Collapsible defaultOpen={defaultOpen} className="group selectable-text w-full rounded-md border">
       <CollapsibleTrigger className="sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3">
@@ -25,15 +37,20 @@ export function CustomTool({ icon, title, children, state, defaultOpen = true, o
           {icon}
           <span className="font-medium text-sm">{title}</span>
         </div>
-        <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+        <div className="flex items-center gap-2">
+          {(typeof risk.level === "number") && (
+            <RiskBadge riskLevel={risk.level} riskReason={risk.reason} />
+          )}
+          <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+        </div>
       </CollapsibleTrigger>
       {children}
       {state && (
         <Activity mode={activityVisible(shouldShowConfirmation(state))}>
           <ToolConfirmation
             state={state}
-            onAccept={() => onUserReaction?.(true)}
-            onReject={() => onUserReaction?.(false)}
+            onAccept={() => onUserReviewed?.(true)}
+            onReject={() => onUserReviewed?.(false)}
           />
         </Activity>
       )}

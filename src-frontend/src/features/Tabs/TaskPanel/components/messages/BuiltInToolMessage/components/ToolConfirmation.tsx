@@ -21,8 +21,7 @@ export function shouldShowConfirmation(state: ToolState): boolean {
   return ["approval-requested", "approval-responded", "output-denied"].includes(state);
 }
 
-export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmationProps) {
-  const { t } = useTranslation(TABS_TASK_NAMESPACE);
+export function resolveToolState(state: ToolState): boolean | undefined {
   let approved: boolean | undefined;
   if (state === "approval-responded") {
     approved = true;
@@ -30,13 +29,16 @@ export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmation
   if (state === "output-denied") {
     approved = false;
   }
+  return approved;
+}
+
+export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmationProps) {
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const approved = resolveToolState(state);
 
   return (
     <Confirmation
-      approval={{
-        id: nanoid(),
-        approved,
-      }}
+      approval={{ id: nanoid(), approved }}
       state={state}
       className="border-none"
     >

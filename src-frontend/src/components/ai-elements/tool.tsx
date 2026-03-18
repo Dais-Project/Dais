@@ -85,7 +85,7 @@ type RiskBadgeProps = {
   riskReason?: string;
 };
 
-function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
+export function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
   const normalizedRisk = Math.min(
     100,
     Math.max(0, Math.ceil(riskLevel / 10) * 10)
@@ -98,9 +98,9 @@ function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
       className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
     },
     {
-      label: "低风险",
+      label: "较安全",
       range: [30, 50],
-      className: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400",
+      className: "bg-lime-50 text-lime-700 dark:bg-lime-950/60 dark:text-lime-400",
     },
     {
       label: "中风险",
@@ -134,9 +134,9 @@ function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
   }
 
   return (
-    <Tooltip>
+    <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>{badge}</TooltipTrigger>
-      <TooltipContent>{riskReason}</TooltipContent>
+      <TooltipContent align="end">{riskReason}</TooltipContent>
     </Tooltip>
   );
 }
@@ -185,7 +185,7 @@ export const ToolHeader = ({
       {getStatusBadge(state)}
     </div>
     <div className="flex items-center gap-2">
-      {typeof riskLevel === "number" && (
+      {(typeof riskLevel === "number") && (
         <RiskBadge riskLevel={riskLevel} riskReason={riskReason} />
       )}
       <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
