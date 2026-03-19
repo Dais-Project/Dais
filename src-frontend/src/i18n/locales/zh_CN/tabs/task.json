@@ -67,12 +67,14 @@
       "approve": "批准计划",
       "copy_to_input": "复制到输入框",
       "feedback_placeholder": "在此输入对计划的修改意见...",
+      "generating": "计划参数生成中...",
       "parse_error": "计划参数解析失败",
       "submit_feedback": "提交修改意见",
       "title": "Dais 想要向你展示计划："
     },
     "update_todos": {
       "empty": "暂无待办更新",
+      "generating": "待办参数生成中...",
       "parse_error": "待办参数解析失败",
       "title": "已更新任务待办"
     }

@@ -67,12 +67,14 @@
       "approve": "Approve plan",
       "copy_to_input": "Copy to input",
       "feedback_placeholder": "Enter your plan revision feedback here...",
+      "generating": "Generating plan arguments...",
       "parse_error": "Failed to parse plan arguments",
       "submit_feedback": "Submit feedback",
       "title": "Dais wants to show you a plan:"
     },
     "update_todos": {
       "empty": "No todo updates",
+      "generating": "Generating todo arguments...",
       "parse_error": "Failed to parse todo arguments",
       "title": "Task todos updated"
     }

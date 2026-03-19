@@ -153,6 +153,9 @@ export function ShowPlan({ message }: ToolMessageProps) {
   };
 
   const content = () => {
+    if (message.isStreaming) {
+      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.show_plan.generating")}</p>;
+    }
     if (toolArguments === null) {
       return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.show_plan.parse_error")}</p>;
     }

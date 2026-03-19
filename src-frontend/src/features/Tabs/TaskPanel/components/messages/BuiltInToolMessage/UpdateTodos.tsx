@@ -19,7 +19,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
 
   const content = (() => {
     if (message.isStreaming) {
-      return null;
+      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.generating")}</p>;
     }
     if (toolArguments === null) {
       return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.parse_error")}</p>;
