@@ -364,7 +364,7 @@ class FileSystemToolset(BuiltInToolset):
     def search_file(self,
                     pattern: Annotated[str,
                         """
-                        The glob pattern used to match files.
+                        A glob pattern to match against file NAMES and PATHS.
                         Pattern examples:
                         - "*.py" matches all Python files
                         - "main.*" matches files like "main.py" and "main.txt"
@@ -379,7 +379,7 @@ class FileSystemToolset(BuiltInToolset):
                         "Use this if you can't find a specific file you're looking for."] = False
                    ) -> SearchFileResult:
         """
-        Request to search for files matching the specified pattern within the specified directory.
+        Search for files by NAME or PATH pattern within the specified directory.
         Use this when you need to find specific files in the project directory.
 
         Returns:

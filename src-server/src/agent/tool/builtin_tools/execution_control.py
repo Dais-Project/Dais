@@ -43,7 +43,7 @@ class ExecutionControlToolset(BuiltInToolset):
                         """
                         The complete and up-to-date list of all todo items.
                         Each call to this tool replaces the previous list entirely, so always include all existing items along with any changes.
-                        Each item should contains:
+                        Each item should contain:
                         - description: A concise description of the subtask.
                         - status: The current status of the subtask. Must be one of:
                             - "pending": The task has not been started yet.
@@ -65,6 +65,7 @@ class ExecutionControlToolset(BuiltInToolset):
         IMPORTANT:
             - Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items
             - Mark each todo step complete immediately when done - do not batch status updates
+            - Do not mark multiple items as `in_progress` at the same time. Only one item should be in_progress at any given time.
 
         Examples:
             <example>
