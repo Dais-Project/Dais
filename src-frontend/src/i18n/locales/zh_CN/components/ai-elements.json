@@ -1,22 +1,22 @@
 {
-    "status": {
-        "input_streaming": "待处理",
-        "input_available": "运行中",
-        "approval_requested": "等待批准",
-        "approval_responded": "已响应",
-        "output_available": "已完成",
-        "output_error": "错误",
-        "output_denied": "已拒绝"
-    },
-    "risk": {
-        "safe": "安全",
-        "mostly_safe": "较安全",
-        "risky": "风险",
-        "dangerous": "高风险"
-    },
-    "labels": {
-        "parameters": "参数",
-        "result": "结果",
-        "error": "错误"
-    }
+  "labels": {
+    "error": "错误",
+    "parameters": "参数",
+    "result": "结果"
+  },
+  "risk": {
+    "dangerous": "高风险",
+    "mostly_safe": "较安全",
+    "risky": "风险",
+    "safe": "安全"
+  },
+  "status": {
+    "approval_requested": "等待批准",
+    "approval_responded": "已响应",
+    "input_available": "运行中",
+    "input_streaming": "待处理",
+    "output_available": "已完成",
+    "output_denied": "已拒绝",
+    "output_error": "错误"
+  }
 }
