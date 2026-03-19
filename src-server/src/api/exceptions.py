@@ -10,6 +10,8 @@ class ApiErrorCode(str, Enum):
     PATH_NOT_DIRECTORY = "PATH_NOT_DIRECTORY"
     PATH_ACCESS_DENIED = "PATH_ACCESS_DENIED"
 
+    SUMMARIZE_TITLE_FAILED = "SUMMARIZE_TITLE_FAILED"
+
 class ApiError(Exception):
     """Base class for all API errors."""
     def __init__(self, status_code: int, error_code: ApiErrorCode | McpConnectErrorCode, *args) -> None:

@@ -15,6 +15,7 @@
   "PATH_NOT_DIRECTORY": "The selected path is not a folder.",
   "PATH_NOT_FOUND": "The selected path was not found.",
   "PROVIDER_NOT_FOUND": "The provider was not found.",
+  "SUMMARIZE_TITLE_FAILED": "Failed to generate title.",
   "TASK_MESSAGE_NOT_EDITABLE": "This message cannot be edited.",
   "TASK_MESSAGE_NOT_FOUND": "The message was not found.",
   "TASK_NOT_FOUND": "The task was not found.",

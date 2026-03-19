@@ -145,7 +145,7 @@ export function Tabs() {
   const tabs = useTabsStore((state) => state.tabs);
   const activeTabId = useTabsStore((state) => state.activeTabId);
   const setActiveTab = useTabsStore((state) => state.setActive);
-  const replaceTabs = useTabsStore((state) => state.replace);
+  const updateTabs = useTabsStore((state) => state.update);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const sensors = useSensors(
@@ -191,8 +191,7 @@ export function Tabs() {
     if (over && active.id !== over.id) {
       const oldIndex = tabs.findIndex((tab) => tab.id === active.id);
       const newIndex = tabs.findIndex((tab) => tab.id === over.id);
-      const newTabs = arrayMove(tabs, oldIndex, newIndex);
-      replaceTabs(newTabs);
+      updateTabs((draft) => arrayMove(draft, oldIndex, newIndex));
     }
   };
 

@@ -15,6 +15,7 @@
   "PATH_NOT_DIRECTORY": "该路径不是文件夹。",
   "PATH_NOT_FOUND": "未找到指定路径。",
   "PROVIDER_NOT_FOUND": "未找到该提供商。",
+  "SUMMARIZE_TITLE_FAILED": "生成标题失败。",
   "TASK_MESSAGE_NOT_EDITABLE": "该消息不可编辑。",
   "TASK_MESSAGE_NOT_FOUND": "未找到该消息。",
   "TASK_NOT_FOUND": "未找到该任务。",

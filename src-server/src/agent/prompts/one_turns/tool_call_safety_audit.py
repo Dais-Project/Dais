@@ -124,6 +124,7 @@ from dais_sdk import LLM, OneTurn
 from dais_sdk.types import (
     ToolSchema, Message, ToolMessage
 )
+from .utils import format_context
 
 @dataclass
 class ToolCallSafetyAuditInput:
@@ -156,34 +157,6 @@ class ToolCallSafetyAudit(OneTurn[ToolCallSafetyAuditInput, ToolCallSafetyAuditO
                 ET.SubElement(tool_elem, "input_schema").text = json.dumps(t["parameters"], ensure_ascii=False)
             return root
 
-        def context_xml(context: list[Message]) -> ET.Element:
-            root = ET.Element("context")
-            for msg in context:
-                match msg.role:
-                    case "user":
-                        msg_elem = ET.SubElement(root, "message", role="user")
-                        ET.SubElement(msg_elem, "content").text = msg.content
-                    case "assistant":
-                        msg_elem = ET.SubElement(root, "message", role="assistant")
-                        ET.SubElement(msg_elem, "content").text = msg.content
-                        if msg.tool_calls is not None:
-                            tool_calls_elem = ET.SubElement(msg_elem, "tool_calls")
-                            for tool_call in msg.tool_calls:
-                                tool_call_elem = ET.SubElement(tool_calls_elem, "tool_call")
-                                ET.SubElement(tool_call_elem, "id").text = tool_call.id
-                                ET.SubElement(tool_call_elem, "name").text = tool_call.name
-                                ET.SubElement(tool_call_elem, "arguments").text = json.dumps(tool_call.arguments, ensure_ascii=False)
-                    case "tool":
-                        msg_elem = ET.SubElement(root, "message", role="tool")
-                        ET.SubElement(msg_elem, "name").text = msg.name
-                        ET.SubElement(msg_elem, "arguments").text = json.dumps(msg.arguments, ensure_ascii=False)
-                        if msg.result is not None:
-                            ET.SubElement(msg_elem, "result").text = msg.result
-                        if msg.error is not None:
-                            ET.SubElement(msg_elem, "error").text = msg.error
-                    case _: ... # do nothing for other message types
-            return root
-
         def pending_tool_calls_xml(pending_tool_messages: list[ToolMessage]) -> ET.Element:
             root = ET.Element("pending_tool_calls")
 
@@ -194,8 +167,11 @@ class ToolCallSafetyAudit(OneTurn[ToolCallSafetyAuditInput, ToolCallSafetyAuditO
                 ET.SubElement(tool_call_elem, "arguments").text = json.dumps(message.arguments, ensure_ascii=False)
             return root
 
+        context_root = ET.Element("context")
+        context_root.extend(format_context(input.context))
+
         return "".join([ET.tostring(el, encoding="unicode") for el in (
             tool_definitions_xml(input.tool_definitions),
-            context_xml(input.context),
+            context_root,
             pending_tool_calls_xml(input.pending_tool_calls),
         )])

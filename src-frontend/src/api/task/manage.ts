@@ -5,7 +5,8 @@ export {
   useGetTaskSuspense,
   useGetTasksSuspenseInfinite,
   useCreateTask,
-  useEditTaskMessage
+  useEditTaskMessage,
+  useSummarizeTaskTitle,
 } from "../generated/endpoints/task/task";
 
 import queryClient from "@/query-client";

@@ -10,7 +10,5 @@ def handle_tool_argument_decode_error(e: ToolArgumentDecodeError) -> str:
 def handle_tool_execution_error(e: ToolExecutionError) -> str:
     return f"""
 [System] Failed to execute tool:
-Tool name: {get_tool_name(e.tool)}
-Tool arguments: {e.arguments}
 Error: {e.raw_error}
 """.strip()

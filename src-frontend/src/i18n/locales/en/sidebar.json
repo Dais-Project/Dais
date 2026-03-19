@@ -118,13 +118,11 @@
     },
     "menu": {
       "delete": "Delete",
-      "rename": "Edit task name"
+      "regenerate_title": "Regenerate title"
     },
     "toast": {
       "delete_success_description": "Task deleted successfully.",
-      "delete_success_title": "Delete success",
-      "rename_feature_description": "Rename feature is not implemented yet",
-      "rename_feature_title": "Rename feature"
+      "delete_success_title": "Delete success"
     }
   },
   "toolsets": {

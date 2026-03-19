@@ -1,19 +1,16 @@
 import { formatDistanceToNow } from "date-fns";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { RefreshCwIcon, TrashIcon } from "lucide-react";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
-import type React from "react";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { produce } from "immer";
 import { toast } from "sonner";
-import { InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import type { PageTaskBrief, TaskBrief, TaskTitleUpdatedEvent } from "@/api/generated/schemas";
+import type { TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
-  getGetTasksInfiniteQueryKey,
   useDeleteTask,
   useGetTasksSuspenseInfinite,
+  useSummarizeTaskTitle,
 } from "@/api/task";
 import { invalidateTaskQueries } from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
@@ -32,9 +29,9 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-opt
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import SseDispatcher from "@/lib/sse-dispatcher";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
+import { updateTaskTitle } from "@/features/resource/task-actions";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -58,33 +55,26 @@ function openTaskTab(task: TaskBrief) {
 function removeTaskTab(taskId: number) {
   const removeTabs = useTabsStore.getState().remove;
   removeTabs((tab) => (tab.type === "task" &&
-                       !tab.metadata.isDraft &&
-                       tab.metadata.id === taskId));
+    !tab.metadata.isDraft &&
+    tab.metadata.id === taskId));
 }
 
 type TaskItemProps = {
   task: TaskBrief;
+  onRegenerateTitle: (task: TaskBrief) => void;
   onDelete: (task: TaskBrief) => void;
 };
 
-function TaskItem({ task, onDelete }: TaskItemProps) {
+function TaskItem({ task, onRegenerateTitle, onDelete }: TaskItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
-  const handleClick = () => {
-    openTaskTab(task);
-  };
-
-  const handleRename = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast.info(t("tasks.toast.rename_feature_title"), {
-      description: t("tasks.toast.rename_feature_description"),
-    });
-  };
-
   return (
     <ActionableItem>
-      <ActionableItemTrigger className="cursor-pointer" onClick={handleClick}>
+      <ActionableItemTrigger
+        className="cursor-pointer"
+        onClick={() => openTaskTab(task)}
+      >
         <ActionableItemIcon>
           <DynamicIcon name={task.icon_name as IconName} />
         </ActionableItemIcon>
@@ -98,9 +88,9 @@ function TaskItem({ task, onDelete }: TaskItemProps) {
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem onClick={handleRename}>
-          <PencilIcon />
-          <span>{t("tasks.menu.rename")}</span>
+        <ActionableItemMenuItem onClick={() => onRegenerateTitle(task)}>
+          <RefreshCwIcon />
+          <span>{t("tasks.menu.regenerate_title")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(task)}>
           <TrashIcon />
@@ -119,27 +109,13 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
   const deleteTaskMutation = useDeleteTask();
-
-  useEffect(() =>
-    SseDispatcher.subscribe("TASK_TITLE_UPDATED", ({ task_id, title }: TaskTitleUpdatedEvent) => {
-      const queryKey = getGetTasksInfiniteQueryKey({ workspace_id: workspaceId });
-      queryClient.setQueryData<InfiniteData<PageTaskBrief>>(
-        queryKey, produce((draft) => {
-          if (!draft) {
-            return;
-          }
-          for (const page of draft.pages) {
-            for (const item of page.items) {
-              if (item.id === task_id) {
-                item.title = title;
-                return;
-              }
-            }
-          }
-        })
-      );
-    })
-  , [queryClient, workspaceId]);
+  const summarizeTaskTitleMutation = useSummarizeTaskTitle({
+    mutation: {
+      onSuccess(taskRead) {
+        updateTaskTitle(workspaceId, taskRead.id, taskRead.title);
+      },
+    },
+  });
 
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     async onConfirm(task) {
@@ -154,6 +130,10 @@ export function TaskList({ workspaceId }: TaskListProps) {
       });
     }
   });
+
+  const handleRegenerateTitle = (task: TaskBrief) => {
+    summarizeTaskTitleMutation.mutate({ taskId: task.id });
+  };
 
   const query = useGetTasksSuspenseInfinite(
     { workspace_id: workspaceId },
@@ -177,7 +157,14 @@ export function TaskList({ workspaceId }: TaskListProps) {
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}
-          itemRender={(task) => <TaskItem key={task.id} task={task} onDelete={asyncConfirm.trigger} />}
+          itemRender={(task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onRegenerateTitle={handleRegenerateTitle}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
         />
       </ScrollArea>
       <ConfirmDeleteDialog

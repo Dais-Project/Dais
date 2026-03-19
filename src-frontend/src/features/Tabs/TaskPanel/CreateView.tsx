@@ -2,21 +2,36 @@ import logo from "@shared/icon-square.png";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import { getGetTaskQueryKey, invalidateTaskQueries, useCreateTask } from "@/api/task";
+import {
+  getGetTaskQueryKey,
+  invalidateTaskQueries,
+  useCreateTask,
+  useSummarizeTaskTitle,
+} from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
 import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
+import { updateTaskTitle } from "@/features/resource/task-actions";
 
 export function CreateView({ tabId }: { tabId: string }) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const queryClient = useQueryClient();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
+
+  const summarizeTaskTitleMutation = useSummarizeTaskTitle({
+    mutation: {
+      async onSuccess(taskRead) {
+        updateTaskTitle(currentWorkspace!.id, taskRead.id, taskRead.title);
+      },
+    },
+  });
   const createTaskMutation = useCreateTask({
     mutation: {
       async onSuccess(taskRead) {
+        summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
         if (currentWorkspace) {
           await invalidateTaskQueries({ workspaceId: currentWorkspace.id });
         }

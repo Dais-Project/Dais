@@ -118,13 +118,11 @@
     },
     "menu": {
       "delete": "删除",
-      "rename": "编辑任务名称"
+      "regenerate_title": "重新生成标题"
     },
     "toast": {
       "delete_success_description": "已成功删除任务。",
-      "delete_success_title": "删除成功",
-      "rename_feature_description": "重命名功能待实现",
-      "rename_feature_title": "重命名功能"
+      "delete_success_title": "删除成功"
     }
   },
   "toolsets": {
