@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Markdown } from "@/components/custom/Markdown";
+import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
@@ -36,6 +37,7 @@ function PlanAlternatives({
   onFill,
 }: PlanAlternativesProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const scrollAreaRef = useHorizontalScroll<HTMLDivElement>();
 
   if (alternatives.length === 0) {
     return null;
@@ -56,7 +58,7 @@ function PlanAlternatives({
   };
 
   return (
-    <ScrollArea className="w-full">
+    <ScrollArea ref={scrollAreaRef} className="w-full">
       <div className="flex items-start gap-3 px-4 pb-4">
         {alternatives.map((alternative, index) => {
           const isSelected = selectedAlternative === alternative;

@@ -18,11 +18,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
 import { TABS_NAMESPACE } from "@/i18n/resources";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
 import type {
@@ -147,37 +147,13 @@ export function Tabs() {
   const setActiveTab = useTabsStore((state) => state.setActive);
   const updateTabs = useTabsStore((state) => state.update);
 
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useHorizontalScroll<HTMLDivElement>();
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  useEffect(() => {
-    const scrollArea = scrollAreaRef.current;
-    if (!scrollArea) {
-      return;
-    }
-
-    // support horizontal scrolling with mouse wheel
-    const viewport = scrollArea.querySelector("div[data-radix-scroll-area-viewport]") as HTMLElement | null;
-    if (!viewport) {
-      return;
-    }
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY === 0) {
-        return;
-      }
-      e.preventDefault();
-      viewport.scrollLeft += e.deltaY;
-    };
-
-    viewport.addEventListener("wheel", handleWheel);
-    return () => viewport.removeEventListener("wheel", handleWheel);
-  }, []);
 
   const handleTabSelect = (index: number) => {
     if (tabs[index]) {
