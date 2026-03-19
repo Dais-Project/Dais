@@ -39,6 +39,7 @@ def setup_logging(log_level: int):
 
     NOISY_LIBS = (
         "aiosqlite",
+        "binaryornot",
         "httpcore",
         "httpx",
         "mcp",
