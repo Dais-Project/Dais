@@ -28,7 +28,7 @@ class UserInteractionToolset(BuiltInToolset):
         When SHOULD to use:
             - The following action is **irreversible** (file deletion, sending messages, making payments, system configuration changes, etc.) and the user has not explicitly confirmed intent
             - A required parameter cannot be inferred from context and has no safe default
-            - A nessesary tool use has failed 3 consecutive times
+            - A necessary tool use has failed 3 consecutive times
             - The task has two (or more) valid interpretations with meaningfully different outcomes, and assumption cost is high
 
         When NOT to use:
@@ -65,13 +65,13 @@ class UserInteractionToolset(BuiltInToolset):
                   ) -> str:
         """
         Present a structured execution plan to the user for review before starting a complex task.
-        Call this tool once you have finalized your plan - do NOT call it speculatively or mid-execution.
+        Call this tool once you have finalized your plan — do NOT call it speculatively or mid-execution.
 
         The UI will render the plan and alternatives automatically.
         Do NOT repeat or summarize the plan content in your accompanying text response.
 
         Returns:
             Either a user approval confirmation (proceed with execution),
-            or user feedback describing requested changes - which may be a direct selection from the provided alternatives, or free-form input (revise the plan accordingly before proceeding).
+            or user feedback describing requested changes — which may be a direct selection from the provided alternatives, or free-form input (revise the plan accordingly before proceeding).
         """
         ...

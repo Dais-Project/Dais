@@ -1,7 +1,7 @@
 INSTRUCTION = """\
 Generate a concise title for the conversation in {language}.
 
-CRITICAL: Your response must contain ONLY the title itself - no explanations, no "Here is the title:", no quotes, no punctuation at the end.
+CRITICAL: Your response must contain ONLY the title itself — no explanations, no "Here is the title:", no quotes, no punctuation at the end.
 
 ## Input format
 

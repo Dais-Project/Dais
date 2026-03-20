@@ -292,17 +292,19 @@ class FileSystemToolset(BuiltInToolset):
                   path: Annotated[str,
                     "The path of the file to edit (relative to the current working directory)."],
                   old_content: Annotated[str,
-                    "The exact old content to replace. It must match exactly once in the target file."],
+                    "The exact snippet to be replaced. Must match exactly once in the file."],
                   new_content: Annotated[str,
-                    "The new content that will replace old_content."]
+                    "The new snippet that will replace old_content."]
                   ) -> str:
         """
-        Request to edit the content of a file at the specified path.
+        Edit a file by replacing a specific snippet with new content.
+        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change.
+
         Use this when you need to edit an existing file with existing content you have read before.
-        If the passed in old_content does not match the actual content or match in multiple places, this tool will raise an error.
+        If old_content does not match exactly once in the file, this tool will raise an error.
 
         Returns:
-            The diff of the old content and the new content.
+            The unified diff of the applied change.
         """
 
         def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
@@ -366,9 +368,9 @@ class FileSystemToolset(BuiltInToolset):
                         """
                         A glob pattern to match against file NAMES and PATHS.
                         Pattern examples:
-                        - "*.py" matches all Python files
-                        - "main.*" matches files like "main.py" and "main.txt"
-                        - "docs/*.md" matches all Markdown files in the "docs" directory
+                        - "*.py"       → files whose name ends with .py
+                        - "main.*"     → files named "main" with any extension
+                        - "docs/*.md"  → .md files inside the "docs/" directory
                         """],
                     path: Annotated[str,
                         "(Default: \".\") The path of the directory to search in (relative to the current working directory)."] = ".",
@@ -379,8 +381,9 @@ class FileSystemToolset(BuiltInToolset):
                         "Use this if you can't find a specific file you're looking for."] = False
                    ) -> SearchFileResult:
         """
-        Search for files by NAME or PATH pattern within the specified directory.
-        Use this when you need to find specific files in the project directory.
+        Search for files whose **names** match the glob pattern within a directory.
+        This tool matches against file paths/names only — it does NOT search file contents.
+        Use this when you need to locate files by name, extension, or path structure.
 
         Returns:
             A JSON object containing the search results.

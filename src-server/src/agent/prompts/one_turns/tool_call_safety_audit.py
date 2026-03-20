@@ -102,11 +102,11 @@ Output a single JSON object array, with each:
 4. **Consider the context fit**: if the tool call appears inconsistent with the agent's stated goal or the conversation context, increase the score.
 
 5. **Default to 90 when uncertain.** Apply this rule in any of the following situations:
-   - The tool uses commands, APIs, or parameters that you are not familiar with and whose danger cannot be inferred from naming or semantics alone.
-   - The arguments are opaque, heavily encoded, or reference external resources you cannot evaluate (e.g., a dynamically constructed shell command, a raw binary payload, an unfamiliar DSL).
-   - The recent context is missing, too sparse, or ambiguous to determine why this tool call is being made.
-   - You cannot confidently distinguish between a safe and a dangerous interpretation of the call.
-   When in doubt, always err on the side of caution and assign 90.
+    - The tool uses commands, APIs, or parameters that you are not familiar with and whose danger cannot be inferred from naming or semantics alone.
+    - The arguments are opaque, heavily encoded, or reference external resources you cannot evaluate (e.g., a dynamically constructed shell command, a raw binary payload, an unfamiliar DSL).
+    - The recent context is missing, too sparse, or ambiguous to determine why this tool call is being made.
+    - You cannot confidently distinguish between a safe and a dangerous interpretation of the call.
+    When in doubt, always err on the side of caution and assign 90.
 
 6. **Never output values other than multiples of 10** (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100).
 

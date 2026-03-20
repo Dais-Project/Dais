@@ -45,7 +45,7 @@ class OsInteractionsToolset(BuiltInToolset):
         """
         Request to execute a shell command.
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
-        This is a LOW PRIORITY tool - only use this tool when no suitable specialized tool is available.
+        This is a LOW PRIORITY tool — only use this tool when no suitable specialized tool is available.
 
         IMPORTANTS:
             - DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons

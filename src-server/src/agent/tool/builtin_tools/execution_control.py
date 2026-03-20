@@ -64,7 +64,7 @@ class ExecutionControlToolset(BuiltInToolset):
 
         IMPORTANT:
             - Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items
-            - Mark each todo step complete immediately when done - do not batch status updates
+            - Mark each todo step complete immediately when done — do not batch status updates
             - Do not mark multiple items as `in_progress` at the same time. Only one item should be in_progress at any given time.
 
         Examples:
