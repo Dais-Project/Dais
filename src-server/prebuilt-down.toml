@@ -1,0 +1,11 @@
+[ripgrep]
+target = "bin/ripgrep/"
+
+[ripgrep.windows-x64]
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-pc-windows-msvc.zip"
+root = "ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+archive = "zip"
+
+[ripgrep.windows-x64.hash]
+algorithm = "sha256"
+digest = "124510b94b6baa3380d051fdf4650eaa80a302c876d611e9dba0b2e18d87493a"
