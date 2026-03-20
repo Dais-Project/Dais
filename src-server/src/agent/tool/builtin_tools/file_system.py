@@ -44,9 +44,6 @@ class FileSystemToolset(BuiltInToolset):
         Use this when you need to examine the contents of an existing file you do not know the contents of,\
         for example to analyze code, review text files, or extract information from configuration files.
 
-        Raises:
-            FileNotFoundError: If the specified path does not exist            
-
         Returns:
             The contents of the file, with optional line numbers added.
         """
@@ -98,19 +95,6 @@ class FileSystemToolset(BuiltInToolset):
         for easy reference. Directories are listed before files, and items are sorted alphabetically
         within their type.
 
-        Returns:
-            A formatted string containing:
-            - Directory header showing the path being listed
-            - Numbered list of directories (first) and files (second) with type indicators
-            - For recursive mode: hierarchical numbering (e.g., 1, 1.1, 1.1.1)
-            - Directories are marked with [dir], files with [file], symlinks with [symlink -> target]
-            - Items are sorted: directories first, then files, alphabetically within each type
-
-        Raises:
-            FileNotFoundError: If the specified path does not exist
-            NotADirectoryError: If the specified path is not a directory
-            PermissionError: If the user does not have permission to access the directory
-
         Examples:
             Non-recursive listing:
             >>> list_directory("src")
@@ -145,6 +129,14 @@ class FileSystemToolset(BuiltInToolset):
               1.2 [file] context.py
             2 [symlink -> /external/data] data
             3 [file] __init__.py
+
+        Returns:
+            A formatted string containing:
+            - Directory header showing the path being listed
+            - Numbered list of directories (first) and files (second) with type indicators
+            - For recursive mode: hierarchical numbering (e.g., 1, 1.1, 1.1.1)
+            - Directories are marked with [dir], files with [file], symlinks with [symlink -> target]
+            - Items are sorted: directories first, then files, alphabetically within each type
         """
 
         def filter_items(items: Iterator[Path], spec: pathspec.PathSpec | None) -> Iterator[Path]:
@@ -271,12 +263,12 @@ class FileSystemToolset(BuiltInToolset):
 
         WARNING: This tool will raise an error when overwriting existing files that are not read before.
 
-        Returns:
-            A success message if the file was written successfully.
-
         Examples:
             >>> write_file("test.txt", "Hello World!")
             File written successfully.
+
+        Returns:
+            A success message if the file was written successfully.
         """
         abs_path = self._ctx.cwd / path
 
@@ -294,17 +286,23 @@ class FileSystemToolset(BuiltInToolset):
                   old_content: Annotated[str,
                     "The exact snippet to be replaced. Must match exactly once in the file."],
                   new_content: Annotated[str,
-                    "The new snippet that will replace old_content."]
+                    "The new snippet that will replace old_content."],
+                  expected_replacements: Annotated[int,
+                    "Number of replacements expected. Defaults to 1 if not specified. Use when you want to replace multiple occurrences of the same text."] = 1
                   ) -> str:
         """
         Edit a file by replacing a specific snippet with new content.
-        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change.
+        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change (though you may include a few extra lines BEFORE and AFTER the target text to ensure uniqueness).
 
         Use this when you need to edit an existing file with existing content you have read before.
-        If old_content does not match exactly once in the file, this tool will raise an error.
+        If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
+        The tool will raise an error if the actual count differs (too few or too many) from `expected_replacements`.
 
         Returns:
             The unified diff of the applied change.
+
+        Note:
+            If old_content matches more times than expected, expand it to include more surrounding context until it uniquely identifies the target location(s).
         """
 
         def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
@@ -325,11 +323,14 @@ class FileSystemToolset(BuiltInToolset):
         count = content.count(old_content)
         if count == 0:
             raise ValueError(f"Content not found in file: {path}")
-        if count > 1:
-            raise ValueError(f"Content found multiple times in file: {path}")
+        if count < expected_replacements:
+            raise ValueError(
+                f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
+                f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
+            )
 
         old_file_content = content
-        new_file_content = content.replace(old_content, new_content, 1)
+        new_file_content = content.replace(old_content, new_content, expected_replacements)
         abs_path.write_text(new_file_content, encoding="utf-8")
         return generate_diff(old_file_content, new_file_content, path)
 
