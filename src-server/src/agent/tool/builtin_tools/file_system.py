@@ -1,3 +1,4 @@
+import asyncio
 import difflib
 import shutil
 import pathspec
@@ -9,6 +10,7 @@ from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetConte
 from ....db.models import toolset as toolset_models
 from ....utils.scandir_recursive import scandir_recursive_bfs
 from ....utils.ignore_rules import load_gitignore_spec, should_exclude
+from ....binaries import RIPGREP_PATH
 
 # TODO: use to_thread to prevent blocking
 
@@ -35,7 +37,7 @@ class FileSystemToolset(BuiltInToolset):
                   path: Annotated[str,
                     "The path of the file to read (relative to the current working directory)."],
                   enable_line_numbers: Annotated[bool,
-                    "(Default: False) Whether to add line numbers to the file content, if you want to edit the read file later, you may need to enable this option."] = False
+                    "Whether to add line numbers to the file content, if you want to edit the read file later, you may need to enable this option."] = False
                  ) -> str:
         """
         Request to read the contents of a file at the specified path.
@@ -71,20 +73,20 @@ class FileSystemToolset(BuiltInToolset):
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def list_directory(self,
                        path: Annotated[str,
-                        "(Default: \".\") The path of the directory to list contents for (relative to the current working directory)."] = ".",
+                        "The path of the directory to list contents for (relative to the current working directory)."] = ".",
                        recursive: Annotated[bool,
-                        "(Default: False) Whether to list files recursively. Use True for recursive listing, False for top-level only."] = False,
+                        "Whether to list files recursively. Use True for recursive listing, False for top-level only."] = False,
                        max_depth: Annotated[int | None,
                         """
-                        (Default: None) Maximum depth for recursive listing.
-                        - None: No limit (list all nested directories)
+                        Maximum depth for recursive listing.
+                        - Unset: No limit (list all nested directories)
                         - 1: Only direct children (equivalent to recursive=False)
                         - 2: List up to 2 levels deep
                         - n: List up to n levels deep
                         This parameter is only effective when recursive=True.
                         """] = None,
                        show_all: Annotated[bool,
-                        "(Default: False) Whether to include hidden files and files ignored by .gitignore."\
+                        "Whether to include hidden files and files ignored by .gitignore."
                         "Use this if you can't find a specific file you're looking for."] = False,
                        ) -> str:
         """
@@ -364,27 +366,29 @@ class FileSystemToolset(BuiltInToolset):
         matches: list[str]
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    def search_file(self,
-                    pattern: Annotated[str,
-                        """
-                        A glob pattern to match against file NAMES and PATHS.
-                        Pattern examples:
-                        - "*.py"       → files whose name ends with .py
-                        - "main.*"     → files named "main" with any extension
-                        - "docs/*.md"  → .md files inside the "docs/" directory
-                        """],
-                    path: Annotated[str,
-                        "(Default: \".\") The path of the directory to search in (relative to the current working directory)."] = ".",
-                    limit: Annotated[int,
-                        "(Default: 60) The maximum number of matching file paths to return."] = 60,
-                    show_all: Annotated[bool,
-                        "(Default: False) Whether to include hidden files and files ignored by .gitignore. "
-                        "Use this if you can't find a specific file you're looking for."] = False
+    def find_files(self,
+                   pattern: Annotated[str,
+                       """
+                       A glob pattern to match against file NAMES and PATHS.
+                       Pattern examples:
+                       - "*.py"       → files whose name ends with .py
+                       - "main.*"     → files named "main" with any extension
+                       - "docs/*.md"  → .md files inside the "docs/" directory
+                       """],
+                   path: Annotated[str,
+                       "The path of the directory to search in (relative to the current working directory)."] = ".",
+                   limit: Annotated[int,
+                       "The maximum number of matching file paths to return."] = 60,
+                   show_all: Annotated[bool,
+                       "Whether to include hidden files and files ignored by .gitignore. "
+                       "Use this if you can't find a specific file you're looking for."] = False
                    ) -> SearchFileResult:
         """
-        Search for files whose **names** match the glob pattern within a directory.
-        This tool matches against file paths/names only — it does NOT search file contents.
+        Search for files whose **NAMES or PATHS** match the glob pattern within a directory.
         Use this when you need to locate files by name, extension, or path structure.
+
+        Note:
+            This tool matches file paths/names ONLY. It does NOT read or search inside file contents.
 
         Returns:
             A JSON object containing the search results.
@@ -392,6 +396,18 @@ class FileSystemToolset(BuiltInToolset):
             - search_root: The root directory for the search.
             - total: The total number of matching files found.
             - matches: A list of relative file paths that match the pattern.
+
+        Example:
+            >>>find_files(pattern="*.py", path="src")
+            {
+                "search_root": "/workspace/src",
+                "total": 3,
+                "matches": [
+                    "main.py",
+                    "utils/helper.py",
+                    "tests/test_main.py"
+                ]
+            }
         """
 
         def scan_collect(directory: Path) -> list[str]:
@@ -419,3 +435,61 @@ class FileSystemToolset(BuiltInToolset):
             "total": len(results),
             "matches": results,
         }
+
+    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    async def search_text(self,
+                          regex: Annotated[str,
+                            "The search pattern. Supports regular expressions by default. Use simple strings for literal searches."],
+                          path: Annotated[str,
+                            "The path to search in (relative to the current working directory), accepts either a directory path or a specific file path."] = ".",
+                          file_pattern: Annotated[str | None,
+                            """
+                            A glob pattern to filter which files are searched, matched against file names and paths.
+                            Pattern examples:
+                            - "*.py"       → files whose name ends with .py
+                            - "*.{ts,tsx}" → TypeScript files
+                            - "docs/*.md"  → .md files inside the "docs/" directory
+                            - "!*.test.py" → exclude test files
+                            Leave unset to search all non-binary files.
+                            """
+                            ] = None
+                         ) -> str:
+        """
+        Perform a regex search across files in a specified directory, providing context-rich results.
+        This tool searches for patterns or specific content across multiple files, displaying each match with encapsulating context.
+
+        Craft your regex patterns carefully to balance specificity and flexibility.
+        Use this tool to find any text-based information across the project.
+        The results include surrounding context, so analyze the surrounding code to better understand the matches.
+
+        Example:
+            >>>search_text(regex="def main\\(", path="src", file_pattern="*.py")
+            src/main.py
+            52-    return result
+            53-
+            54:def main():
+            55-    parser = argparse.ArgumentParser()
+            56-    parser.add_argument("--args")
+        """
+        args = [
+            "-n", # show line numbers
+            "-C", "2", # 2 lines of context
+            "-m", "30", # max 30 matches
+            "--path-separator", "/",
+            "--smart-case",
+            regex,
+            path,
+        ]
+        if file_pattern:
+            args += ["--glob", file_pattern]
+        proc = await asyncio.create_subprocess_exec(
+            RIPGREP_PATH,
+            *args,
+            cwd=self._ctx.cwd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if proc.returncode not in (0, 1):
+            raise Exception(stderr.decode())
+        return stdout.decode() or "[System] No matches found."

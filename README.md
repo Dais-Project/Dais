@@ -24,7 +24,14 @@
 
 ## Development
 
-This project uses Nx to manage all the development commands, use `pnpm` to run the available scripts in [`package.json`](package.json).
+### Prerequisites
+
+- uv
+- pnpm
+- node
+- rustup
+
+### Commands
 
 Install dependencies (postinstall will run `nx run-many -t install` for subprojects)
 ```

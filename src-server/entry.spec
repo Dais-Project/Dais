@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import platform
 import magika
 
 project_root = SPECPATH
@@ -14,6 +15,13 @@ magika_pkg_dir = os.path.dirname(magika.__file__)
 magika_config_dir = os.path.join(magika_pkg_dir, "config")
 magika_models_dir = os.path.join(magika_pkg_dir, "models")
 
+# ripgrep resources
+if platform.system() == "Windows":
+    ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg.exe")
+else:
+    ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg")
+
+
 a = Analysis(
     ["entry.py"],
     pathex=[],
@@ -25,6 +33,8 @@ a = Analysis(
 
         (magika_config_dir, "magika/config"),
         (magika_models_dir, "magika/models"),
+
+        (ripgrep_bin_path, "bin/ripgrep"),
     ],
     hiddenimports=[
         "aiosqlite",

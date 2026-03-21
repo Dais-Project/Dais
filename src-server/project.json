@@ -12,6 +12,19 @@
         "{projectRoot}/uv.lock"
       ]
     },
+    "install-prebuilts": {
+      "executor": "nx:run-commands",
+      "inputs": [
+        "{projectRoot}/prebuilt-down.toml"
+      ],
+      "options": {
+        "commands": [
+          "cargo install prebuilt-down",
+          "prebuilt-down"
+        ],
+        "parallel": false
+      }
+    },
     "test": {
       "command": "uv run pytest",
       "dependsOn": [
@@ -23,6 +36,7 @@
       "continuous": true,
       "dependsOn": [
         "install",
+        "install-prebuilts",
         "watch-schema"
       ]
     },
@@ -40,6 +54,7 @@
       "executor": "nx:run-commands",
       "dependsOn": [
         "install",
+        "install-prebuilts",
         {
           "target": "build",
           "projects": [

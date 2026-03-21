@@ -18,7 +18,7 @@ class UserInteractionToolset(BuiltInToolset):
                     """],
                  options: Annotated[list[str] | None,
                     """
-                    (Default: None) Specific options for the user to choose from.
+                    Specific options for the user to choose from.
                     If provided, the user is forced to choose one option.
                     """] = None
                  ) -> str:
@@ -58,7 +58,7 @@ class UserInteractionToolset(BuiltInToolset):
                     """],
                   alternatives: Annotated[list[str] | None,
                     """
-                    (Default: None) Alternative approaches you considered but did not include in the current plan, along with a brief reason for each trade-off.
+                    Alternative approaches you considered but did not include in the current plan, along with a brief reason for each trade-off.
                     Include 2-4 options when the plan has meaningful trade-offs or ambiguities worth surfacing to the user.
                     Omit only for truly mechanical tasks with a single obvious approach.
                     """] = None
