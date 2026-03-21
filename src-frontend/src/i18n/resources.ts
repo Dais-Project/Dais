@@ -10,9 +10,10 @@ import enTabsTask from "./locales/en/tabs/task.json";
 import enTabsToolset from "./locales/en/tabs/toolset.json";
 import enTabsWorkspace from "./locales/en/tabs/workspace.json";
 import enError from "./locales/en/error.json";
+import enComponentsUi from "./locales/en/components/ui.json";
 import enComponentsAiElements from "./locales/en/components/ai-elements.json";
-import enComponentsCustom from "./locales/en/components/custom.json";
 import enComponentsStreamdown from "./locales/en/components/streamdown.json";
+import enComponentsCustom from "./locales/en/components/custom.json";
 import zhCnDialog from "./locales/zh_CN/dialog.json";
 import zhCnForm from "./locales/zh_CN/form.json";
 import zhCnSideBar from "./locales/zh_CN/sidebar.json";
@@ -23,9 +24,10 @@ import zhCnTabsTask from "./locales/zh_CN/tabs/task.json";
 import zhCnTabsToolset from "./locales/zh_CN/tabs/toolset.json";
 import zhCnTabsWorkspace from "./locales/zh_CN/tabs/workspace.json";
 import zhCnError from "./locales/zh_CN/error.json";
+import zhCnComponentsUi from "./locales/zh_CN/components/ui.json";
 import zhCnComponentsAiElements from "./locales/zh_CN/components/ai-elements.json";
-import zhCnComponentsCustom from "./locales/zh_CN/components/custom.json";
 import zhCnComponentsStreamdown from "./locales/zh_CN/components/streamdown.json";
+import zhCnComponentsCustom from "./locales/zh_CN/components/custom.json";
 
 export const FORM_NAMESPACE = "form";
 export const DIALOG_NAMESPACE = "dialog";
@@ -39,6 +41,7 @@ export const TABS_TASK_NAMESPACE = "tabs/task";
 export const COMPONENTS_AI_ELEMENTS_NAMESPACE = "components/ai-elements";
 export const COMPONENTS_CUSTOM_NAMESPACE = "components/custom";
 export const COMPONENTS_STREAMDOWN_NAMESPACE = "components/streamdown";
+export const COMPONENTS_UI_NAMESPACE = "components/ui";
 export const ERROR_NAMESPACE = "error";
 
 export const FALLBACK_LANGUAGE: Language = "en";
@@ -55,9 +58,10 @@ export const resources: Resource = {
     [TABS_TOOLSET_NAMESPACE]: enTabsToolset,
     [TABS_WORKSPACE_NAMESPACE]: enTabsWorkspace,
     [TABS_TASK_NAMESPACE]: enTabsTask,
+    [COMPONENTS_UI_NAMESPACE]: enComponentsUi,
     [COMPONENTS_AI_ELEMENTS_NAMESPACE]: enComponentsAiElements,
-    [COMPONENTS_CUSTOM_NAMESPACE]: enComponentsCustom,
     [COMPONENTS_STREAMDOWN_NAMESPACE]: enComponentsStreamdown,
+    [COMPONENTS_CUSTOM_NAMESPACE]: enComponentsCustom,
     [ERROR_NAMESPACE]: enError,
   },
   zh_CN: {
@@ -70,9 +74,10 @@ export const resources: Resource = {
     [TABS_TOOLSET_NAMESPACE]: zhCnTabsToolset,
     [TABS_WORKSPACE_NAMESPACE]: zhCnTabsWorkspace,
     [TABS_TASK_NAMESPACE]: zhCnTabsTask,
+    [COMPONENTS_UI_NAMESPACE]: zhCnComponentsUi,
     [COMPONENTS_AI_ELEMENTS_NAMESPACE]: zhCnComponentsAiElements,
-    [COMPONENTS_CUSTOM_NAMESPACE]: zhCnComponentsCustom,
     [COMPONENTS_STREAMDOWN_NAMESPACE]: zhCnComponentsStreamdown,
+    [COMPONENTS_CUSTOM_NAMESPACE]: zhCnComponentsCustom,
     [ERROR_NAMESPACE]: zhCnError,
   },
 };

@@ -1,0 +1,7 @@
+{
+    "chip_input": {
+        "placeholder": "Type a value and press Enter or Space to add. Backspace removes the last item",
+        "max_hint": "Reached the limit {{max}}",
+        "remove_aria": "Remove parameter {{label}}"
+    }
+}

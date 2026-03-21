@@ -1,0 +1,7 @@
+{
+    "chip_input": {
+        "placeholder": "输入参数后按 Enter 或空格添加，Backspace 删除最后一项",
+        "max_hint": "已达上限 {{max}}",
+        "remove_aria": "删除参数 {{label}}"
+    }
+}
