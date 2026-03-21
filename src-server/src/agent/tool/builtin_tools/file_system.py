@@ -366,27 +366,29 @@ class FileSystemToolset(BuiltInToolset):
         matches: list[str]
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    def search_file(self,
-                    pattern: Annotated[str,
-                        """
-                        A glob pattern to match against file NAMES and PATHS.
-                        Pattern examples:
-                        - "*.py"       → files whose name ends with .py
-                        - "main.*"     → files named "main" with any extension
-                        - "docs/*.md"  → .md files inside the "docs/" directory
-                        """],
-                    path: Annotated[str,
-                        "The path of the directory to search in (relative to the current working directory)."] = ".",
-                    limit: Annotated[int,
-                        "The maximum number of matching file paths to return."] = 60,
-                    show_all: Annotated[bool,
-                        "Whether to include hidden files and files ignored by .gitignore. "
-                        "Use this if you can't find a specific file you're looking for."] = False
+    def find_files(self,
+                   pattern: Annotated[str,
+                       """
+                       A glob pattern to match against file NAMES and PATHS.
+                       Pattern examples:
+                       - "*.py"       → files whose name ends with .py
+                       - "main.*"     → files named "main" with any extension
+                       - "docs/*.md"  → .md files inside the "docs/" directory
+                       """],
+                   path: Annotated[str,
+                       "The path of the directory to search in (relative to the current working directory)."] = ".",
+                   limit: Annotated[int,
+                       "The maximum number of matching file paths to return."] = 60,
+                   show_all: Annotated[bool,
+                       "Whether to include hidden files and files ignored by .gitignore. "
+                       "Use this if you can't find a specific file you're looking for."] = False
                    ) -> SearchFileResult:
         """
-        Search for files whose **names** match the glob pattern within a directory.
-        This tool matches against file paths/names only — it does NOT search file contents.
+        Search for files whose **NAMES or PATHS** match the glob pattern within a directory.
         Use this when you need to locate files by name, extension, or path structure.
+
+        Note:
+            This tool matches file paths/names ONLY. It does NOT read or search inside file contents.
 
         Returns:
             A JSON object containing the search results.
@@ -394,6 +396,18 @@ class FileSystemToolset(BuiltInToolset):
             - search_root: The root directory for the search.
             - total: The total number of matching files found.
             - matches: A list of relative file paths that match the pattern.
+
+        Example:
+            >>>find_files(pattern="*.py", path="src")
+            {
+                "search_root": "/workspace/src",
+                "total": 3,
+                "matches": [
+                    "main.py",
+                    "utils/helper.py",
+                    "tests/test_main.py"
+                ]
+            }
         """
 
         def scan_collect(directory: Path) -> list[str]:
@@ -447,6 +461,15 @@ class FileSystemToolset(BuiltInToolset):
         Craft your regex patterns carefully to balance specificity and flexibility.
         Use this tool to find any text-based information across the project.
         The results include surrounding context, so analyze the surrounding code to better understand the matches.
+
+        Example:
+            >>>search_text(regex="def main\\(", path="src", file_pattern="*.py")
+            src/main.py
+            52-    return result
+            53-
+            54:def main():
+            55-    parser = argparse.ArgumentParser()
+            56-    parser.add_argument("--args")
         """
         args = [
             "-n", # show line numbers
