@@ -36,11 +36,11 @@ class OsInteractionsToolset(BuiltInToolset):
                     command: Annotated[str,
                         "The command to execute. Do not pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd)."],
                     args: Annotated[list[str] | None,
-                        "(Default: None) The arguments for the command."] = None,
+                        "The arguments for the command."] = None,
                     cwd: Annotated[str,
-                        "(Default: \".\") The working directory to execute the command in, relative to the current working directory."] = ".",
+                        "The working directory to execute the command in, relative to the current working directory."] = ".",
                     timeout: Annotated[int,
-                        "(Default: 30) Timeout for command execution in seconds."] = 30
+                        "Timeout for command execution in seconds."] = 30
                     ) -> ShellResult:
         """
         Request to execute a shell command.
