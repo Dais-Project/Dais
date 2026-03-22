@@ -4,14 +4,14 @@ from src.agent.tool.builtin_tools import file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
-class TestSearchFile:
+class TestFindFiles:
     def _fake_scandir_recursive(self, directory: Path, total_entries: int):
         for index in range(total_entries):
             yield directory / f"file_{index}.txt"
 
-    def test_search_file_basic_matches(self, built_in_toolset_context, temp_workspace, nested_directory):
+    def test_find_files_basic_matches(self, built_in_toolset_context, temp_workspace, nested_directory):
         tool = FileSystemToolset(built_in_toolset_context)
-        result = tool.search_file("*.txt")
+        result = tool.find_files("*.txt")
 
         assert result["total"] == 5
         assert set(result["matches"]) == {
@@ -22,26 +22,26 @@ class TestSearchFile:
             "dir2/file5.txt",
         }
 
-    def test_search_file_limit(self, built_in_toolset_context, temp_workspace, nested_directory):
+    def test_find_files_limit(self, built_in_toolset_context, temp_workspace, nested_directory):
         tool = FileSystemToolset(built_in_toolset_context)
-        result = tool.search_file("*.txt", limit=2)
+        result = tool.find_files("*.txt", limit=2)
 
         assert result["total"] == 2
         assert len(result["matches"]) == 2
 
-    def test_search_file_relative_paths(self, built_in_toolset_context, temp_workspace, nested_directory):
+    def test_find_files_relative_paths(self, built_in_toolset_context, temp_workspace, nested_directory):
         tool = FileSystemToolset(built_in_toolset_context)
-        result = tool.search_file("file3.txt")
+        result = tool.find_files("file3.txt")
 
         assert result["matches"] == ["dir1/file3.txt"]
 
-    def test_search_file_nonexistent_directory(self, built_in_toolset_context, temp_workspace):
+    def test_find_files_nonexistent_directory(self, built_in_toolset_context, temp_workspace):
         tool = FileSystemToolset(built_in_toolset_context)
         with pytest.raises(FileNotFoundError):
-            tool.search_file("*.txt", path="nonexistent")
+            tool.find_files("*.txt", path="nonexistent")
 
-    def test_search_file_path_is_file(self, built_in_toolset_context, sample_text_file):
+    def test_find_files_path_is_file(self, built_in_toolset_context, sample_text_file):
         filename, _ = sample_text_file
         tool = FileSystemToolset(built_in_toolset_context)
         with pytest.raises(NotADirectoryError):
-            tool.search_file("*.txt", path=filename)
+            tool.find_files("*.txt", path=filename)

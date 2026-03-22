@@ -1,24 +1,12 @@
 import inspect
 import time
-from typing import Annotated, TypedDict, override
+import xml.etree.ElementTree as ET
+from typing import Annotated, override
 from itertools import islice
-from dais_shell import (
-    AgentShell, CommandStep,
-    ShellResultStatus as AgentShellResultStatus
-)
+from dais_shell import AgentShell, CommandStep
 from dais_shell.iostream_reader import IOStreamBuffer
-from pydantic import ValidationError
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
 from ....db.models import toolset as toolset_models
-
-class ShellResult(TypedDict):
-    stdout: str
-    stderr: str
-    stdout_truncated: bool
-    stderr_truncated: bool
-    returncode: int
-    status: AgentShellResultStatus
-    duration: str
 
 class OsInteractionsToolset(BuiltInToolset):
     def __init__(self,
@@ -41,9 +29,9 @@ class OsInteractionsToolset(BuiltInToolset):
                         "The working directory to execute the command in, relative to the current working directory."] = ".",
                     timeout: Annotated[int,
                         "Timeout for command execution in seconds."] = 30
-                    ) -> ShellResult:
+                    ) -> str:
         """
-        Request to execute a shell command.
+        Execute a shell command.
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
         This is a LOW PRIORITY tool — only use this tool when no suitable specialized tool is available.
 
@@ -59,15 +47,18 @@ class OsInteractionsToolset(BuiltInToolset):
             shell(command="ls", args=["-la", "/tmp"])
 
         Returns:
-            A JSON object containing the output of the command.
-            The object has the following properties:
-            - stdout: The standard output of the command
-            - stderr: The standard error output of the command
-            - stdout_truncated: Whether the stdout is truncated
-            - stderr_truncated: Whether the stderr is truncated
-            - returncode: The return code of the command
-            - status: The status of the command execution
-            - duration: The duration of the command execution in seconds
+            A XML string with the command result and metadata as attributes:
+            - status: The status of the command execution.
+            - returncode: The return code of the command.
+            - duration: The duration of the command execution in seconds.
+            - stdout: Standard output of the command, with a truncated attribute indicating whether it was truncated.
+            - stderr: Standard error output of the command, with a truncated attribute indicating whether it was truncated.
+
+        Example:
+            <shell_result status="success" returncode="0" duration="1.23s">
+                <stdout truncated="false">Hello World</stdout>
+                <stderr truncated="false"></stderr>
+            </shell_result>
 
         Note:
             If the original stdout or stderr is too long, it will be automatically truncated, keeping the first N and last N lines.
@@ -100,7 +91,7 @@ class OsInteractionsToolset(BuiltInToolset):
         TAIL_LINES = 200
 
         if " " in command:
-            raise ValidationError(
+            raise ValueError(
                 inspect.cleandoc(
                 f"""
                 Invalid command "{command}": `command` must be the executable only (e.g., "python"). 
@@ -120,12 +111,14 @@ class OsInteractionsToolset(BuiltInToolset):
         stdout_truncated, stdout_result = truncate_output(result.stdout_buf, STDOUT_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
         stderr_truncated, stderr_result = truncate_output(result.stderr_buf, STDERR_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
 
-        return {
-            "stdout": stdout_result,
-            "stderr": stderr_result,
-            "stdout_truncated": stdout_truncated,
-            "stderr_truncated": stderr_truncated,
-            "returncode": result.returncode,
+        # format xml result
+        root = ET.Element("shell_result", attrib={
             "status": result.status,
-            "duration": f"{duration}s",
-        }
+            "returncode": str(result.returncode),
+            "duration": f"{duration:.2f}s",
+        })
+        stdout_el = ET.SubElement(root, "stdout", attrib={"truncated": str(stdout_truncated).lower()})
+        stdout_el.text = stdout_result
+        stderr_el = ET.SubElement(root, "stderr", attrib={"truncated": str(stderr_truncated).lower()})
+        stderr_el.text = stderr_result
+        return ET.tostring(root, encoding="unicode")

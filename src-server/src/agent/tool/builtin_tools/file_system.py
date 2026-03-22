@@ -2,6 +2,7 @@ import asyncio
 import difflib
 import shutil
 import pathspec
+import xml.etree.ElementTree as ET
 from typing import Annotated, Iterator, TypedDict, override
 from pathlib import Path
 from markitdown import MarkItDown
@@ -36,18 +37,27 @@ class FileSystemToolset(BuiltInToolset):
     def read_file(self,
                   path: Annotated[str,
                     "The path of the file to read (relative to the current working directory)."],
-                  enable_line_numbers: Annotated[bool,
-                    "Whether to add line numbers to the file content, if you want to edit the read file later, you may need to enable this option."] = False
+                  offset: Annotated[int, "The line number to start reading from (1-based)."] = 1,
+                  max_lines: Annotated[int, "The maximum number of lines to read."] = 2000,
                  ) -> str:
         """
-        Request to read the contents of a file at the specified path.
+        Read the contents of a file at the specified path.
         For text files, this tool will directly return the file content;
         for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
-        Use this when you need to examine the contents of an existing file you do not know the contents of,\
-        for example to analyze code, review text files, or extract information from configuration files.
 
         Returns:
-            The contents of the file, with optional line numbers added.
+            A XML string with the file content and metadata as attributes:
+            - start_line: The line number of the first line returned (1-based).
+            - end_line: The line number of the last line returned (1-based).
+            - total_lines: The total number of lines in the file.
+
+        Example:
+            <file_content start_line="1" end_line="50" total_lines="312">
+            def foo():
+                ...
+            </file_content>
+
+        To read the next chunk, pass end_line + 1 as the offset in the next call.
         """
         abs_path = self._ctx.cwd / path
 
@@ -64,11 +74,100 @@ class FileSystemToolset(BuiltInToolset):
                 lines = f.read().splitlines()
 
         self._read_file_set.add(str(abs_path))
+        result_lines = lines[(offset - 1):(offset + max_lines - 1)]
 
-        if enable_line_numbers:
-            return "\n".join(f"{i:4d} | {line}" for i, line in enumerate(lines, 1))
-        else:
-            return "\n".join(lines)
+        root = ET.Element("file_content", attrib={
+            "start_line": str(offset),
+            "end_line": str(offset + len(result_lines) - 1),
+            "total_lines": str(len(lines)),
+        })
+        root.text = "\n".join(result_lines)
+        return ET.tostring(root, encoding="unicode")
+
+    @built_in_tool(validate=True)
+    def write_file(self,
+                   path: Annotated[str,
+                    "The path of the file to write (relative to the current working directory)."],
+                   content: Annotated[str,
+                    "The content to write to the file."]
+                   ) -> str:
+        """
+        Write content to a file at the specified path.
+        Use this when you need to create a new file or overwrite an existing file with new content.
+        If the parent directory of the specified path does not exist, it will be created automatically.
+
+        WARNING: This tool will raise an error when overwriting existing files that are not read before.
+
+        Examples:
+            >>> write_file("test.txt", "Hello World!")
+            File written successfully.
+
+        Returns:
+            A success message if the file was written successfully.
+        """
+        abs_path = self._ctx.cwd / path
+
+        if abs_path.exists() and str(abs_path) not in self._read_file_set:
+            raise PermissionError(f"File already exists and was not read before: {path}")
+
+        abs_path.parent.mkdir(parents=True, exist_ok=True)
+        abs_path.write_text(content, encoding="utf-8")
+        return "File written successfully."
+
+    @built_in_tool(validate=True)
+    def edit_file(self,
+                  path: Annotated[str,
+                    "The path of the file to edit (relative to the current working directory)."],
+                  old_content: Annotated[str,
+                    "The exact snippet to be replaced. Must match exactly once in the file."],
+                  new_content: Annotated[str,
+                    "The new snippet that will replace old_content."],
+                  expected_replacements: Annotated[int,
+                    "Number of replacements expected. Defaults to 1 if not specified. Use when you want to replace multiple occurrences of the same text."] = 1
+                  ) -> str:
+        """
+        Edit a file by replacing a specific snippet with new content.
+        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change (though you may include a few extra lines BEFORE and AFTER the target text to ensure uniqueness).
+
+        Use this when you need to edit an existing file with existing content you have read before.
+        If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
+        The tool will raise an error if the actual count differs (too few or too many) from `expected_replacements`.
+
+        Returns:
+            The unified diff of the applied change.
+
+        Note:
+            If old_content matches more times than expected, expand it to include more surrounding context until it uniquely identifies the target location(s).
+        """
+
+        def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
+            diff = difflib.unified_diff(
+                old_content.splitlines(),
+                new_content.splitlines(),
+                fromfile=f"a/{file_name}",
+                tofile=f"b/{file_name}",
+            )
+            return "\n".join(diff)
+
+        abs_path = self._ctx.cwd / path
+
+        if not abs_path.exists():
+            raise FileNotFoundError(f"File not found at {path}")
+
+        content = abs_path.read_text(encoding="utf-8")
+        count = content.count(old_content)
+        if count == 0:
+            raise ValueError(f"Content not found in file: {path}")
+        if count < expected_replacements:
+            raise ValueError(
+                f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
+                f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
+            )
+
+        old_file_content = content
+        new_file_content = content.replace(old_content, new_content, expected_replacements)
+        abs_path.write_text(new_file_content, encoding="utf-8")
+        return generate_diff(old_file_content, new_file_content, path)
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     def list_directory(self,
@@ -90,12 +189,11 @@ class FileSystemToolset(BuiltInToolset):
                         "Use this if you can't find a specific file you're looking for."] = False,
                        ) -> str:
         """
-        Request to list files and directories within the specified directory.
+        List files and directories within the specified directory.
 
-        Use this when you need to explore the project structure, understand the codebase organization,
-        or find specific files. The tool provides a numbered list with type indicators ([file], [dir], or [symlink])
-        for easy reference. Directories are listed before files, and items are sorted alphabetically
-        within their type.
+        Use this when you need to explore the project structure, understand the codebase organization, or find specific files.
+        The tool provides a numbered list with type indicators ([file], [dir], or [symlink]) for easy reference.
+        Directories are listed before files, and items are sorted alphabetically within their type.
 
         Examples:
             Non-recursive listing:
@@ -252,97 +350,12 @@ class FileSystemToolset(BuiltInToolset):
         return "\n".join(result_lines)
 
     @built_in_tool(validate=True)
-    def write_file(self,
-                   path: Annotated[str,
-                    "The path of the file to write (relative to the current working directory)."],
-                   content: Annotated[str,
-                    "The content to write to the file."]
-                   ) -> str:
-        """
-        Request to write content to a file at the specified path.
-        Use this when you need to create a new file or overwrite an existing file with new content.
-        If the parent directory of the specified path does not exist, it will be created automatically.
-
-        WARNING: This tool will raise an error when overwriting existing files that are not read before.
-
-        Examples:
-            >>> write_file("test.txt", "Hello World!")
-            File written successfully.
-
-        Returns:
-            A success message if the file was written successfully.
-        """
-        abs_path = self._ctx.cwd / path
-
-        if abs_path.exists() and str(abs_path) not in self._read_file_set:
-            raise PermissionError(f"File already exists and was not read before: {path}")
-
-        abs_path.parent.mkdir(parents=True, exist_ok=True)
-        abs_path.write_text(content, encoding="utf-8")
-        return "File written successfully."
-
-    @built_in_tool(validate=True)
-    def edit_file(self,
-                  path: Annotated[str,
-                    "The path of the file to edit (relative to the current working directory)."],
-                  old_content: Annotated[str,
-                    "The exact snippet to be replaced. Must match exactly once in the file."],
-                  new_content: Annotated[str,
-                    "The new snippet that will replace old_content."],
-                  expected_replacements: Annotated[int,
-                    "Number of replacements expected. Defaults to 1 if not specified. Use when you want to replace multiple occurrences of the same text."] = 1
-                  ) -> str:
-        """
-        Edit a file by replacing a specific snippet with new content.
-        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change (though you may include a few extra lines BEFORE and AFTER the target text to ensure uniqueness).
-
-        Use this when you need to edit an existing file with existing content you have read before.
-        If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
-        The tool will raise an error if the actual count differs (too few or too many) from `expected_replacements`.
-
-        Returns:
-            The unified diff of the applied change.
-
-        Note:
-            If old_content matches more times than expected, expand it to include more surrounding context until it uniquely identifies the target location(s).
-        """
-
-        def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
-            diff = difflib.unified_diff(
-                old_content.splitlines(),
-                new_content.splitlines(),
-                fromfile=f"a/{file_name}",
-                tofile=f"b/{file_name}",
-            )
-            return "\n".join(diff)
-
-        abs_path = self._ctx.cwd / path
-
-        if not abs_path.exists():
-            raise FileNotFoundError(f"File not found at {path}")
-
-        content = abs_path.read_text(encoding="utf-8")
-        count = content.count(old_content)
-        if count == 0:
-            raise ValueError(f"Content not found in file: {path}")
-        if count < expected_replacements:
-            raise ValueError(
-                f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
-                f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
-            )
-
-        old_file_content = content
-        new_file_content = content.replace(old_content, new_content, expected_replacements)
-        abs_path.write_text(new_file_content, encoding="utf-8")
-        return generate_diff(old_file_content, new_file_content, path)
-
-    @built_in_tool(validate=True)
     def delete(self,
                path: Annotated[str,
                 "The path of the file or directory to delete (relative to the current working directory)."]
                ) -> str:
         """
-        Request to delete a file or directory at the specified path.
+        Delete a file or directory at the specified path.
 
         Returns:
             A success message if the target was deleted successfully.

@@ -366,6 +366,7 @@ dev = [
 ]
 test = [
     { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
 ]
@@ -379,7 +380,7 @@ requires-dist = [
     { name = "alembic", specifier = "==1.18.4" },
     { name = "binaryornot", specifier = "==0.4.4" },
     { name = "dais-sdk", specifier = "==0.9.3" },
-    { name = "dais-shell", specifier = "==0.1.2" },
+    { name = "dais-shell", specifier = "==0.1.3" },
     { name = "fastapi", specifier = "==0.135.1" },
     { name = "fastapi-pagination", specifier = "==0.15.10" },
     { name = "loguru", specifier = "==0.7.3" },
@@ -403,6 +404,7 @@ dev = [
 ]
 test = [
     { name = "pytest", specifier = ">=9.0.0" },
+    { name = "pytest-asyncio", specifier = ">=1.3.0" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-mock", specifier = ">=3.15.0" },
 ]
@@ -410,11 +412,11 @@ types = [{ name = "types-binaryornot", specifier = "==0.4.0.20250507" }]
 
 [[package]]
 name = "dais-shell"
-version = "0.1.2"
+version = "0.1.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e7/ed/55cf1a0dbd2a84e6add54e2240dd1c60852942036714ca7352057359f8cc/dais_shell-0.1.2.tar.gz", hash = "sha256:7bec2ffe3475244353934b3a8653d3bafbdf5fb32b0c9ab51a68747d1365ca9d", size = 4740, upload-time = "2026-03-09T13:28:14.172Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/37/cb8ea6684222aa041879089527a9e4bc4c5131259b3f75a6f3315e55c4dd/dais_shell-0.1.3.tar.gz", hash = "sha256:60184bc3fa90920e3929168c5679844a11be7de283cdfcda4e9eb2fd7d9824fe", size = 5494, upload-time = "2026-03-22T09:06:53.757Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/64/cbd5b1966686e2ceca366f60aae7ea456947477fc7fab9108497dc090db6/dais_shell-0.1.2-py3-none-any.whl", hash = "sha256:2cb5f07dea6141a2dd7b9bbb20f154ed27cd7275af73c85adca8a7a3f55d78c4", size = 8807, upload-time = "2026-03-09T13:28:11.992Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/88/cd68d3dee590c46ea0bcba91170eb40188ab9554198012565599555e4363/dais_shell-0.1.3-py3-none-any.whl", hash = "sha256:8e6a29600638ee80a55426a24e55a2818b9f5cd7bf1f821e00b39b15567f196f", size = 9563, upload-time = "2026-03-22T09:06:52.578Z" },
 ]
 
 [[package]]
@@ -1299,6 +1301,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d1/db/7ef3487e0fb0049ddb5ce41d3a49c235bf9ad299b6a25d5780a89f19230f/pytest-9.0.2.tar.gz", hash = "sha256:75186651a92bd89611d1d9fc20f0b4345fd827c41ccd5c299a868a05d70edf11", size = 1568901, upload-time = "2025-12-06T21:30:51.014Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3b/ab/b3226f0bd7cdcf710fbede2b3548584366da3b19b5021e74f5bde2a8fa3f/pytest-9.0.2-py3-none-any.whl", hash = "sha256:711ffd45bf766d5264d487b917733b453d917afd2b0ad65223959f59089f875b", size = 374801, upload-time = "2025-12-06T21:30:49.154Z" },
+]
+
+[[package]]
+name = "pytest-asyncio"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/90/2c/8af215c0f776415f3590cac4f9086ccefd6fd463befeae41cd4d3f193e5a/pytest_asyncio-1.3.0.tar.gz", hash = "sha256:d7f52f36d231b80ee124cd216ffb19369aa168fc10095013c6b014a34d3ee9e5", size = 50087, upload-time = "2025-11-10T16:07:47.256Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/35/f8b19922b6a25bc0880171a2f1a003eaeb93657475193ab516fd87cac9da/pytest_asyncio-1.3.0-py3-none-any.whl", hash = "sha256:611e26147c7f77640e6d0a92a38ed17c3e9848063698d5c93d5aa7aa11cebff5", size = 15075, upload-time = "2025-11-10T16:07:45.537Z" },
 ]
 
 [[package]]

@@ -1,4 +1,12 @@
+import xml.etree.ElementTree as ET
+
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+
+
+def parse_file_content_xml(result: str) -> tuple[ET.Element, str]:
+    root = ET.fromstring(result)
+    text = root.text or ""
+    return root, text
 
 
 class TestEdgeCases:
@@ -10,7 +18,8 @@ class TestEdgeCases:
 
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.read_file(filename)
-        assert result == content
+        _, text = parse_file_content_xml(result)
+        assert text == content
 
     def test_special_characters_in_content(self, built_in_toolset_context, temp_workspace):
         filename = "special.txt"
@@ -20,7 +29,8 @@ class TestEdgeCases:
 
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.read_file(filename)
-        assert "<>&\"'" in result
+        _, text = parse_file_content_xml(result)
+        assert "<>&\"'" in text
 
     def test_list_directory_sorting(self, built_in_toolset_context, temp_workspace):
         base = temp_workspace

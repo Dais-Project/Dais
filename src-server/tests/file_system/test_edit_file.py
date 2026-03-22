@@ -82,10 +82,21 @@ class TestEditFile:
         filename, _ = file_with_duplicate_content
         tool = FileSystemToolset(built_in_toolset_context)
 
-        with pytest.raises(ValueError) as exc_info:
-            tool.edit_file(filename, "Duplicate line", "new content")
+        result = tool.edit_file(
+            filename,
+            "Duplicate line",
+            "new content",
+            expected_replacements=2,
+        )
 
-        assert "Content found multiple times in file" in str(exc_info.value)
+        assert "---" in result
+        assert "+++" in result
+        assert "+new content" in result
+
+        file_path = temp_workspace / filename
+        updated_content = file_path.read_text(encoding="utf-8")
+        assert updated_content.count("new content") == 2
+        assert "Duplicate line" not in updated_content
 
     def test_edit_file_with_whitespace_sensitivity(self, built_in_toolset_context, temp_workspace):
         tool = FileSystemToolset(built_in_toolset_context)
