@@ -33,10 +33,11 @@ export function ToolsetEditForm({ toolset, onConfirm }: ToolsetEditFormProps) {
     },
   });
 
-  function handleSubmit(data: ToolsetEditFormValues) {
+  const handleSubmit = (data: ToolsetEditFormValues) => {
     const payload = editFormValuesToPayload(data);
     updateMutation.mutate({ toolsetId: toolset.id, data: payload });
-  }
+  };
+
   return (
     <FormShell<ToolsetEditFormValues> values={formValues} onSubmit={handleSubmit}>
       <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />

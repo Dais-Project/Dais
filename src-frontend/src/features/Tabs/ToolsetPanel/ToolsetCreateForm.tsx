@@ -31,10 +31,10 @@ export function ToolsetCreateForm({ onConfirm }: ToolsetCreateProps) {
     },
   });
 
-  function handleSubmit(data: ToolsetCreateFormValues) {
+  const handleSubmit = (data: ToolsetCreateFormValues) => {
     const payload = createFormValuesToPayload(data);
     createMutation.mutate({ data: payload });
-  }
+  };
 
   return (
     <FormShell<ToolsetCreateFormValues> onSubmit={handleSubmit}>

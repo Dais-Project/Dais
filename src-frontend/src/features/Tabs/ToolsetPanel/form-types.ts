@@ -8,6 +8,7 @@ import type {
   ToolsetUpdate,
   ToolUpdate,
 } from "@/api/generated/schemas";
+import { headersToObject, KeyValuePair, objectToHeaders } from "@/components/ui/key-value-editor";
 
 export type ToolFormValues = Omit<ToolRead, "toolset_id" | "internal_key">;
 
@@ -23,7 +24,7 @@ export type ToolsetBaseFormValues = {
 
     // === Remote MCP fields ===
     url?: string;
-    http_headers?: string;
+    http_headers?: KeyValuePair[];
   };
 };
 
@@ -47,9 +48,7 @@ export function toolsetToEditFormValues(
   } else if (toolset.type === "mcp_remote" && toolset.params) {
     const p = toolset.params as RemoteServerParams;
     params.url = p.url;
-    params.http_headers = p.http_headers
-      ? JSON.stringify(p.http_headers, null, 2)
-      : "";
+    params.http_headers = objectToHeaders(p.http_headers ?? {});
   }
 
   return {
@@ -111,13 +110,8 @@ function transformFormToApiParams(
   // case 2: Remote MCP
   if (values.type === "mcp_remote") {
     let httpHeaders: Record<string, string> = {};
-    // JSON string -> object
-    if (values.params.http_headers?.trim()) {
-      try {
-        httpHeaders = JSON.parse(values.params.http_headers);
-      } catch (e) {
-        console.error("Failed to parse headers JSON", e);
-      }
+    if (values.params.http_headers) {
+      httpHeaders = headersToObject(values.params.http_headers);
     }
     return {
       url: values.params.url || "",

@@ -1,37 +1,25 @@
 import { useTranslation } from "react-i18next";
-import { useFormContext } from "react-hook-form";
+import { useController, useFormContext } from "react-hook-form";
 import { TABS_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { Textarea } from "@/components/ui/textarea";
+import { KeyValueEditor, makePair } from "@/components/ui/key-value-editor";
 
 export function HttpHeadersField() {
   const { t } = useTranslation(TABS_TOOLSET_NAMESPACE);
-  const { register, getFieldState } = useFormContext();
+  const { control } = useFormContext();
+  const { field, fieldState } = useController({ name: "params.http_headers", control });
 
   return (
     <FieldItem
       label={t("form.http_headers.label")}
-      description={t("form.http_headers.description")}
-      fieldState={getFieldState("params.http_headers")}
+      fieldState={fieldState}
       orientation="vertical"
       align="start"
     >
-      <Textarea
-        {...register("params.http_headers", {
-          validate: (value) => {
-            if (!value || value.trim() === "") {
-              return true;
-            }
-            try {
-              JSON.parse(value);
-              return true;
-            } catch {
-              return t("form.http_headers.invalid_json");
-            }
-          },
-        })}
-        placeholder='{"Authorization": "Bearer token"}'
-        rows={6}
+      <KeyValueEditor
+        className="w-full"
+        value={field.value ?? [makePair()]}
+        onChange={(pairs) => field.onChange(pairs)}
       />
     </FieldItem>
   );

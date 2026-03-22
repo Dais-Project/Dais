@@ -37,6 +37,7 @@ export function FormShell<T extends FieldValues>({
           "py-4",
           "px-1", // prevent outline of form controls from being cut off
           className)}
+        noValidate
       >
         <FieldGroup className="gap-y-2">{children}</FieldGroup>
       </form>
