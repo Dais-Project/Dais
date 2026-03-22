@@ -38,20 +38,28 @@ export function BuiltInToolContainer({
 }
 
 type BuiltInToolHeaderProps = {
-  title: string;
   icon: React.ReactNode;
   risk?: {
     level?: number;
     reason?: string;
   };
-};
+} & MustOneOf<{
+  title: string;
+  children: React.ReactNode;
+}>;
 
-export function BuiltInToolHeader({ icon, title, risk = {} }: BuiltInToolHeaderProps) {
+export function BuiltInToolHeader({
+  icon,
+  title,
+  risk = {},
+  children,
+}: BuiltInToolHeaderProps) {
   return (
     <CollapsibleTrigger className="sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0">
         {icon}
-        <span className="font-medium text-sm">{title}</span>
+        {title && <span className="font-medium text-sm">{title}</span>}
+        {children}
       </div>
       <div className="flex items-center gap-2">
         {(typeof risk.level === "number") && (

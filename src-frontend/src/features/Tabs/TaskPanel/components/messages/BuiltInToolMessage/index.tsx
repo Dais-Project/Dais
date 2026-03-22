@@ -3,8 +3,10 @@ import type { UiToolMessage } from "@/types/message";
 import { GeneralToolMessage } from "../GeneralToolMessage";
 import { AskUser } from "./AskUser";
 import { FinishTask } from "./FinishTask";
+import { ReadFile } from "./ReadFile";
 import { ShowPlan } from "./ShowPlan";
 import { UpdateTodos } from "./UpdateTodos";
+import { WriteFile } from "./WriteFile";
 
 export type ToolMessageProps = {
   message: UiToolMessage;
@@ -20,6 +22,10 @@ export function ToolMessage(props: ToolMessageProps) {
       return <FinishTask {...props} />;
     case BuiltInTools.ExecutionControl__update_todos:
       return <UpdateTodos {...props} />;
+    case BuiltInTools.FileSystem__read_file:
+      return <ReadFile {...props} />;
+    case BuiltInTools.FileSystem__write_file:
+      return <WriteFile {...props} />;
     default:
       return <GeneralToolMessage {...props} />;
   }

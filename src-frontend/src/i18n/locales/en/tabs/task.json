@@ -63,6 +63,12 @@
     "finish_task": {
       "title": "Task completed"
     },
+    "read_file": {
+      "empty": "File content is empty",
+      "generating": "Generating read file arguments...",
+      "parse_error": "Failed to parse read file arguments",
+      "title": "Dais wants to read a file:"
+    },
     "show_plan": {
       "approve": "Approve plan",
       "copy_to_input": "Copy to input",
@@ -77,6 +83,11 @@
       "generating": "Generating todo arguments...",
       "parse_error": "Failed to parse todo arguments",
       "title": "Task todos updated"
+    },
+    "write_file": {
+      "generating": "Generating write file arguments...",
+      "parse_error": "Failed to parse write file arguments",
+      "title": "Dais wants to write a file:"
     }
   }
 }

@@ -63,6 +63,12 @@
     "finish_task": {
       "title": "任务完成"
     },
+    "read_file": {
+      "empty": "文件内容为空",
+      "generating": "文件读取参数生成中...",
+      "parse_error": "文件读取参数解析失败",
+      "title": "Dais 想要读取文件："
+    },
     "show_plan": {
       "approve": "批准计划",
       "copy_to_input": "复制到输入框",
@@ -77,6 +83,11 @@
       "generating": "待办参数生成中...",
       "parse_error": "待办参数解析失败",
       "title": "已更新任务待办"
+    },
+    "write_file": {
+      "generating": "文件写入参数生成中...",
+      "parse_error": "文件写入参数解析失败",
+      "title": "Dais 想要写入文件："
     }
   }
 }
