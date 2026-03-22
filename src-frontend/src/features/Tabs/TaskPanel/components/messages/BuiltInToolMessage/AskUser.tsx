@@ -6,7 +6,7 @@ import type { UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CustomTool, CustomToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/CustomTool";
+import { BuiltInToolContainer, BuiltInToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInToolContainer";
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { Markdown } from "@/components/custom/Markdown";
 import { ToolMessageProps } from ".";
@@ -37,12 +37,12 @@ export function AskUser({ message }: ToolMessageProps) {
   };
 
   return (
-    <CustomTool
+    <BuiltInToolContainer
       title={t("tool.ask_user.title")}
       icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
       defaultOpen={!hasResult}
     >
-      <CustomToolContent>
+      <BuiltInToolContent>
         {question && (
           <Markdown className="px-4 pb-2">{question}</Markdown>
         )}
@@ -78,7 +78,7 @@ export function AskUser({ message }: ToolMessageProps) {
             </Button>
           </div>
         )}
-      </CustomToolContent>
-    </CustomTool>
+      </BuiltInToolContent>
+    </BuiltInToolContainer>
   );
 }

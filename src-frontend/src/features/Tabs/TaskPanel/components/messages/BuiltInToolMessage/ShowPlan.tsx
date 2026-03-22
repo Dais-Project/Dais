@@ -6,7 +6,7 @@ import type { UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { CustomTool, CustomToolContent, CustomToolFooter, CustonToolAction } from "./components/CustomTool";
+import { BuiltInToolAction, BuiltInToolContainer, BuiltInToolContent, BuiltInToolFooter } from "./components/BuiltInToolContainer";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,7 +165,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
     }
 
     return (
-      <CustomToolContent>
+      <BuiltInToolContent>
         <Markdown className="px-4 pb-4">{toolArguments.plan}</Markdown>
         {toolArguments.alternatives && (
           <PlanAlternatives
@@ -191,14 +191,14 @@ export function ShowPlan({ message }: ToolMessageProps) {
             }
           }}
         />
-      </CustomToolContent>
+      </BuiltInToolContent>
     );
   };
 
   const submit = () => {
     if (userFeedback) {
       return (
-        <CustonToolAction
+        <BuiltInToolAction
           variant="default"
           onClick={handleUserFeedback}
           disabled={disabled}
@@ -208,32 +208,32 @@ export function ShowPlan({ message }: ToolMessageProps) {
           } as React.CSSProperties}
         >
           {t("tool.show_plan.submit_feedback")}
-        </CustonToolAction>
+        </BuiltInToolAction>
       );
     }
     return (
-      <CustonToolAction
+      <BuiltInToolAction
         variant="default"
         onClick={handleApprove}
         disabled={disabled}
       >
         {t("tool.show_plan.approve")}
-      </CustonToolAction>
+      </BuiltInToolAction>
     );
   };
 
   return (
-    <CustomTool
+    <BuiltInToolContainer
       title={t("tool.show_plan.title")}
       icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
       defaultOpen={!hasResult}
     >
       {content()}
       {!disabled && (
-        <CustomToolFooter>
+        <BuiltInToolFooter>
           {submit()}
-        </CustomToolFooter>
+        </BuiltInToolFooter>
       )}
-    </CustomTool>
+    </BuiltInToolContainer>
   );
 }

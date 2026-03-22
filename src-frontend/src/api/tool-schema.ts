@@ -2,6 +2,8 @@ import { z } from "zod";
 import type {
   ExecutionControlFinishTask,
   ExecutionControlUpdateTodos,
+  FileSystemReadFile,
+  FileSystemWriteFile,
   UserInteractionAskUser,
   UserInteractionShowPlan,
 } from "@/api/generated/schemas";
@@ -27,4 +29,14 @@ export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.objec
 
 export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object({
   task_summary: z.string(),
+});
+
+export const ReadFileToolSchema: z.ZodType<FileSystemReadFile> = z.object({
+  path: z.string(),
+  enable_line_numbers: z.boolean().optional(),
+});
+
+export const WriteFileToolSchema: z.ZodType<FileSystemWriteFile> = z.object({
+  path: z.string(),
+  content: z.string(),
 });
