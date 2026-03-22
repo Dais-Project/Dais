@@ -2,23 +2,23 @@ import { PencilIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemWriteFile } from "@/api/generated/schemas";
+import type { FileSystemWriteFile, ToolMessageMetadata } from "@/api/generated/schemas";
 import { WriteFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
+import { getFileExtension } from "@/lib/path";
 import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
-import { useToolState } from "../../../hooks/use-tool-state";
-import { getFileExtension } from "@/lib/path";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { ToolConfirmation } from "./components/ToolConfirmation";
 
 export function WriteFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const state = useToolState(message);
   const toolArguments = useToolArgument<FileSystemWriteFile>(message, WriteFileToolSchema);
-  const { hasResult } = useToolActionable(message);
+  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
   const language = (toolArguments?.path && getFileExtension(toolArguments?.path)) ?? "text";
 
   const content = (() => {
@@ -39,14 +39,7 @@ export function WriteFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer
-      state={state}
-      onUserReviewed={(approved) => {
-        const reaction = approved ? "approved" : "denied";
-        reviewTool(message.call_id, reaction, false);
-      }}
-      defaultOpen={!hasResult}
-    >
+    <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={<PencilIcon className="size-4 text-muted-foreground" />}>
         <div className="flex items-center">
           <span className="font-medium text-sm">{t("tool.write_file.title")}</span>
@@ -58,6 +51,15 @@ export function WriteFile({ message }: ToolMessageProps) {
         </div>
       </BuiltInToolHeader>
       <BuiltInToolContent>{content}</BuiltInToolContent>
+      {userApproval && (
+        <ToolConfirmation
+          state={userApproval}
+          disabled={disabled}
+          onSubmit={markAsSubmitted}
+          onAccept={() => reviewTool(message.call_id, "approved", false)}
+          onReject={() => reviewTool(message.call_id, "denied", false)}
+        />
+      )}
     </BuiltInToolContainer>
   );
 }

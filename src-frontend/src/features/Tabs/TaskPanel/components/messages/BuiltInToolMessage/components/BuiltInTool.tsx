@@ -1,38 +1,22 @@
 import { ChevronDownIcon } from "lucide-react";
-import { Activity } from "react";
-import { RiskBadge, type ToolState, ToolError } from "@/components/ai-elements/tool";
+import { RiskBadge, ToolError } from "@/components/ai-elements/tool";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { activityVisible } from "@/lib/activity-visible";
-import { shouldShowConfirmation, ToolConfirmation } from "./ToolConfirmation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 type BuiltInToolContainerProps = {
   children: React.ReactNode;
-  state?: ToolState;
   defaultOpen?: boolean;
-  onUserReviewed?: (approved: boolean) => void;
 };
 
 export function BuiltInToolContainer({
   children,
-  state,
   defaultOpen = false,
-  onUserReviewed,
 }: BuiltInToolContainerProps) {
   return (
     <Collapsible defaultOpen={defaultOpen} className="group selectable-text w-full rounded-md border">
       {children}
-      {state && (
-        <Activity mode={activityVisible(shouldShowConfirmation(state))}>
-          <ToolConfirmation
-            state={state}
-            onAccept={() => onUserReviewed?.(true)}
-            onReject={() => onUserReviewed?.(false)}
-          />
-        </Activity>
-      )}
     </Collapsible>
   );
 }

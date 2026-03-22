@@ -1,76 +1,60 @@
-import { CheckIcon, XIcon } from "lucide-react";
-import { nanoid } from "nanoid";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import {
-  Confirmation,
-  ConfirmationAccepted,
-  ConfirmationAction,
-  ConfirmationActions,
-  ConfirmationRejected,
-} from "@/components/ai-elements/confirmation";
-import type { ToolState } from "@/components/ai-elements/tool";
+import { Button } from "@/components/ui/button";
+import { UserApprovalStatus } from "@/api/generated/schemas";
 
 type ToolConfirmationProps = {
-  state: ToolState;
+  state: UserApprovalStatus;
   disabled?: boolean;
+  onSubmit?: () => void;
   onAccept?: () => void;
   onReject?: () => void;
 };
 
-export function shouldShowConfirmation(state: ToolState): boolean {
-  return ["approval-requested", "approval-responded", "output-denied"].includes(state);
-}
-
-export function resolveToolState(state: ToolState): boolean | undefined {
-  let approved: boolean | undefined;
-  if (state === "approval-responded") {
-    approved = true;
-  }
-  if (state === "output-denied") {
-    approved = false;
-  }
-  return approved;
-}
-
-export function ToolConfirmation({ state, disabled, onAccept, onReject }: ToolConfirmationProps) {
+export function ToolConfirmation({
+  state,
+  disabled,
+  onSubmit,
+  onAccept,
+  onReject
+}: ToolConfirmationProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const approved = resolveToolState(state);
+
+  if (state !== "pending") {
+    return null;
+  }
+
+  const handleAccept = () => {
+    onSubmit?.();
+    onAccept?.();
+  };
+
+  const handleReject = () => {
+    onSubmit?.();
+    onReject?.();
+  };
 
   return (
-    <Confirmation
-      approval={{ id: nanoid(), approved }}
-      state={state}
-      className="border-none"
-    >
-      <ConfirmationAccepted>
-        <div className="flex items-center gap-1">
-          <CheckIcon className="size-4 text-green-600 dark:text-green-400" />
-          <span>{t("tool.confirmation.accepted")}</span>
-        </div>
-      </ConfirmationAccepted>
-      <ConfirmationRejected>
-        <div className="flex items-center gap-1">
-          <XIcon className="size-4 text-destructive" />
-          <span>{t("tool.confirmation.rejected")}</span>
-        </div>
-      </ConfirmationRejected>
-      <ConfirmationActions>
-        <ConfirmationAction
-          variant="outline"
-          disabled={disabled}
-          onClick={onReject}
-        >
-          {t("tool.confirmation.reject")}
-        </ConfirmationAction>
-        <ConfirmationAction
-          variant="default"
-          disabled={disabled}
-          onClick={onAccept}
-        >
-          {t("tool.confirmation.accept")}
-        </ConfirmationAction>
-      </ConfirmationActions>
-    </Confirmation>
+    <div className="flex items-center justify-end gap-2 px-4 pb-3">
+      <Button
+        variant="outline"
+        disabled={disabled}
+        onClick={handleReject}
+        type="button"
+        className="h-8 px-3 text-sm"
+      >
+        {t("tool.confirmation.reject")}
+      </Button>
+      <Button
+        variant="default"
+        disabled={disabled}
+        onClick={handleAccept}
+        type="button"
+        className="h-8 px-3 text-sm"
+      >
+        {t("tool.confirmation.accept")}
+      </Button>
+    </div>
   );
+
 }

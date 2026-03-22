@@ -1,18 +1,18 @@
 import { FileTextIcon } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemReadFile } from "@/api/generated/schemas";
+import type { FileSystemReadFile, ToolMessageMetadata } from "@/api/generated/schemas";
 import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
+import { getFileExtension } from "@/lib/path";
 import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
-import { useToolState } from "../../../hooks/use-tool-state";
-import { getFileExtension } from "@/lib/path";
-import { useMemo } from "react";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { ToolConfirmation } from "./components/ToolConfirmation";
 
 type ParsedReadFileResult = {
   fileContent: string;
@@ -82,9 +82,9 @@ function ReadFileContent({ arguments: toolArguments, result }: ReadFileContentPr
 export function ReadFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const state = useToolState(message);
   const toolArguments = useToolArgument<FileSystemReadFile>(message, ReadFileToolSchema);
-  const { hasResult } = useToolActionable(message);
+  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
 
   const content = (() => {
     if (message.isStreaming) {
@@ -102,14 +102,7 @@ export function ReadFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer
-      state={state}
-      onUserReviewed={(approved) => {
-        const reaction = approved ? "approved" : "denied";
-        reviewTool(message.call_id, reaction, false);
-      }}
-      defaultOpen={!hasResult}
-    >
+    <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={<FileTextIcon className="size-4 text-muted-foreground" />}>
         <div className="flex items-center">
           <span className="font-medium text-sm">{t("tool.read_file.title")}</span>
@@ -121,6 +114,15 @@ export function ReadFile({ message }: ToolMessageProps) {
         </div>
       </BuiltInToolHeader>
       <BuiltInToolContent>{content}</BuiltInToolContent>
+      {userApproval && (
+        <ToolConfirmation
+          state={userApproval}
+          disabled={disabled}
+          onSubmit={markAsSubmitted}
+          onAccept={() => reviewTool(message.call_id, "approved", false)}
+          onReject={() => reviewTool(message.call_id, "denied", false)}
+        />
+      )}
     </BuiltInToolContainer>
   );
 }
