@@ -11,7 +11,7 @@ export function NameField({
   controlProps,
 }: FieldProps<typeof Input>) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { register, getFieldState } = useFormContext();
+  const { register, getFieldState, formState } = useFormContext();
   const { label = t("fields.name.label"), ...restFieldProps } = fieldProps ?? {};
   const { placeholder = t("fields.name.placeholder"), ...restControlProps } =
     controlProps ?? {};
@@ -20,7 +20,7 @@ export function NameField({
     <FieldItem
       {...restFieldProps}
       label={label}
-      fieldState={getFieldState(fieldName)}
+      fieldState={getFieldState(fieldName, formState)}
     >
       <Input
         {...register(fieldName, {

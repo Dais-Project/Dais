@@ -9,7 +9,7 @@ type SwitchFieldProps = FieldProps<typeof Switch>;
 
 export function SwitchField({ fieldName, fieldProps, controlProps }: SwitchFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { control, getFieldState } = useFormContext<Record<string, boolean>>();
+  const { control, getFieldState, formState } = useFormContext<Record<string, boolean>>();
   const { field } = useController({
     name: fieldName,
     control,
@@ -20,7 +20,7 @@ export function SwitchField({ fieldName, fieldProps, controlProps }: SwitchField
     <FieldItem
       {...restFieldProps}
       label={label}
-      fieldState={getFieldState(fieldName)}
+      fieldState={getFieldState(fieldName, formState)}
     >
       <Switch
         checked={field.value}

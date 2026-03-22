@@ -13,7 +13,7 @@ export function CheckboxField({
   controlProps,
 }: CheckboxFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { control, getFieldState } = useFormContext<Record<string, boolean>>();
+  const { control, getFieldState, formState } = useFormContext<Record<string, boolean>>();
   const { field } = useController({
     name: fieldName,
     control,
@@ -24,7 +24,7 @@ export function CheckboxField({
     <FieldItem
       {...restFieldProps}
       label={label}
-      fieldState={getFieldState(fieldName)}
+      fieldState={getFieldState(fieldName, formState)}
     >
       <Checkbox
         checked={field.value}

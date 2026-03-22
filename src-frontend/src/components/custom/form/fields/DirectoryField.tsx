@@ -21,7 +21,7 @@ export function DirectoryField({
   controlProps,
 }: DirectoryFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { register, getFieldState, setValue } = useFormContext();
+  const { register, getFieldState, formState, setValue } = useFormContext();
   const {
     className: controlClassName,
     placeholder = t("fields.directory.placeholder"),
@@ -48,7 +48,7 @@ export function DirectoryField({
     <FieldItem
       {...fieldProps}
       label={t("fields.directory.label")}
-      fieldState={getFieldState(fieldName)}
+      fieldState={getFieldState(fieldName, formState)}
     >
       <div className="flex gap-2 w-full">
         <Input

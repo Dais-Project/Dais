@@ -13,7 +13,7 @@ export function PasswordField({
   controlProps,
 }: PasswordFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { register, getFieldState } = useFormContext();
+  const { register, getFieldState, formState } = useFormContext();
   const { label = t("fields.password.label"), ...restFieldProps } = fieldProps ?? {};
   const { placeholder = t("fields.password.placeholder"), ...restControlProps } =
     controlProps ?? {};
@@ -22,7 +22,7 @@ export function PasswordField({
     <FieldItem
       {...restFieldProps}
       label={label}
-      fieldState={getFieldState(fieldName)}
+      fieldState={getFieldState(fieldName, formState)}
     >
       <PasswordInput
         {...register(fieldName, {

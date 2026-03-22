@@ -65,7 +65,7 @@ export function RichTextField({
   fieldProps,
 }: RichTextFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { control, getFieldState } = useFormContext();
+  const { control, getFieldState, formState } = useFormContext();
   const { label = t("fields.rich_text.label"), ...restFieldProps } = fieldProps ?? {};
 
   const { field } = useController({
@@ -80,7 +80,7 @@ export function RichTextField({
   return (
     <FieldItem
       label={label}
-      fieldState={getFieldState(fieldName)}
+      fieldState={getFieldState(fieldName, formState)}
       orientation="vertical"
       {...restFieldProps}
     >
