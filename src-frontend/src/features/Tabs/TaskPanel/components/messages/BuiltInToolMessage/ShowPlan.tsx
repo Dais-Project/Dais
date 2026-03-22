@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
+import { useToolActionable } from "../../../hooks/use-tool-actionable";
 
 const APPROVED_ANSWER = "Approved";
 
@@ -112,7 +113,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { answerTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<UserInteractionShowPlan>(message, ShowPlanToolSchema);
-  const hasResult = message.result !== null;
+  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
 
   const [userFeedback, setUserFeedback] = useState(message.result ?? "");
   const [selectedAlternative, setSelectedAlternative] = useState<string | null>(() => {
@@ -123,7 +124,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
   });
 
   const handleApprove = () => {
-    if (hasResult) {
+    if (disabled) {
       return;
     }
     answerTool(message.call_id, APPROVED_ANSWER);
@@ -131,24 +132,25 @@ export function ShowPlan({ message }: ToolMessageProps) {
   };
 
   const handleUserFeedback = () => {
-    if (hasResult) {
+    if (disabled) {
       return;
     }
-    answerTool(message.call_id, userFeedback);
+    markAsSubmitted();
     setSelectedAlternative(userFeedback);
+    answerTool(message.call_id, userFeedback);
   };
 
   const handleSelectAlternative = (alternative: string) => {
-    if (hasResult || selectedAlternative === alternative) {
+    if (disabled || selectedAlternative === alternative) {
       return;
     }
-
+    markAsSubmitted();
     setSelectedAlternative(alternative);
     answerTool(message.call_id, alternative);
   };
 
   const handleFillAlternative = (alternative: string) => {
-    if (hasResult) {
+    if (disabled) {
       return;
     }
     setUserFeedback(alternative);
@@ -169,7 +171,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
           <PlanAlternatives
             alternatives={toolArguments.alternatives}
             selectedAlternative={selectedAlternative}
-            disabled={hasResult}
+            disabled={disabled}
             onSelect={handleSelectAlternative}
             onFill={handleFillAlternative}
           />
@@ -181,7 +183,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
           className="px-4 border-none rounded-none shadow-none resize-none focus-visible:ring-0"
           onChange={(e) => setUserFeedback(e.target.value)}
           placeholder={t("tool.show_plan.feedback_placeholder")}
-          disabled={hasResult}
+          disabled={disabled}
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.ctrlKey) {
               e.preventDefault();
@@ -199,7 +201,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
         <CustonToolAction
           variant="default"
           onClick={handleUserFeedback}
-          disabled={hasResult}
+          disabled={disabled}
           style={{
             "--primary": "var(--color-blue-600)",
             "--primary-foreground": "var(--color-white)",
@@ -213,7 +215,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
       <CustonToolAction
         variant="default"
         onClick={handleApprove}
-        disabled={hasResult}
+        disabled={disabled}
       >
         {t("tool.show_plan.approve")}
       </CustonToolAction>
@@ -227,7 +229,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
       defaultOpen={!hasResult}
     >
       {content()}
-      {!hasResult && (
+      {!disabled && (
         <CustomToolFooter>
           {submit()}
         </CustomToolFooter>

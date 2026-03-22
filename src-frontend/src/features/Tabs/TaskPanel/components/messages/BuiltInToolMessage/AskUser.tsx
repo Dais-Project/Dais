@@ -12,25 +12,24 @@ import { Markdown } from "@/components/custom/Markdown";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
+import { useToolActionable } from "../../../hooks/use-tool-actionable";
 
 export function AskUser({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { answerTool } = useAgentTaskAction();
-  const [disabled, setDisabled] = useState(false);
+  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
   const toolArguments = useToolArgument<UserInteractionAskUser>(message, AskUserToolSchema);
   const { question, options } = toolArguments ?? {};
   const selectedOption = options && (message.result as string);
-
-  const hasResult = message.result !== null;
   const [answer, setAnswer] = useState(message.result ?? "");
 
   const handleSelectOption = (option: string) => {
-    setDisabled(true);
+    markAsSubmitted();
     answerTool(message.call_id, option);
   };
 
   const handleSendAnswer = () => {
-    setDisabled(true);
+    markAsSubmitted();
     if (hasResult) {
       return;
     }
@@ -55,7 +54,7 @@ export function AskUser({ message }: ToolMessageProps) {
                 suggestion={option}
                 onClick={handleSelectOption}
                 variant={option === selectedOption ? "default" : "outline"}
-                disabled={hasResult || disabled}
+                disabled={disabled}
               />
             ))}
           </Suggestions>
@@ -66,12 +65,12 @@ export function AskUser({ message }: ToolMessageProps) {
               type="text"
               value={answer}
               className="flex-1"
-              disabled={hasResult || disabled}
+              disabled={disabled}
               onChange={(e) => setAnswer(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}
             />
             <Button
-              disabled={hasResult || disabled}
+              disabled={disabled}
               onClick={handleSendAnswer}
               className="size-9"
             >
