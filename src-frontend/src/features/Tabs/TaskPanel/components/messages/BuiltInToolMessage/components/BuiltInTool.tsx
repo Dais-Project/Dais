@@ -9,30 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 type BuiltInToolContainerProps = {
-  title: string;
-  icon: React.ReactNode;
   children: React.ReactNode;
   state?: ToolState;
-  risk?: {
-    level?: number;
-    reason?: string;
-  };
   defaultOpen?: boolean;
   onUserReviewed?: (approved: boolean) => void;
 };
 
 export function BuiltInToolContainer({
-  icon,
-  title,
   children,
   state,
-  risk = {},
   defaultOpen = true,
   onUserReviewed,
 }: BuiltInToolContainerProps) {
   return (
     <Collapsible defaultOpen={defaultOpen} className="group selectable-text w-full rounded-md border">
-      <BuiltInToolHeader icon={icon} title={title} risk={risk} />
       {children}
       {state && (
         <Activity mode={activityVisible(shouldShowConfirmation(state))}>

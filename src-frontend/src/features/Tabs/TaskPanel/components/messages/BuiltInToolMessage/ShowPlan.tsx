@@ -6,7 +6,7 @@ import type { UserInteractionShowPlan } from "@/api/generated/schemas";
 import { ShowPlanToolSchema } from "@/api/tool-schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { BuiltInToolAction, BuiltInToolContainer, BuiltInToolContent, BuiltInToolFooter } from "./components/BuiltInToolContainer";
+import { BuiltInToolAction, BuiltInToolContainer, BuiltInToolContent, BuiltInToolFooter, BuiltInToolHeader } from "./components/BuiltInTool";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
@@ -223,11 +223,11 @@ export function ShowPlan({ message }: ToolMessageProps) {
   };
 
   return (
-    <BuiltInToolContainer
-      title={t("tool.show_plan.title")}
-      icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
-      defaultOpen={!hasResult}
-    >
+    <BuiltInToolContainer defaultOpen={!hasResult}>
+      <BuiltInToolHeader
+        title={t("tool.show_plan.title")}
+        icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
+      />
       {content()}
       {!disabled && (
         <BuiltInToolFooter>

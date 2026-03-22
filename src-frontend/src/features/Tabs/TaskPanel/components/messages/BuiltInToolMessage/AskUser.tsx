@@ -6,7 +6,7 @@ import type { UserInteractionAskUser } from "@/api/generated/schemas";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BuiltInToolContainer, BuiltInToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInToolContainer";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { Markdown } from "@/components/custom/Markdown";
 import { ToolMessageProps } from ".";
@@ -37,11 +37,11 @@ export function AskUser({ message }: ToolMessageProps) {
   };
 
   return (
-    <BuiltInToolContainer
-      title={t("tool.ask_user.title")}
-      icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
-      defaultOpen={!hasResult}
-    >
+    <BuiltInToolContainer defaultOpen={!hasResult}>
+      <BuiltInToolHeader
+        title={t("tool.ask_user.title")}
+        icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
+      />
       <BuiltInToolContent>
         {question && (
           <Markdown className="px-4 pb-2">{question}</Markdown>

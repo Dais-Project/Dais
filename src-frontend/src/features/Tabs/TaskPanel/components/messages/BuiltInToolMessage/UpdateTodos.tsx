@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
 import { UpdateTodosSchema } from "@/api/tool-schema";
-import { BuiltInToolContainer, BuiltInToolContent } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInToolContainer";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
@@ -36,8 +36,6 @@ export function UpdateTodos({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer
-      title={t("tool.update_todos.title")}
-      icon={<ListTodoIcon className="size-4 text-muted-foreground" />}
       state={state}
       onUserReviewed={(approved) => {
         const reaction = approved ? "approved" : "denied";
@@ -45,6 +43,10 @@ export function UpdateTodos({ message }: ToolMessageProps) {
       }}
       defaultOpen
     >
+      <BuiltInToolHeader
+        title={t("tool.update_todos.title")}
+        icon={<ListTodoIcon className="size-4 text-muted-foreground" />}
+      />
       <BuiltInToolContent>
         {content}
       </BuiltInToolContent>
