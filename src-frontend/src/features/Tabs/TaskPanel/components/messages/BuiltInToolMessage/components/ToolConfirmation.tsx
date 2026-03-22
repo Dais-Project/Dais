@@ -13,6 +13,7 @@ import type { ToolState } from "@/components/ai-elements/tool";
 
 type ToolConfirmationProps = {
   state: ToolState;
+  disabled?: boolean;
   onAccept?: () => void;
   onReject?: () => void;
 };
@@ -32,7 +33,7 @@ export function resolveToolState(state: ToolState): boolean | undefined {
   return approved;
 }
 
-export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmationProps) {
+export function ToolConfirmation({ state, disabled, onAccept, onReject }: ToolConfirmationProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const approved = resolveToolState(state);
 
@@ -55,10 +56,18 @@ export function ToolConfirmation({ state, onAccept, onReject }: ToolConfirmation
         </div>
       </ConfirmationRejected>
       <ConfirmationActions>
-        <ConfirmationAction onClick={onReject} variant="outline">
+        <ConfirmationAction
+          variant="outline"
+          disabled={disabled}
+          onClick={onReject}
+        >
           {t("tool.confirmation.reject")}
         </ConfirmationAction>
-        <ConfirmationAction onClick={onAccept} variant="default">
+        <ConfirmationAction
+          variant="default"
+          disabled={disabled}
+          onClick={onAccept}
+        >
           {t("tool.confirmation.accept")}
         </ConfirmationAction>
       </ConfirmationActions>

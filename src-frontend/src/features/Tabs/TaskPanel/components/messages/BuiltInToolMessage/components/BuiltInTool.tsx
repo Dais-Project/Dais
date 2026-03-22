@@ -1,6 +1,6 @@
 import { ChevronDownIcon } from "lucide-react";
 import { Activity } from "react";
-import { RiskBadge, type ToolState } from "@/components/ai-elements/tool";
+import { RiskBadge, type ToolState, ToolError } from "@/components/ai-elements/tool";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { activityVisible } from "@/lib/activity-visible";
 import { shouldShowConfirmation, ToolConfirmation } from "./ToolConfirmation";
@@ -18,7 +18,7 @@ type BuiltInToolContainerProps = {
 export function BuiltInToolContainer({
   children,
   state,
-  defaultOpen = true,
+  defaultOpen = false,
   onUserReviewed,
 }: BuiltInToolContainerProps) {
   return (
@@ -80,6 +80,10 @@ export function BuiltInToolContent({ children, className, ...props }: React.Comp
       {children}
     </CollapsibleContent>
   );
+}
+
+export function BuiltInToolError({ className, ...props }: React.ComponentProps<typeof ToolError>) {
+  return <ToolError className={cn("mx-4 mb-4", className)} {...props} />;
 }
 
 export function BuiltInToolFooter({ children, className, ...props }: React.ComponentProps<"div">) {

@@ -47,9 +47,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
         title={t("tool.update_todos.title")}
         icon={<ListTodoIcon className="size-4 text-muted-foreground" />}
       />
-      <BuiltInToolContent>
-        {content}
-      </BuiltInToolContent>
+      <BuiltInToolContent>{content}</BuiltInToolContent>
     </BuiltInToolContainer>
   );
 }

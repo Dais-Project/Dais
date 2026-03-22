@@ -33,7 +33,8 @@ export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object(
 
 export const ReadFileToolSchema: z.ZodType<FileSystemReadFile> = z.object({
   path: z.string(),
-  enable_line_numbers: z.boolean().optional(),
+  offset: z.number().int().optional(),
+  max_lines: z.number().int().optional(),
 });
 
 export const WriteFileToolSchema: z.ZodType<FileSystemWriteFile> = z.object({

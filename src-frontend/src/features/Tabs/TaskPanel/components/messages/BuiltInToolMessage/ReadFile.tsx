@@ -1,20 +1,90 @@
 import { FileTextIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemReadFile } from "@/api/generated/schemas";
 import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolState } from "../../../hooks/use-tool-state";
+import { getFileExtension } from "@/lib/path";
+import { useMemo } from "react";
+import { useToolActionable } from "../../../hooks/use-tool-actionable";
+
+type ParsedReadFileResult = {
+  fileContent: string;
+  startLineNumber: number;
+};
+
+function parseReadFileResult(resultText: string): ParsedReadFileResult {
+  if (resultText.trim().length === 0) {
+    return { fileContent: "", startLineNumber: 1 };
+  }
+
+  if (!resultText.trim().startsWith("<")) {
+    return { fileContent: resultText, startLineNumber: 1 };
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(resultText, "application/xml");
+    const parserError = doc.querySelector("parsererror");
+    if (parserError) {
+      return { fileContent: resultText, startLineNumber: 1 };
+    }
+
+    const contentNode = doc.querySelector("file_content");
+    if (!contentNode) {
+      return { fileContent: resultText, startLineNumber: 1 };
+    }
+
+    const startLineAttribute = contentNode.getAttribute("start_line") ?? "1";
+    const parsedStartLine = Number.parseInt(startLineAttribute, 10);
+    const startLineNumber = Number.isFinite(parsedStartLine) && parsedStartLine > 0 ? parsedStartLine : 1;
+    return { fileContent: contentNode.textContent ?? "", startLineNumber };
+  } catch {
+    return { fileContent: resultText, startLineNumber: 1 };
+  }
+}
+
+type ReadFileContentProps = {
+  arguments: FileSystemReadFile;
+  result: string;
+};
+
+function ReadFileContent({ arguments: toolArguments, result }: ReadFileContentProps) {
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const { language, fileContent, startLineNumber } = useMemo(() => {
+    const language = getFileExtension(toolArguments.path) ?? "text";
+    const { fileContent, startLineNumber } = parseReadFileResult(result);
+    return { language, fileContent, startLineNumber };
+  }, [toolArguments, result]);
+
+  if (fileContent.trim().length === 0) {
+    return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.read_file.empty")}</p>;
+  }
+
+  return (
+    <div className="px-4 pb-4">
+      <CodeBlock
+        code={fileContent}
+        language={language as BundledLanguage}
+        showLineNumbers={true}
+        startingLineNumber={startLineNumber}
+      />
+    </div>
+  );
+}
 
 export function ReadFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const state = useToolState(message);
   const toolArguments = useToolArgument<FileSystemReadFile>(message, ReadFileToolSchema);
+  const { hasResult } = useToolActionable(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -23,16 +93,12 @@ export function ReadFile({ message }: ToolMessageProps) {
     if (toolArguments === null) {
       return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.read_file.parse_error")}</p>;
     }
-    const showLineNumbers = toolArguments.enable_line_numbers !== true;
-    const resultText = typeof message.result === "string" ? message.result : "";
-    if (resultText.trim().length === 0) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.read_file.empty")}</p>;
+    if (message.error) {
+      return <BuiltInToolError error={message.error} />;
     }
-    return (
-      <div className="px-4 pb-4">
-        <CodeBlock code={resultText} language="text" showLineNumbers={showLineNumbers} />
-      </div>
-    );
+    if (message.result !== null) {
+      return <ReadFileContent arguments={toolArguments} result={message.result} />;
+    }
   })();
 
   return (
@@ -42,7 +108,7 @@ export function ReadFile({ message }: ToolMessageProps) {
         const reaction = approved ? "approved" : "denied";
         reviewTool(message.call_id, reaction, false);
       }}
-      defaultOpen
+      defaultOpen={!hasResult}
     >
       <BuiltInToolHeader icon={<FileTextIcon className="size-4 text-muted-foreground" />}>
         <div className="flex items-center">

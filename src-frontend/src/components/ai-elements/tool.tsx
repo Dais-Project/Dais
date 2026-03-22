@@ -245,29 +245,42 @@ export const ToolOutput = ({
     return null;
   }
 
-  let Output = <div>{output as ReactNode}</div>;
+  const isError = errorText !== null;
 
-  if (typeof output === "object" && !isValidElement(output)) {
-    Output = (
-      <CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
-    );
-  } else if (typeof output === "string") {
-    Output = <CodeBlock code={output} language="json" />;
-  }
+  const Output = () => {
+    if (typeof output === "object" && !isValidElement(output)) {
+      return (
+        <CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
+      );
+    } else if (typeof output === "string") {
+      return <CodeBlock code={output} language="json" />;
+    } else {
+      return <div>{output as ReactNode}</div>;
+    }
+  };
 
   return (
     <div className={cn("space-y-2 p-4", className)} {...props}>
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        {errorText ? t("labels.error") : t("labels.result")}
+        {isError ? t("labels.error") : t("labels.result")}
       </h4>
-      <div className="overflow-x-auto rounded-md bg-muted/50 text-foreground text-xs [&_table]:w-full">
-        {errorText && (
-          <div className="whitespace-pre-wrap bg-destructive/10 p-1 text-destructive">
-            {errorText.replace(/\\n/g, "\n")}
-          </div>
-        )}
-        {errorText === null && Output}
-      </div>
+      {isError && <ToolError error={errorText} />}
+      {!isError && Output()}
     </div>
   );
 };
+
+export type ToolErrorProps = ComponentProps<"pre"> & {
+  error: string;
+};
+
+export function ToolError({ error, className, ...props }: ToolErrorProps) {
+  return (
+    <pre className={cn(
+      "shadcn-scroll-horizontal overflow-x-auto p-4 [&_table]:w-full",
+      "rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs", className,
+    )} {...props}>
+      {error.replace(/\\n/g, "\n")}
+    </pre>
+  );
+}
