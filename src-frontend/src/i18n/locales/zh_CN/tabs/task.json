@@ -69,6 +69,18 @@
       "parse_error": "文件读取参数解析失败",
       "title": "Dais 想要读取文件："
     },
+    "find_files": {
+      "empty": "未找到匹配文件",
+      "generating": "文件搜索参数生成中...",
+      "parse_error": "文件搜索参数解析失败",
+      "title": "Dais 想要查找文件："
+    },
+    "search_text": {
+      "empty": "未找到匹配文本",
+      "generating": "文本搜索参数生成中...",
+      "parse_error": "文本搜索参数解析失败",
+      "title": "Dais 想要搜索文本："
+    },
     "show_plan": {
       "approve": "批准计划",
       "copy_to_input": "复制到输入框",
@@ -88,6 +100,12 @@
       "generating": "文件写入参数生成中...",
       "parse_error": "文件写入参数解析失败",
       "title": "Dais 想要写入文件："
+    },
+    "list_directory": {
+      "empty": "目录内容为空",
+      "generating": "目录列表参数生成中...",
+      "parse_error": "目录列表参数解析失败",
+      "title": "Dais 想要查看文件夹："
     }
   }
 }
