@@ -6,6 +6,7 @@ from .user_interaction import UserInteractionToolset
 from .execution_control import ExecutionControlToolset
 from ..toolset_wrapper import BuiltInToolsetContext
 
+
 def get_builtin_tool_enum() -> type[Enum]:
     builtin_tool_members = {}
     for toolset in [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]:

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.routing import APIRoute
 from fastapi_pagination import add_pagination
+from src.services.exceptions import ServiceError
 from .routes import (
     sse_router,
     workspaces_router,
@@ -27,7 +28,6 @@ from .exception_handlers import (
 )
 from .lifespan import lifespan
 from .exceptions import ApiError
-from ..services.exceptions import ServiceError
 
 
 app = FastAPI(

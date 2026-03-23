@@ -1,12 +1,12 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
-from ...db import DbSessionDep
-from ...services.workspace import WorkspaceService
-from ...schemas import workspace as workspace_schemas
+from src.db import DbSessionDep
+from src.services.workspace import WorkspaceService
+from src.schemas import workspace as workspace_schemas
+
 
 workspaces_router = APIRouter(tags=["workspace"])
-
 
 @workspaces_router.get("/", response_model=Page[workspace_schemas.WorkspaceBrief])
 async def get_workspaces(db_session: DbSessionDep):

@@ -1,11 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from src.db.models import workspace as workspace_models
+from src.db.models import agent as agent_models
+from src.db.models import toolset as toolset_models
+from src.schemas import workspace as workspace_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
-from ..db.models import workspace as workspace_models
-from ..db.models import agent as agent_models
-from ..db.models import toolset as toolset_models
-from ..schemas import workspace as workspace_schemas
+from .agent import AgentService
+from .utils import build_load_options, Relations
 
 
 class WorkspaceNotFoundError(NotFoundError):
@@ -13,6 +15,13 @@ class WorkspaceNotFoundError(NotFoundError):
         super().__init__(ServiceErrorCode.WORKSPACE_NOT_FOUND, "Workspace", workspace_id)
 
 class WorkspaceService(ServiceBase):
+    @staticmethod
+    def relations() -> Relations:
+        return [
+            workspace_models.Workspace.usable_tools,
+            workspace_models.Workspace.usable_agents,
+        ]
+
     def get_workspaces_query(self):
         return (
             select(workspace_models.Workspace)
@@ -24,8 +33,10 @@ class WorkspaceService(ServiceBase):
                                 data: workspace_schemas.WorkspaceCreate | workspace_schemas.WorkspaceUpdate
                                 ):
         if data.usable_agent_ids is not None:
-            stmt = select(agent_models.Agent).where(
-                agent_models.Agent.id.in_(data.usable_agent_ids)
+            stmt = (
+                select(agent_models.Agent)
+                .where(agent_models.Agent.id.in_(data.usable_agent_ids))
+                .options(*build_load_options(AgentService.relations()))
             )
             agents = (await self._db_session.scalars(stmt)).all()
             workspace.usable_agents = list(agents)
@@ -41,8 +52,9 @@ class WorkspaceService(ServiceBase):
         workspace = await self._db_session.get(
             workspace_models.Workspace, id,
             options=[
-                selectinload(workspace_models.Workspace.usable_agents),
                 selectinload(workspace_models.Workspace.usable_tools),
+                selectinload(workspace_models.Workspace.usable_agents)
+                    .selectinload(agent_models.Agent._model),
             ],
         )
         if not workspace:
@@ -64,14 +76,11 @@ class WorkspaceService(ServiceBase):
     async def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
         workspace = await self.get_workspace_by_id(id)
 
-        update_data = data.model_dump(exclude_unset=True,
-                                                      exclude={"usable_agent_ids", "usable_tool_ids"})
-        for key, value in update_data.items():
-            if hasattr(workspace, key) and value is not None:
-                setattr(workspace, key, value)
+        self.apply_fields(workspace, data, exclude={"usable_agent_ids", "usable_tool_ids"})
 
         await self._update_relations(workspace, data)
         await self._db_session.flush()
+        self._db_session.expunge(workspace)
 
         updated_workspace = await self.get_workspace_by_id(workspace.id)
         return updated_workspace

@@ -19,8 +19,14 @@
       ],
       "options": {
         "commands": [
-          "cargo install prebuilt-down",
-          "prebuilt-down"
+          {
+            "command": "cargo install prebuilt-down",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "prebuilt-down",
+            "forwardAllArgs": true
+          }
         ],
         "parallel": false
       }

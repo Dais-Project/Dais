@@ -1,8 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
-from pathlib import Path
 from collections.abc import AsyncIterator
-from typing import Annotated, Any
+from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
@@ -57,19 +56,12 @@ async def init_initial_data() -> None:
         await workspace_models.init(session)
 
 async def migrate_db() -> None:
-    def get_base_dir() -> str:
-        import sys, os
-        from src import IS_DEV
-        if IS_DEV:
-            return str(Path(os.path.abspath(__file__)).parent.parent.parent)
-        else:
-            return sys._MEIPASS # type: ignore
-
     from alembic.config import Config
     from alembic import command
+    from src.common import PROJECT_ROOT
 
     alembic_cfg = Config("alembic.ini")
-    alembic_cfg.set_main_option("script_location", f"{get_base_dir()}/src/db/alembic")
+    alembic_cfg.set_main_option("script_location", f"{PROJECT_ROOT}/src/db/alembic")
     alembic_cfg.set_main_option("sqlalchemy.url", DB_SYNC_URL)
     command.upgrade(alembic_cfg, "head")
     await init_initial_data()

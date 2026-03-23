@@ -1,9 +1,10 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
-from ...db import DbSessionDep
-from ...services.agent import AgentService
-from ...schemas import agent as agent_schemas
+from src.db import DbSessionDep
+from src.services.agent import AgentService
+from src.schemas import agent as agent_schemas
+
 
 agents_router = APIRouter(tags=["agent"])
 

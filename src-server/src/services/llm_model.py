@@ -1,7 +1,7 @@
 from sqlalchemy.orm import selectinload
+from src.db.models import provider as provider_models
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
-from ..db.models import provider as provider_models
 
 
 class ModelNotFoundError(NotFoundError):

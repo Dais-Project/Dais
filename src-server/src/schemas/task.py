@@ -1,7 +1,8 @@
 from typing import Literal
-from . import DTOBase
 from dais_sdk.types import Message
-from ..db.models.task import TaskUsage
+from src.db.models.task import TaskUsage
+from . import DTOBase
+
 
 class TaskBase(DTOBase):
     title: str

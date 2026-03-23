@@ -9,3 +9,27 @@ archive = "zip"
 [ripgrep.windows-x64.hash]
 algorithm = "sha256"
 digest = "124510b94b6baa3380d051fdf4650eaa80a302c876d611e9dba0b2e18d87493a"
+
+[node]
+target = "bin/node/"
+
+[node.windows-x64]
+url = "https://nodejs.org/dist/v25.8.1/node-v25.8.1-win-x64.zip"
+root = "node-v25.8.1-win-x64/"
+archive = "zip"
+
+[node.windows-x64.hash]
+algorithm = "sha256"
+digest = "09a5a0dbb2f4cefa800880012810e2dfaac0016a62e75f064c4ab7f3606b2d78"
+
+[uv]
+target = "bin/uv/"
+
+[uv.windows-x64]
+url = "https://releases.astral.sh/github/uv/releases/download/0.10.12/uv-x86_64-pc-windows-msvc.zip"
+root = "."
+archive = "zip"
+
+[uv.windows-x64.hash]
+algorithm = "sha256"
+digest = "4c1d55501869b3330d4aabf45ad6024ce2367e0f3af83344395702d272c22e88"

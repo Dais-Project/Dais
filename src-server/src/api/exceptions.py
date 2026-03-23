@@ -1,5 +1,5 @@
 from enum import Enum
-from ..agent.tool.toolset_wrapper.mcp_toolset import McpConnectErrorCode
+from src.agent.tool.toolset_wrapper.mcp_toolset import McpConnectErrorCode
 
 
 class ApiErrorCode(str, Enum):
@@ -9,6 +9,9 @@ class ApiErrorCode(str, Enum):
     PATH_NOT_FOUND = "PATH_NOT_FOUND"
     PATH_NOT_DIRECTORY = "PATH_NOT_DIRECTORY"
     PATH_ACCESS_DENIED = "PATH_ACCESS_DENIED"
+
+    TASK_MESSAGE_NOT_FOUND = "TASK_MESSAGE_NOT_FOUND"
+    TASK_MESSAGE_NOT_EDITABLE = "TASK_MESSAGE_NOT_EDITABLE"
 
     SUMMARIZE_TITLE_FAILED = "SUMMARIZE_TITLE_FAILED"
 

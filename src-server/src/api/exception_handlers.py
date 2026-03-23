@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
 from pydantic import BaseModel
 from loguru import logger
+from src.services.exceptions import ServiceError, ServiceErrorCode, ServiceStatusCode
 from .exceptions import ApiError, ApiErrorCode
-from ..services.exceptions import ServiceError, ServiceErrorCode, ServiceStatusCode
 
 
 class ErrorResponseContent(TypedDict):

@@ -102,6 +102,10 @@ def get_agent(agent_id: int, service: AgentServiceDep):
     return AgentRead.model_validate(agent)
 ```
 
+- 在 service 中：
+  - 对于 create 的方法，应该在创建后直接再次调用 get_xxx_by_id 方法来获取并返回创建的对象
+  - 对于 update 的方法，应该在更新后先调用 `expunge` 方法来清除缓存，随后再调用 get_xxx_by_id 方法来获取并返回更新后的对象
+
 #### 前端
 
 - 在调用 API 方法时，对于从后端拉取状态的方法，使用 `@tanstack/react-query` 的 `useQuery` 来管理请求状态；对于需要修改后端状态的方法，使用 `@tanstack/react-query` 的 `useMutation` 来管理请求状态。
