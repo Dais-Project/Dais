@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 from .agent import AgentService
@@ -51,8 +52,9 @@ class WorkspaceService(ServiceBase):
         workspace = await self._db_session.get(
             workspace_models.Workspace, id,
             options=[
-                *build_load_options(self.relations()),
-                *build_load_options(AgentService.relations(), workspace_models.Workspace.usable_agents),
+                selectinload(workspace_models.Workspace.usable_tools),
+                selectinload(workspace_models.Workspace.usable_agents)
+                    .selectinload(agent_models.Agent._model),
             ],
         )
         if not workspace:

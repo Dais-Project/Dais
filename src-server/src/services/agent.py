@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 from .utils import build_load_options, Relations
@@ -23,6 +24,7 @@ class AgentService(ServiceBase):
         return (
             select(agent_models.Agent)
             .order_by(agent_models.Agent.id.asc())
+            .options(selectinload(agent_models.Agent._model))
         )
 
     async def get_agent_by_id(self, id: int) -> agent_models.Agent:
