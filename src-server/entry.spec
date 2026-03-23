@@ -4,6 +4,7 @@ import platform
 import magika
 
 project_root = SPECPATH
+
 # alembic resources
 alembic_ini_path = os.path.join(project_root, "alembic.ini")
 alembic_dir = os.path.join(project_root, "src", "db", "alembic")
@@ -21,6 +22,11 @@ if platform.system() == "Windows":
 else:
     ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg")
 
+# node resources
+node_dir = os.path.join(project_root, "bin", "node")
+
+# uv resources
+uv_dir = os.path.join(project_root, "bin", "uv")
 
 a = Analysis(
     ["entry.py"],
@@ -35,6 +41,8 @@ a = Analysis(
         (magika_models_dir, "magika/models"),
 
         (ripgrep_bin_path, "bin/ripgrep"),
+        (node_dir, "bin/node"),
+        (uv_dir, "bin/uv"),
     ],
     hiddenimports=[
         "aiosqlite",

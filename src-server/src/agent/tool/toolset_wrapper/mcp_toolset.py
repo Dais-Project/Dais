@@ -3,6 +3,7 @@ import subprocess
 import anyio
 import httpx
 import mcp
+import platform
 from dataclasses import replace
 from enum import Enum
 from typing import cast, override
@@ -10,9 +11,12 @@ from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset
 from dais_sdk.types import ToolDef
 from loguru import logger
+from mcp.client.stdio import get_default_environment
 from ..types import ToolMetadata
 from ....db import db_context
 from ....db.models import toolset as toolset_models
+from ....common import DATA_DIR
+from ....binaries import NPX_PATH, UVX_PATH, NODE_PATH, UV_PATH
 
 
 class McpToolsetNotConnectedError(Exception):
@@ -69,13 +73,40 @@ async def mcp_connect_wrapper(toolset: SdkMcpToolset) -> McpConnectErrorCode | N
         error_code = McpConnectErrorCode.from_exception(e)
     return error_code
 
+def resolve_local_mcp_command(command: str) -> str:
+    if command == "npx":
+        return str(NPX_PATH)
+    if command == "uvx":
+        return str(UVX_PATH)
+    return command
+
+def resolve_local_mcp_env(env: dict[str, str] | None) -> dict[str, str]:
+    base_env = get_default_environment()
+    sep = ";" if platform.system() == "Windows" else ":"
+    prepend = sep.join([str(NODE_PATH.parent), str(UV_PATH.parent)])
+    base_env["PATH"] = prepend + sep + base_env.get("PATH", "")
+
+    # cache dir for npx and uvx
+    cache_root = DATA_DIR / "mcp-cache"
+    base_env["npm_config_cache"] = str(cache_root / "npm")
+    base_env["UV_CACHE_DIR"]     = str(cache_root / "uv")
+    base_env["UV_TOOL_DIR"]      = str(cache_root / "uv-tools")
+
+    if env: base_env.update(env)
+    return base_env
+
 class McpToolset(Toolset):
     def __init__(self, toolset_ent: toolset_models.Toolset, inner_toolset: SdkMcpToolset | None = None):
         if not inner_toolset:
             match toolset_ent.type:
                 case toolset_models.ToolsetType.MCP_LOCAL:
                     assert isinstance(toolset_ent.params, LocalServerParams)
-                    inner_toolset = LocalMcpToolset(toolset_ent.name, toolset_ent.params)
+                    params = toolset_ent.params.model_copy(
+                        update={
+                            "command": resolve_local_mcp_command(toolset_ent.params.command),
+                            "env": resolve_local_mcp_env(toolset_ent.params.env)
+                        })
+                    inner_toolset = LocalMcpToolset(toolset_ent.name, params)
                 case toolset_models.ToolsetType.MCP_REMOTE:
                     assert isinstance(toolset_ent.params, RemoteServerParams)
                     inner_toolset = RemoteMcpToolset(toolset_ent.name, toolset_ent.params)
