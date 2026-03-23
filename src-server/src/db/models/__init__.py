@@ -1,12 +1,11 @@
-import enum
-from sqlalchemy import Enum
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base(
-    type_annotation_map={  
-        enum.Enum: Enum(enum.Enum, native_enum=False)  
-    }
+from functools import partial
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    relationship as _relationship
 )
+
+class Base(DeclarativeBase): ...
+relationship = partial(_relationship, lazy="raise")
 
 from .provider import Provider, LlmModel
 from .agent import Agent

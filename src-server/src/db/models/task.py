@@ -5,8 +5,8 @@ from dais_sdk.types import Message
 from pydantic import TypeAdapter
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from . import Base
+from sqlalchemy.orm import Mapped, mapped_column
+from . import Base, relationship
 from .utils import DataClassJSON, PydanticJSON
 
 if TYPE_CHECKING:

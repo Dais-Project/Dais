@@ -5,8 +5,9 @@ from typing import Annotated, override
 from itertools import islice
 from dais_shell import AgentShell, CommandStep
 from dais_shell.iostream_reader import IOStreamBuffer
+from src.db.models import toolset as toolset_models
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
-from ....db.models import toolset as toolset_models
+
 
 class OsInteractionsToolset(BuiltInToolset):
     def __init__(self,

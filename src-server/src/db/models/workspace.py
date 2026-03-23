@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import select
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession
-from . import Base
+from . import Base, relationship
 from .relationships import workspace_agent_association_table, workspace_tool_association_table
 
 if TYPE_CHECKING:

@@ -1,10 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from src.db.models import agent as agent_models
+from src.db.models import toolset as toolset_models
+from src.schemas import agent as agent_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
-from ..db.models import agent as agent_models
-from ..db.models import toolset as toolset_models
-from ..schemas import agent as agent_schemas
+from .utils import build_load_options, Relations
 
 
 class AgentNotFoundError(NotFoundError):
@@ -12,19 +13,24 @@ class AgentNotFoundError(NotFoundError):
         super().__init__(ServiceErrorCode.AGENT_NOT_FOUND, "Agent", agent_id)
 
 class AgentService(ServiceBase):
+    @staticmethod
+    def relations() -> Relations:
+        return [
+            agent_models.Agent._model,
+            agent_models.Agent.usable_tools,
+        ]
+
     def get_agents_query(self):
         return (
             select(agent_models.Agent)
             .order_by(agent_models.Agent.id.asc())
+            .options(selectinload(agent_models.Agent._model))
         )
 
     async def get_agent_by_id(self, id: int) -> agent_models.Agent:
         agent = await self._db_session.get(
             agent_models.Agent, id,
-            options=[
-                selectinload(agent_models.Agent.model),
-                selectinload(agent_models.Agent.usable_tools),
-            ],
+            options=build_load_options(self.relations()),
         )
         if not agent:
             raise AgentNotFoundError(id)
@@ -56,16 +62,12 @@ class AgentService(ServiceBase):
     async def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
         updated_agent = await self.get_agent_by_id(id)
 
-        update_data = data.model_dump(exclude_unset=True,
-                                                      exclude={"usable_tool_ids"})
-        for key, value in update_data.items():
-            if hasattr(updated_agent, key) and value is not None:
-                setattr(updated_agent, key, value)
-        
-        await self._update_relations(updated_agent, data)
+        self.apply_fields(updated_agent, data, exclude={"usable_tool_ids"})
 
+        await self._update_relations(updated_agent, data)
         await self._db_session.flush()
-        
+        self._db_session.expunge(updated_agent)
+
         updated_agent = await self.get_agent_by_id(updated_agent.id)
         return updated_agent
 

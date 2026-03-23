@@ -1,5 +1,7 @@
+from dais_sdk.providers import LlmProviders
+from src.db.models.provider import Provider, LlmModelCapability
 from . import DTOBase
-from ..db.models.provider import Provider, LlmProviders, LlmModelCapability
+
 
 class LlmModelBase(DTOBase):
     name: str

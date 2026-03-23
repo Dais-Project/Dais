@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from ...settings import AppSettings, use_app_setting_manager
+from src.settings import AppSettings, use_app_setting_manager
+
 
 settings_router = APIRouter(tags=["settings"])
 

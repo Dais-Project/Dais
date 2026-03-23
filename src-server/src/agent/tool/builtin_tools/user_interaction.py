@@ -1,6 +1,7 @@
 from typing import Annotated, override
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
 
+
 class UserInteractionToolset(BuiltInToolset):
     @property
     @override

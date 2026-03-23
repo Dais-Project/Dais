@@ -1,10 +1,9 @@
-from dis import Instruction
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
-from . import Base
+from . import Base, relationship
 from .relationships import workspace_agent_association_table, agent_tool_association_table
 
 if TYPE_CHECKING:
@@ -23,8 +22,7 @@ class Agent(Base):
     model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
 
     _model: Mapped[LlmModel | None] = relationship(back_populates="agents",
-                                                   passive_deletes=True,
-                                                   lazy="joined")
+                                                   passive_deletes=True)
     @hybrid_property
     def model(self) -> LlmModel | None: return self._model
 
@@ -33,7 +31,7 @@ class Agent(Base):
                                                        viewonly=True)
     tasks: Mapped[list[Task]] = relationship(back_populates="_agent",
                                              viewonly=True)
-    
+
     usable_tools: Mapped[list[Tool]] = relationship(secondary=agent_tool_association_table,
                                                     back_populates="_agents")
 
@@ -71,7 +69,7 @@ async def init(db_session: AsyncSession):
             ExecutionControlToolset.finish_task,
             FileSystemToolset.read_file,
             FileSystemToolset.list_directory,
-            FileSystemToolset.search_file,
+            FileSystemToolset.find_files,
         ]),
         ("Terminal Interpreter", TERMINAL_INTERPRETER_AGENT_INSTRUCTION, "terminal", [
             OsInteractionsToolset.shell,

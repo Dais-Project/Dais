@@ -1,12 +1,12 @@
 from enum import Enum
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import TypeAdapter
-from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams, McpTool
-from . import Base
+from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
+from . import Base, relationship
 from .utils import PydanticJSON
 from .relationships import workspace_tool_association_table, agent_tool_association_table
 

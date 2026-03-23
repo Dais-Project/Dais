@@ -7,10 +7,10 @@ from dais_sdk.types import (
     Message, ToolMessage, UserMessage, AssistantMessage,
     ToolDef, ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
-from ..context import AgentContext
 from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
+from ..context import AgentContext
 from ..exception_handlers import (
     handle_tool_does_not_exist_error,
     handle_tool_argument_decode_error,
@@ -21,7 +21,6 @@ from ..types import (
     AgentGenerator, is_agent_tool_metadata,
     ToolEvent, ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskDoneEvent,
 )
-from ...db.models import task as task_models
 
 
 class ToolCallNotFoundError(Exception):

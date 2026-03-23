@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from loguru import logger
 from dais_sdk.types import ToolDef, ToolMessage
 from dais_sdk.tool.prepare import prepare_tools
+from src.settings import use_app_setting_manager
 from ..tool.types import is_tool_metadata
 from ..prompts import (
     create_one_turn_llm,
@@ -15,7 +16,6 @@ from ..types import (
     ToolRequirePermissionEvent, ToolRequireUserResponseEvent
 )
 from ..types.metadata import ToolMessageMetadata, UserApprovalStatus, is_agent_tool_metadata
-from ...settings import use_app_setting_manager
 
 if TYPE_CHECKING:
     from .tool_call_dispatcher import ToolCallDispatch
