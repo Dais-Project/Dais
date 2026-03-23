@@ -1,14 +1,3 @@
-"use client";
-
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -174,7 +163,7 @@ export function PromptInputProvider({
     (FileUIPart & { id: string })[]
   >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const openRef = useRef<() => void>(() => {});
+  const openRef = useRef<() => void>(() => { });
 
   const add = useCallback((files: File[] | FileList) => {
     const incoming = [...files];
@@ -217,7 +206,7 @@ export function PromptInputProvider({
 
   // Keep a ref to attachments for cleanup on unmount (avoids stale closure)
   const attachmentsRef = useRef(attachmentFiles);
-  
+
   useEffect(() => {
     attachmentsRef.current = attachmentFiles;
   }, [attachmentFiles]);
@@ -333,7 +322,10 @@ export const PromptInputActionAddAttachmentsButton = (props: ComponentProps<type
   return (
     <PromptInputButton
       onClick={openFileDialog}
-      tooltip="Add photos or files"
+      tooltip={{
+        content: "Add photos or files",
+        align: "end"
+      }}
       {...props}
     >
       <PlusIcon />
@@ -574,13 +566,13 @@ export const PromptInput = ({
       usingProvider
         ? controller?.attachments.clear()
         : setItems((prev) => {
-            for (const file of prev) {
-              if (file.url) {
-                URL.revokeObjectURL(file.url);
-              }
+          for (const file of prev) {
+            if (file.url) {
+              URL.revokeObjectURL(file.url);
             }
-            return [];
-          }),
+          }
+          return [];
+        }),
     [usingProvider, controller]
   );
 
@@ -737,9 +729,9 @@ export const PromptInput = ({
       const text = usingProvider
         ? controller.textInput.value
         : (() => {
-            const formData = new FormData(form);
-            return (formData.get("message") as string) || "";
-          })();
+          const formData = new FormData(form);
+          return (formData.get("message") as string) || "";
+        })();
 
       // Reset form immediately after capturing text to avoid race condition
       // where user input during async blob conversion would be lost
@@ -931,15 +923,15 @@ export const PromptInputTextarea = ({
 
   const controlledProps = controller
     ? {
-        onChange: (e: ChangeEvent<HTMLTextAreaElement>) => {
-          controller.textInput.setInput(e.currentTarget.value);
-          onChange?.(e);
-        },
-        value: controller.textInput.value,
-      }
+      onChange: (e: ChangeEvent<HTMLTextAreaElement>) => {
+        controller.textInput.setInput(e.currentTarget.value);
+        onChange?.(e);
+      },
+      value: controller.textInput.value,
+    }
     : {
-        onChange,
-      };
+      onChange,
+    };
 
   return (
     <InputGroupTextarea
@@ -1003,10 +995,11 @@ export const PromptInputTools = ({
 export type PromptInputButtonTooltip =
   | string
   | {
-      content: ReactNode;
-      shortcut?: string;
-      side?: ComponentProps<typeof TooltipContent>["side"];
-    };
+    content: ReactNode;
+    shortcut?: string;
+    side?: ComponentProps<typeof TooltipContent>["side"];
+    align?: ComponentProps<typeof TooltipContent>["align"];
+  };
 
 export type PromptInputButtonProps = ComponentProps<typeof InputGroupButton> & {
   tooltip?: PromptInputButtonTooltip;
@@ -1040,11 +1033,12 @@ export const PromptInputButton = ({
     typeof tooltip === "string" ? tooltip : tooltip.content;
   const shortcut = typeof tooltip === "string" ? undefined : tooltip.shortcut;
   const side = typeof tooltip === "string" ? "top" : (tooltip.side ?? "top");
+  const align = typeof tooltip === "string" ? "start" : (tooltip.align ?? "start");
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={side}>
+      <TooltipContent side={side} align={align}>
         {tooltipContent}
         {shortcut && (
           <span className="ml-2 text-muted-foreground">{shortcut}</span>

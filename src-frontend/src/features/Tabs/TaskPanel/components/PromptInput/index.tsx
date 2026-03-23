@@ -1,5 +1,5 @@
 import type { ChatStatus } from "ai";
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
@@ -22,7 +22,7 @@ import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
-import { contextFileConcat, ContextSelectPopover } from "./ContextSelectPopover";
+import { ContextSelectPopover, type ContextSelectPopoverRef } from "./ContextSelectPopover";
 import { type TaskState, useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
 
 export { PromptInputProvider } from "@/components/ai-elements/prompt-input";
@@ -62,6 +62,77 @@ function PromptInputAgentState({ agentId, onChange }: PromptInputAgentStateProps
   );
 }
 
+type UsePromptInputHandlersResult = {
+  text: string;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  contextSelectRef: React.RefObject<ContextSelectPopoverRef | null>;
+  handleSelectPath: (path: string) => void;
+  handleTextareaKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  handleContextClose: () => void;
+};
+
+function usePromptInputHandlers(): UsePromptInputHandlersResult {
+  const { textInput } = usePromptInputController();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const contextSelectRef = useRef<ContextSelectPopoverRef>(null);
+
+  const handleInsert = (insertFn: ((textBefore: string) => string)) => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const contentBefore = insertFn(textarea.value.substring(0, start));
+    const contentAfter = textarea.value.substring(end);
+    textInput.setInput(contentBefore + contentAfter);
+
+    requestAnimationFrame(() => {
+      textarea.selectionStart = contentBefore.length;
+      textarea.selectionEnd = contentBefore.length;
+    });
+  };
+
+  const handleSelectPath = (path: string) => {
+    handleInsert((textBefore) => {
+      if (textBefore.length === 0) {
+        return path;
+      }
+      if (textBefore.endsWith(" ") || textBefore.endsWith("@") || textBefore.endsWith("\n")) {
+        return textBefore + path;
+      }
+      return textBefore + " " + path;
+    });
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "@") {
+      e.preventDefault(); // prevent '@' from being entered into ContextSelectPopover
+      contextSelectRef.current?.open();
+      handleInsert((textBefore) => {
+        if (textBefore.endsWith(" ") || textBefore.endsWith("\n")) {
+          return textBefore + "@";
+        }
+        return textBefore + " @";
+      });
+    }
+  };
+
+  const handleContextClose = () => inputRef.current?.focus();
+
+  return {
+    get text() {
+      return textInput.value;
+    },
+    inputRef,
+    contextSelectRef,
+    handleSelectPath,
+    handleTextareaKeyDown,
+    handleContextClose,
+  };
+}
+
+
 type PromptInputDraftProps = {
   onSubmit: (message: PromptInputMessage, agentId: number) => void;
 };
@@ -69,13 +140,15 @@ type PromptInputDraftProps = {
 export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const { textInput } = usePromptInputController();
-  const ableToSubmit = agentId !== null;
-
-  const handleSelectPath = (path: string) => {
-    const current = textInput.value;
-    textInput.setInput(contextFileConcat(current, path));
-  };
+  const {
+    text,
+    inputRef,
+    contextSelectRef,
+    handleSelectPath,
+    handleTextareaKeyDown,
+    handleContextClose,
+  } = usePromptInputHandlers();
+  const ableToSubmit = text.length && agentId !== null;
 
   return (
     <BasePromptInput
@@ -92,11 +165,19 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
         <AttachmentsDisplay />
       </PromptInputHeader>
       <PromptInputBody>
-        <PromptInputTextarea placeholder={t("prompt.input_placeholder")} />
+        <PromptInputTextarea
+          ref={inputRef}
+          placeholder={t("prompt.input_placeholder")}
+          onKeyDown={handleTextareaKeyDown}
+        />
       </PromptInputBody>
       <PromptInputFooter>
         <PromptInputTools className="gap-2">
-          <ContextSelectPopover onSelect={handleSelectPath} />
+          <ContextSelectPopover
+            ref={contextSelectRef}
+            onSelect={handleSelectPath}
+            onClose={handleContextClose}
+          />
           <PromptInputAgentState agentId={agentId} onChange={setAgentId} />
         </PromptInputTools>
         <div className="flex gap-2">
@@ -112,13 +193,15 @@ export function PromptInput({ className }: { className?: string }) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { agentId, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
-  const { textInput } = usePromptInputController();
-  const ableToSubmit = textInput.value.length && state === "idle" && agentId !== null;
-
-  const handleSelectPath = (path: string) => {
-    const current = textInput.value;
-    textInput.setInput(contextFileConcat(current, path));
-  };
+  const {
+    text,
+    inputRef,
+    contextSelectRef,
+    handleSelectPath,
+    handleTextareaKeyDown,
+    handleContextClose,
+  } = usePromptInputHandlers();
+  const ableToSubmit = text.length && state === "idle" && agentId !== null;
 
   return (
     <BasePromptInput
@@ -138,11 +221,19 @@ export function PromptInput({ className }: { className?: string }) {
         <AttachmentsDisplay />
       </PromptInputHeader>
       <PromptInputBody>
-        <PromptInputTextarea placeholder={t("prompt.input_placeholder")} />
+        <PromptInputTextarea
+          ref={inputRef}
+          placeholder={t("prompt.input_placeholder")}
+          onKeyDown={handleTextareaKeyDown}
+        />
       </PromptInputBody>
       <PromptInputFooter className="gap-16">
         <PromptInputTools className="min-w-0 gap-2">
-          <ContextSelectPopover onSelect={handleSelectPath} />
+          <ContextSelectPopover
+            ref={contextSelectRef}
+            onSelect={handleSelectPath}
+            onClose={handleContextClose}
+          />
           <PromptInputAgentState agentId={agentId} onChange={setAgentId} />
           <ContextUsage />
           <TaskProgress className="min-w-0 flex-1" />

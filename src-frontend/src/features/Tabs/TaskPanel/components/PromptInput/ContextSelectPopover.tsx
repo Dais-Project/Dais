@@ -1,6 +1,6 @@
 import { useDebounce } from "ahooks";
 import { AtSignIcon, FileIcon, FolderIcon } from "lucide-react";
-import { useState } from "react";
+import { useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { useListDirectorySuspense, listDirectory, useSearchFile } from "@/api/task";
@@ -106,29 +106,41 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
   )
 }
 
-export function contextFileConcat(current: string, path: string): string {
-  if (current.length === 0) {
-    return path;
-  }
-  if (current.endsWith("\n") || current.endsWith(" ")) {
-    return current + path;
-  }
-  return current + " " + path;
-}
+export type ContextSelectPopoverRef = {
+  open: () => void;
+};
 
-export function ContextSelectPopover({ onSelect }: { onSelect?: OnSelectHandler }) {
+export type ContextSelectPopoverProps = {
+  ref?: React.Ref<ContextSelectPopoverRef>;
+  onSelect?: OnSelectHandler;
+  onClose?: () => void;
+};
+
+export function ContextSelectPopover({ onSelect, ref, onClose }: ContextSelectPopoverProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const [open, setOpen] = useState(false);
   const handleSelect = (path: string) => {
     onSelect?.(path);
     setOpen(false);
   };
+  const handleOpenChange = (open_: boolean) => {
+    if (!open_) {
+      onClose?.();
+    }
+    setOpen(open_);
+  };
+  useImperativeHandle(ref, () => ({
+    open: () => setOpen(true),
+  }));
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <PromptInputButton
           variant="outline"
-          tooltip={t("prompt.context.trigger_tooltip")}
+          tooltip={{
+            content: t("prompt.context.trigger_tooltip"),
+            align: "start"
+          }}
         >
           <AtSignIcon className="text-muted-foreground" size={12} />
         </PromptInputButton>
