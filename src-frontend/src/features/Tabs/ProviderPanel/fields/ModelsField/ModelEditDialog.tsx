@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { FormProvider, useForm } from "react-hook-form";
 import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
-import type { LlmModelCreate } from "@/api/generated/schemas";
+import type { LlmModelCreate, LlmModelRead } from "@/api/generated/schemas";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ export function ModelEditDialog({
   onConfirm,
 }: ModelEditDialogProps) {
   const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
-  const dialogForm = useForm<LlmModelCreate>({ defaultValues: DEFAULT_LLM_MODEL });
+  const dialogForm = useForm<LlmModelCreate | LlmModelRead>({ defaultValues: DEFAULT_LLM_MODEL });
   const { reset, handleSubmit, register, getFieldState, formState } = dialogForm;
 
   useEffect(() => {
@@ -63,9 +63,8 @@ export function ModelEditDialog({
             <FieldGroup className="gap-y-2">
               <NameField
                 fieldName="name"
-                fieldProps={{
-                  label: t("models.edit_dialog.name.label"),
-                }}
+                fieldProps={{ label: t("models.edit_dialog.name.label") }}
+                controlProps={{ disabled: true }}
               />
 
               <FieldItem
@@ -115,7 +114,7 @@ export function ModelEditDialog({
                 </div>
               </Field>
             </FieldGroup>
-            
+
 
             <DialogFooter className="mt-8">
               <DialogClose asChild>

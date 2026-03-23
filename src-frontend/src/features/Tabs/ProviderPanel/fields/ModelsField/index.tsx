@@ -5,7 +5,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { LlmModelCreate } from "@/api/generated/schemas";
+import { LlmModelCreate, LlmModelRead } from "@/api/generated/schemas";
 import type {
   ProviderCreateFormValues,
   ProviderEditFormValues,
@@ -39,7 +39,7 @@ export function ModelsField() {
     }
   };
 
-  const [editingModel, setEditingModel] = useState<LlmModelCreate | null>(null);
+  const [editingModel, setEditingModel] = useState<LlmModelCreate | LlmModelRead | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const handleOpenModelEditDialog = (index: number) => {
     setEditingModel(models[index]);
