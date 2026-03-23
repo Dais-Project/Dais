@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
+from .utils import build_load_options, Relations
 from ..db.models import toolset as toolset_models
 from ..schemas import toolset as toolset_schemas
 
@@ -27,6 +28,12 @@ class ToolsetService(ServiceBase):
         description: str
         auto_approve: bool = False
 
+    @staticmethod
+    def relations() -> Relations:
+        return [
+            toolset_models.Toolset.tools,
+        ]
+
     async def get_all_mcp_toolsets(self) -> list[toolset_models.Toolset]:
         stmt = (
             select(toolset_models.Toolset)
@@ -38,7 +45,7 @@ class ToolsetService(ServiceBase):
                     ]
                 )
             )
-            .options(selectinload(toolset_models.Toolset.tools))
+            .options(*build_load_options(self.relations()))
         )
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
@@ -47,7 +54,7 @@ class ToolsetService(ServiceBase):
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.type == toolset_models.ToolsetType.BUILT_IN)
-            .options(selectinload(toolset_models.Toolset.tools))
+            .options(*build_load_options(self.relations()))
         )
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
@@ -56,7 +63,7 @@ class ToolsetService(ServiceBase):
         toolset = await self._db_session.get(
             toolset_models.Toolset,
             id,
-            options=[selectinload(toolset_models.Toolset.tools)],
+            options=build_load_options(self.relations()),
         )
         if not toolset:
             raise ToolsetNotFoundError(id)
@@ -66,7 +73,7 @@ class ToolsetService(ServiceBase):
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.internal_key == internal_key)
-            .options(selectinload(toolset_models.Toolset.tools))
+            .options(*build_load_options(self.relations()))
         )
         toolset = await self._db_session.scalar(stmt)
         if not toolset:
@@ -94,7 +101,6 @@ class ToolsetService(ServiceBase):
 
         self._db_session.add(new_toolset)
         await self._db_session.flush()
-        await self._db_session.refresh(new_toolset)
 
         new_toolset = await self.get_toolset_by_internal_key(data.name)
         return new_toolset
@@ -109,16 +115,13 @@ class ToolsetService(ServiceBase):
         if data.params is not None:
             toolset.params = data.params
 
-        update_data = data.model_dump(exclude={"params", "tools"}, exclude_unset=True)
-        for key, value in update_data.items():
-            if hasattr(toolset, key) and value is not None:
-                setattr(toolset, key, value)
+        self.apply_fields(toolset, data, exclude={"params", "tools"})
 
         await self._db_session.flush()
-        await self._db_session.refresh(toolset)
+        self._db_session.expunge(toolset)
 
-        toolset = await self.get_toolset_by_id(id)
-        return toolset
+        updated_toolset = await self.get_toolset_by_id(id)
+        return updated_toolset
 
     async def update_tool(
         self, toolset_id: int, tool_id: int, data: toolset_schemas.ToolUpdate
@@ -130,9 +133,7 @@ class ToolsetService(ServiceBase):
         tool = await self._db_session.scalar(stmt)
         if not tool:
             raise ToolNotFoundError(tool_id)
-        for key, value in data.model_dump(exclude={"id"}, exclude_unset=True).items():
-            if value is not None:
-                setattr(tool, key, value)
+        self.apply_fields(tool, data, exclude={"id"})
 
         await self._db_session.flush()
         await self._db_session.refresh(tool)
@@ -141,15 +142,15 @@ class ToolsetService(ServiceBase):
     async def sync_toolset(
         self, id: int, latest_tools: list[ToolLike]
     ) -> toolset_models.Toolset:
-        toolset = await self.get_toolset_by_id(id)
+        synced_toolset = await self.get_toolset_by_id(id)
 
         latest_tool_keys: set[str] = set(tool.internal_key for tool in latest_tools)
-        existing_tools = list(toolset.tools)
+        existing_tools = list(synced_toolset.tools)
         existing_tool_keys: set[str] = set(tool.internal_key for tool in existing_tools)
 
         for tool in latest_tools:
             if tool.internal_key not in existing_tool_keys:
-                toolset.tools.append(
+                synced_toolset.tools.append(
                     toolset_models.Tool(
                         name=tool.name,
                         internal_key=tool.internal_key,
@@ -160,12 +161,13 @@ class ToolsetService(ServiceBase):
                 )
         for existing_tool in existing_tools:
             if existing_tool.internal_key not in latest_tool_keys:
-                toolset.tools.remove(existing_tool)
+                synced_toolset.tools.remove(existing_tool)
 
         await self._db_session.flush()
-        await self._db_session.refresh(toolset)
-        toolset = await self.get_toolset_by_id(id)
-        return toolset
+        self._db_session.expunge(synced_toolset)
+
+        synced_toolset = await self.get_toolset_by_id(id)
+        return synced_toolset
 
     async def delete_toolset(self, id: int) -> None:
         toolset = await self._db_session.get(toolset_models.Toolset, id)

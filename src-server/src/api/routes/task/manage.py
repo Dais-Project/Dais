@@ -45,11 +45,30 @@ async def create_task(
 
 @task_manage_router.patch("/{task_id}/messages", response_model=task_schemas.TaskRead)
 async def edit_task_message(task_id: int, body: task_schemas.TaskMessageEdit, db_session: DbSessionDep):
-    return await TaskService(db_session).edit_task_message(
-        task_id,
-        body.message_id,
-        body.content,
-    )
+    task = await TaskService(db_session).get_task_by_id(task_id)
+    target_index = None
+
+    for index, message in enumerate(task.messages):
+        if getattr(message, "id", None) == body.message_id:
+            target_index = index
+            break
+
+    if target_index is None:
+        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TASK_MESSAGE_NOT_FOUND, f"Task message '{body.message_id}' not found")
+
+    target_message = task.messages[target_index]
+    if target_message.role != "user":
+        raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.TASK_MESSAGE_NOT_EDITABLE, f"Task message '{body.message_id}' is not editable")
+
+    target_message.content = body.content
+    task.messages = task.messages[: target_index + 1]
+
+    return await TaskService(db_session).update_task(task_id, task_schemas.TaskUpdate(
+        title=None, agent_id=None,
+        messages=task.messages,
+        usage=None,
+        last_run_at=int(time.time())
+    ))
 
 @task_manage_router.post("/{task_id}/summarize-title", response_model=task_schemas.TaskRead)
 async def summarize_task_title(task_id: int, db_session: DbSessionDep):
