@@ -5,24 +5,23 @@ from dataclasses import asdict
 from typing import Self, cast
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
-from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
-from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
-from .types import ContextUsage
-from ..db import db_context
-from ..db.models import task as task_models
-from ..schemas import (
+from src.db import db_context
+from src.db.models import task as task_models
+from src.schemas import (
     agent as agent_schemas,
     workspace as workspace_schemas,
     provider as provider_schemas
 )
-from ..services.agent import AgentService
-from ..services.workspace import WorkspaceService
-from ..services.llm_model import LlmModelService
-from ..services.provider import ProviderService
-from ..services.task import TaskService
-from ..schemas import task as task_schemas
-from ..settings import use_app_setting_manager
-
+from src.services.agent import AgentService
+from src.services.workspace import WorkspaceService
+from src.services.llm_model import LlmModelService
+from src.services.provider import ProviderService
+from src.services.task import TaskService
+from src.schemas import task as task_schemas
+from src.settings import use_app_setting_manager
+from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
+from .prompts import BASE_INSTRUCTION, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
+from .types import ContextUsage
 
 class BuiltInToolAliases:
     def __init__(self, builtin_toolset_manager: BuiltinToolsetManager):
@@ -98,10 +97,10 @@ class AgentContext:
         return cls(task.id,
                    usage=usage,
                    messages=messages,
-                   workspace=workspace,
-                   agent=agent,
-                   provider=provider,
-                   model=model,
+                   workspace=workspace_schemas.WorkspaceRead.model_validate(workspace),
+                   agent=agent_schemas.AgentRead.model_validate(agent),
+                   provider=provider_schemas.ProviderRead.model_validate(provider),
+                   model=provider_schemas.LlmModelRead.model_validate(model),
                    builtin_toolset_manager=builtin_toolset_manager,
                    mcp_toolset_manager=mcp_toolset_manager)
 

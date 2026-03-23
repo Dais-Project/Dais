@@ -1,5 +1,4 @@
 import argparse
-import logging
 import uvicorn
 from typing import Callable
 from loguru import logger

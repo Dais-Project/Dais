@@ -4,6 +4,7 @@ from fastapi.sse import EventSourceResponse
 from ..sse_dispatcher import SseDispatcherDep
 from ..sse_dispatcher.types import DispatcherEventData
 
+
 sse_router = APIRouter(tags=["stream"])
 
 @sse_router.post(

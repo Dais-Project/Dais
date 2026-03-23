@@ -1,9 +1,9 @@
 from sqlalchemy import select
+from src.db.models import task as task_models
+from src.schemas import task as task_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 from .utils import build_load_options, Relations
-from ..db.models import task as task_models
-from ..schemas import task as task_schemas
 
 
 class TaskNotFoundError(NotFoundError):

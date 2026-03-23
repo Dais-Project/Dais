@@ -1,8 +1,8 @@
 import asyncio
 from loguru import logger
 from fastapi import Request
-from .....agent.task import AgentTask
-from .....agent.types import (
+from src.agent.task import AgentTask
+from src.agent.types import (
     AgentGenerator,
     TaskDoneEvent, TaskInterruptedEvent,
     ErrorEvent

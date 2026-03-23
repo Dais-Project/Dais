@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dais_sdk.types import UsageChunkEvent
-from ...db.models.task import TaskUsage
+from src.db.models.task import TaskUsage
 
 @dataclass
 class ContextUsage(TaskUsage):

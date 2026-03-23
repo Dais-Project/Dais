@@ -7,7 +7,7 @@ from dais_sdk.types import (
     ToolCallChunkEvent as SdkToolCallChunkEvent
 )
 from pydantic import BaseModel, Discriminator
-from ...db.models.task import TaskUsage
+from src.db.models.task import TaskUsage
 
 
 class MessageStartEvent(BaseModel):

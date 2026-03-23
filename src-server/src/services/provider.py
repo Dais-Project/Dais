@@ -1,10 +1,10 @@
 from loguru import logger
 from sqlalchemy import select
+from src.db.models import provider as provider_models
+from src.schemas import provider as provider_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 from .utils import build_load_options, Relations
-from ..db.models import provider as provider_models
-from ..schemas import provider as provider_schemas
 
 
 _logger = logger.bind(name="ProviderService")
