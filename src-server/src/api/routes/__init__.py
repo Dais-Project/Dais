@@ -8,3 +8,4 @@ from .llm_api import llm_api_router
 from .toolset import toolset_router
 from .settings import settings_router
 from .health import health_router
+from .skill import skills_router

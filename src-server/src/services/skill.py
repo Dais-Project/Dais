@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.db.models import skill as skill_models
 from src.schemas import skill as skill_schemas
 from .service_base import ServiceBase
@@ -13,6 +14,13 @@ class SkillService(ServiceBase):
     @staticmethod
     def relations() -> Relations:
         return [skill_models.Skill.resources]
+
+    def get_skills_query(self):
+        return (
+            select(skill_models.Skill)
+            .order_by(skill_models.Skill.id.asc())
+            .options(selectinload(skill_models.Skill.resources))
+        )
 
     async def get_all_skills(self) -> list[skill_models.Skill]:
         stmt = (
