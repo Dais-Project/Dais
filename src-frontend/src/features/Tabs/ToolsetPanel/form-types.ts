@@ -21,6 +21,7 @@ export type ToolsetBaseFormValues = {
     // === Local MCP fields ===
     command?: string;
     args?: string[];
+    env?: KeyValuePair[];
 
     // === Remote MCP fields ===
     url?: string;
@@ -45,6 +46,7 @@ export function toolsetToEditFormValues(
     const p = toolset.params as LocalServerParams;
     params.command = p.command;
     params.args = p.args || [];
+    params.env = objectToHeaders(p.env ?? {});
   } else if (toolset.type === "mcp_remote" && toolset.params) {
     const p = toolset.params as RemoteServerParams;
     params.url = p.url;
@@ -104,6 +106,7 @@ function transformFormToApiParams(
     return {
       command: values.params.command || "",
       args: values.params.args,
+      env: headersToObject(values.params.env ?? []),
     } satisfies LocalServerParams;
   }
 

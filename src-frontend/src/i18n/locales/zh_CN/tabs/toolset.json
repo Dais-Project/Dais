@@ -1,18 +1,17 @@
 {
   "form": {
     "args": {
-      "description": "每行一个参数",
-      "label": "参数",
-      "placeholder": "例如:\n--version\n--help"
+      "label": "参数"
     },
     "command": {
       "label": "命令",
       "required": "请输入命令"
     },
+    "env": {
+      "label": "环境变量"
+    },
     "http_headers": {
-      "description": "JSON 格式的请求头",
-      "invalid_json": "请输入有效的 JSON 格式",
-      "label": "HTTP Headers"
+      "label": "HTTP 头"
     },
     "is_enabled": {
       "label": "启用"

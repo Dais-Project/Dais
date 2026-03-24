@@ -56,12 +56,21 @@
     },
     "confirmation": {
       "accept": "Accept",
-      "accepted": "Accepted",
-      "reject": "Reject",
-      "rejected": "Rejected"
+      "reject": "Reject"
+    },
+    "find_files": {
+      "generating": "Generating find files arguments...",
+      "parse_error": "Failed to parse find files arguments",
+      "title": "Dais wants to find files:"
     },
     "finish_task": {
       "title": "Task completed"
+    },
+    "list_directory": {
+      "empty": "Directory contents are empty",
+      "generating": "Generating list directory arguments...",
+      "parse_error": "Failed to parse list directory arguments",
+      "title": "Dais wants to view a folder:"
     },
     "read_file": {
       "empty": "File content is empty",
@@ -69,14 +78,7 @@
       "parse_error": "Failed to parse read file arguments",
       "title": "Dais wants to read a file:"
     },
-    "find_files": {
-      "empty": "No matching files found",
-      "generating": "Generating find files arguments...",
-      "parse_error": "Failed to parse find files arguments",
-      "title": "Dais wants to find files:"
-    },
     "search_text": {
-      "empty": "No matching text found",
       "generating": "Generating search text arguments...",
       "parse_error": "Failed to parse search text arguments",
       "title": "Dais wants to search text:"
@@ -100,12 +102,6 @@
       "generating": "Generating write file arguments...",
       "parse_error": "Failed to parse write file arguments",
       "title": "Dais wants to write a file:"
-    },
-    "list_directory": {
-      "empty": "Directory contents are empty",
-      "generating": "Generating list directory arguments...",
-      "parse_error": "Failed to parse list directory arguments",
-      "title": "Dais wants to view a folder:"
     }
   }
 }

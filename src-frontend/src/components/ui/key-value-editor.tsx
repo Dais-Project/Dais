@@ -98,7 +98,7 @@ export function KeyValueEditor({
         {pairs.map((pair) => (
           <div key={pair.id} className="flex items-center gap-2">
             <Input
-              placeholder="Header-Name"
+              placeholder="Key-Name"
               value={pair.key}
               onChange={(e) => updatePair(pair.id, "key", e.target.value)}
               disabled={disabled}

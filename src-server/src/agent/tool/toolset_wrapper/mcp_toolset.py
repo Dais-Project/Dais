@@ -19,6 +19,11 @@ from src.binaries import NPX_PATH, UVX_PATH, NODE_PATH, UV_PATH
 from ..types import ToolMetadata
 
 
+MCP_DATA_DIR = DATA_DIR / "mcp-data"
+MCP_CACHE_DIR = DATA_DIR / "mcp-cache"
+MCP_DATA_DIR.mkdir(parents=True, exist_ok=True)
+MCP_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
 class McpToolsetNotConnectedError(Exception):
     def __init__(self, toolset_name: str):
         super().__init__(f"MCP toolset '{toolset_name}' not connected")
@@ -87,10 +92,9 @@ def resolve_local_mcp_env(env: dict[str, str] | None) -> dict[str, str]:
     base_env["PATH"] = prepend + sep + base_env.get("PATH", "")
 
     # cache dir for npx and uvx
-    cache_root = DATA_DIR / "mcp-cache"
-    base_env["npm_config_cache"] = str(cache_root / "npm")
-    base_env["UV_CACHE_DIR"]     = str(cache_root / "uv")
-    base_env["UV_TOOL_DIR"]      = str(cache_root / "uv-tools")
+    base_env["npm_config_cache"] = str(MCP_CACHE_DIR / "npm")
+    base_env["UV_CACHE_DIR"]     = str(MCP_CACHE_DIR / "uv")
+    base_env["UV_TOOL_DIR"]      = str(MCP_CACHE_DIR / "uv-tools")
 
     if env: base_env.update(env)
     return base_env
@@ -104,7 +108,8 @@ class McpToolset(Toolset):
                     params = toolset_ent.params.model_copy(
                         update={
                             "command": resolve_local_mcp_command(toolset_ent.params.command),
-                            "env": resolve_local_mcp_env(toolset_ent.params.env)
+                            "env": resolve_local_mcp_env(toolset_ent.params.env),
+                            "cwd": MCP_DATA_DIR,
                         })
                     inner_toolset = LocalMcpToolset(toolset_ent.name, params)
                 case toolset_models.ToolsetType.MCP_REMOTE:

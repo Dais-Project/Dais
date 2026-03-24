@@ -5,6 +5,7 @@ import { UrlField } from "@/components/custom/form/fields";
 import type { ToolsetCreateFormValues } from "../form-types";
 import { ArgsField } from "./ArgsField";
 import { CommandField } from "./CommandField";
+import { EnvField } from "./EnvField";
 import { HttpHeadersField } from "./HttpHeadersField";
 
 export function DynamicConfigFields() {
@@ -17,6 +18,7 @@ export function DynamicConfigFields() {
       <>
         <CommandField />
         <ArgsField />
+        <EnvField />
       </>
     );
   }

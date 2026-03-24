@@ -1,17 +1,16 @@
 {
   "form": {
     "args": {
-      "description": "One argument per line",
-      "label": "Args",
-      "placeholder": "For example:\n--version\n--help"
+      "label": "Args"
     },
     "command": {
       "label": "Command",
       "required": "Please enter command"
     },
+    "env": {
+      "label": "Environment variables"
+    },
     "http_headers": {
-      "description": "Request headers in JSON format",
-      "invalid_json": "Please enter valid JSON",
       "label": "HTTP headers"
     },
     "is_enabled": {
