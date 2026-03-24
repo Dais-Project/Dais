@@ -33,6 +33,9 @@ class ServiceErrorCode(str, Enum):
 
     TOOL_NOT_FOUND = "TOOL_NOT_FOUND"
 
+    SKILL_NOT_FOUND = "SKILL_NOT_FOUND"
+    SKILL_NAME_ALREADY_EXISTS = "SKILL_NAME_ALREADY_EXISTS"
+
 class ServiceError(Exception):
     def __init__(self, status_code: ServiceStatusCode, error_code: ServiceErrorCode, message: str) -> None:
         super().__init__(message)
@@ -58,3 +61,16 @@ class BadRequestError(ServiceError):
 class UnavailableError(ServiceError):
     def __init__(self, error_code: ServiceErrorCode, message: str) -> None:
         super().__init__(ServiceStatusCode.UNAVAILABLE, error_code, message)
+
+
+class SkillNotFoundError(NotFoundError):
+    def __init__(self, skill_identifier: int | str) -> None:
+        super().__init__(ServiceErrorCode.SKILL_NOT_FOUND, "Skill", skill_identifier)
+
+
+class SkillNameAlreadyExistsError(ConflictError):
+    def __init__(self, name: str) -> None:
+        super().__init__(
+            ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS,
+            f"Skill '{name}' already exists",
+        )
