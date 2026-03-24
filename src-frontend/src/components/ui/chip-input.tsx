@@ -41,7 +41,6 @@ export function ChipInput({
   const chips = isControlled ? controlledValue! : internalChips;
 
   const [draft, setDraft] = React.useState("");
-  const [focused, setFocused] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -122,12 +121,10 @@ export function ChipInput({
       onClick={() => inputRef.current?.focus()}
       className={cn(
         // Base
-        "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm",
-        // Focus ring – mirrors shadcn's ring style
-        "ring-offset-background transition-colors",
+        "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow]",
+        "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
         {
-          "outline-none ring-2 ring-ring ring-offset-2": focused,
-          "cursor-not-allowed opacity-50": disabled,
+          "pointer-events-none cursor-not-allowed opacity-50": disabled,
           "cursor-text": !disabled,
         },
         className
@@ -152,12 +149,6 @@ export function ChipInput({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          onFocus={() => setFocused(true)}
-          onBlur={() => {
-            setFocused(false);
-            // Commit any pending draft on blur
-            if (draft.trim()) addChip(draft);
-          }}
           disabled={disabled}
           placeholder={chips.length === 0 ? placeholder : undefined}
           className={cn(
