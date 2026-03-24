@@ -156,7 +156,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
     setUserFeedback(alternative);
   };
 
-  const content = () => {
+  const content = (() => {
     if (message.isStreaming) {
       return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.show_plan.generating")}</p>;
     }
@@ -165,7 +165,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
     }
 
     return (
-      <BuiltInToolContent>
+      <>
         <Markdown className="px-4 pb-4">{toolArguments.plan}</Markdown>
         {toolArguments.alternatives && (
           <PlanAlternatives
@@ -191,9 +191,9 @@ export function ShowPlan({ message }: ToolMessageProps) {
             }
           }}
         />
-      </BuiltInToolContent>
+      </>
     );
-  };
+  })();
 
   const submit = () => {
     if (userFeedback) {
@@ -228,7 +228,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
         title={t("tool.show_plan.title")}
         icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
       />
-      {content()}
+      <BuiltInToolContent>{content}</BuiltInToolContent>
       {!disabled && (
         <BuiltInToolFooter>
           {submit()}

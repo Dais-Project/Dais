@@ -1,3 +1,4 @@
+import asyncio
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 from loguru import logger
@@ -71,7 +72,10 @@ class ToolCallReviewer:
                 context=context,
                 pending_tool_calls=messages
             )
-            output = await safety_audit(input)
+            output = await asyncio.wait_for(safety_audit(input), 15)
+        except asyncio.TimeoutError:
+            self._logger.warning("Tool call audit timeout")
+            return None
         except Exception:
             self._logger.exception("Failed to audit tool calls")
             return None
