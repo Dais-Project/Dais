@@ -195,7 +195,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
     );
   })();
 
-  const submit = () => {
+  const submit = (() => {
     if (userFeedback) {
       return (
         <BuiltInToolAction
@@ -220,7 +220,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
         {t("tool.show_plan.approve")}
       </BuiltInToolAction>
     );
-  };
+  })();
 
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
@@ -229,10 +229,8 @@ export function ShowPlan({ message }: ToolMessageProps) {
         icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
       />
       <BuiltInToolContent>{content}</BuiltInToolContent>
-      {!disabled && (
-        <BuiltInToolFooter>
-          {submit()}
-        </BuiltInToolFooter>
+      {!hasResult && (
+        <BuiltInToolFooter>{submit}</BuiltInToolFooter>
       )}
     </BuiltInToolContainer>
   );

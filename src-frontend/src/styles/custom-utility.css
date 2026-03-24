@@ -1,0 +1,9 @@
+@theme {
+  --text-sm-plus: 0.9375rem; /* 15px */
+  --text-sm-plus--line-height: calc(1.25 / 0.9375);
+}
+
+@utility text-sm-plus {
+  font-size: var(--text-sm-plus);
+  line-height: var(--tw-leading, var(--text-sm-plus--line-height));
+}

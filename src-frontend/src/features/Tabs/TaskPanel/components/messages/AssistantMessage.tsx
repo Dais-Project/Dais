@@ -14,7 +14,10 @@ export function AssistantMessage({ text, isStreaming }: AssistantMessageProps) {
   return (
     <Message className="selectable-text" from="assistant">
       <MessageContent>
-        <Markdown mode={!isStreaming ? "static" : "streaming"} parseIncompleteMarkdown={isStreaming}>
+        <Markdown
+          mode={!isStreaming ? "static" : "streaming"}
+          parseIncompleteMarkdown={isStreaming}
+        >
           {text.trim()}
         </Markdown>
       </MessageContent>
