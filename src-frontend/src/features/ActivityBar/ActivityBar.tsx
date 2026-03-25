@@ -1,4 +1,4 @@
-import { BotMessageSquareIcon, FoldersIcon, LayoutListIcon, SettingsIcon, ToolCaseIcon } from "lucide-react";
+import { BotMessageSquareIcon, FoldersIcon, LayoutListIcon, ScrollTextIcon, SettingsIcon, ToolCaseIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,11 @@ const topViews: { id: SideBarView; title: string; icon: React.ReactNode }[] = [
     id: "toolsets",
     title: "ToolSets",
     icon: <ToolCaseIcon />,
+  },
+  {
+    id: "skills",
+    title: "Skills",
+    icon: <ScrollTextIcon />,
   },
   // {
   //   id: "plugins",

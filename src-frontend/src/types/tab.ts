@@ -34,9 +34,14 @@ export type ToolsetTabMetadata =
   | { mode: "create" }
   | { mode: "edit"; id: number };
 
+export type SkillTabMetadata =
+  | { mode: "create" }
+  | { mode: "edit"; id: number };
+
 export type Tab =
   | SpecificTab<"task", TaskTabMetadata>
   | SpecificTab<"workspace", WorkspaceTabMetadata>
   | SpecificTab<"agent", AgentTabMetadata>
   | SpecificTab<"provider", ProviderTabMetadata>
-  | SpecificTab<"toolset", ToolsetTabMetadata>;
+  | SpecificTab<"toolset", ToolsetTabMetadata>
+  | SpecificTab<"skill", SkillTabMetadata>;

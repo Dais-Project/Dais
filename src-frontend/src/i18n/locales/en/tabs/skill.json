@@ -1,0 +1,23 @@
+{
+    "form": {
+        "name": {
+            "label": "Name"
+        },
+        "submit": {
+            "create": "Create",
+            "creating": "Creating...",
+            "save": "Save",
+            "saving": "Saving..."
+        }
+    },
+    "toast": {
+        "create": {
+            "success_title": "Create success",
+            "success_description_with_name": "Skill \"{{name}}\" has been created successfully."
+        },
+        "update": {
+            "success_title": "Update success",
+            "success_description_with_name": "Skill \"{{name}}\" has been updated successfully."
+        }
+    }
+}
