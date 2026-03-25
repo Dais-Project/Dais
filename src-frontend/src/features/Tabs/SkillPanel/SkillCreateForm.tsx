@@ -5,8 +5,10 @@ import { TABS_SKILL_NAMESPACE } from "@/i18n/resources";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_SKILL } from "@/constants/skill";
 import { SkillDescriptionField } from "./fields/SkillDescriptionField";
-import { type SkillCreateFormValues } from "./form-types";
+import { createFormValuesToPayload, type SkillCreateFormValues } from "./form-types";
+import { SkillResourceField } from "./fields/SkillResourceField";
 
 type SkillCreateFormProps = {
   onConfirm?: () => void;
@@ -28,14 +30,16 @@ export function SkillCreateForm({ onConfirm }: SkillCreateFormProps) {
   });
 
   const handleSubmit = (data: SkillCreateFormValues) => {
-    createMutation.mutate({ data });
+    createMutation.mutate({ data: createFormValuesToPayload(data) });
   };
 
   return (
-    <FormShell<SkillCreateFormValues> onSubmit={handleSubmit}>
+    <FormShell<SkillCreateFormValues> values={DEFAULT_SKILL} onSubmit={handleSubmit}>
       <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <SkillDescriptionField />
+
+      <SkillResourceField />
 
       <FormShellFooter>
         <Button type="submit" disabled={createMutation.isPending}>

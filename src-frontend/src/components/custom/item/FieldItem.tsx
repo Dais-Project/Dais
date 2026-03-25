@@ -27,7 +27,7 @@ export type FieldItemProps = {
   children: React.ReactNode;
   fieldState: ControllerFieldState;
   className?: string;
-  titleClassName?: string;
+  labelClassName?: string;
   descriptionClassName?: string;
   contentClassName?: string;
 } & VariantProps<typeof fieldItemVariants>;
@@ -38,7 +38,7 @@ export function FieldItem({
   children,
   fieldState,
   className,
-  titleClassName,
+  labelClassName,
   descriptionClassName,
   contentClassName,
   align,
@@ -52,7 +52,7 @@ export function FieldItem({
     >
       <div className="space-y-1 pr-4">
         <FieldLabel
-          className={cn("whitespace-nowrap leading-none", titleClassName)}
+          className={cn("whitespace-nowrap leading-none", labelClassName)}
         >
           {label}
         </FieldLabel>

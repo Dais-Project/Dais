@@ -22,7 +22,7 @@ class SkillRead(SkillBase):
     resources: list[SkillResourceRead]
 
 class SkillCreate(SkillBase):
-    resources: list[SkillResourceBase] = []
+    resources: list[SkillResourceBase]
 
 class SkillUpdate(DTOBase):
     name: str | None = None
