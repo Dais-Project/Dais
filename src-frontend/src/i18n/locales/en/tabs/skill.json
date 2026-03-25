@@ -1,5 +1,11 @@
 {
     "form": {
+        "content": {
+            "label": "Content"
+        },
+        "description": {
+            "label": "Description"
+        },
         "name": {
             "label": "Name"
         },

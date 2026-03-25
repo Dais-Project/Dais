@@ -83,46 +83,57 @@ export function resourcesToArboristData(resources: { relative: string; content: 
   return nodes;
 }
 
-function buildTree(data: TreeItem[]): TreeNode[] {
-  const map: Record<string, TreeNode> = {};
-  const roots: TreeNode[] = [];
+export function arboristDataToResources(data: TreeItem[]): { relative: string; content: string }[] {
+  const result: { relative: string; content: string }[] = [];
+  const tree = buildTree(data);
 
-  // resolve root nodes first
-  for (const item of data) {
-    if (item.parentId !== null) {
-      continue;
+  function dfs(node: TreeNode, parentPath: string) {
+    const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+    if (node.type === "file") {
+      result.push({
+        relative: currentPath,
+        content: node.content,
+      });
+      return;
     }
-    if (item.type === "file") {
-      roots.push({ ...item });
-      continue;
+    for (const child of node.children) {
+      dfs(child, currentPath);
     }
-    const node = {
-      ...item,
-      children: [],
-    } satisfies TreeNode;
-    map[item.id] = node;
-    roots.push(node);
   }
 
+  for (const root of tree) {
+    dfs(root, "");
+  }
+  return result;
+}
+
+export function buildTree(data: TreeItem[]): TreeNode[] {
+  const map = new Map<string, TreeNode>();
   for (const item of data) {
-    if (item.parentId === null) {
-      continue;
-    }
-    const parent = map[item.parentId];
-    if (parent === undefined) {
-      console.warn(`Parent not found for item: ${item.id}`);
-      continue;
-    }
-    if (parent.type === "file") {
-      console.warn(`Parent is a file: ${item.id}`);
-      continue;
-    }
-    const node = { ...item } as TreeNode;
     if (item.type === "folder") {
-      (node as TreeNode & { type: "folder" }).children = [];
+      map.set(item.id, {
+        ...item,
+        children: [],
+      });
+    } else {
+      map.set(item.id, {
+        ...item,
+      });
     }
-    parent.children.push(node);
   }
+
+  const roots: TreeNode[] = [];
+  for (const node of map.values()) {
+    if (node.parentId === null) {
+      roots.push(node);
+    } else {
+      const parent = map.get(node.parentId);
+      if (parent && parent.type === "folder") {
+        parent.children.push(node);
+      }
+    }
+  }
+
   return roots;
 }
 

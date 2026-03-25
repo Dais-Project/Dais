@@ -18,7 +18,7 @@ export function SkillResourceField() {
       orientation="vertical"
       align="start"
       className="relative"
-      labelClassName="absolute left-2 bg-background py-2 px-3 rounded-md"
+      labelClassName="absolute left-2 py-2 px-3 border rounded-md dark:bg-input/30"
     >
       <CodeEditor
         value={field.value}

@@ -1,5 +1,5 @@
-import type { SkillCreate, SkillRead } from "@/api/generated/schemas";
-import { resourcesToArboristData, TreeItem } from "@/components/custom/editor/ArboristTree";
+import type { SkillCreate, SkillRead, SkillUpdate } from "@/api/generated/schemas";
+import { arboristDataToResources, resourcesToArboristData, TreeItem } from "@/components/custom/editor/ArboristTree";
 
 export type SkillCreateFormValues = Omit<SkillCreate, "resources"> & {
   resources: TreeItem[];
@@ -21,9 +21,15 @@ export function createFormValuesToPayload(
 ): SkillCreate {
   return {
     ...values,
-    resources: values.resources.map((r) => ({
-      relative: r.id,
-      content: r.content!,
-    })),
+    resources: arboristDataToResources(values.resources),
+  };
+}
+
+export function editFormValuesToPayload(
+  values: SkillEditFormValues
+): SkillUpdate {
+  return {
+    ...values,
+    resources: arboristDataToResources(values.resources),
   };
 }

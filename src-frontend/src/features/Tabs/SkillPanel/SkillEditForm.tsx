@@ -7,7 +7,8 @@ import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { SkillDescriptionField } from "./fields/SkillDescriptionField";
-import { type SkillEditFormValues } from "./form-types";
+import { editFormValuesToPayload, skillToEditFormValues, type SkillEditFormValues } from "./form-types";
+import { useMemo } from "react";
 
 type SkillEditFormProps = {
   skill: SkillRead;
@@ -16,6 +17,7 @@ type SkillEditFormProps = {
 
 export function SkillEditForm({ skill, onConfirm }: SkillEditFormProps) {
   const { t } = useTranslation(TABS_SKILL_NAMESPACE);
+  const formValues = useMemo(() => skillToEditFormValues(skill), [skill]);
 
   const updateMutation = useUpdateSkill({
     mutation: {
@@ -30,11 +32,11 @@ export function SkillEditForm({ skill, onConfirm }: SkillEditFormProps) {
   });
 
   const handleSubmit = (data: SkillEditFormValues) => {
-    updateMutation.mutate({ skillId: skill.id, data });
+    updateMutation.mutate({ skillId: skill.id, data: editFormValuesToPayload(data) });
   };
 
   return (
-    <FormShell<SkillEditFormValues> values={skill} onSubmit={handleSubmit}>
+    <FormShell<SkillEditFormValues> values={formValues} onSubmit={handleSubmit}>
       <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <SkillDescriptionField />

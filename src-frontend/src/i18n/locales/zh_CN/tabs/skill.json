@@ -1,5 +1,11 @@
 {
     "form": {
+        "content": {
+            "label": "内容"
+        },
+        "description": {
+            "label": "描述"
+        },
         "name": {
             "label": "名称"
         },

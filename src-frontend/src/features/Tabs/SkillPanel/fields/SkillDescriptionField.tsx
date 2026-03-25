@@ -11,7 +11,7 @@ export function SkillDescriptionField() {
 
   return (
     <FieldItem
-      label={t("form.description.label", { defaultValue: "Description" })}
+      label={t("form.description.label")}
       fieldState={getFieldState("description", formState)}
       orientation="vertical"
       align="start"
@@ -19,9 +19,9 @@ export function SkillDescriptionField() {
     >
       <Textarea
         {...register("description")}
-        minRows={4}
-        placeholder={t("form.description.placeholder", { defaultValue: "Enter description (optional)" })}
-        className="w-full min-w-0"
+        minRows={2}
+        placeholder="Agent 应该何时使用此 skill"
+        className="w-full min-w-0 max-h-36 resize-none"
       />
     </FieldItem>
   );

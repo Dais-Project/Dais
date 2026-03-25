@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { invalidateSkillQueries, useCreateSkill } from "@/api/skill";
 import { TABS_SKILL_NAMESPACE } from "@/i18n/resources";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import { NameField } from "@/components/custom/form/fields";
+import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_SKILL } from "@/constants/skill";
 import { SkillDescriptionField } from "./fields/SkillDescriptionField";
@@ -38,6 +38,12 @@ export function SkillCreateForm({ onConfirm }: SkillCreateFormProps) {
       <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <SkillDescriptionField />
+
+      <RichTextField
+        fieldName="content"
+        fieldProps={{ label: t("form.content.label") }}
+        controlProps={{ className: "mt-2" }}
+      />
 
       <SkillResourceField />
 
