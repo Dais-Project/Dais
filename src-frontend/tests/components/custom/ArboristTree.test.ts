@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { resourcesToArboristData } from "@/components/custom/ArboristTree";
+import { resourcesToArboristData } from "@/components/custom/editor/ArboristTree";
 
 test("resourcesToArboristData", () => {
   const resources = [

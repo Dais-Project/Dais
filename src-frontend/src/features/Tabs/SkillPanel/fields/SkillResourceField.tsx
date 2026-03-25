@@ -1,6 +1,6 @@
 import { useController, useFormContext } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { CodeEditor } from "@/components/custom/CodeEditor";
+import { CodeEditor } from "@/components/custom/editor/CodeEditor";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { SkillCreateFormValues } from "../form-types";
 import { useResolvedTheme } from "@/hooks/use-resolve-theme";

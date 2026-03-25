@@ -5,7 +5,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
-import { Vditor } from "@/components/custom/Vditor";
+import { Vditor } from "@/components/custom/editor/Vditor";
 import { i18n } from "@/i18n";
 import { FORM_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";

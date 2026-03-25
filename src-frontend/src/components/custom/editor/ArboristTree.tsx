@@ -22,10 +22,10 @@ import {
   FilePlusIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
 import { useMemo, useRef } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
 export type TreeItem = {
   id: string;
