@@ -3,6 +3,7 @@ from sqlalchemy.orm import selectinload
 from src.db.models import workspace as workspace_models
 from src.db.models import agent as agent_models
 from src.db.models import toolset as toolset_models
+from src.db.models import skill as skill_models
 from src.schemas import workspace as workspace_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
@@ -20,6 +21,7 @@ class WorkspaceService(ServiceBase):
         return [
             workspace_models.Workspace.usable_tools,
             workspace_models.Workspace.usable_agents,
+            workspace_models.Workspace.usable_skills,
         ]
 
     def get_workspaces_query(self):
@@ -48,6 +50,13 @@ class WorkspaceService(ServiceBase):
             tools = (await self._db_session.scalars(stmt)).all()
             workspace.usable_tools = list(tools)
 
+        if data.usable_skill_ids is not None:
+            stmt = select(skill_models.Skill).where(
+                skill_models.Skill.id.in_(data.usable_skill_ids)
+            )
+            skills = (await self._db_session.scalars(stmt)).all()
+            workspace.usable_skills = list(skills)
+
     async def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = await self._db_session.get(
             workspace_models.Workspace, id,
@@ -55,6 +64,7 @@ class WorkspaceService(ServiceBase):
                 selectinload(workspace_models.Workspace.usable_tools),
                 selectinload(workspace_models.Workspace.usable_agents)
                     .selectinload(agent_models.Agent.model),
+                selectinload(workspace_models.Workspace.usable_skills),
             ],
         )
         if not workspace:
@@ -62,7 +72,7 @@ class WorkspaceService(ServiceBase):
         return workspace
 
     async def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
-        create_data = data.model_dump(exclude={"usable_agent_ids", "usable_tool_ids"})
+        create_data = data.model_dump(exclude={"usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
         new_workspace = workspace_models.Workspace(**create_data)
 
         await self._update_relations(new_workspace, data)
@@ -76,9 +86,9 @@ class WorkspaceService(ServiceBase):
     async def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
         workspace = await self.get_workspace_by_id(id)
 
-        self.apply_fields(workspace, data, exclude={"usable_agent_ids", "usable_tool_ids"})
-
+        self.apply_fields(workspace, data, exclude={"usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
         await self._update_relations(workspace, data)
+
         await self._db_session.flush()
         self._db_session.expunge(workspace)
 
