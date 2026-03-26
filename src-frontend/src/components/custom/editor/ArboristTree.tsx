@@ -11,8 +11,6 @@ import {
 import {
   ChevronRight,
   ChevronDown,
-  FileText,
-  ImageIcon,
   Plus,
   Pencil,
   Trash2,
@@ -20,10 +18,11 @@ import {
   FileCodeIcon,
   FolderPlusIcon,
   FilePlusIcon,
+  FileTextIcon,
+  BookTextIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
-import { Input } from "../../ui/input";
 import { useMemo, useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
@@ -148,14 +147,16 @@ function FileIcon({ name, className }: FileIconProps) {
   const ext = name.split(".").pop()?.toLowerCase() ?? "";
   const cls = "min-w-0 size-4 shrink-0";
 
-  if (["ts", "tsx", "js", "jsx"].includes(ext))
-    return <FileCodeIcon className={cn(className, cls, "text-sky-500")} />;
-  if (ext === "json")
-    return <FileJsonIcon className={cn(className, cls, "text-yellow-500")} />;
-  if (["png", "jpg", "jpeg", "svg", "webp"].includes(ext))
-    return <ImageIcon className={cn(className, cls, "text-purple-500")} />;
-
-  return <FileText className={cn(className, cls, "text-muted-foreground")} />;
+  if (["ts", "tsx", "js", "jsx"].includes(ext)) {
+    return <FileCodeIcon className={cn(cls, "text-sky-600 dark:text-sky-500", className)} />;
+  } else if (ext === "py") {
+    return <FileCodeIcon className={cn(cls, "text-emerald-600 dark:text-emerald-500", className)} />;
+  } else if (ext === "json") {
+    return <FileJsonIcon className={cn(cls, "text-yellow-600 dark:text-yellow-500", className)} />;
+  } else if (ext === "md") {
+    return <BookTextIcon className={cn(cls, "text-cyan-600 dark:text-cyan-500", className)} />;
+  }
+  return <FileTextIcon className={cn(cls, "text-muted-foreground", className)} />;
 }
 
 function TreeNodeRender({ node, style, dragHandle }: NodeRendererProps<TreeNode>) {
@@ -165,7 +166,7 @@ function TreeNodeRender({ node, style, dragHandle }: NodeRendererProps<TreeNode>
       ref={dragHandle}
       style={style}
       className={cn(
-        "group flex items-center gap-1.5 rounded-md pr-2",
+        "group flex items-center gap-1.5 pr-2",
         "h-8 text-sm select-none cursor-pointer",
         "text-foreground/75 hover:text-foreground",
         "hover:bg-accent transition-colors duration-75",
@@ -186,10 +187,12 @@ function TreeNodeRender({ node, style, dragHandle }: NodeRendererProps<TreeNode>
 
       {/* File name / inline rename input */}
       {node.isEditing ? (
-        <Input
+        <input
           autoFocus
+          autoComplete="off"
+          data-slot="input"
           defaultValue={node.data.name}
-          className="flex-1 min-w-0 h-6 py-0 text-sm focus-visible:ring-0 focus-visible:border-input"
+          className="outline-none selection:bg-primary selection:text-primary-foreground"
           onBlur={(e) => node.submit(e.currentTarget.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") node.submit(e.currentTarget.value);
@@ -247,17 +250,19 @@ function TreeNodeRender({ node, style, dragHandle }: NodeRendererProps<TreeNode>
 
 type ArboristTreeHeaderProps = {
   title: string;
-  handleCreateFile: () => void;
-  handleCreateFolder: () => void;
+  className?: string;
+  handleCreateFile?: () => void;
+  handleCreateFolder?: () => void;
 };
 
 function ArboristTreeHeader({
   title,
+  className,
   handleCreateFile,
   handleCreateFolder,
 }: ArboristTreeHeaderProps) {
   return (
-    <div className="flex justify-between items-center pl-2 pb-1">
+    <div className={cn("flex justify-between items-center px-2 py-1", className)}>
       <div className="text-sm font-medium">{title}</div>
       <div className="flex items-center">
         <Tooltip>
@@ -268,7 +273,7 @@ function ArboristTreeHeader({
               variant="ghost"
               onClick={handleCreateFile}
             >
-              <FilePlusIcon className="size-3.5 mr-1" />
+              <FilePlusIcon className="size-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>新建文件</TooltipContent>
@@ -282,7 +287,7 @@ function ArboristTreeHeader({
               variant="ghost"
               onClick={handleCreateFolder}
             >
-              <FolderPlusIcon className="size-3.5 mr-1" />
+              <FolderPlusIcon className="size-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>新建文件夹</TooltipContent>
@@ -340,9 +345,10 @@ export function ArboristTree({
   };
 
   return (
-    <div className={cn("p-1", className)}>
+    <div className={className}>
       <ArboristTreeHeader
         title={title}
+        className="border-b"
         handleCreateFile={handleCreateFile}
         handleCreateFolder={handleCreateFolder}
       />
@@ -352,7 +358,7 @@ export function ArboristTree({
         ref={ref}
         width="100%"
         rowClassName="outline-none"
-        rowHeight={36}
+        rowHeight={32}
         renderCursor={() => null}
         onMove={onMove as MoveHandler<TreeNode>}
         onRename={onRename as RenameHandler<TreeNode>}

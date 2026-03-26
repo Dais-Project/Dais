@@ -1,9 +1,10 @@
 import { useController, useFormContext } from "react-hook-form";
+import { produce } from "immer";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { CodeEditor } from "@/components/custom/editor/CodeEditor";
 import { useSettingsStore } from "@/stores/settings-store";
-import type { SkillCreateFormValues } from "../form-types";
 import { useResolvedTheme } from "@/hooks/use-resolve-theme";
+import type { SkillCreateFormValues } from "../form-types";
 
 export function SkillResourceField() {
   const { control } = useFormContext<SkillCreateFormValues>();
@@ -23,7 +24,10 @@ export function SkillResourceField() {
       <CodeEditor
         value={field.value}
         theme={resolvedTheme}
-        onChange={field.onChange}
+        onChange={(updater) => {
+          const next = produce(field.value, updater);
+          field.onChange(next);
+        }}
         className="bg-transparent dark:bg-input/30"
         title=""
       />

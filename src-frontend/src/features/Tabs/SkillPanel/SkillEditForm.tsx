@@ -1,14 +1,15 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { TABS_SKILL_NAMESPACE } from "@/i18n/resources";
 import type { SkillRead } from "@/api/generated/schemas";
 import { invalidateSkillQueries, useUpdateSkill } from "@/api/skill";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import { NameField } from "@/components/custom/form/fields";
+import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { SkillDescriptionField } from "./fields/SkillDescriptionField";
+import { SkillResourceField } from "./fields/SkillResourceField";
 import { editFormValuesToPayload, skillToEditFormValues, type SkillEditFormValues } from "./form-types";
-import { useMemo } from "react";
 
 type SkillEditFormProps = {
   skill: SkillRead;
@@ -40,6 +41,14 @@ export function SkillEditForm({ skill, onConfirm }: SkillEditFormProps) {
       <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
 
       <SkillDescriptionField />
+
+      <RichTextField
+        fieldName="content"
+        fieldProps={{ label: t("form.content.label") }}
+        controlProps={{ className: "mt-2" }}
+      />
+
+      <SkillResourceField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>
