@@ -4,12 +4,17 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
 from . import Base, relationship
-from .relationships import workspace_agent_association_table, workspace_tool_association_table
+from .relationships import (
+    workspace_agent_association_table,
+    workspace_tool_association_table,
+    workspace_skill_association_table,
+)
 
 if TYPE_CHECKING:
     from .agent import Agent
     from .task import Task
     from .toolset import Tool
+    from .skill import Skill
 
 class Workspace(Base):
     __tablename__ = "workspaces"
@@ -27,7 +32,8 @@ class Workspace(Base):
                                                       back_populates="workspaces")
     usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table,
                                                     back_populates="_workspaces")
-
+    usable_skills: Mapped[list[Skill]] = relationship(secondary=workspace_skill_association_table,
+                                                      back_populates="_workspaces")
 
 async def init(db_session: AsyncSession):
     from .agent import Agent

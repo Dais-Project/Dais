@@ -1,6 +1,11 @@
+from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from . import Base, relationship
+from .relationships import workspace_skill_association_table
+
+if TYPE_CHECKING:
+    from .workspace import Workspace
 
 
 class SkillResource(Base):
@@ -23,3 +28,7 @@ class Skill(Base):
     content: Mapped[str]
     resources: Mapped[list[SkillResource]] = relationship(back_populates="skill",
                                                           cascade="all, delete-orphan")
+
+    _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_skill_association_table,
+                                                        back_populates="usable_skills",
+                                                        viewonly=True)
