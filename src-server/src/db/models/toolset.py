@@ -37,12 +37,15 @@ class Tool(Base):
     @hybrid_property
     def toolset_id(self) -> int: return self._toolset_id
     toolset: Mapped[Toolset] = relationship(back_populates="tools",
+                                            foreign_keys=[_toolset_id],
                                             viewonly=True)
 
     _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_tool_association_table,
-                                                        back_populates="usable_tools")
+                                                        back_populates="usable_tools",
+                                                        viewonly=True)
     _agents: Mapped[list[Agent]] = relationship(secondary=agent_tool_association_table,
-                                                back_populates="usable_tools")
+                                                back_populates="usable_tools",
+                                                viewonly=True)
 
 class Toolset(Base):
     __tablename__ = "toolsets"

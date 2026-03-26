@@ -10,6 +10,7 @@ class SkillResource(Base):
     content: Mapped[str]
     _skill_id: Mapped[int] = mapped_column(ForeignKey("skills.id"))
     skill: Mapped[Skill] = relationship(back_populates="resources",
+                                        foreign_keys=[_skill_id],
                                         viewonly=True)
 
 class Skill(Base):

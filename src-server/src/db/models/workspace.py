@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
 from . import Base, relationship
 from .relationships import workspace_agent_association_table, workspace_tool_association_table
@@ -16,14 +17,17 @@ class Workspace(Base):
     name: Mapped[str]
     directory: Mapped[str]
     instruction: Mapped[str]
+
+    _tasks: Mapped[list[Task]] = relationship(back_populates="workspace",
+                                              cascade="all, delete-orphan")
+    @hybrid_property
+    def tasks(self) -> list[Task]: return self._tasks
+
     usable_agents: Mapped[list[Agent]] = relationship(secondary=workspace_agent_association_table,
                                                       back_populates="workspaces")
     usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table,
                                                     back_populates="_workspaces")
 
-    tasks: Mapped[list[Task]] = relationship(back_populates="workspace",
-                                             cascade="all, delete-orphan",
-                                             viewonly=True)
 
 async def init(db_session: AsyncSession):
     from .agent import Agent

@@ -43,14 +43,15 @@ class Task(Base):
     usage: Mapped[TaskUsage] = mapped_column(DataClassJSON(TaskUsage), default=TaskUsage.default)
     messages: Mapped[list[Message]] = mapped_column(PydanticJSON(messages_adapter), default=list)
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
+
     agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id", ondelete="SET NULL"))
+    agent: Mapped[Agent | None] = relationship(back_populates="tasks",
+                                               foreign_keys=[agent_id],
+                                               viewonly=True)
 
     _workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
     @hybrid_property
     def workspace_id(self) -> int: return self._workspace_id
-    _agent: Mapped[Agent | None] = relationship(back_populates="tasks",
-                                                passive_deletes=True)
-    @hybrid_property
-    def agent(self) -> Agent | None: return self._agent
-    workspace: Mapped[Workspace] = relationship(back_populates="tasks",
+    workspace: Mapped[Workspace] = relationship(back_populates="_tasks",
+                                                foreign_keys=[_workspace_id],
                                                 viewonly=True)

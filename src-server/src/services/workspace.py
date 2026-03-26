@@ -54,7 +54,7 @@ class WorkspaceService(ServiceBase):
             options=[
                 selectinload(workspace_models.Workspace.usable_tools),
                 selectinload(workspace_models.Workspace.usable_agents)
-                    .selectinload(agent_models.Agent._model),
+                    .selectinload(agent_models.Agent.model),
             ],
         )
         if not workspace:
