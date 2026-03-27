@@ -6,6 +6,7 @@ from itertools import islice
 from dais_shell import AgentShell, CommandStep
 from dais_shell.iostream_reader import IOStreamBuffer
 from src.db.models import toolset as toolset_models
+from src.binaries import UV_PATH, NODE_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
 
 
@@ -14,7 +15,8 @@ class OsInteractionsToolset(BuiltInToolset):
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
-        self._shell = AgentShell()
+        self._shell = AgentShell(
+            extra_paths=[str(NODE_PATH.parent), str(UV_PATH.parent)])
 
     @property
     @override
@@ -55,11 +57,11 @@ class OsInteractionsToolset(BuiltInToolset):
             - stdout: Standard output of the command, with a truncated attribute indicating whether it was truncated.
             - stderr: Standard error output of the command, with a truncated attribute indicating whether it was truncated.
 
-        Example:
-            <shell_result status="success" returncode="0" duration="1.23s">
-                <stdout truncated="false">Hello World</stdout>
-                <stderr truncated="false"></stderr>
-            </shell_result>
+            Example:
+                <shell_result status="success" returncode="0" duration="1.23s">
+                    <stdout truncated="false">Hello World</stdout>
+                    <stderr truncated="false"></stderr>
+                </shell_result>
 
         Note:
             If the original stdout or stderr is too long, it will be automatically truncated, keeping the first N and last N lines.

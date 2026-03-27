@@ -58,18 +58,20 @@ class SkillService(ServiceBase):
             raise SkillNameAlreadyExistsError(data.name)
         except SkillNotFoundError: pass
 
+        resources = [
+            skill_models.SkillResource(
+                relative=res.relative,
+                content=res.content,
+            )
+            for res in data.resources
+        ]
         new_skill = skill_models.Skill(
             name=data.name,
+            hash=skill_models.Skill.compute_resources_hash(resources),
             description=data.description,
             is_enabled=data.is_enabled,
             content=data.content,
-            resources=[
-                skill_models.SkillResource(
-                    relative=res.relative,
-                    content=res.content,
-                )
-                for res in data.resources
-            ],
+            resources=resources,
         )
 
         self._db_session.add(new_skill)
@@ -93,14 +95,15 @@ class SkillService(ServiceBase):
         self.apply_fields(updated_skill, data, exclude={"resources"})
 
         if data.resources is not None:
-            updated_skill.resources.clear()
-            for res in data.resources:
-                new_resource = skill_models.SkillResource(
+            resources = [
+                skill_models.SkillResource(
                     relative=res.relative,
                     content=res.content,
-                    _skill_id=updated_skill.id,
                 )
-                self._db_session.add(new_resource)
+                for res in data.resources
+            ]
+            updated_skill.hash = skill_models.Skill.compute_resources_hash(resources)
+            updated_skill.resources = resources
 
         await self._db_session.flush()
         self._db_session.expunge(updated_skill)

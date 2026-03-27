@@ -1,3 +1,4 @@
+import hashlib
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
@@ -22,6 +23,7 @@ class Skill(Base):
     __tablename__ = "skills"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
+    hash: Mapped[str]
     description: Mapped[str] = mapped_column(default="")
     is_enabled: Mapped[bool] = mapped_column(default=True)
 
@@ -32,3 +34,12 @@ class Skill(Base):
     _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_skill_association_table,
                                                         back_populates="usable_skills",
                                                         viewonly=True)
+
+    @staticmethod
+    def compute_resources_hash(resources: list[SkillResource]) -> str:
+        h = hashlib.sha256()
+        for r in sorted(resources, key=lambda r: r.relative):
+            h.update(r.relative.encode("utf-8"))
+            h.update(b"\0")
+            h.update(r.content.encode("utf-8"))
+        return h.hexdigest()

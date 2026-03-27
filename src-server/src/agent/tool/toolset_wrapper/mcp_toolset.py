@@ -1,9 +1,9 @@
 import asyncio
 import subprocess
+import os
 import anyio
 import httpx
 import mcp
-import platform
 from dataclasses import replace
 from enum import Enum
 from typing import cast, override
@@ -16,13 +16,12 @@ from src.db import db_context
 from src.db.models import toolset as toolset_models
 from src.common import DATA_DIR
 from src.binaries import NPX_PATH, UVX_PATH, NODE_PATH, UV_PATH
+from src.shell_config import EMBEDDED_BINARIES_ENV
 from ..types import ToolMetadata
 
 
 MCP_DATA_DIR = DATA_DIR / "mcp-data"
-MCP_CACHE_DIR = DATA_DIR / "mcp-cache"
 MCP_DATA_DIR.mkdir(parents=True, exist_ok=True)
-MCP_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 class McpToolsetNotConnectedError(Exception):
     def __init__(self, toolset_name: str):
@@ -87,15 +86,10 @@ def resolve_local_mcp_command(command: str) -> str:
 
 def resolve_local_mcp_env(env: dict[str, str] | None) -> dict[str, str]:
     base_env = get_default_environment()
-    sep = ";" if platform.system() == "Windows" else ":"
-    prepend = sep.join([str(NODE_PATH.parent), str(UV_PATH.parent)])
-    base_env["PATH"] = prepend + sep + base_env.get("PATH", "")
+    prepend = os.pathsep.join([str(NODE_PATH.parent), str(UV_PATH.parent)])
 
-    # cache dir for npx and uvx
-    base_env["npm_config_cache"] = str(MCP_CACHE_DIR / "npm")
-    base_env["UV_CACHE_DIR"]     = str(MCP_CACHE_DIR / "uv")
-    base_env["UV_TOOL_DIR"]      = str(MCP_CACHE_DIR / "uv-tools")
-
+    base_env["PATH"] = prepend + os.pathsep + base_env.get("PATH", "")
+    base_env.update(EMBEDDED_BINARIES_ENV)
     if env: base_env.update(env)
     return base_env
 

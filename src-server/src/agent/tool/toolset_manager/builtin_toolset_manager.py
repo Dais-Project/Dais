@@ -5,9 +5,7 @@ from src.db import db_context
 from src.db.models import toolset as toolset_models
 from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
-from ..builtin_tools import (
-    FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset
-)
+from ..builtin_tools import BUILT_IN_TOOLSETS
 from ...types import ContextUsage
 
 
@@ -20,21 +18,18 @@ class BuiltinToolsetManager(ToolsetManager):
     async def initialize(self):
         from ....services import ToolsetService
 
-        toolset_types: list[type[BuiltInToolset]] = [FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]
         async with db_context() as db_session:
             toolset_ents = await ToolsetService(db_session).get_all_built_in_toolsets()
         self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
 
         self._toolsets = []
-        for toolset_t in toolset_types:
+        for toolset_t in BUILT_IN_TOOLSETS:
             toolset_ent = self._toolset_map[toolset_t.internal_key()]
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
 
     @staticmethod
     async def sync_toolsets(db_session: AsyncSession):
-        toolset_types: list[type[BuiltInToolset]] = [
-            FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset]
-        for toolset_t in toolset_types:
+        for toolset_t in BUILT_IN_TOOLSETS:
             await toolset_t.sync(db_session)
 
     @property

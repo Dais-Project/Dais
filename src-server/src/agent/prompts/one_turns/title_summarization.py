@@ -7,10 +7,10 @@ CRITICAL: Your response must contain ONLY the title itself — no explanations, 
 
 ```
 <conversation>
-  <message role="{{user|assistant|tool}}">
-    {{message content}}
-  </message>
-  ...
+    <message role="{{user|assistant|tool}}">
+        {{message content}}
+    </message>
+    ...
 </conversation>
 ```
 

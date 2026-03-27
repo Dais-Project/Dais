@@ -125,15 +125,16 @@ If no Skill matches, proceed without loading any.
 
 When one or more Skills are matched:
 1. **Load first, act second** — call the `${load_skill}` tool for each matched Skill **before** writing any code, creating any file, or invoking any other tool
-2. The `load_skill` tool returns:
-   - The full content of the `SKILL.md` — treat it as the Skill's instruction
-   - A temporary directory path where the Skill's associated resources have been written — use this path when the Skill's instructions reference resource files
-3. Treat loaded Skill content as a **Level 2.5** instruction: overrides general behavior but remains subordinate to Base System Instructions
-4. When multiple Skills conflict on a specific point, the more specific Skill takes precedence; if specificity is equal, the Skill listed first in Appendix A wins
+2. Treat the Skill content returned by `${load_skill}` as its instruction, and use the returned resource directory path when the Skill's instructions reference associated resource files.
+3. When executing scripts provided by a Skill, use the following runtimes by default:
+    - **Python**: `uv run`
+    - **JavaScript / TypeScript**: `npx tsx` (for `.ts` files) or `node` (for `.js` files)
+    Only deviate if the Skill's instructions explicitly specify a different runtime.
+4. If multiple loaded Skills conflict on a specific point, do not attempt to resolve the conflict autonomously — surface the conflict to the user via `${ask_user}` and request clarification before proceeding.
 
 ### 7.5. Failure Handling
 
-- If `load_skill` fails for a matched Skill: retry at most 2 additional times (following Section 6.2)
+- If `${load_skill}` fails for a matched Skill: retry at most 2 additional times (following Section 6.2)
 - After 3 consecutive failures: skip that Skill, proceed with general knowledge, and report the failure to the user once via `${ask_user}`
 - Do not block task execution solely due to a Skill loading failure
 

@@ -9,12 +9,12 @@ You will receive three sections wrapped in XML tags.
 
 ```
 <tool_definitions>
-  <tool>
-    <name>{{name of the tool}}</name>
-    <description>{{what the tool does}}</description>
-    <input_schema>{{JSON Schema describing the tool's arguments}}</input_schema>
-  </tool>
-  ...
+    <tool>
+        <name>{{name of the tool}}</name>
+        <description>{{what the tool does}}</description>
+        <input_schema>{{JSON Schema describing the tool's arguments}}</input_schema>
+    </tool>
+    ...
 </tool_definitions>
 ```
 
@@ -25,10 +25,10 @@ You will receive three sections wrapped in XML tags.
 
 ```
 <context>
-  <message role="{{user|assistant|tool}}">
-    {{message content}}
-  </message>
-  ...
+    <message role="{{user|assistant|tool}}">
+        {{message content}}
+    </message>
+    ...
 </context>
 ```
 
@@ -40,12 +40,12 @@ You will receive three sections wrapped in XML tags.
 
 ```
 <pending_tool_calls>
-  <tool_call>
-    <call_id>{{unique id}}</call_id>
-    <name>{{name of the tool}}</name>
-    <arguments>{{tool arguments, typically a JSON object}}</arguments>
-  </tool_call>
-  ...
+    <tool_call>
+        <call_id>{{unique id}}</call_id>
+        <name>{{name of the tool}}</name>
+        <arguments>{{tool arguments, typically a JSON object}}</arguments>
+    </tool_call>
+    ...
 </pending_tool_calls>
 ```
 
@@ -64,11 +64,11 @@ Output a single JSON object array, with each:
 
 ```
 {{
-  "results": [
-    {{"call_id": "tool_call_id1", "risk_level": 10, "reason": "read-only, local, no side effects"}},
-    {{"call_id": "tool_call_id2", "risk_level": 70, "reason": "deletes files, irreversible, path contains ../"}},
-    ...
-  ]
+    "results": [
+        {{"call_id": "tool_call_id1", "risk_level": 10, "reason": "read-only, local, no side effects"}},
+        {{"call_id": "tool_call_id2", "risk_level": 70, "reason": "deletes files, irreversible, path contains ../"}},
+        ...
+    ]
 }}
 ```
 
