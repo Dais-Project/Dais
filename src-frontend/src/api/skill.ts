@@ -6,6 +6,7 @@ export {
 	useGetSkillSuspense,
 	useGetSkillsSuspenseInfinite,
 	useUpdateSkill,
+	useUploadArchive,
 } from "./generated/endpoints/skill/skill";
 
 import queryClient from "@/query-client";

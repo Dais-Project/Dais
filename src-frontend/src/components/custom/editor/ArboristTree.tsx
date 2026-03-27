@@ -21,6 +21,7 @@ import {
   FileTextIcon,
   BookTextIcon,
 } from "lucide-react";
+import { AutoSizer } from "react-virtualized-auto-sizer";
 import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
 import { useMemo, useRef } from "react";
@@ -345,7 +346,7 @@ export function ArboristTree({
   };
 
   return (
-    <div className={className}>
+    <div className={cn("flex flex-col h-full", className)}>
       <ArboristTreeHeader
         title={title}
         className="border-b"
@@ -353,23 +354,29 @@ export function ArboristTree({
         handleCreateFolder={handleCreateFolder}
       />
 
-      <Tree<TreeNode>
-        data={treeData}
-        ref={ref}
-        width="100%"
-        rowClassName="outline-none"
-        rowHeight={32}
-        renderCursor={() => null}
-        onMove={onMove as MoveHandler<TreeNode>}
-        onRename={onRename as RenameHandler<TreeNode>}
-        onDelete={onDelete as DeleteHandler<TreeNode>}
-        onCreate={onCreate as CreateHandler<TreeNode>}
-        onSelect={handleSelect}
-        selection={selectedId}
-        disableMultiSelection
-      >
-        {TreeNodeRender}
-      </Tree>
+      <div className="flex-1 min-h-0">
+        <AutoSizer ChildComponent={({ width, height }) => (
+          <Tree<TreeNode>
+            data={treeData}
+            ref={ref}
+            width={width}
+            height={height}
+            className="shadcn-scroll"
+            rowClassName="outline-none"
+            rowHeight={32}
+            renderCursor={() => null}
+            onMove={onMove as MoveHandler<TreeNode>}
+            onRename={onRename as RenameHandler<TreeNode>}
+            onDelete={onDelete as DeleteHandler<TreeNode>}
+            onCreate={onCreate as CreateHandler<TreeNode>}
+            onSelect={handleSelect}
+            selection={selectedId}
+            disableMultiSelection
+          >
+            {TreeNodeRender}
+          </Tree>
+        )} />
+      </div>
     </div>
   );
 }

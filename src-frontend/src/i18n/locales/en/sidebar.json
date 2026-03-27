@@ -32,6 +32,7 @@
     },
     "header": {
       "create_tooltip": "Create new skill",
+      "upload_tooltip": "Upload skill archive",
       "title": "Skills"
     },
     "list": {
@@ -47,7 +48,9 @@
     },
     "toast": {
       "delete_success_description": "Skill deleted successfully.",
-      "delete_success_title": "Delete success"
+      "delete_success_title": "Delete success",
+      "upload_success_description": "Skill archive uploaded and imported successfully.",
+      "upload_success_title": "Upload success"
     }
   },
   "settings": {
