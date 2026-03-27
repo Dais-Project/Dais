@@ -170,6 +170,12 @@
   color: var(--primary) !important;
 }
 
+@layer base {
+  .vditor-reset ol {
+    list-style: decimal;
+  }
+}
+
 @layer components {
   .vditor-reset {
     @apply shadcn-scroll;
