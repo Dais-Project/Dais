@@ -1,3 +1,4 @@
+import asyncio
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -87,7 +88,6 @@ class SearchFileResult(BaseModel):
     items: list[task_schemas.ContextFileItem]
     total: int
 
-# TODO: use to_thread
 @context_file_router.get("/files/list", response_model=ListDirectoryResult)
 async def list_directory(
     db_session: DbSessionDep,
@@ -96,7 +96,8 @@ async def list_directory(
 ):
     workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
-    return ListDirectoryResult(items=_list_directory(workspace_root, path))
+    list_directory_result = await asyncio.to_thread(_list_directory, workspace_root, path)
+    return ListDirectoryResult(items=list_directory_result)
 
 @context_file_router.get("/files/search", response_model=SearchFileResult)
 async def search_file(
@@ -107,5 +108,5 @@ async def search_file(
 ) -> SearchFileResult:
     workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
-    items = _search_file(query, workspace_root, match_limit)
-    return SearchFileResult(items=items, total=len(items))
+    search_file_result = await asyncio.to_thread(_search_file, query, workspace_root, match_limit)
+    return SearchFileResult(items=search_file_result, total=len(search_file_result))
