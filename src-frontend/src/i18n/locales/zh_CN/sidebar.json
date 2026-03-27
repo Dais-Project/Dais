@@ -32,6 +32,7 @@
     },
     "header": {
       "create_tooltip": "创建技能",
+      "upload_tooltip": "上传技能归档",
       "title": "技能"
     },
     "list": {
@@ -47,7 +48,9 @@
     },
     "toast": {
       "delete_success_description": "已成功删除技能。",
-      "delete_success_title": "删除成功"
+      "delete_success_title": "删除成功",
+      "upload_success_description": "技能归档已上传并导入。",
+      "upload_success_title": "上传成功"
     }
   },
   "settings": {
