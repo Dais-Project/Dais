@@ -226,7 +226,7 @@ export function ShowPlan({ message }: ToolMessageProps) {
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader
         title={t("tool.show_plan.title")}
-        icon={<SquareKanbanIcon className="size-4 text-muted-foreground" />}
+        icon={SquareKanbanIcon}
       />
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {!hasResult && (

@@ -16,7 +16,8 @@ export function FinishTask({ message }: ToolMessageProps) {
     <BuiltInToolContainer defaultOpen>
       <BuiltInToolHeader
         title={t("tool.finish_task.title")}
-        icon={<CheckCircleIcon className="size-4 text-green-600" />}
+        icon={CheckCircleIcon}
+        iconClassName="text-green-600"
       />
       <BuiltInToolContent>
         {toolArguments?.task_summary && (

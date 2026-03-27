@@ -40,8 +40,8 @@ export function WriteFile({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={<PencilIcon className="size-4 text-muted-foreground" />}>
-        <div className="flex items-center">
+      <BuiltInToolHeader icon={PencilIcon}>
+        <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.write_file.title")}</span>
           {toolArguments?.path && (
             <div className="flex-1 truncate font-medium font-mono text-sm">

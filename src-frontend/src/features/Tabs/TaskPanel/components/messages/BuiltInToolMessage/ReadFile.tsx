@@ -103,8 +103,8 @@ export function ReadFile({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={<FileTextIcon className="size-4 text-muted-foreground" />}>
-        <div className="flex items-center">
+      <BuiltInToolHeader icon={FileTextIcon}>
+        <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.read_file.title")}</span>
           {toolArguments?.path && (
             <div className="flex-1 truncate font-medium font-mono text-sm">
