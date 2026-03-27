@@ -22,8 +22,8 @@ class TaskUsage:
     output_tokens: int
     total_tokens: int
     max_tokens: int
-    accumulated_input_tokens: int
-    accumulated_output_tokens: int
+    accumulated_input_tokens: int = 0
+    accumulated_output_tokens: int = 0
 
     @classmethod
     def default(cls) -> Self:
@@ -32,8 +32,6 @@ class TaskUsage:
             output_tokens=0,
             total_tokens=0,
             max_tokens=0,
-            accumulated_input_tokens=0,
-            accumulated_output_tokens=0,
         )
 
 class Task(Base):

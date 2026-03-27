@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { RefreshCwIcon, TrashIcon } from "lucide-react";
-import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { DynamicIcon } from "lucide-react/dynamic";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,7 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
 import { updateTaskTitle } from "@/features/resource/task-actions";
+import { resolveIconName } from "@/lib/resolve-iconname";
 
 function openTaskTab(task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
@@ -76,7 +77,7 @@ function TaskItem({ task, onRegenerateTitle, onDelete }: TaskItemProps) {
         onClick={() => openTaskTab(task)}
       >
         <ActionableItemIcon>
-          <DynamicIcon name={task.icon_name as IconName} />
+          <DynamicIcon name={resolveIconName(task.icon_name, "box")} />
         </ActionableItemIcon>
         <ActionableItemInfo
           title={task.title}

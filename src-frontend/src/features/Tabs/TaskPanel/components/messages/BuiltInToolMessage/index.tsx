@@ -5,6 +5,7 @@ import { AskUser } from "./AskUser";
 import { FinishTask } from "./FinishTask";
 import { FindFiles } from "./FindFiles";
 import { ListDirectory } from "./ListDirectory";
+import { LoadSkill } from "./LoadSkill";
 import { ReadFile } from "./ReadFile";
 import { SearchText } from "./SearchText";
 import { ShowPlan } from "./ShowPlan";
@@ -35,6 +36,8 @@ export function ToolMessage(props: ToolMessageProps) {
       return <ListDirectory {...props} />;
     case BuiltInTools.FileSystem__search_text:
       return <SearchText {...props} />;
+    case BuiltInTools.ContextControl__load_skill:
+      return <LoadSkill {...props} />;
     default:
       return <GeneralToolMessage {...props} />;
   }

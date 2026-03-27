@@ -31,9 +31,7 @@ class ContextControlToolset(BuiltInToolset):
     def name(self) -> str: return "ContextControl"
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    async def load_skill(self,
-                         id: Annotated[int, "The ID of the skill to load"],
-                         ):
+    async def load_skill(self, id: int, name: str) -> str:
         """
         Load a Skill by its ID.
 

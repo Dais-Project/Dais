@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type {
+  ContextControlLoadSkill,
   ExecutionControlFinishTask,
   ExecutionControlUpdateTodos,
   FileSystemFindFiles,
@@ -43,6 +44,11 @@ export const ReadFileToolSchema: z.ZodType<FileSystemReadFile> = z.object({
 export const WriteFileToolSchema: z.ZodType<FileSystemWriteFile> = z.object({
   path: z.string(),
   content: z.string(),
+});
+
+export const LoadSkillToolSchema: z.ZodType<ContextControlLoadSkill> = z.object({
+  id: z.number().int(),
+  name: z.string(),
 });
 
 export const FindFilesToolSchema: z.ZodType<FileSystemFindFiles> = z.object({

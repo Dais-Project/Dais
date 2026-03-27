@@ -17,10 +17,10 @@ import {
 } from "@/components/custom/item/ActionableItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
-import type { IconName } from "@/features/Tabs/AgentPanel/IconSelectDialog";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { resolveIconName } from "@/lib/resolve-iconname";
 import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata, Tab } from "@/types/tab";
@@ -84,7 +84,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
     <ActionableItem>
       <ActionableItemTrigger>
         <ActionableItemIcon seed={agent.name}>
-          <DynamicIcon name={agent.icon_name as IconName} />
+          <DynamicIcon name={resolveIconName(agent.icon_name, "bot")} />
         </ActionableItemIcon>
         <ActionableItemInfo title={agent.name} description={agent.model?.name ?? t("agents.list.no_model")} />
       </ActionableItemTrigger>
@@ -127,8 +127,8 @@ export function AgentList() {
       await invalidateAgentQueries(agent.id);
 
       removeTabs((tab) => (tab.type === "agent" &&
-                           tab.metadata.mode === "edit" &&
-                           tab.metadata.id === agent.id));
+        tab.metadata.mode === "edit" &&
+        tab.metadata.id === agent.id));
 
       toast.success(t("agents.toast.delete_success_title"), {
         description: t("agents.toast.delete_success_description"),

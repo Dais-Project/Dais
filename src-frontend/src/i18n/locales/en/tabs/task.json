@@ -78,6 +78,14 @@
       "parse_error": "Failed to parse read file arguments",
       "title": "Dais wants to read a file:"
     },
+    "load_skill": {
+      "empty": "Skill content is empty",
+      "generating": "Generating load skill arguments...",
+      "parse_error": "Failed to parse load skill arguments",
+      "resources_dir": "Resources directory",
+      "skill_content": "Skill content",
+      "title": "Dais wants to load a skill:"
+    },
     "search_text": {
       "generating": "Generating search text arguments...",
       "parse_error": "Failed to parse search text arguments",
