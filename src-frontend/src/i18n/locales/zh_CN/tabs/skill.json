@@ -1,0 +1,29 @@
+{
+    "form": {
+        "content": {
+            "label": "内容"
+        },
+        "description": {
+            "label": "描述"
+        },
+        "name": {
+            "label": "名称"
+        },
+        "submit": {
+            "create": "创建",
+            "creating": "创建中...",
+            "save": "保存",
+            "saving": "保存中..."
+        }
+    },
+    "toast": {
+        "create": {
+            "success_title": "创建成功",
+            "success_description_with_name": "技能 \"{{name}}\" 已成功创建。"
+        },
+        "update": {
+            "success_title": "更新成功",
+            "success_description_with_name": "技能 \"{{name}}\" 已成功更新。"
+        }
+    }
+}

@@ -26,6 +26,30 @@
   "plugins": {
     "placeholder": "Plugins view"
   },
+  "skills": {
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete skill \"{{name}}\"? This action cannot be undone."
+    },
+    "header": {
+      "create_tooltip": "Create new skill",
+      "title": "Skills"
+    },
+    "list": {
+      "no_description": "No description"
+    },
+    "menu": {
+      "delete": "Delete",
+      "edit": "Edit skill"
+    },
+    "tab": {
+      "create_title": "Create skill",
+      "edit_title_with_name": "Edit: {{name}}"
+    },
+    "toast": {
+      "delete_success_description": "Skill deleted successfully.",
+      "delete_success_title": "Delete success"
+    }
+  },
   "settings": {
     "agents": {
       "smart_approve": {

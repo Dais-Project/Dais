@@ -17,6 +17,7 @@ from .routes import (
     task_stream_router,
     context_file_router,
     health_router,
+    skills_router,
 )
 from .exception_handlers import (
     ErrorResponseSchema,
@@ -65,6 +66,7 @@ app.include_router(providers_router, prefix="/api/providers")
 app.include_router(llm_models_router, prefix="/api/llm_models")
 app.include_router(llm_api_router, prefix="/api/llm")
 app.include_router(toolset_router, prefix="/api/toolsets")
+app.include_router(skills_router, prefix="/api/skills")
 app.include_router(settings_router, prefix="/api/settings")
 app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")

@@ -6,4 +6,5 @@ export const DEFAULT_WORKSPACE = {
   instruction: "",
   usable_agent_ids: [],
   usable_tool_ids: [],
+  usable_skill_ids: [],
 } satisfies WorkspaceCreate;

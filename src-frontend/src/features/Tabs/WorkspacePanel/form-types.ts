@@ -13,5 +13,6 @@ export function workspaceToEditFormValues(
     instruction: workspace.instruction,
     usable_agent_ids: workspace.usable_agents.map((agent) => agent.id),
     usable_tool_ids: workspace.usable_tools.map((tool) => tool.id),
+    usable_skill_ids: workspace.usable_skills.map((skill) => skill.id),
   };
 }

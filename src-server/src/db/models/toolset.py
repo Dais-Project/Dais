@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from .workspace import Workspace
     from .agent import Agent
 
+
 mcp_params_adapter = TypeAdapter(LocalServerParams | RemoteServerParams)
 
 class ToolsetType(str, Enum):
@@ -37,12 +38,15 @@ class Tool(Base):
     @hybrid_property
     def toolset_id(self) -> int: return self._toolset_id
     toolset: Mapped[Toolset] = relationship(back_populates="tools",
+                                            foreign_keys=[_toolset_id],
                                             viewonly=True)
 
     _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_tool_association_table,
-                                                        back_populates="usable_tools")
+                                                        back_populates="usable_tools",
+                                                        viewonly=True)
     _agents: Mapped[list[Agent]] = relationship(secondary=agent_tool_association_table,
-                                                back_populates="usable_tools")
+                                                back_populates="usable_tools",
+                                                viewonly=True)
 
 class Toolset(Base):
     __tablename__ = "toolsets"
@@ -57,14 +61,19 @@ class Toolset(Base):
 async def init(db_session: AsyncSession):
     from ...agent.tool import (
         BuiltInToolset,
-        FileSystemToolset, OsInteractionsToolset, UserInteractionToolset, ExecutionControlToolset
+        ContextControlToolset,
+        ExecutionControlToolset,
+        FileSystemToolset,
+        OsInteractionsToolset,
+        UserInteractionToolset,
     )
 
     toolsets_to_init: list[tuple[str, type[BuiltInToolset]]] = [
+        ("Context Control", ContextControlToolset),
         ("File System", FileSystemToolset),
+        ("Execution Control", ExecutionControlToolset),
         ("OS Interactions", OsInteractionsToolset),
         ("User Interaction", UserInteractionToolset),
-        ("Execution Control", ExecutionControlToolset),
     ]
 
     for name, toolset_t in toolsets_to_init:

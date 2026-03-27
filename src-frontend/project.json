@@ -50,6 +50,9 @@
         "{projectRoot}/dist"
       ]
     },
+    "test": {
+      "command": "pnpm vitest"
+    },
     "type-check": {
       "command": "pnpm tsc --noEmit"
     },

@@ -23,6 +23,14 @@
     },
     "usable_tools": {
       "label": "Available tools"
+    },
+    "usable_skills": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "empty": "No matching skills found",
+      "label": "Available skills",
+      "search_placeholder": "Search skills...",
+      "select": "Select"
     }
   },
   "toast": {

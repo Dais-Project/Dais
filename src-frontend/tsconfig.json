@@ -12,6 +12,9 @@
       "path": "./config/tsconfig.app.json"
     },
     {
+      "path": "./config/tsconfig.test.json"
+    },
+    {
       "path": "./config/tsconfig.node.json"
     }
   ]

@@ -16,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ToolCaseIcon, XIcon } from "lucide-react";
+import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ScrollTextIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useTranslation } from "react-i18next";
 import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
@@ -28,6 +28,7 @@ import { useTabsStore } from "@/stores/tabs-store";
 import type {
   AgentTabMetadata,
   ProviderTabMetadata,
+  SkillTabMetadata,
   Tab,
   TaskTabMetadata,
   ToolsetTabMetadata,
@@ -35,6 +36,7 @@ import type {
 } from "@/types/tab";
 import { AgentPanel } from "./AgentPanel";
 import { ProviderPanel } from "./ProviderPanel";
+import { SkillPanel } from "./SkillPanel";
 import { TaskPanel } from "./TaskPanel";
 import { ToolsetPanel } from "./ToolsetPanel";
 import { WorkspacePanel } from "./WorkspacePanel";
@@ -45,6 +47,7 @@ const tabIconMap: Record<Tab["type"], LucideIcon> = {
   agent: BotIcon,
   provider: PlugIcon,
   toolset: ToolCaseIcon,
+  skill: ScrollTextIcon,
 };
 
 export type TabPanelProps<Metadata> = {
@@ -135,6 +138,8 @@ function TabPanelRenderer({ tab }: { tab: Tab }) {
       return <ProviderPanel tabId={tab.id} metadata={tab.metadata as ProviderTabMetadata} />;
     case "toolset":
       return <ToolsetPanel tabId={tab.id} metadata={tab.metadata as ToolsetTabMetadata} />;
+    case "skill":
+      return <SkillPanel tabId={tab.id} metadata={tab.metadata as SkillTabMetadata} />;
     default:
       return null;
   }

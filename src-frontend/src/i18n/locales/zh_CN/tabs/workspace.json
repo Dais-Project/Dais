@@ -23,6 +23,14 @@
     },
     "usable_tools": {
       "label": "可用的工具"
+    },
+    "usable_skills": {
+      "cancel": "取消",
+      "confirm": "确定",
+      "empty": "未找到匹配的技能",
+      "label": "可用的技能",
+      "search_placeholder": "搜索技能...",
+      "select": "选择"
     }
   },
   "toast": {

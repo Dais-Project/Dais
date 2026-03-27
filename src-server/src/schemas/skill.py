@@ -1,0 +1,33 @@
+from . import DTOBase
+
+
+class SkillResourceBase(DTOBase):
+    relative: str
+    content: str
+
+class SkillResourceRead(SkillResourceBase):
+    id: int
+
+class SkillBase(DTOBase):
+    name: str
+    description: str = ""
+    is_enabled: bool = True
+
+class SkillBrief(SkillBase):
+    id: int
+
+class SkillRead(SkillBase):
+    id: int
+    content: str
+    resources: list[SkillResourceRead]
+
+class SkillCreate(SkillBase):
+    content: str
+    resources: list[SkillResourceBase]
+
+class SkillUpdate(DTOBase):
+    name: str | None = None
+    description: str | None = None
+    is_enabled: bool | None = None
+    content: str | None = None
+    resources: list[SkillResourceBase] | None = None

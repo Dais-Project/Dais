@@ -42,7 +42,7 @@
 }
 
 .vditor-md {
-  --editor-padding: 5rem;
+  --editor-padding: 4rem;
 }
 
 .vditor-lg {
@@ -168,6 +168,12 @@
 /* 链接颜色 */
 .vditor-reset a {
   color: var(--primary) !important;
+}
+
+@layer base {
+  .vditor-reset ol {
+    list-style: decimal;
+  }
 }
 
 @layer components {

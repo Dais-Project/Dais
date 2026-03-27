@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.hybrid import hybrid_property
 from . import Base, relationship
 from .relationships import workspace_agent_association_table, agent_tool_association_table
 
@@ -19,18 +18,18 @@ class Agent(Base):
     # name of lucide icon, default is "bot"
     icon_name: Mapped[str] = mapped_column(default="bot")
     instruction: Mapped[str]
-    model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
 
-    _model: Mapped[LlmModel | None] = relationship(back_populates="agents",
-                                                   passive_deletes=True)
-    @hybrid_property
-    def model(self) -> LlmModel | None: return self._model
+    model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
+    model: Mapped[LlmModel | None] = relationship(back_populates="agents",
+                                                  foreign_keys=[model_id],
+                                                  viewonly=True)
+
+    tasks: Mapped[list[Task]] = relationship(back_populates="agent",
+                                             viewonly=True)
 
     workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_agent_association_table,
                                                        back_populates="usable_agents",
                                                        viewonly=True)
-    tasks: Mapped[list[Task]] = relationship(back_populates="_agent",
-                                             viewonly=True)
 
     usable_tools: Mapped[list[Tool]] = relationship(secondary=agent_tool_association_table,
                                                     back_populates="_agents")

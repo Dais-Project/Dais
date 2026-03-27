@@ -97,7 +97,7 @@ export function Vditor({
       placeholder: placeholder ?? "",
       mode: "ir",
       width: "100%",
-      minHeight: 160,
+      minHeight: 240,
       cdn: "/vditor",
       lang,
       theme: themes.theme,

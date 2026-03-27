@@ -51,11 +51,11 @@ class FileSystemToolset(BuiltInToolset):
             - end_line: The line number of the last line returned (1-based).
             - total_lines: The total number of lines in the file.
 
-        Example:
-            <file_content start_line="1" end_line="50" total_lines="312">
-            def foo():
-                ...
-            </file_content>
+            Example:
+                <file_content start_line="1" end_line="50" total_lines="312">
+                def foo():
+                    ...
+                </file_content>
 
         To read the next chunk, pass end_line + 1 as the offset in the next call.
         """
@@ -403,15 +403,9 @@ class FileSystemToolset(BuiltInToolset):
         Note:
             This tool matches file paths/names ONLY. It does NOT read or search inside file contents.
 
-        Returns:
-            A JSON object containing the search results.
-            The object has the following properties:
-            - search_root: The root directory for the search.
-            - total: The total number of matching files found.
-            - matches: A list of relative file paths that match the pattern.
-
-        Example:
-            >>>find_files(pattern="*.py", path="src")
+        Examples:
+            # Find all Python files in the src directory
+            >>> find_files(pattern="*.py", path="src")
             {
                 "search_root": "/workspace/src",
                 "total": 3,
@@ -421,6 +415,24 @@ class FileSystemToolset(BuiltInToolset):
                     "tests/test_main.py"
                 ]
             }
+
+            # Find all Markdown and MDX files in the docs directory
+            >>> find_files(pattern="docs/*.{md,mdx}")
+            {
+                "search_root": "/workspace",
+                "total": 2,
+                "matches": [
+                    "docs/README.md",
+                    "docs/overview.mdx"
+                ]
+            }
+
+        Returns:
+            A JSON object containing the search results.
+            The object has the following properties:
+            - search_root: The root directory for the search.
+            - total: The total number of matching files found.
+            - matches: A list of relative file paths that match the pattern.
         """
 
         def scan_collect(directory: Path) -> list[str]:
@@ -476,7 +488,7 @@ class FileSystemToolset(BuiltInToolset):
         The results include surrounding context, so analyze the surrounding code to better understand the matches.
 
         Example:
-            >>>search_text(regex="def main\\(", path="src", file_pattern="*.py")
+            >>> search_text(regex="def main\\(", path="src", file_pattern="*.py")
             src/main.py
             52-    return result
             53-

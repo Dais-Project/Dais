@@ -6,6 +6,7 @@ import enSideBar from "./locales/en/sidebar.json";
 import enTabs from "./locales/en/tabs/index.json";
 import enTabsAgent from "./locales/en/tabs/agent.json";
 import enTabsProvider from "./locales/en/tabs/provider.json";
+import enTabsSkill from "./locales/en/tabs/skill.json";
 import enTabsTask from "./locales/en/tabs/task.json";
 import enTabsToolset from "./locales/en/tabs/toolset.json";
 import enTabsWorkspace from "./locales/en/tabs/workspace.json";
@@ -20,6 +21,7 @@ import zhCnSideBar from "./locales/zh_CN/sidebar.json";
 import zhCnTabs from "./locales/zh_CN/tabs/index.json";
 import zhCnTabsAgent from "./locales/zh_CN/tabs/agent.json";
 import zhCnTabsProvider from "./locales/zh_CN/tabs/provider.json";
+import zhCnTabsSkill from "./locales/zh_CN/tabs/skill.json";
 import zhCnTabsTask from "./locales/zh_CN/tabs/task.json";
 import zhCnTabsToolset from "./locales/zh_CN/tabs/toolset.json";
 import zhCnTabsWorkspace from "./locales/zh_CN/tabs/workspace.json";
@@ -35,6 +37,7 @@ export const SIDEBAR_NAMESPACE = "sidebar";
 export const TABS_NAMESPACE = "tabs/index";
 export const TABS_AGENT_NAMESPACE = "tabs/agent";
 export const TABS_PROVIDER_NAMESPACE = "tabs/provider";
+export const TABS_SKILL_NAMESPACE = "tabs/skill";
 export const TABS_TOOLSET_NAMESPACE = "tabs/toolset";
 export const TABS_WORKSPACE_NAMESPACE = "tabs/workspace";
 export const TABS_TASK_NAMESPACE = "tabs/task";
@@ -55,6 +58,7 @@ export const resources: Resource = {
     [SIDEBAR_NAMESPACE]: enSideBar,
     [TABS_AGENT_NAMESPACE]: enTabsAgent,
     [TABS_PROVIDER_NAMESPACE]: enTabsProvider,
+    [TABS_SKILL_NAMESPACE]: enTabsSkill,
     [TABS_TOOLSET_NAMESPACE]: enTabsToolset,
     [TABS_WORKSPACE_NAMESPACE]: enTabsWorkspace,
     [TABS_TASK_NAMESPACE]: enTabsTask,
@@ -71,6 +75,7 @@ export const resources: Resource = {
     [TABS_NAMESPACE]: zhCnTabs,
     [TABS_AGENT_NAMESPACE]: zhCnTabsAgent,
     [TABS_PROVIDER_NAMESPACE]: zhCnTabsProvider,
+    [TABS_SKILL_NAMESPACE]: zhCnTabsSkill,
     [TABS_TOOLSET_NAMESPACE]: zhCnTabsToolset,
     [TABS_WORKSPACE_NAMESPACE]: zhCnTabsWorkspace,
     [TABS_TASK_NAMESPACE]: zhCnTabsTask,

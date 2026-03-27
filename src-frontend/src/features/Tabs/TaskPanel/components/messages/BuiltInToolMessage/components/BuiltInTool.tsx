@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, LucideIcon } from "lucide-react";
 import { RiskBadge, ToolError } from "@/components/ai-elements/tool";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,9 @@ export function BuiltInToolContainer({
 }
 
 type BuiltInToolHeaderProps = {
-  icon: React.ReactNode;
+  icon: LucideIcon;
+  className?: string;
+  iconClassName?: string;
   risk?: {
     level?: number;
     reason?: string;
@@ -33,15 +35,17 @@ type BuiltInToolHeaderProps = {
 }>;
 
 export function BuiltInToolHeader({
-  icon,
+  className,
+  icon: Icon,
+  iconClassName,
   title,
   risk = {},
   children,
 }: BuiltInToolHeaderProps) {
   return (
-    <CollapsibleTrigger className="sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3">
+    <CollapsibleTrigger className={cn("sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3", className)}>
       <div className="flex items-center gap-2 min-w-0">
-        {icon}
+        <Icon className={cn("size-4 text-muted-foreground shrink-0", iconClassName)} />
         {title && <span className="font-medium text-sm">{title}</span>}
         {children}
       </div>

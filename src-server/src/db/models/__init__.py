@@ -12,14 +12,14 @@ from .agent import Agent
 from .workspace import Workspace
 from .task import Task
 from .toolset import Toolset, Tool
+from .skill import Skill
 
 __all__ = [
     "Base",
-    "Provider",
-    "LlmModel",
+    "Provider", "LlmModel",
     "Agent",
     "Workspace",
     "Task",
-    "Toolset",
-    "Tool",
+    "Toolset", "Tool",
+    "Skill",
 ]

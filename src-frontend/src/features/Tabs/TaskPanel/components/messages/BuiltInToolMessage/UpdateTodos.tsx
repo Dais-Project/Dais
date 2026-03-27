@@ -40,7 +40,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
     <BuiltInToolContainer defaultOpen>
       <BuiltInToolHeader
         title={t("tool.update_todos.title")}
-        icon={<ListTodoIcon className="size-4 text-muted-foreground" />}
+        icon={ListTodoIcon}
       />
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {userApproval && (

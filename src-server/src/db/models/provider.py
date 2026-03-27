@@ -29,8 +29,9 @@ class LlmModel(Base):
     @hybrid_property
     def provider_id(self) -> int: return self._provider_id
     provider: Mapped[Provider] = relationship(back_populates="models",
+                                              foreign_keys=[_provider_id],
                                               viewonly=True)
-    agents: Mapped[list[Agent]] = relationship(back_populates="_model",
+    agents: Mapped[list[Agent]] = relationship(back_populates="model",
                                                viewonly=True)
 
 class Provider(Base):

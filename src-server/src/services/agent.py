@@ -16,7 +16,7 @@ class AgentService(ServiceBase):
     @staticmethod
     def relations() -> Relations:
         return [
-            agent_models.Agent._model,
+            agent_models.Agent.model,
             agent_models.Agent.usable_tools,
         ]
 
@@ -24,7 +24,7 @@ class AgentService(ServiceBase):
         return (
             select(agent_models.Agent)
             .order_by(agent_models.Agent.id.asc())
-            .options(selectinload(agent_models.Agent._model))
+            .options(selectinload(agent_models.Agent.model))
         )
 
     async def get_agent_by_id(self, id: int) -> agent_models.Agent:

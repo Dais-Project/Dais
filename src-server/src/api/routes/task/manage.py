@@ -22,7 +22,7 @@ async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
     final_query = (
         tasks_query
         .add_columns(agent_models.Agent.icon_name)
-        .join(task_models.Task.agent)
+        .outerjoin(task_models.Task.agent)
     )
     def transformer(rows):
         return [

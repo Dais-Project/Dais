@@ -380,7 +380,7 @@ requires-dist = [
     { name = "alembic", specifier = "==1.18.4" },
     { name = "binaryornot", specifier = "==0.4.4" },
     { name = "dais-sdk", specifier = "==0.9.4" },
-    { name = "dais-shell", specifier = "==0.1.4" },
+    { name = "dais-shell", specifier = "==0.1.6" },
     { name = "fastapi", specifier = "==0.135.1" },
     { name = "fastapi-pagination", specifier = "==0.15.10" },
     { name = "loguru", specifier = "==0.7.3" },
@@ -412,14 +412,14 @@ types = [{ name = "types-binaryornot", specifier = "==0.4.0.20250507" }]
 
 [[package]]
 name = "dais-shell"
-version = "0.1.4"
+version = "0.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "psutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/74/f6/6a09825fe56acac3672a2073b6aebf0d11087158ff4ca4e34f58cb981454/dais_shell-0.1.4.tar.gz", hash = "sha256:f5f73b15c692eaf84231c9d29a95571a5d54e6f11129876b5e528d9ae04f5b2d", size = 5672, upload-time = "2026-03-24T06:33:35.182Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/05/56399cbf3c06e8b55115ca27106cc46c162d7260120e25ce07cc5eb85bc5/dais_shell-0.1.6.tar.gz", hash = "sha256:964d27bf90c6401e79a09dc3843d5ba312c817dc7b86ff0d647911ebc43dab34", size = 5860, upload-time = "2026-03-27T04:41:13.115Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/5d/ac64e79cf4eb9a2fcd6ab9915052c79b2577ff6784c6bc080a093fd6b2f3/dais_shell-0.1.4-py3-none-any.whl", hash = "sha256:13497e26837133302ce4aa3d6c8818794a92725dad45b22c0d865de24af58331", size = 9752, upload-time = "2026-03-24T06:33:33.91Z" },
+    { url = "https://files.pythonhosted.org/packages/14/db/5715e80344d681d85182bd1c8d5725d1e4ce9d37f2c4c194471f945f47b6/dais_shell-0.1.6-py3-none-any.whl", hash = "sha256:7b6d9d3bedd84c47dabc28f4f12d2ae0742a4423cf84fdcefc32ddac7f89cd0e", size = 9989, upload-time = "2026-03-27T04:41:11.861Z" },
 ]
 
 [[package]]

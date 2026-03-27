@@ -40,7 +40,7 @@ export function AskUser({ message }: ToolMessageProps) {
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader
         title={t("tool.ask_user.title")}
-        icon={<MessageCircleQuestionMark className="size-4 text-muted-foreground" />}
+        icon={MessageCircleQuestionMark}
       />
       <BuiltInToolContent>
         {question && (

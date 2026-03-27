@@ -4,6 +4,7 @@ import { useSidebarStore } from "@/stores/sidebar-store";
 import { AgentsView } from "./views/AgentsView";
 import { PluginsView } from "./views/PluginsView";
 import { SettingsView } from "./views/SettingsView";
+import { SkillsView } from "./views/SkillsView";
 import { TasksView } from "./views/TasksView";
 import { ToolsetsView } from "./views/ToolsetsView";
 import { WorkspacesView } from "./views/WorkspacesView";
@@ -22,6 +23,7 @@ export function SideBar() {
         WorkspacesView,
         AgentsView,
         ToolsetsView,
+        SkillsView,
         PluginsView,
         SettingsView,
       ].map((Component) => (

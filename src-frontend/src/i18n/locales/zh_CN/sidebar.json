@@ -26,6 +26,30 @@
   "plugins": {
     "placeholder": "插件视图"
   },
+  "skills": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除技能 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "header": {
+      "create_tooltip": "创建技能",
+      "title": "技能"
+    },
+    "list": {
+      "no_description": "无描述"
+    },
+    "menu": {
+      "delete": "删除",
+      "edit": "编辑技能"
+    },
+    "tab": {
+      "create_title": "创建技能",
+      "edit_title_with_name": "编辑：{{name}}"
+    },
+    "toast": {
+      "delete_success_description": "已成功删除技能。",
+      "delete_success_title": "删除成功"
+    }
+  },
   "settings": {
     "agents": {
       "smart_approve": {
