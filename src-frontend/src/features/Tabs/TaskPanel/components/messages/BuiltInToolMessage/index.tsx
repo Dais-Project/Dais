@@ -11,6 +11,7 @@ import { SearchText } from "./SearchText";
 import { ShowPlan } from "./ShowPlan";
 import { UpdateTodos } from "./UpdateTodos";
 import { WriteFile } from "./WriteFile";
+import { Shell } from "./Shell";
 
 export type ToolMessageProps = {
   message: UiToolMessage;
@@ -38,6 +39,8 @@ export function ToolMessage(props: ToolMessageProps) {
       return <SearchText {...props} />;
     case BuiltInTools.ContextControl__load_skill:
       return <LoadSkill {...props} />;
+    case BuiltInTools.OsInteractions__shell:
+      return <Shell {...props} />;
     default:
       return <GeneralToolMessage {...props} />;
   }

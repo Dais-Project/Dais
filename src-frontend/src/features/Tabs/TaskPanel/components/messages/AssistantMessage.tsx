@@ -12,7 +12,7 @@ export function AssistantMessage({ text, isStreaming }: AssistantMessageProps) {
   }
 
   return (
-    <Message className="selectable-text" from="assistant">
+    <Message className="selectable" from="assistant">
       <MessageContent>
         <Markdown
           mode={!isStreaming ? "static" : "streaming"}

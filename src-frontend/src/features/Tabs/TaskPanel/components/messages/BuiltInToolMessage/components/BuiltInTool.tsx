@@ -15,7 +15,7 @@ export function BuiltInToolContainer({
   defaultOpen = false,
 }: BuiltInToolContainerProps) {
   return (
-    <Collapsible defaultOpen={defaultOpen} className="group selectable-text w-full rounded-md border">
+    <Collapsible defaultOpen={defaultOpen} className="group selectable w-full rounded-md border">
       {children}
     </Collapsible>
   );

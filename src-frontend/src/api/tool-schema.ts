@@ -8,9 +8,12 @@ import type {
   FileSystemReadFile,
   FileSystemSearchText,
   FileSystemWriteFile,
+  OsInteractionsShell,
   UserInteractionAskUser,
   UserInteractionShowPlan,
 } from "@/api/generated/schemas";
+
+/* --- User Interaction Tools --- */
 
 export const AskUserToolSchema: z.ZodType<UserInteractionAskUser> = z.object({
   question: z.string(),
@@ -21,6 +24,10 @@ export const ShowPlanToolSchema: z.ZodType<UserInteractionShowPlan> = z.object({
   plan: z.string(),
   alternatives: z.array(z.string()).nullish(),
 });
+
+/* --- User Interaction Tools --- */
+
+/* --- Execution Control Tools --- */
 
 export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.object({
   todos: z.array(
@@ -35,6 +42,30 @@ export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object(
   task_summary: z.string(),
 });
 
+/* --- Execution Control Tools --- */
+
+/* --- Context Manage Tools --- */
+
+export const LoadSkillToolSchema: z.ZodType<ContextControlLoadSkill> = z.object({
+  id: z.number().int(),
+  name: z.string(),
+});
+
+/* --- Context Manage Tools --- */
+
+/* --- OS Interaction Tools --- */
+
+export const ShellToolSchema: z.ZodType<OsInteractionsShell> = z.object({
+  command: z.string(),
+  args: z.array(z.string()).nullish(),
+  cwd: z.string().optional(),
+  timeout: z.number().int().optional(),
+});
+
+/* --- OS Interaction Tools --- */
+
+/* --- File System Tools --- */
+
 export const ReadFileToolSchema: z.ZodType<FileSystemReadFile> = z.object({
   path: z.string(),
   offset: z.number().int().optional(),
@@ -44,11 +75,6 @@ export const ReadFileToolSchema: z.ZodType<FileSystemReadFile> = z.object({
 export const WriteFileToolSchema: z.ZodType<FileSystemWriteFile> = z.object({
   path: z.string(),
   content: z.string(),
-});
-
-export const LoadSkillToolSchema: z.ZodType<ContextControlLoadSkill> = z.object({
-  id: z.number().int(),
-  name: z.string(),
 });
 
 export const FindFilesToolSchema: z.ZodType<FileSystemFindFiles> = z.object({
@@ -70,3 +96,5 @@ export const ListDirectoryToolSchema: z.ZodType<FileSystemListDirectory> = z.obj
   max_depth: z.number().int().nullish(),
   show_all: z.boolean().optional(),
 });
+
+/* --- File System Tools --- */

@@ -61,7 +61,7 @@ export function UserMessage({ messageId, text, isStreaming }: UserMessageProps) 
   }
 
   return (
-    <Message className="selectable-text" from="user">
+    <Message className="selectable" from="user">
       <MessageContent className={cn({ "w-full": mode === "edit" })}>
         {mode === "edit" ? (
           <div className="w-full space-y-3">

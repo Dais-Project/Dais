@@ -5,17 +5,19 @@ body {
   user-select: none; /* Standard */
 }
 
-.selectable-text {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}
-
 input,
 textarea {
   -webkit-user-select: auto;
   -moz-user-select: auto;
   -ms-user-select: auto;
   user-select: auto;
+}
+
+@utility selectable {
+  @apply selection:bg-primary selection:text-primary-foreground;
+
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
