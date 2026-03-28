@@ -167,6 +167,7 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
       <PromptInputBody>
         <PromptInputTextarea
           ref={inputRef}
+          className="pt-2 text-sm-plus!"
           placeholder={t("prompt.input_placeholder")}
           onKeyDown={handleTextareaKeyDown}
         />
@@ -223,6 +224,7 @@ export function PromptInput({ className }: { className?: string }) {
       <PromptInputBody>
         <PromptInputTextarea
           ref={inputRef}
+          className="pt-2 text-sm-plus!"
           placeholder={t("prompt.input_placeholder")}
           onKeyDown={handleTextareaKeyDown}
         />
