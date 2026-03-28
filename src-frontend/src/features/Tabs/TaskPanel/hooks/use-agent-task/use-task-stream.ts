@@ -60,9 +60,7 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
     <Body extends Record<string, unknown>>(streamApi: TaskStreamFn<Body & { agent_id: number }>, body: Body) => {
       const overrideCallbacks = createOverrideCallbacks(sseCallbacksRef, setState);
       if (agentId === null) {
-        toast.error("任务失败", {
-          description: "请先选择一个 Agent。",
-        });
+        toast.error("任务失败", { description: "请先选择一个 Agent。" });
         return;
       }
 

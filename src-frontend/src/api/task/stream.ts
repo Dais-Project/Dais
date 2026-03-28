@@ -119,11 +119,3 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
 export function continueTask(taskId: number, body: ContinueTaskBody, callbacks: TaskSseCallbacks): AbortController {
   return createTaskSseStream(new URL(`${taskId}/continue`, TASK_STREAM_BASE_URL), body, callbacks);
 }
-
-export function toolAnswer(taskId: number, body: ToolAnswerBody, callbacks: TaskSseCallbacks): AbortController {
-  return createTaskSseStream(new URL(`${taskId}/tool_answer`, TASK_STREAM_BASE_URL), body, callbacks);
-}
-
-export function toolReview(taskId: number, body: ToolReviewBody, callbacks: TaskSseCallbacks): AbortController {
-  return createTaskSseStream(new URL(`${taskId}/tool_reviews`, TASK_STREAM_BASE_URL), body, callbacks);
-}
