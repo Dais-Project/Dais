@@ -5,6 +5,7 @@ from loguru import logger
 from dais_sdk.tool import ToolCallExecutor
 from dais_sdk.types import (
     Message, ToolMessage, UserMessage, AssistantMessage,
+    ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
 from .tool_call_reviewer import ToolCallReviewer
@@ -18,13 +19,12 @@ from ..exception_handlers import (
 )
 from ..prompts import USER_IGNORED_TOOL_CALL_RESULT
 from ..types import (
-    AgentGenerator, is_agent_tool_metadata,
+    AgentGenerator, UserApprovalStatus, is_agent_tool_metadata,
     ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskDoneEvent, ToolExecutedEvent,
 )
 
 
-class ToolCallNotFoundError(Exception):
-    call_id: str
+class MessageNotFoundError(Exception): ...
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -46,7 +46,7 @@ class AgentTask:
         for message in reversed(self._ctx.messages):
             if predicate(message):
                 return message
-        raise ToolCallNotFoundError()
+        raise MessageNotFoundError()
 
     def _extract_tool_call(self, message: AssistantMessage) -> list[ToolMessage] | None:
         tool_call_messages = message.get_incomplete_tool_messages()
@@ -57,10 +57,12 @@ class AgentTask:
 
     def has_pending_tool_calls(self) -> bool:
         for message in reversed(self._ctx.messages):
-            if message.role == "assistant":
-                break
-            if message.role == "tool" and not message.is_complete:
-                return True
+            if message.role == "assistant": break
+            if message.role == "tool":
+                if message.is_complete: continue
+                assert is_agent_tool_metadata(message.metadata)
+                if message.metadata.get("user_approval") == UserApprovalStatus.PENDING:
+                    return True
         return False
 
     def discard_pending_tool_calls(self) -> Generator[MessageReplaceEvent]:
@@ -117,7 +119,7 @@ class AgentTask:
         if len(tool_messages_to_execute) == 0: return
 
         for message in tool_messages_to_execute:
-            tool = self._ctx.find_tool(message.name)
+            tool: ToolDef | None = self._ctx.find_tool(message.name)
             if tool is None:
                 self._logger.error(f"Tool called '{message.name}' is not defined.")
                 message.error = handle_tool_does_not_exist_error(ToolDoesNotExistError(message.name))

@@ -151,5 +151,4 @@ class ToolCallReviewer:
                 return ToolCallBlocked(
                     event=ToolDeniedEvent(call_id=message.call_id))
             case UserApprovalStatus.APPROVED:
-                # continue to execute
                 return ToolCallApproved()

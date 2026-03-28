@@ -89,18 +89,26 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
     """
     task = await create_agent_task(task_id, body.agent_id)
 
-    # execute approved tool calls
-    if task.has_pending_tool_calls():
+    # ensure all approved tool calls are executed before continuing
+    has_executed = False
+    try:
         async for event in task.execute_approved_tool_calls():
+            has_executed = True
             yield event
-        await asyncio.shield(task.persist())
+    finally:
+        if has_executed:
+            await asyncio.shield(task.persist())
+
 
     if body.message is not None:
+        # when appending new user message,
+        # discard incomplete tool calls with user ignore first
         for event in task.discard_pending_tool_calls():
             yield event
         task.append_message(body.message)
         await asyncio.shield(task.persist())
     elif task.has_pending_tool_calls():
+        # prevent starting agent loop when there are still unresolved tool calls
         yield TaskDoneEvent()
         return
     async for event in stream_connector(task, request):

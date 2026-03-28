@@ -2,16 +2,12 @@ import asyncio
 import time
 from typing import Literal
 from loguru import logger
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, status
 from pydantic import BaseModel
-from src.agent.prompts import create_one_turn_llm, TitleSummarization
 from src.agent.context import AgentContext
-from src.agent.task import AgentTask, ToolCallNotFoundError
+from src.agent.task import AgentTask, MessageNotFoundError
 from src.agent.types import MessageReplaceEvent
-from src.settings import use_app_setting_manager
 from src.db import DbSessionDep, db_context
-from src.db.models import agent as agent_models
-from src.db.models import task as task_models
 from src.services.task import TaskService
 from src.schemas import task as task_schemas
 from ...exceptions import ApiError, ApiErrorCode
@@ -45,7 +41,7 @@ task_control_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskControlRoute")
 
 @task_control_router.patch("/{task_id}/messages", response_model=task_schemas.TaskRead)
-async def edit_task_message(task_id: int, body: TaskMessageEdit, db_session: DbSessionDep):
+async def edit_task_message(task_id: int, body: TaskMessageEdit, db_session: DbSessionDep):    
     task = await TaskService(db_session).get_task_by_id(task_id)
     target_index = None
 
@@ -81,10 +77,9 @@ async def tool_answer(task_id: int, body: ToolAnswerBody):
     try:
         event = task.set_tool_call_result(body.call_id, body.answer)
         return event
-    except ToolCallNotFoundError as e:
+    except MessageNotFoundError:
         raise ApiError(status.HTTP_404_NOT_FOUND,
-                       ApiErrorCode.TOOL_CALL_NOT_FOUND,
-                       e.call_id)
+                       ApiErrorCode.TOOL_CALL_NOT_FOUND)
     finally:
         await asyncio.shield(task.persist())
 
@@ -96,7 +91,7 @@ async def tool_reviews(task_id: int, body: ToolReviewBody):
     task = await create_agent_task(task_id, body.agent_id)
     try:
         return await task.approve_tool_call(body.call_id, body.status == "approved")
-    except ToolCallNotFoundError as e:
-        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND, e.call_id)
+    except MessageNotFoundError:
+        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND)
     finally:
         await asyncio.shield(task.persist())
