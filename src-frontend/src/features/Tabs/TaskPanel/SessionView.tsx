@@ -4,8 +4,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
-import { TaskConversationContent, TaskConversationProvider, TaskConversationScrollToBottom } from "./components/TaskConversation";
 import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
+import { AssistantMessage } from "./components/messages/AssistantMessage";
+import { ToolMessage } from "./components/messages/BuiltInToolMessage";
+import { UserMessage } from "./components/messages/UserMessage";
+import { Conversation, ConversationFloatingContent, ConversationScrollToBottom } from "@/components/ai-elements/virtual-conversation";
+import { UiMessage } from "@/types/message";
 
 export function SessionViewSkeleton() {
   return (
@@ -33,12 +37,46 @@ export function SessionViewSkeleton() {
   );
 }
 
+function messageRender(message: UiMessage) {
+  switch (message.role) {
+    case "system":
+      return null;
+    case "tool":
+      return (
+        <ToolMessage
+          key={message.id ?? message.call_id}
+          message={message}
+        />
+      );
+    case "user":
+      return (
+        <UserMessage
+          key={message.id ?? message.content}
+          messageId={message.id ?? null}
+          text={message.content}
+          isStreaming={message.isStreaming}
+        />
+      );
+    case "assistant":
+      return (
+        <AssistantMessage
+          key={message.id ?? message.content}
+          text={message.content ?? message.reasoning_content}
+          isStreaming={message.isStreaming}
+        />
+      );
+    default:
+      console.warn("Unknown message role:", message);
+      return null;
+  }
+}
+
 type SessionViewProps = {
   shouldStartStream: boolean;
 };
 
 export function SessionView({ shouldStartStream }: SessionViewProps) {
-  const { state } = useAgentTaskState();
+  const { state, messages } = useAgentTaskState();
   const { continue: continueTask, cancel: cancelTask } = useAgentTaskAction();
 
   useMount(() => {
@@ -46,25 +84,24 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
       continueTask();
     }
   });
-  useUnmount(() => {
-    cancelTask();
-  });
+  useUnmount(cancelTask);
 
   return (
-    <TaskConversationProvider className="relative flex h-full flex-col">
-       <TaskConversationContent />
-       <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
-         <div className="mx-auto w-full max-w-3xl">
-            <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
-            <div className="w-7/8 mx-auto pointer-events-auto">
-              {state === "idle" && <ContinueTask />}
-              {state === "error" && <ErrorRetry />}
-            </div>
-            <PromptInputProvider>
-              <PromptInput className="pointer-events-auto" />
-            </PromptInputProvider>
-         </div>
-       </div>
-    </TaskConversationProvider>
+    <Conversation<UiMessage>
+      messages={messages}
+      messageRender={messageRender}
+      padding={{ top: 24, bottom: 240 }}
+    >
+      <ConversationFloatingContent>
+        <ConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
+        <div className="w-7/8 mx-auto pointer-events-auto">
+          {state === "idle" && <ContinueTask />}
+          {state === "error" && <ErrorRetry />}
+        </div>
+        <PromptInputProvider>
+          <PromptInput className="pointer-events-auto" />
+        </PromptInputProvider>
+      </ConversationFloatingContent>
+    </Conversation>
   );
 }

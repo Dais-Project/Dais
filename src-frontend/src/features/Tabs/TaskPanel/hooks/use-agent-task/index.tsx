@@ -115,6 +115,24 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const [agentId, setAgentId] = useState(data.agent_id);
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
+  const cleanMessages = useMemo(() => {
+    const result: UiMessage[] = [];
+    for (const message of messages) {
+      if (message.role !== "assistant") {
+        result.push(message);
+        continue;
+      }
+      if (message.isStreaming) {
+        result.push(message);
+        continue;
+      }
+      if (message.content === null || message.content.trim() === "") {
+        continue;
+      }
+      result.push(message);
+    }
+    return result;
+  }, messages);
   const [todos, setTodos] = useState<TodoItem[] | null>(() => {
     const todo = findLatestTodoList(data.messages);
     return todo ?? null;
@@ -317,10 +335,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       state,
       todos,
       usage,
-      messages,
       agentId,
+      messages: cleanMessages,
     }),
-    [state, todos, usage, messages, agentId]
+    [state, todos, usage, cleanMessages, agentId]
   );
 
   const actionValue = useMemo(

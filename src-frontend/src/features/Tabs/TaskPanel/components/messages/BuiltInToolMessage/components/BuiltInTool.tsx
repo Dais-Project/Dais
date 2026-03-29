@@ -43,7 +43,12 @@ export function BuiltInToolHeader({
   children,
 }: BuiltInToolHeaderProps) {
   return (
-    <CollapsibleTrigger className={cn("sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3", className)}>
+    <CollapsibleTrigger
+      className={cn(
+        "bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3",
+        className
+      )}
+    >
       <div className="flex items-center gap-2 min-w-0">
         <Icon className={cn("size-4 text-muted-foreground shrink-0", iconClassName)} />
         {title && <span className="font-medium text-sm">{title}</span>}

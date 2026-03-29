@@ -7,10 +7,6 @@ type AssistantMessageProps = {
 };
 
 export function AssistantMessage({ text, isStreaming }: AssistantMessageProps) {
-  if (text === null || text.trim() === "") {
-    return null;
-  }
-
   return (
     <Message className="selectable" from="assistant">
       <MessageContent>
@@ -18,7 +14,7 @@ export function AssistantMessage({ text, isStreaming }: AssistantMessageProps) {
           mode={!isStreaming ? "static" : "streaming"}
           parseIncompleteMarkdown={isStreaming}
         >
-          {text.trim()}
+          {text?.trim() ?? ""}
         </Markdown>
       </MessageContent>
     </Message>
