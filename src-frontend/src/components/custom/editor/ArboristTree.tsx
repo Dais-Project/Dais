@@ -24,7 +24,7 @@ import {
 import { AutoSizer } from "react-virtualized-auto-sizer";
 import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
 export type TreeItem = {
@@ -324,6 +324,17 @@ export function ArboristTree({
   const ref = useRef<TreeApi<TreeNode>>(null);
   const treeData = useMemo(() => buildTree(data), [data]);
 
+  const wrappedOnCreate: CreateHandler<TreeNode> = useCallback(
+    async (args) => {
+      const result = await onCreate?.(args as unknown as Parameters<CreateHandler<TreeItem>>[0]);
+      if (result) {
+        requestAnimationFrame(() => ref.current?.edit(result.id));
+      }
+      return result ?? null;
+    },
+    [onCreate]
+  );
+
   const handleSelect = (nodes: NodeApi<TreeNode>[]) => {
     const file = nodes.find((n) => n.isLeaf && n.data.type === "file");
     if (file) {
@@ -368,7 +379,7 @@ export function ArboristTree({
             onMove={onMove as MoveHandler<TreeNode>}
             onRename={onRename as RenameHandler<TreeNode>}
             onDelete={onDelete as DeleteHandler<TreeNode>}
-            onCreate={onCreate as CreateHandler<TreeNode>}
+            onCreate={wrappedOnCreate}
             onSelect={handleSelect}
             selection={selectedId}
             disableMultiSelection

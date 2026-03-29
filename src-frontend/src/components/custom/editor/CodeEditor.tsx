@@ -108,7 +108,7 @@ export function CodeEditor({
       if (draft.some((i) => i.id === id)) return;
       draft.push(newNode as TreeItem);
     });
-    return newNode;
+    return { id };
   }, [onChange]);
 
   const extensions = useMemo(() => {
