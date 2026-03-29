@@ -23,11 +23,12 @@ import {
 import {
   continueTask,
   getGetTaskQueryKey,
+  invalidateTaskQueries,
   type TaskSseCallbacks,
-  toolAnswer,
-  toolReview,
   useEditTaskMessage,
   useGetTaskSuspense,
+  useToolAnswer,
+  useToolReviews,
 } from "@/api/task";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
@@ -156,7 +157,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const onToolCallChunk = (chunk: ToolCallChunkEvent) => {
-    const {event_id, ...toolCallChunk} = chunk;
+    const { event_id, ...toolCallChunk } = chunk;
     toolCallsBuffer.accumulate(toolCallChunk);
   };
 
@@ -219,13 +220,13 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+    invalidateTaskQueries({ taskId });
   };
 
   const onClose = () => {
     messageLifecycle.handleClose();
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  }
+    invalidateTaskQueries({ taskId });
+  };
 
   sseCallbacksRef.current = {
     onMessageStart,
@@ -252,29 +253,33 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     },
     [setData, startStream]
   );
-  
+
   const handleTaskCancel = useCallback(() => {
     cancel();
     queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
   }, [cancel]);
 
-  const answerTool = useCallback(
-    (toolCallId: string, answer: string) => {
-      startStream(toolAnswer, { call_id: toolCallId, answer });
-    },
-    [startStream]
-  );
+  /* Agent Task Controls */
 
-  const reviewTool = useCallback(
-    (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
-      startStream(toolReview, {
-        call_id: toolCallId,
-        auto_approve: autoApprove,
-        status,
-      });
+  const answerToolMutation = useToolAnswer({
+    mutation: {
+      onSuccess: (eventData) => {
+        sseCallbacksRef.current.onMessageReplace?.(eventData);
+        handleTaskContinue();
+      },
     },
-    [startStream]
-  );
+  });
+
+  const toolReviewMutation = useToolReviews({
+    mutation: {
+      onSuccess: (eventData) => {
+        if (eventData) {
+          sseCallbacksRef.current.onMessageReplace?.(eventData);
+        }
+        handleTaskContinue();
+      },
+    },
+  });
 
   const editMessageMutation = useEditTaskMessage({
     mutation: {
@@ -284,12 +289,28 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       },
     },
   });
-  const editMessage = useCallback(
-    (messageId: string, content: string) => {
-      editMessageMutation.mutate({ taskId, data: { message_id: messageId, content } });
-    },
-    [editMessageMutation, taskId]
+
+  const answerTool = useCallback((toolCallId: string, answer: string) => {
+    if (agentId === null) {
+      toast.error("任务失败", { description: "请先选择一个 Agent。" });
+      return;
+    }
+    answerToolMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, answer } });
+  }, [answerToolMutation, taskId]);
+
+  const reviewTool = useCallback(
+    (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
+      if (agentId === null) {
+        toast.error("任务失败", { description: "请先选择一个 Agent。" });
+        return;
+      }
+      toolReviewMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
+    }, [toolReviewMutation, taskId]
   );
+
+  const editMessage = useCallback((messageId: string, content: string) => {
+    editMessageMutation.mutate({ taskId, data: { message_id: messageId, content } });
+  }, [editMessageMutation, taskId]);
 
   const stateValue = useMemo(
     () => ({

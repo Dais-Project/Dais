@@ -16,8 +16,8 @@ import {
 } from "./generated/endpoints/skill/skill";
 
 export async function invalidateSkillQueries(skillId?: number) {
-	await queryClient.invalidateQueries({ queryKey: getGetSkillsInfiniteQueryKey() });
+	await queryClient.invalidateQueries({ queryKey: getGetSkillsInfiniteQueryKey(), refetchType: "all" });
 	if (skillId !== undefined) {
-		await queryClient.invalidateQueries({ queryKey: getGetSkillQueryKey(skillId) });
+		await queryClient.invalidateQueries({ queryKey: getGetSkillQueryKey(skillId), refetchType: "all" });
 	}
 }

@@ -13,6 +13,7 @@ from ..types import (
 )
 from ..exception_handlers import handle_tool_does_not_exist_error
 from ..tool import ExecutionControlToolset
+from ..types.metadata import UserApprovalStatus, is_agent_tool_metadata
 
 
 @dataclass
@@ -116,10 +117,14 @@ class ToolCallDispatcher:
             yield blocked_event.event
             yield MessageReplaceEvent(message=dispatch.message)
 
+        for _, dispatch in approved:
+            assert is_agent_tool_metadata(dispatch.message.metadata)
+            dispatch.message.metadata["user_approval"] = UserApprovalStatus.APPROVED
+            yield MessageReplaceEvent(message=dispatch.message)
+
         async def execute_wrapper(dispatch: ToolCallDispatch):
             executed_event = await self.execute(dispatch.tool, dispatch.message)
             return executed_event, MessageReplaceEvent(message=dispatch.message)
-
         execute_tasks = [execute_wrapper(dispatch) for _, dispatch in approved]
         for item in await asyncio.gather(*execute_tasks, return_exceptions=True):
             if isinstance(item, BaseException):

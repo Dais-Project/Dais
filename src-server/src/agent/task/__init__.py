@@ -5,9 +5,10 @@ from loguru import logger
 from dais_sdk.tool import ToolCallExecutor
 from dais_sdk.types import (
     Message, ToolMessage, UserMessage, AssistantMessage,
-    ToolDef, ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
+    ToolDef,
+    ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
-from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
+from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
 from ..context import AgentContext
@@ -18,13 +19,12 @@ from ..exception_handlers import (
 )
 from ..prompts import USER_IGNORED_TOOL_CALL_RESULT
 from ..types import (
-    AgentGenerator, is_agent_tool_metadata,
-    ToolEvent, ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskDoneEvent,
+    AgentGenerator, UserApprovalStatus, is_agent_tool_metadata,
+    ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskDoneEvent, ToolExecutedEvent,
 )
 
 
-class ToolCallNotFoundError(Exception):
-    call_id: str
+class MessageNotFoundError(Exception): ...
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -46,7 +46,7 @@ class AgentTask:
         for message in reversed(self._ctx.messages):
             if predicate(message):
                 return message
-        raise ToolCallNotFoundError()
+        raise MessageNotFoundError()
 
     def _extract_tool_call(self, message: AssistantMessage) -> list[ToolMessage] | None:
         tool_call_messages = message.get_incomplete_tool_messages()
@@ -57,10 +57,12 @@ class AgentTask:
 
     def has_pending_tool_calls(self) -> bool:
         for message in reversed(self._ctx.messages):
-            if message.role == "assistant":
-                break
-            if message.role == "tool" and not message.is_complete:
-                return True
+            if message.role == "assistant": break
+            if message.role == "tool":
+                if message.is_complete: continue
+                assert is_agent_tool_metadata(message.metadata)
+                if message.metadata.get("user_approval") == UserApprovalStatus.PENDING:
+                    return True
         return False
 
     def discard_pending_tool_calls(self) -> Generator[MessageReplaceEvent]:
@@ -87,7 +89,7 @@ class AgentTask:
         cast(ToolMessage, target_message).result = result
         return MessageReplaceEvent(message=target_message)
 
-    async def approve_tool_call(self, call_id: str, approved: bool) -> AsyncGenerator[ToolEvent | MessageReplaceEvent, None]:
+    async def approve_tool_call(self, call_id: str, approved: bool) -> MessageReplaceEvent | None:
         """
         Approve or deny a tool call
 
@@ -100,25 +102,30 @@ class AgentTask:
         metadata = target_message.metadata
         assert is_agent_tool_metadata(metadata)
         if not self._tool_call_reviewer.apply_user_approval(call_id, metadata, approved):
-            return
-        yield MessageReplaceEvent(message=target_message.model_copy())
+            return None
+        return MessageReplaceEvent(message=target_message.model_copy())
 
-        tool = self._ctx.find_tool(target_message.name)
-        if tool is None:
-            self._logger.error(f"Tool called '{target_message.name}' is not defined.")
-            return
+    async def execute_approved_tool_calls(self) -> AsyncGenerator[ToolExecutedEvent | MessageReplaceEvent, None]:
+        tool_messages_to_execute: list[ToolMessage] = []
+        for message in reversed(self._ctx.messages):
+            if message.role == "assistant": break
+            if message.role != "tool": continue
+            assert is_agent_tool_metadata(message.metadata)
+            is_approved = message.metadata.get("user_approval") == "approved"
+            is_complete = message.is_complete
+            if is_approved and not is_complete:
+                tool_messages_to_execute.append(message)
 
-        # Since the toolsets only contain ToolDefs, and the tools are all under toolsets,
-        # so we can safely assert the type of tool_def to ToolDef here.
-        assert isinstance(tool, ToolDef)
+        if len(tool_messages_to_execute) == 0: return
 
-        permission_check_result = await self._tool_call_reviewer.check_permission(tool, target_message)
-        match permission_check_result:
-            case ToolCallBlocked(event):
-                yield event
-            case ToolCallApproved():
-                yield await self._tool_call_dispatcher.execute(tool, target_message)
-        yield MessageReplaceEvent(message=target_message)
+        for message in tool_messages_to_execute:
+            tool: ToolDef | None = self._ctx.find_tool(message.name)
+            if tool is None:
+                self._logger.error(f"Tool called '{message.name}' is not defined.")
+                message.error = handle_tool_does_not_exist_error(ToolDoesNotExistError(message.name))
+                continue
+            yield await self._tool_call_dispatcher.execute(tool, message)
+            yield MessageReplaceEvent(message=message)
 
     async def run(self) -> AgentGenerator:
         _exited_by_generator_close = False

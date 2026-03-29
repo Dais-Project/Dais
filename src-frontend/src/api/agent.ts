@@ -15,8 +15,8 @@ import {
 } from "./generated/endpoints/agent/agent";
 
 export async function invalidateAgentQueries(agentId?: number) {
-  await queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey() });
+  await queryClient.invalidateQueries({ queryKey: getGetAgentsInfiniteQueryKey(), refetchType: "all" });
   if (agentId !== undefined) {
-    await queryClient.invalidateQueries({ queryKey: getGetAgentQueryKey(agentId) });
+    await queryClient.invalidateQueries({ queryKey: getGetAgentQueryKey(agentId), refetchType: "all" });
   }
 }

@@ -61,7 +61,7 @@ export function Shell({ message }: ToolMessageProps) {
   })();
   const commandOutput: ShellResult = (() => {
     if (message.isStreaming) {
-      return { stdout: "命令运行中", stderr: null };
+      return { stdout: "生成命令中...", stderr: null };
     }
     if (message.error !== null) {
       return { stdout: null, stderr: message.error };

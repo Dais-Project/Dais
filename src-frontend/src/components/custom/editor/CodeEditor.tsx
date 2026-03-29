@@ -9,7 +9,7 @@ import { json } from "@codemirror/lang-json";
 import { xml } from "@codemirror/lang-xml";
 import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
-import { ArboristTree, TreeItem } from "./ArboristTree";
+import { ArboristTree, TreeItem } from "../file-tree";
 
 function getLanguageExtensions(filename: string): LanguageSupport | null {
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
@@ -108,7 +108,7 @@ export function CodeEditor({
       if (draft.some((i) => i.id === id)) return;
       draft.push(newNode as TreeItem);
     });
-    return newNode;
+    return { id };
   }, [onChange]);
 
   const extensions = useMemo(() => {

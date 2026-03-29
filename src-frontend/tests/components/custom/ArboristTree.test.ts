@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { arboristDataToResources, buildTree, resourcesToArboristData } from "@/components/custom/editor/ArboristTree";
+import { arboristDataToResources, buildTree, resourcesToArboristData } from "@/components/custom/file-tree";
 
 test("resourcesToArboristData", () => {
   const resources = [

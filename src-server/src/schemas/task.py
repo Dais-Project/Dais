@@ -26,10 +26,6 @@ class TaskCreate(TaskBase):
     agent_id: int
     workspace_id: int
 
-class TaskMessageEdit(DTOBase):
-    message_id: str
-    content: str
-
 """
 Note: This schema is backend only type.
 """

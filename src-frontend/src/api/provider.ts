@@ -18,9 +18,9 @@ import {
 } from "./generated/endpoints/provider/provider";
 
 export async function invalidateProviderQueries(providerId?: number) {
-  await queryClient.invalidateQueries({ queryKey: getGetProvidersBriefQueryKey() });
-  await queryClient.invalidateQueries({ queryKey: getGetProvidersInfiniteQueryKey() });
+  await queryClient.invalidateQueries({ queryKey: getGetProvidersBriefQueryKey(), refetchType: "all" });
+  await queryClient.invalidateQueries({ queryKey: getGetProvidersInfiniteQueryKey(), refetchType: "all" });
   if (providerId !== undefined) {
-    await queryClient.invalidateQueries({ queryKey: getGetProviderQueryKey(providerId) });
+    await queryClient.invalidateQueries({ queryKey: getGetProviderQueryKey(providerId), refetchType: "all" });
   }
 }

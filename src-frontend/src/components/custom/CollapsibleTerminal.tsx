@@ -82,7 +82,7 @@ export const CollapsibleTerminal = ({
     >
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger asChild>
-          <TerminalHeader className="sticky top-0 z-1">
+          <TerminalHeader className="sticky top-0 z-1 cursor-pointer">
             <TerminalTitle>{title}</TerminalTitle>
             {stderr && stdout && <ActiveOutputSwitch showStderr={showStderr} setShowStderr={setShowStderr} />}
 

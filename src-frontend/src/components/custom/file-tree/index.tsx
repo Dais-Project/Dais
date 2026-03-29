@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   CreateHandler,
   DeleteHandler,
@@ -23,121 +24,19 @@ import {
 } from "lucide-react";
 import { AutoSizer } from "react-virtualized-auto-sizer";
 import { cn } from "@/lib/utils";
+import { type TreeItem, type TreeNode } from "./types";
+import { useStableTreeData } from "./use-stable-tree-data";
+import { buildTree } from "./utils";
 import { Button } from "../../ui/button";
-import { useMemo, useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
+import { useDebounceFn } from "ahooks";
 
-export type TreeItem = {
-  id: string;
-  name: string;
-  parentId: string | null;
-} & (
-    | { type: "folder" }
-    | { type: "file"; content: string }
-  );
-
-type TreeNode = TreeItem & (
-  | { type: "folder"; children: TreeNode[] }
-  | { type: "file" }
-);
-
-export function resourcesToArboristData(resources: { relative: string; content: string }[]): TreeItem[] {
-  function resolveParentNode(relative: string, map: Record<string, TreeItem>): TreeItem | null {
-    if (relative === "") {
-      return null;
-    }
-    if (map[relative]) {
-      return map[relative]!;
-    }
-    const parts = relative.split("/");
-    const name = parts.pop()!;
-    const parent = resolveParentNode(parts.join("/"), map);
-    const node = {
-      id: relative,
-      name,
-      parentId: parent?.id ?? null,
-      type: "folder",
-    } satisfies TreeItem;
-    map[relative] = node;
-    return node;
-  }
-
-  const parentMap: Record<string, TreeItem> = {};
-  const nodes: TreeItem[] = [];
-  for (const { relative, content } of resources) {
-    // We assert every relative path is for a file.
-    const parts = relative.split("/");
-    const name = parts.pop()!;
-    const parent = resolveParentNode(parts.join("/"), parentMap);
-    const node = {
-      id: relative,
-      name,
-      parentId: parent?.id ?? null,
-      type: "file",
-      content,
-    } satisfies TreeItem;
-    nodes.push(node);
-  }
-
-  nodes.push(...Object.values(parentMap));
-  return nodes;
-}
-
-export function arboristDataToResources(data: TreeItem[]): { relative: string; content: string }[] {
-  const result: { relative: string; content: string }[] = [];
-  const tree = buildTree(data);
-
-  function dfs(node: TreeNode, parentPath: string) {
-    const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
-    if (node.type === "file") {
-      result.push({
-        relative: currentPath,
-        content: node.content,
-      });
-      return;
-    }
-    for (const child of node.children) {
-      dfs(child, currentPath);
-    }
-  }
-
-  for (const root of tree) {
-    dfs(root, "");
-  }
-  return result;
-}
-
-export function buildTree(data: TreeItem[]): TreeNode[] {
-  const map = new Map<string, TreeNode>();
-  for (const item of data) {
-    if (item.type === "folder") {
-      map.set(item.id, {
-        ...item,
-        children: [],
-      });
-    } else {
-      map.set(item.id, {
-        ...item,
-      });
-    }
-  }
-
-  const roots: TreeNode[] = [];
-  for (const node of map.values()) {
-    if (node.parentId === null) {
-      roots.push(node);
-    } else {
-      const parent = map.get(node.parentId);
-      if (parent && parent.type === "folder") {
-        parent.children.push(node);
-      }
-    }
-  }
-
-  return roots;
-}
-
-// --- --- --- --- --- ---
+export * from "./types";
+export {
+  buildTree,
+  resourcesToArboristData,
+  arboristDataToResources,
+} from "./utils";
 
 type FileIconProps = {
   name: string;
@@ -322,14 +221,42 @@ export function ArboristTree({
   onSelect,
 }: ArboristTreeProps) {
   const ref = useRef<TreeApi<TreeNode>>(null);
-  const treeData = useMemo(() => buildTree(data), [data]);
+  const openStateRef = useRef<{ [id: string]: boolean }>({});
+  const stableData = useStableTreeData(data);
+  const treeData = useMemo(() => buildTree(data), [stableData]);
 
-  const handleSelect = (nodes: NodeApi<TreeNode>[]) => {
+  const { run: restoreOpenState } = useDebounceFn(() => {
+    for (const [id, isOpen] of Object.entries(openStateRef.current)) {
+      if (isOpen) {
+        ref.current?.open(id);
+      }
+    }
+  }, { wait: 200 });
+  useEffect(restoreOpenState, [data]);
+
+  const wrappedOnCreate: CreateHandler<TreeNode> = useCallback(
+    async (args) => {
+      const result = await onCreate?.(args as unknown as Parameters<CreateHandler<TreeItem>>[0]);
+      if (result) {
+        requestAnimationFrame(() => ref.current?.edit(result.id));
+      }
+      return result ?? null;
+    },
+    [onCreate]
+  );
+
+  const handleSelect = useCallback((nodes: NodeApi<TreeNode>[]) => {
     const file = nodes.find((n) => n.isLeaf && n.data.type === "file");
     if (file) {
       onSelect?.(file.data);
     }
-  };
+  }, [onSelect]);
+
+  const handleToggle = useCallback((_: string) => {
+    if (ref.current) {
+      openStateRef.current = { ...ref.current?.openState };
+    }
+  }, []);
 
   const handleCreateFile = () => {
     ref.current?.create({
@@ -361,15 +288,17 @@ export function ArboristTree({
             ref={ref}
             width={width}
             height={height}
+            openByDefault={false}
             className="shadcn-scroll"
             rowClassName="outline-none"
             rowHeight={32}
-            renderCursor={() => null}
+            renderCursor={useCallback(() => null, [])}
             onMove={onMove as MoveHandler<TreeNode>}
             onRename={onRename as RenameHandler<TreeNode>}
             onDelete={onDelete as DeleteHandler<TreeNode>}
-            onCreate={onCreate as CreateHandler<TreeNode>}
+            onCreate={wrappedOnCreate}
             onSelect={handleSelect}
+            onToggle={handleToggle}
             selection={selectedId}
             disableMultiSelection
           >
