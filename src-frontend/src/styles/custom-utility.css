@@ -1,9 +1,10 @@
 @theme {
   --text-sm-plus: 0.9375rem; /* 15px */
-  --text-sm-plus--line-height: calc(1.25 / 0.9375);
+  --text-sm-plus--line-height: calc(1.25 / 0.75);
 }
 
 @utility text-sm-plus {
+  /* The font size for chat content */
   font-size: var(--text-sm-plus);
   line-height: var(--tw-leading, var(--text-sm-plus--line-height));
 }
