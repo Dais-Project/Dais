@@ -195,7 +195,7 @@ class TestLoadSkill:
         monkeypatch.setattr(context_control, "materialize_skill", fake_materialize_skill)
 
         tool = ContextControlToolset(built_in_toolset_context)
-        result = await tool.load_skill(id=99)
+        result = await tool.load_skill(id=99, name="Test Skill")
         root, resources_dir_el, skill_content_el = parse_load_skill_xml(result)
 
         assert root.tag == "load_skill_result"
