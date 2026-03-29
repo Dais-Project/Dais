@@ -4,18 +4,28 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useCollapsibleStore } from "@/features/Tabs/TaskPanel/hooks/use-collapse-store";
 
 type BuiltInToolContainerProps = {
+  id: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
 };
 
 export function BuiltInToolContainer({
+  id,
   children,
   defaultOpen = false,
 }: BuiltInToolContainerProps) {
+  const collapsed = useCollapsibleStore((state) => state.collapsedMap[id] ?? !defaultOpen);
+  const setCollapsed = useCollapsibleStore((state) => state.setCollapsed);
   return (
-    <Collapsible defaultOpen={defaultOpen} className="group w-full rounded-md border">
+    <Collapsible
+      open={!collapsed}
+      onOpenChange={(open) => setCollapsed(id, !open)}
+      defaultOpen={defaultOpen}
+      className="group w-full rounded-md border"
+    >
       {children}
     </Collapsible>
   );

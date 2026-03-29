@@ -103,7 +103,7 @@ export function ReadFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FileTextIcon}>
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.read_file.title")}</span>

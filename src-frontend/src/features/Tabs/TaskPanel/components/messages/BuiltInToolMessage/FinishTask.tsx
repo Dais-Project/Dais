@@ -13,7 +13,7 @@ export function FinishTask({ message }: ToolMessageProps) {
   const toolArguments = useToolArgument<ExecutionControlFinishTask>(message, FinishTaskSchema);
 
   return (
-    <BuiltInToolContainer defaultOpen>
+    <BuiltInToolContainer id={message.call_id} defaultOpen>
       <BuiltInToolHeader
         title={t("tool.finish_task.title")}
         icon={CheckCircleIcon}

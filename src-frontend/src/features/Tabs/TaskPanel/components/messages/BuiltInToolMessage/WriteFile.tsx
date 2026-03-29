@@ -40,7 +40,7 @@ export function WriteFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={PencilIcon}>
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.write_file.title")}</span>

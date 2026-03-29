@@ -43,7 +43,7 @@ export function ListDirectory({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FolderTreeIcon}>
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.list_directory.title")}</span>

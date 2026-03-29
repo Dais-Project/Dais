@@ -1,6 +1,7 @@
 import { useMount, useUnmount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UiMessage } from "@/types/message";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
@@ -9,7 +10,7 @@ import { AssistantMessage } from "./components/messages/AssistantMessage";
 import { ToolMessage } from "./components/messages/BuiltInToolMessage";
 import { UserMessage } from "./components/messages/UserMessage";
 import { Conversation, ConversationFloatingContent, ConversationScrollToBottom } from "@/components/ai-elements/virtual-conversation";
-import { UiMessage } from "@/types/message";
+import { CollapsibleStoreProvider } from "./hooks/use-collapse-store";
 
 export function SessionViewSkeleton() {
   return (
@@ -87,21 +88,23 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
   useUnmount(cancelTask);
 
   return (
-    <Conversation<UiMessage>
-      messages={messages}
-      messageRender={messageRender}
-      padding={{ top: 24, bottom: 240 }}
-    >
-      <ConversationFloatingContent>
-        <ConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
-        <div className="w-7/8 mx-auto pointer-events-auto">
-          {state === "idle" && <ContinueTask />}
-          {state === "error" && <ErrorRetry />}
-        </div>
-        <PromptInputProvider>
-          <PromptInput className="pointer-events-auto" />
-        </PromptInputProvider>
-      </ConversationFloatingContent>
-    </Conversation>
+    <CollapsibleStoreProvider>
+      <Conversation<UiMessage>
+        messages={messages}
+        messageRender={messageRender}
+        padding={{ top: 24, bottom: 240 }}
+      >
+        <ConversationFloatingContent>
+          <ConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
+          <div className="w-7/8 mx-auto pointer-events-auto">
+            {state === "idle" && <ContinueTask />}
+            {state === "error" && <ErrorRetry />}
+          </div>
+          <PromptInputProvider>
+            <PromptInput className="pointer-events-auto" />
+          </PromptInputProvider>
+        </ConversationFloatingContent>
+      </Conversation>
+    </CollapsibleStoreProvider>
   );
 }

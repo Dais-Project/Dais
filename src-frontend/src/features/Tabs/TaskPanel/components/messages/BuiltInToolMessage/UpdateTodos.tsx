@@ -37,7 +37,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen>
+    <BuiltInToolContainer id={message.call_id} defaultOpen>
       <BuiltInToolHeader
         title={t("tool.update_todos.title")}
         icon={ListTodoIcon}

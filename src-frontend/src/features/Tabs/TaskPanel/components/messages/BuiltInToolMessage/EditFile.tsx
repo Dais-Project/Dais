@@ -48,7 +48,7 @@ export function EditFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={PencilIcon}>
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.edit_file.title")}</span>

@@ -39,7 +39,7 @@ export function SearchText({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={SearchIcon}>
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.search_text.title")}</span>
