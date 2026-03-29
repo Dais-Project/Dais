@@ -3,6 +3,7 @@ import type {
   ContextControlLoadSkill,
   ExecutionControlFinishTask,
   ExecutionControlUpdateTodos,
+  FileSystemEditFile,
   FileSystemFindFiles,
   FileSystemListDirectory,
   FileSystemReadFile,
@@ -75,6 +76,13 @@ export const ReadFileToolSchema: z.ZodType<FileSystemReadFile> = z.object({
 export const WriteFileToolSchema: z.ZodType<FileSystemWriteFile> = z.object({
   path: z.string(),
   content: z.string(),
+});
+
+export const EditFileToolSchema: z.ZodType<FileSystemEditFile> = z.object({
+  path: z.string(),
+  old_content: z.string(),
+  new_content: z.string(),
+  expected_replacements: z.number().int().optional(),
 });
 
 export const FindFilesToolSchema: z.ZodType<FileSystemFindFiles> = z.object({

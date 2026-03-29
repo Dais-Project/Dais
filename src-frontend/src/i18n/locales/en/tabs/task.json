@@ -58,6 +58,11 @@
       "accept": "Accept",
       "reject": "Reject"
     },
+    "edit_file": {
+      "generating": "Generating edit file arguments...",
+      "parse_error": "Failed to parse edit file arguments",
+      "title": "Dais wants to edit a file:"
+    },
     "find_files": {
       "generating": "Generating find files arguments...",
       "parse_error": "Failed to parse find files arguments",

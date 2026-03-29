@@ -2,6 +2,7 @@ import { BuiltInTools } from "@/api/generated/schemas";
 import type { UiToolMessage } from "@/types/message";
 import { GeneralToolMessage } from "../GeneralToolMessage";
 import { AskUser } from "./AskUser";
+import { EditFile } from "./EditFile";
 import { FinishTask } from "./FinishTask";
 import { FindFiles } from "./FindFiles";
 import { ListDirectory } from "./ListDirectory";
@@ -31,6 +32,8 @@ export function ToolMessage(props: ToolMessageProps) {
       return <ReadFile {...props} />;
     case BuiltInTools.FileSystem__write_file:
       return <WriteFile {...props} />;
+    case BuiltInTools.FileSystem__edit_file:
+      return <EditFile {...props} />;
     case BuiltInTools.FileSystem__find_files:
       return <FindFiles {...props} />;
     case BuiltInTools.FileSystem__list_directory:

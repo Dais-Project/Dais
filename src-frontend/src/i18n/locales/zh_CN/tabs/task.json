@@ -58,6 +58,11 @@
       "accept": "接受",
       "reject": "拒绝"
     },
+    "edit_file": {
+      "generating": "文件编辑参数生成中...",
+      "parse_error": "文件编辑参数解析失败",
+      "title": "Dais 想要编辑文件："
+    },
     "find_files": {
       "generating": "文件搜索参数生成中...",
       "parse_error": "文件搜索参数解析失败",
