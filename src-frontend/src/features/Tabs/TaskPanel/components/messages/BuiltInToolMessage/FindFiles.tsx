@@ -58,11 +58,11 @@ export function FindFiles({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FolderSearchIcon}>
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.find_files.title")}</span>
           {toolArguments && (
             <div className="flex-1 truncate font-medium font-mono text-sm">
-              {toolArguments.pattern}{toolArguments.path ? ` ${toolArguments.path}` : ""}
+              {toolArguments.pattern}
             </div>
           )}
         </div>

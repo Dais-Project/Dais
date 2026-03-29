@@ -5,6 +5,7 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemListDirectory, ToolMessageMetadata } from "@/api/generated/schemas";
 import { ListDirectoryToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
+import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
@@ -44,10 +45,12 @@ export function ListDirectory({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FolderTreeIcon}>
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.list_directory.title")}</span>
           {toolArguments?.path && (
-            <div className="flex-1 truncate font-medium font-mono text-sm">{toolArguments.path}</div>
+            <MiddleEllipsis className="flex-1 font-medium font-mono text-sm">
+              {toolArguments.path}
+            </MiddleEllipsis>
           )}
         </div>
       </BuiltInToolHeader>

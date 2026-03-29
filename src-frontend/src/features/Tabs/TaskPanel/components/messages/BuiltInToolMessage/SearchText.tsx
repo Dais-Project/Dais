@@ -41,11 +41,11 @@ export function SearchText({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={SearchIcon}>
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.search_text.title")}</span>
           {toolArguments && (
             <div className="flex-1 truncate font-medium font-mono text-sm">
-              {toolArguments.regex}{toolArguments.path ? ` ${toolArguments.path}` : ""}
+              {toolArguments.regex}
             </div>
           )}
         </div>

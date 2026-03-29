@@ -10,6 +10,7 @@ import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
+import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 
 export function EditFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
@@ -52,9 +53,9 @@ export function EditFile({ message }: ToolMessageProps) {
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.edit_file.title")}</span>
           {toolArguments?.path && (
-            <div className="flex-1 truncate font-medium font-mono text-sm">
+            <MiddleEllipsis className="flex-1 font-medium font-mono text-sm">
               {toolArguments.path}
-            </div>
+            </MiddleEllipsis>
           )}
         </div>
       </BuiltInToolHeader>

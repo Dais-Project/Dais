@@ -6,6 +6,7 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemReadFile, ToolMessageMetadata } from "@/api/generated/schemas";
 import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
+import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { getFileExtension } from "@/lib/path";
 import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
@@ -107,9 +108,9 @@ export function ReadFile({ message }: ToolMessageProps) {
         <div className="flex items-center min-w-0">
           <span className="font-medium text-sm">{t("tool.read_file.title")}</span>
           {toolArguments?.path && (
-            <div className="flex-1 truncate font-medium font-mono text-sm">
+            <MiddleEllipsis className="flex-1 font-medium font-mono text-sm">
               {toolArguments.path}
-            </div>
+            </MiddleEllipsis>
           )}
         </div>
       </BuiltInToolHeader>

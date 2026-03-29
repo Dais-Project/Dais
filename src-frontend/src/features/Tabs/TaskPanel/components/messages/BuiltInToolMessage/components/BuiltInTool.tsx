@@ -15,7 +15,7 @@ export function BuiltInToolContainer({
   defaultOpen = false,
 }: BuiltInToolContainerProps) {
   return (
-    <Collapsible defaultOpen={defaultOpen} className="group selectable w-full rounded-md border">
+    <Collapsible defaultOpen={defaultOpen} className="group w-full rounded-md border">
       {children}
     </Collapsible>
   );
@@ -62,7 +62,7 @@ export function BuiltInToolHeader({
 export function BuiltInToolContent({ children, className, ...props }: React.ComponentProps<typeof CollapsibleContent>) {
   return (
     <CollapsibleContent
-      className={cn("data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in", className)}
+      className={cn("selectable data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in", className)}
       {...props}
     >
       {children}
