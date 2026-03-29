@@ -32,7 +32,7 @@ export function TasksView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
-  const Content = () => {
+  const content = (() => {
     if (!currentWorkspace) {
       return (
         <Empty>
@@ -49,7 +49,7 @@ export function TasksView() {
         <TaskList workspaceId={currentWorkspace.id} />
       </AsyncBoundary>
     );
-  };
+  })();
 
   return (
     <div className="flex h-full flex-col">
@@ -61,7 +61,7 @@ export function TasksView() {
         />
       </SideBarHeader>
       <div className="h-full min-h-0 flex-1">
-        <Content />
+        {content}
       </div>
     </div>
   );

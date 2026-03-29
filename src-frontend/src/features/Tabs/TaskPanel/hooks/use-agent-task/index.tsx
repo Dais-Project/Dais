@@ -23,6 +23,7 @@ import {
 import {
   continueTask,
   getGetTaskQueryKey,
+  invalidateTaskQueries,
   type TaskSseCallbacks,
   useEditTaskMessage,
   useGetTaskSuspense,
@@ -219,13 +220,13 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+    invalidateTaskQueries({ taskId });
   };
 
   const onClose = () => {
     messageLifecycle.handleClose();
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  }
+    invalidateTaskQueries({ taskId });
+  };
 
   sseCallbacksRef.current = {
     onMessageStart,

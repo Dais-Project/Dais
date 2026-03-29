@@ -18,9 +18,9 @@ import {
 } from "./generated/endpoints/toolset/toolset";
 
 export async function invalidateToolsetQueries(toolsetId?: number) {
-  await queryClient.invalidateQueries({ queryKey: getGetToolsetsQueryKey() });
-  await queryClient.invalidateQueries({ queryKey: getGetToolsetsBriefQueryKey() });
+  await queryClient.invalidateQueries({ queryKey: getGetToolsetsQueryKey(), refetchType: "all" });
+  await queryClient.invalidateQueries({ queryKey: getGetToolsetsBriefQueryKey(), refetchType: "all" });
   if (toolsetId !== undefined) {
-    await queryClient.invalidateQueries({ queryKey: getGetToolsetQueryKey(toolsetId) });
+    await queryClient.invalidateQueries({ queryKey: getGetToolsetQueryKey(toolsetId), refetchType: "all" });
   }
 }

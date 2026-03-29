@@ -16,8 +16,8 @@ import {
 } from "./generated/endpoints/workspace/workspace";
 
 export async function invalidateWorkspaceQueries(workspaceId?: number) {
-  await queryClient.invalidateQueries({ queryKey: getGetWorkspacesInfiniteQueryKey() });
+  await queryClient.invalidateQueries({ queryKey: getGetWorkspacesInfiniteQueryKey(), refetchType: "all" });
   if (workspaceId !== undefined) {
-    await queryClient.invalidateQueries({ queryKey: getGetWorkspaceQueryKey(workspaceId) });
+    await queryClient.invalidateQueries({ queryKey: getGetWorkspaceQueryKey(workspaceId), refetchType: "all" });
   }
 }

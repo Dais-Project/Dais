@@ -12,7 +12,7 @@ import queryClient from "@/query-client";
 import { getGetTaskQueryKey, getGetTasksInfiniteQueryKey } from "../generated/endpoints/task/task";
 
 type InvalidateTaskQueriesOptions = {
-  workspaceId: number;
+  workspaceId?: number;
   taskId?: number;
 };
 
@@ -20,8 +20,10 @@ export async function invalidateTaskQueries({
   workspaceId,
   taskId,
 }: InvalidateTaskQueriesOptions) {
-  await queryClient.invalidateQueries({ queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }) });
+  if (workspaceId !== undefined) {
+    await queryClient.invalidateQueries({ queryKey: getGetTasksInfiniteQueryKey({ workspace_id: workspaceId }), refetchType: "all" });
+  }
   if (taskId !== undefined) {
-    await queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
+    await queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId), refetchType: "all" });
   }
 }
