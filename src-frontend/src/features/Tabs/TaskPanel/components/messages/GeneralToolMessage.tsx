@@ -41,7 +41,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
   return (
     <Tool className="selectable mb-0" defaultOpen={toolState === "approval-requested"}>
       <ToolHeader
-        className="sticky top-0 z-10 rounded-md bg-card"
+        className="rounded-md bg-card"
         toolName={toolName}
         toolsetName={toolsetName}
         state={toolState}
