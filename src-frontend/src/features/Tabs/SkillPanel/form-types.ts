@@ -1,5 +1,5 @@
 import type { SkillCreate, SkillRead, SkillUpdate } from "@/api/generated/schemas";
-import { arboristDataToResources, resourcesToArboristData, TreeItem } from "@/components/custom/editor/ArboristTree";
+import { arboristDataToResources, resourcesToArboristData, TreeItem } from "@/components/custom/file-tree";
 
 export type SkillCreateFormValues = Omit<SkillCreate, "resources"> & {
   resources: TreeItem[];
