@@ -126,7 +126,7 @@ export function SkillList() {
 
   return (
     <>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="limit-width flex-1">
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}

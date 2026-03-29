@@ -154,7 +154,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
 
   return (
     <>
-      <ScrollArea className="h-full">
+      <ScrollArea className="limit-width h-full">
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}

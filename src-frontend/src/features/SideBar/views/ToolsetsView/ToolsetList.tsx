@@ -171,8 +171,8 @@ export function ToolsetList() {
       await invalidateToolsetQueries(toolset.id);
 
       removeTabs((tab) => (tab.type === "toolset" &&
-                           tab.metadata.mode === "edit" &&
-                           tab.metadata.id === toolset.id));
+        tab.metadata.mode === "edit" &&
+        tab.metadata.id === toolset.id));
 
       toast.success(t("toolsets.toast.delete_success_title"), {
         description: t("toolsets.toast.delete_success_description"),
@@ -186,7 +186,7 @@ export function ToolsetList() {
 
   return (
     <>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="limit-width flex-1">
         {toolsets.map((toolset) => (
           <ToolsetItem
             key={toolset.id}

@@ -1,3 +1,4 @@
+[data-slot="scroll-area"].limit-width
 [data-slot="scroll-area-viewport"]
   > div
   > :not([data-slot="scroll-area-scrollbar"]) /* prevent to select scroll thumb */

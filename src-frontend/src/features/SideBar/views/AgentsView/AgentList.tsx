@@ -138,7 +138,7 @@ export function AgentList() {
 
   return (
     <>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 limit-width">
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}

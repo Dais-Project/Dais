@@ -145,8 +145,8 @@ export function WorkspaceList() {
       await invalidateWorkspaceQueries(workspace.id);
 
       removeTabs((tab) => (tab.type === "workspace" &&
-                           tab.metadata.mode === "edit" &&
-                           tab.metadata.id === workspace.id));
+        tab.metadata.mode === "edit" &&
+        tab.metadata.id === workspace.id));
 
       // clear current workspace if deleted
       if (workspace.id === currentWorkspace?.id) {
@@ -177,7 +177,7 @@ export function WorkspaceList() {
 
   return (
     <>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="limit-width flex-1">
         <InfiniteScroll
           query={query}
           selectItems={(page) => page.items}
