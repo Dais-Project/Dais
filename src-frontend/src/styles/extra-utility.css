@@ -1,9 +1,9 @@
-@utility content-visible {
+@utility visibility-visible {
   content-visibility: visible;
 }
-@utility content-hidden {
+@utility visibility-hidden {
   content-visibility: hidden;
 }
-@utility content-auto {
+@utility visibility-auto {
   content-visibility: auto;
 }

@@ -39,7 +39,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
   const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
   return (
-    <Tool className="selectable mb-0" defaultOpen={toolState === "approval-requested"}>
+    <Tool className="selectable visibility-auto mb-0" defaultOpen={toolState === "approval-requested"}>
       <ToolHeader
         className="sticky top-0 z-10 rounded-md bg-card"
         toolName={toolName}

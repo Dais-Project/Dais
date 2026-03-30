@@ -13,7 +13,7 @@ export function Markdown({ className, ...props }: MarkdownProps) {
   return (
     <Streamdown
       className={cn(
-        "size-full font-medium text-foreground text-sm-plus [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        "visibility-auto size-full font-medium text-foreground text-sm-plus [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       plugins={{ code, mermaid, math, cjk }}

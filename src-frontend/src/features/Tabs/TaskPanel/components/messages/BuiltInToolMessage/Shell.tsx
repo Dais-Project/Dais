@@ -82,6 +82,7 @@ export function Shell({ message }: ToolMessageProps) {
       isStreaming={message.isStreaming}
       autoScroll={true}
       defaultOpen={true}
+      className="visibility-auto"
       title={toolArguments?.command ?? "Shell"}
     >
       {userApproval && (

@@ -17,7 +17,7 @@ export function BuiltInToolContainer({
   return (
     <Collapsible
       defaultOpen={defaultOpen}
-      className="group w-full rounded-md border"
+      className="group w-full rounded-md border visibility-auto"
     >
       {children}
     </Collapsible>
