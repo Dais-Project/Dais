@@ -5,6 +5,7 @@ from .builtin_tools import (
     FileSystemToolset,
     OsInteractionsToolset,
     UserInteractionToolset,
+    WebInteractionToolset,
 )
 from .toolset_manager import *
 from .toolset_wrapper import *

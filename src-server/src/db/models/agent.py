@@ -38,9 +38,11 @@ async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType
     from ...agent.tool.builtin_tools import (
         FileSystemToolset,
+        ExecutionControlToolset,
+        ContextControlToolset,
         OsInteractionsToolset,
         UserInteractionToolset,
-        ExecutionControlToolset,
+        WebInteractionToolset,
     )
     from ...agent.prompts.built_in_agents import (
         DAILY_ASSISTANT_AGENT_INSTRUCTION,
@@ -69,6 +71,8 @@ async def init(db_session: AsyncSession):
             FileSystemToolset.read_file,
             FileSystemToolset.list_directory,
             FileSystemToolset.find_files,
+            ContextControlToolset.load_skill,
+            WebInteractionToolset.fetch,
         ]),
         ("Terminal Interpreter", TERMINAL_INTERPRETER_AGENT_INSTRUCTION, "terminal", [
             OsInteractionsToolset.shell,

@@ -5,6 +5,7 @@ from .execution_control import ExecutionControlToolset
 from .file_system import FileSystemToolset
 from .os_interactions import OsInteractionsToolset
 from .user_interaction import UserInteractionToolset
+from .web_interaction import WebInteractionToolset
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 
 
@@ -14,6 +15,7 @@ BUILT_IN_TOOLSETS: list[type[BuiltInToolset]] = [
     FileSystemToolset,
     OsInteractionsToolset,
     UserInteractionToolset,
+    WebInteractionToolset,
 ]
 
 def get_builtin_tool_enum() -> type[Enum]:

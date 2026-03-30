@@ -66,6 +66,7 @@ async def init(db_session: AsyncSession):
         FileSystemToolset,
         OsInteractionsToolset,
         UserInteractionToolset,
+        WebInteractionToolset,
     )
 
     toolsets_to_init: list[tuple[str, type[BuiltInToolset]]] = [
@@ -74,6 +75,7 @@ async def init(db_session: AsyncSession):
         ("Execution Control", ExecutionControlToolset),
         ("OS Interactions", OsInteractionsToolset),
         ("User Interaction", UserInteractionToolset),
+        ("Web Interaction", WebInteractionToolset),
     ]
 
     for name, toolset_t in toolsets_to_init:
