@@ -112,6 +112,9 @@ function usePromptInputHandlers(): UsePromptInputHandlersResult {
       }
       return textBefore + " " + path;
     });
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   };
 
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
