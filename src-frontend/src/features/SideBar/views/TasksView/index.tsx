@@ -9,21 +9,20 @@ import {
   EmptyContent,
   EmptyDescription,
 } from "@/components/ui/empty";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { TaskList } from "./TaskList";
 
-function openTaskCreateTab() {
+function openTaskCreateTab(workspaceId: number) {
   const addTab = useTabsStore.getState().add;
   addTab({
-    id: tabIdFactory(),
     title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
     type: "task",
     metadata: {
       isDraft: true,
+      workspace_id: workspaceId,
     },
   });
 }
@@ -57,7 +56,8 @@ export function TasksView() {
         <SideBarHeaderAction
           Icon={PlusIcon}
           tooltip={t("tasks.header.create_tooltip")}
-          onClick={openTaskCreateTab}
+          onClick={() => currentWorkspace && openTaskCreateTab(currentWorkspace.id)}
+          disabled={currentWorkspace === null}
         />
       </SideBarHeader>
       <div className="h-full min-h-0 flex-1">

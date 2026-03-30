@@ -134,8 +134,11 @@ export function Vditor({
   }, [theme]);
 
   return (
-    <div className={cn("w-full", `vditor-${containerSize}`, className)}>
-      <div ref={containerRef} className="vditor max-h-[60vh] overflow-hidden"></div>
+    <div className={cn("w-full", `vditor-${containerSize}`)}>
+      <div
+        ref={containerRef}
+        className={cn("vditor hidden-during-resizing max-h-[60vh] overflow-hidden", className)}
+      />
     </div>
   );
 }

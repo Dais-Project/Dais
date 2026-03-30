@@ -124,7 +124,7 @@ export function CodeEditor({
   }, [selectedItem]);
 
   return (
-    <div className={cn("overflow-hidden rounded-md border w-full h-[60vh]", className)}>
+    <div className={cn("hidden-during-resizing overflow-hidden rounded-md border w-full h-[60vh]", className)}>
       <ResizablePanelGroup orientation="horizontal">
         {/* ── Left: File tree ── */}
         <ResizablePanel

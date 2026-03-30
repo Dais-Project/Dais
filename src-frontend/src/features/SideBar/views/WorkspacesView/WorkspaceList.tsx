@@ -28,14 +28,12 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-opt
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { Tab, WorkspaceTabMetadata } from "@/types/tab";
+import type { Tab } from "@/types/tab";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
-    id: tabIdFactory(),
     type: "workspace",
     title: i18n.t("workspaces.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: workspaceName }),
     icon: "folder-cog",
@@ -44,19 +42,17 @@ function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab
 }
 
 type OpenWorkspaceEditTabParams = {
-  tabs: Tab[];
   workspaceId: number;
   workspaceName: string;
-  addTab: (tab: Tab) => void;
-  setActiveTab: (tabId: string) => void;
 };
 
-function openWorkspaceEditTab({ tabs, workspaceId, workspaceName, addTab, setActiveTab }: OpenWorkspaceEditTabParams) {
+function openWorkspaceEditTab({ workspaceId, workspaceName }: OpenWorkspaceEditTabParams) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "workspace" &&
       tab.metadata.mode === "edit" &&
-      (tab.metadata as WorkspaceTabMetadata & { mode: "edit" }).id === workspaceId
+      tab.metadata.id === workspaceId
   );
 
   if (existingTab) {
@@ -77,9 +73,6 @@ type WorkspaceItemProps = {
 
 function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: WorkspaceItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const tabs = useTabsStore((state) => state.tabs);
-  const addTab = useTabsStore((state) => state.add);
-  const setActiveTab = useTabsStore((state) => state.setActive);
 
   const handleSelect = (e: React.MouseEvent) => {
     if (disabled) {
@@ -92,11 +85,8 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openWorkspaceEditTab({
-      tabs,
       workspaceId: workspace.id,
       workspaceName: workspace.name,
-      addTab,
-      setActiveTab,
     });
   };
 

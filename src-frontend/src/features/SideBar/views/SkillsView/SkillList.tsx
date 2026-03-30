@@ -19,13 +19,11 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-opt
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { Tab, SkillTabMetadata } from "@/types/tab";
+import type { Tab } from "@/types/tab";
 
 function createSkillEditTab(skillId: number, skillName: string): Tab {
   return {
-    id: tabIdFactory(),
     type: "skill",
     title: i18n.t("skills.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: skillName }),
     icon: "scroll-text",
@@ -39,7 +37,7 @@ function openSkillEditTab(skillId: number, skillName: string) {
     (tab) =>
       tab.type === "skill" &&
       tab.metadata.mode === "edit" &&
-      (tab.metadata as SkillTabMetadata & { mode: "edit" }).id === skillId,
+      tab.metadata.id === skillId,
   );
 
   if (existingTab) {

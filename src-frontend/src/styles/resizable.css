@@ -1,0 +1,4 @@
+[data-resizable-group][data-is-resizing="true"] .hidden-during-resizing {
+  content-visibility: hidden;
+  pointer-events: none;
+}

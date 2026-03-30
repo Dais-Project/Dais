@@ -36,13 +36,13 @@ function AgentEditPanel({
 }
 
 export function AgentPanel({
-  tabId,
+  id,
   metadata,
 }: TabPanelProps<AgentTabMetadata>) {
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
-        <AgentCreatePanel tabId={tabId} />
+        <AgentCreatePanel tabId={id} />
         <ScrollBar orientation="vertical" />
       </ScrollArea>
     );
@@ -50,7 +50,7 @@ export function AgentPanel({
 
   return (
     <TabPanelFrame>
-      <AgentEditPanel tabId={tabId} agentId={metadata.id} />
+      <AgentEditPanel tabId={id} agentId={metadata.id} />
     </TabPanelFrame>
   );
 }

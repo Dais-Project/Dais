@@ -42,10 +42,15 @@ const PROMPTINPUT_STATE_MAPPING: Record<TaskState, ChatStatus> = {
 
 type PromptInputAgentStateProps = {
   agentId: number | null;
+  workspaceId: number;
   onChange: (agentId: number) => void;
 };
 
-function PromptInputAgentState({ agentId, onChange }: PromptInputAgentStateProps) {
+function PromptInputAgentState({
+  agentId,
+  workspaceId,
+  onChange,
+}: PromptInputAgentStateProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   return (
     <ErrorBoundary fallbackRender={(props) => <AgentSelectErrorFallback {...props} />}>
@@ -56,7 +61,11 @@ function PromptInputAgentState({ agentId, onChange }: PromptInputAgentStateProps
           </Button>
         }
       >
-        <AgentSelectDialog agentId={agentId} onChange={onChange} />
+        <AgentSelectDialog
+          agentId={agentId}
+          workspaceId={workspaceId}
+          onChange={onChange}
+        />
       </Suspense>
     </ErrorBoundary>
   );
@@ -103,6 +112,9 @@ function usePromptInputHandlers(): UsePromptInputHandlersResult {
       }
       return textBefore + " " + path;
     });
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   };
 
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -134,10 +146,11 @@ function usePromptInputHandlers(): UsePromptInputHandlersResult {
 
 
 type PromptInputDraftProps = {
+  workspaceId: number;
   onSubmit: (message: PromptInputMessage, agentId: number) => void;
 };
 
-export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
+export function PromptInputDraft({ workspaceId, onSubmit }: PromptInputDraftProps) {
   const [agentId, setAgentId] = useState<number | null>(null);
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const {
@@ -176,10 +189,15 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
         <PromptInputTools className="gap-2">
           <ContextSelectPopover
             ref={contextSelectRef}
+            workspaceId={workspaceId}
             onSelect={handleSelectPath}
             onClose={handleContextClose}
           />
-          <PromptInputAgentState agentId={agentId} onChange={setAgentId} />
+          <PromptInputAgentState
+            agentId={agentId}
+            workspaceId={workspaceId}
+            onChange={setAgentId}
+          />
         </PromptInputTools>
         <div className="flex gap-2">
           <PromptInputActionAddAttachmentsButton />
@@ -190,7 +208,12 @@ export function PromptInputDraft({ onSubmit }: PromptInputDraftProps) {
   );
 }
 
-export function PromptInput({ className }: { className?: string }) {
+type PromptInputProps = {
+  workspaceId: number;
+  className?: string;
+};
+
+export function PromptInput({ workspaceId, className }: PromptInputProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { agentId, state } = useAgentTaskState();
   const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
@@ -233,10 +256,15 @@ export function PromptInput({ className }: { className?: string }) {
         <PromptInputTools className="min-w-0 gap-2">
           <ContextSelectPopover
             ref={contextSelectRef}
+            workspaceId={workspaceId}
             onSelect={handleSelectPath}
             onClose={handleContextClose}
           />
-          <PromptInputAgentState agentId={agentId} onChange={setAgentId} />
+          <PromptInputAgentState
+            agentId={agentId}
+            workspaceId={workspaceId}
+            onChange={setAgentId}
+          />
           <ContextUsage />
           <TaskProgress className="min-w-0 flex-1" />
         </PromptInputTools>

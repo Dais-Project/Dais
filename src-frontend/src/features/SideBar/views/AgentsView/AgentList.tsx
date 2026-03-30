@@ -21,13 +21,11 @@ import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { resolveIconName } from "@/lib/resolve-iconname";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { AgentTabMetadata, Tab } from "@/types/tab";
+import type { Tab } from "@/types/tab";
 
 function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
-    id: tabIdFactory(),
     type: "agent",
     title: i18n.t("agents.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: agentName }),
     icon: "bot",
@@ -36,19 +34,17 @@ function createAgentEditTab(agentId: number, agentName: string): Tab {
 }
 
 type OpenAgentEditTabParams = {
-  tabs: Tab[];
   agentId: number;
   agentName: string;
-  addTab: (tab: Tab) => void;
-  setActiveTab: (tabId: string) => void;
 };
 
-function openAgentEditTab({ tabs, agentId, agentName, addTab, setActiveTab }: OpenAgentEditTabParams) {
+function openAgentEditTab({ agentId, agentName }: OpenAgentEditTabParams) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "agent" &&
       tab.metadata.mode === "edit" &&
-      (tab.metadata as AgentTabMetadata & { mode: "edit" }).id === agentId
+      tab.metadata.id === agentId
   );
 
   if (existingTab) {
@@ -66,18 +62,12 @@ type AgentItemProps = {
 
 function AgentItem({ agent, onDelete }: AgentItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const tabs = useTabsStore((state) => state.tabs);
-  const addTab = useTabsStore((state) => state.add);
-  const setActiveTab = useTabsStore((state) => state.setActive);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openAgentEditTab({
-      tabs,
       agentId: agent.id,
       agentName: agent.name,
-      addTab,
-      setActiveTab,
     });
   };
   return (

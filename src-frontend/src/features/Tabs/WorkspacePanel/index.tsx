@@ -29,13 +29,13 @@ function WorkspaceEditPanel({
 }
 
 export function WorkspacePanel({
-  tabId,
+  id,
   metadata,
 }: TabPanelProps<WorkspaceTabMetadata>) {
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
-        <WorkspaceCreatePanel tabId={tabId} />
+        <WorkspaceCreatePanel tabId={id} />
         <ScrollBar orientation="vertical" />
       </ScrollArea>
     );
@@ -43,7 +43,7 @@ export function WorkspacePanel({
 
   return (
     <TabPanelFrame>
-      <WorkspaceEditPanel tabId={tabId} workspaceId={metadata.id} />
+      <WorkspaceEditPanel tabId={id} workspaceId={metadata.id} />
     </TabPanelFrame>
   );
 }

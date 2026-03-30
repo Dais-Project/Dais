@@ -29,20 +29,20 @@ function ProviderEditPanel({
 }
 
 export function ProviderPanel({
-  tabId,
+  id,
   metadata,
 }: TabPanelProps<ProviderTabMetadata>) {
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
-        <ProviderCreatePanel tabId={tabId} />
+        <ProviderCreatePanel tabId={id} />
       </ScrollArea>
     );
   }
 
   return (
     <TabPanelFrame>
-      <ProviderEditPanel tabId={tabId} providerId={metadata.id} />
+      <ProviderEditPanel tabId={id} providerId={metadata.id} />
     </TabPanelFrame>
   );
 }

@@ -104,7 +104,7 @@ export const CollapsibleTerminal = ({
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <TerminalContent className="selectable pt-2" />
+          <TerminalContent className="shadcn-scroll selectable pt-2" />
           {children}
         </CollapsibleContent>
       </Collapsible>

@@ -49,11 +49,6 @@
   --editor-padding: 12rem;
 }
 
-.resizable-panel-resizing .vditor {
-  /* 拖拽时隐藏 Vditor，避免拖拽时容器尺寸变化导致卡顿 */
-  content-visibility: hidden
-}
-
 /* ---------- 亮色主题 ---------- */
 .vditor--classic {
   --selected-background-color:   color-mix(in oklch, var(--primary) 15%, transparent);

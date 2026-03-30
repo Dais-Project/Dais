@@ -5,7 +5,6 @@ import { invalidateSkillQueries, useUploadArchive } from "@/api/skill";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useFileSelect } from "@/hooks/use-file-select";
 import { SkillList } from "./SkillList";
@@ -15,7 +14,6 @@ import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 function openSkillCreateTab() {
   const addTab = useTabsStore.getState().add;
   addTab({
-    id: tabIdFactory(),
     type: "skill",
     title: i18n.t("skills.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
     icon: "scroll-text",

@@ -32,20 +32,20 @@ function ToolsetEditPanel({
 }
 
 export function ToolsetPanel({
-  tabId,
+  id,
   metadata,
 }: TabPanelProps<ToolsetTabMetadata>) {
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
-        <ToolsetCreatePanel tabId={tabId} />
+        <ToolsetCreatePanel tabId={id} />
       </ScrollArea>
     );
   }
 
   return (
     <TabPanelFrame>
-      <ToolsetEditPanel tabId={tabId} toolsetId={metadata.id} />
+      <ToolsetEditPanel tabId={id} toolsetId={metadata.id} />
     </TabPanelFrame>
   );
 }

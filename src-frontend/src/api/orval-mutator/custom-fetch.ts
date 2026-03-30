@@ -1,7 +1,7 @@
-import { ErrorResponseSchema } from "../generated/schemas";
+import { ErrorResponseSchema, McpConnectErrorCode } from "../generated/schemas";
 import { API_BASE } from "..";
 
-export type ErrorCode = ErrorResponseSchema["error_code"] | "NETWORK_ERROR";
+export type ErrorCode = ErrorResponseSchema["error_code"] | McpConnectErrorCode | "NETWORK_ERROR";
 
 export type ErrorResponse = {
   error_code: ErrorCode;
