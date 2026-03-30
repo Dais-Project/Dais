@@ -27,10 +27,9 @@ import {
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import { tabIdFactory } from "@/lib/tab";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
-import type { Tab, ToolsetTabMetadata } from "@/types/tab";
+import type { Tab } from "@/types/tab";
 import { getErrorMessage } from "@/i18n/error-message";
 import { ToolsetIcon } from "./ToolsetIcon";
 
@@ -52,7 +51,6 @@ function getStatusColor(status: McpToolsetStatus): string {
 
 function createToolsetEditTab(toolsetId: number, toolsetName: string): Tab {
   return {
-    id: tabIdFactory(),
     type: "toolset",
     title: i18n.t("toolsets.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: toolsetName }),
     icon: "wrench",
@@ -61,25 +59,20 @@ function createToolsetEditTab(toolsetId: number, toolsetName: string): Tab {
 }
 
 type OpenToolsetEditTabParams = {
-  tabs: Tab[];
   toolsetId: number;
   toolsetName: string;
-  addTab: (tab: Tab) => void;
-  setActiveTab: (tabId: string) => void;
 };
 
 function openToolsetEditTab({
-  tabs,
   toolsetId,
   toolsetName,
-  addTab,
-  setActiveTab,
 }: OpenToolsetEditTabParams) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "toolset" &&
       tab.metadata.mode === "edit" &&
-      (tab.metadata as ToolsetTabMetadata & { mode: "edit" }).id === toolsetId
+      tab.metadata.id === toolsetId
   );
 
   if (existingTab) {
@@ -97,18 +90,12 @@ type ToolsetItemProps = {
 
 function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const tabs = useTabsStore((state) => state.tabs);
-  const addTab = useTabsStore((state) => state.add);
-  const setActiveTab = useTabsStore((state) => state.setActive);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openToolsetEditTab({
-      tabs,
       toolsetId: toolset.id,
       toolsetName: toolset.name,
-      addTab,
-      setActiveTab,
     });
   };
   return (

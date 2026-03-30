@@ -1,23 +1,30 @@
 import { create } from "zustand";
+import { nanoid } from "nanoid";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { type Draft } from "immer";
 import type { Tab } from "@/types/tab";
 
+export type StoredTab = Tab & { id: string; isClosing: boolean };
+
 type TabsState = {
-  tabs: Tab[];
+  tabs: StoredTab[];
   activeTabId: string | null;
 };
 
 type TabsActions = {
   add: (tab: Tab) => void;
-  setActive: (pattern: string | ((tab: Tab) => boolean)) => void;
-  update: (updater: (draft: Draft<Tab[]>) => void | Tab[]) => void;
+  setActive: (pattern: string | ((tab: StoredTab) => boolean)) => void;
+  update: (updater: (draft: Draft<StoredTab[]>) => void | StoredTab[]) => void;
   updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
-  remove: (pattern: string | ((tab: Tab) => boolean)) => void;
+  remove: (pattern: string | ((tab: StoredTab) => boolean)) => void;
 };
 
 type TabsStore = TabsState & TabsActions;
+
+function tabIdFactory() {
+  return nanoid();
+}
 
 export const useTabsStore = create<TabsStore>()(
   persist(
@@ -26,13 +33,9 @@ export const useTabsStore = create<TabsStore>()(
       activeTabId: null,
       add(tab) {
         set((state: TabsState) => {
-          const exists = state.tabs.some((t) => t.id === tab.id);
-          if (exists) {
-            state.activeTabId = tab.id;
-            return;
-          }
-          state.tabs.push(tab);
-          state.activeTabId = tab.id;
+          const newTab = { ...tab, id: tabIdFactory(), isClosing: false };
+          state.tabs.push(newTab);
+          state.activeTabId = newTab.id;
         });
       },
       setActive(pattern) {
@@ -69,6 +72,9 @@ export const useTabsStore = create<TabsStore>()(
       remove(pattern) {
         if (typeof pattern === "function") {
           set((state: TabsState) => {
+            state.tabs.forEach((t) => pattern(t) && (t.isClosing = true));
+          });
+          set((state: TabsState) => {
             state.tabs = state.tabs.filter((t) => !pattern(t));
             if (!state.tabs.find((t) => t.id === state.activeTabId)) {
               state.activeTabId = state.tabs.at(-1)?.id ?? null;
@@ -77,6 +83,10 @@ export const useTabsStore = create<TabsStore>()(
           return;
         }
         const id = pattern;
+        set((state: TabsState) => {
+          const targetTab = state.tabs.find((t) => t.id === id);
+          targetTab && (targetTab.isClosing = true);
+        });
         set((state: TabsState) => {
           const idx = state.tabs.findIndex((t) => t.id === id);
           if (idx === -1) {
@@ -97,5 +107,5 @@ export const useTabsStore = create<TabsStore>()(
       },
     })),
     { name: "tabs" }
-  ), 
+  ),
 );

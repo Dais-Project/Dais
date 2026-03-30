@@ -27,7 +27,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -42,7 +41,6 @@ function openTaskTab(task: TaskBrief) {
     setActiveTab(existingTab.id);
   } else {
     addTab({
-      id: tabIdFactory(),
       title: task.title,
       type: "task",
       metadata: {

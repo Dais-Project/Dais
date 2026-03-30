@@ -1,7 +1,6 @@
 import type { dynamicIconImports } from "lucide-react/dynamic";
 
 export type TabBase = {
-  id: string;
   title: string;
   icon?: keyof typeof dynamicIconImports;
 };

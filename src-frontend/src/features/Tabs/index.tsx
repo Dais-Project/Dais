@@ -18,22 +18,23 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ScrollTextIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
+import { Activity } from "react";
 import { useTranslation } from "react-i18next";
 import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
 import { TABS_NAMESPACE } from "@/i18n/resources";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
-import { useTabsStore } from "@/stores/tabs-store";
+import { StoredTab, useTabsStore } from "@/stores/tabs-store";
 import type {
   AgentTabMetadata,
   ProviderTabMetadata,
   SkillTabMetadata,
   Tab,
-  TaskTabMetadata,
   ToolsetTabMetadata,
   WorkspaceTabMetadata,
 } from "@/types/tab";
+import { activityVisible } from "@/lib/activity-visible";
 import { AgentPanel } from "./AgentPanel";
 import { ProviderPanel } from "./ProviderPanel";
 import { SkillPanel } from "./SkillPanel";
@@ -50,12 +51,9 @@ const tabIconMap: Record<Tab["type"], LucideIcon> = {
   skill: ScrollTextIcon,
 };
 
-export type TabPanelProps<Metadata> = {
-  tabId: string;
-  metadata: Metadata;
-};
+export type TabPanelProps<Metadata> = Omit<StoredTab, "metadata"> & { metadata: Metadata };
 
-function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
+function SortableTab({ tab, ...props }: { tab: StoredTab; props: unknown }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id });
   const activeTabId = useTabsStore((state) => state.activeTabId);
   const removeTab = useTabsStore((state) => state.remove);
@@ -126,20 +124,20 @@ function SortableTab({ tab, ...props }: { tab: Tab; props: unknown }) {
 }
 SortableTab.tabsRole = "Tab";
 
-function TabPanelRenderer({ tab }: { tab: Tab }) {
+function TabPanelRenderer({ tab }: { tab: StoredTab }) {
   switch (tab.type) {
     case "task":
-      return <TaskPanel tabId={tab.id} metadata={tab.metadata as TaskTabMetadata} />;
+      return <TaskPanel {...tab} />;
     case "workspace":
-      return <WorkspacePanel tabId={tab.id} metadata={tab.metadata as WorkspaceTabMetadata} />;
+      return <WorkspacePanel {...tab} />;
     case "agent":
-      return <AgentPanel tabId={tab.id} metadata={tab.metadata as AgentTabMetadata} />;
+      return <AgentPanel {...tab} />;
     case "provider":
-      return <ProviderPanel tabId={tab.id} metadata={tab.metadata as ProviderTabMetadata} />;
+      return <ProviderPanel {...tab} />;
     case "toolset":
-      return <ToolsetPanel tabId={tab.id} metadata={tab.metadata as ToolsetTabMetadata} />;
+      return <ToolsetPanel {...tab} />;
     case "skill":
-      return <SkillPanel tabId={tab.id} metadata={tab.metadata as SkillTabMetadata} />;
+      return <SkillPanel {...tab} />;
     default:
       return null;
   }
@@ -221,7 +219,9 @@ export function Tabs() {
             }
             return tabs.map((tab) => (
               <ReactTabPanel key={tab.id} className="hidden h-full bg-card">
-                <TabPanelRenderer tab={tab} />
+                <Activity mode={activityVisible(tab.id === activeTabId)}>
+                  <TabPanelRenderer tab={tab} />
+                </Activity>
               </ReactTabPanel>
             ));
           })()}

@@ -34,10 +34,11 @@ export function SessionViewSkeleton() {
 }
 
 type SessionViewProps = {
+  isUnmounted: boolean;
   shouldStartStream: boolean;
 };
 
-export function SessionView({ shouldStartStream }: SessionViewProps) {
+export function SessionView({ isUnmounted, shouldStartStream }: SessionViewProps) {
   const { state } = useAgentTaskState();
   const { continue: continueTask, cancel: cancelTask } = useAgentTaskAction();
 
@@ -47,24 +48,27 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
     }
   });
   useUnmount(() => {
+    if (!isUnmounted) {
+      return;
+    }
     cancelTask();
   });
 
   return (
     <TaskConversationProvider className="relative flex h-full flex-col">
-       <TaskConversationContent />
-       <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
-         <div className="mx-auto w-full max-w-3xl">
-            <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
-            <div className="w-7/8 mx-auto pointer-events-auto">
-              {state === "idle" && <ContinueTask />}
-              {state === "error" && <ErrorRetry />}
-            </div>
-            <PromptInputProvider>
-              <PromptInput className="pointer-events-auto" />
-            </PromptInputProvider>
-         </div>
-       </div>
+      <TaskConversationContent />
+      <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
+        <div className="mx-auto w-full max-w-3xl">
+          <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
+          <div className="w-7/8 mx-auto pointer-events-auto">
+            {state === "idle" && <ContinueTask />}
+            {state === "error" && <ErrorRetry />}
+          </div>
+          <PromptInputProvider>
+            <PromptInput className="pointer-events-auto" />
+          </PromptInputProvider>
+        </div>
+      </div>
     </TaskConversationProvider>
   );
 }

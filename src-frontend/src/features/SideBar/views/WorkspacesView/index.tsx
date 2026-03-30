@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import { tabIdFactory } from "@/lib/tab";
 import { useTabsStore } from "@/stores/tabs-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
@@ -12,7 +11,6 @@ import { WorkspaceList } from "./WorkspaceList";
 function openWorkspaceCreateTab() {
   const addTab = useTabsStore.getState().add;
   addTab({
-    id: tabIdFactory(),
     type: "workspace",
     title: i18n.t("workspaces.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
     icon: "folder-plus",

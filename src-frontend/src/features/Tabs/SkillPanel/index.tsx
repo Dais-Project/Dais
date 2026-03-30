@@ -32,20 +32,20 @@ function SkillEditPanel({
 }
 
 export function SkillPanel({
-  tabId,
+  id,
   metadata,
 }: TabPanelProps<SkillTabMetadata>) {
   if (metadata.mode === "create") {
     return (
       <ScrollArea className="h-full px-8">
-        <SkillCreatePanel tabId={tabId} />
+        <SkillCreatePanel tabId={id} />
       </ScrollArea>
     );
   }
 
   return (
     <TabPanelFrame>
-      <SkillEditPanel tabId={tabId} skillId={metadata.id} />
+      <SkillEditPanel tabId={id} skillId={metadata.id} />
     </TabPanelFrame>
   );
 }
