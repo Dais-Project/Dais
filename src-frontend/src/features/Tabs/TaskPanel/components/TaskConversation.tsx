@@ -6,7 +6,7 @@ import { ToolMessage } from "./messages/BuiltInToolMessage";
 import { AssistantMessage } from "./messages/AssistantMessage";
 import { UserMessage } from "./messages/UserMessage";
 
-export function TaskConversationProvider({className, ...props}: ComponentProps<typeof Conversation>) {
+export function TaskConversationProvider({ className, ...props }: ComponentProps<typeof Conversation>) {
   return (
     <Conversation
       id="conversation"
@@ -21,37 +21,37 @@ export const TaskConversationScrollToBottom = ConversationScrollButton;
 export function TaskConversationContent() {
   const { messages } = useAgentTaskState();
   return (
-      <ConversationContent className="mx-auto w-full max-w-3xl gap-y-4 pb-52">
-        {messages.map((message) => {
-          if (message.role === "system") {
-            return null;
-          }
-          if (message.role === "tool") {
-            return (
-              <ToolMessage
-                key={message.id ?? message.call_id}
-                message={message}
-              />
-            );
-          }
-          if (message.role === "user") {
-            return (
-              <UserMessage
-                key={message.id ?? message.content}
-                messageId={message.id ?? null}
-                text={message.content}
-                isStreaming={message.isStreaming}
-              />
-            );
-          }
+    <ConversationContent className="mx-auto w-full max-w-3xl gap-y-4 pb-52">
+      {messages.map((message) => {
+        if (message.role === "system") {
+          return null;
+        }
+        if (message.role === "tool") {
           return (
-            <AssistantMessage
+            <ToolMessage
+              key={message.id ?? message.call_id}
+              message={message}
+            />
+          );
+        }
+        if (message.role === "user") {
+          return (
+            <UserMessage
               key={message.id ?? message.content}
-              text={message.content ?? message.reasoning_content}
+              messageId={message.id ?? null}
+              text={message.content}
               isStreaming={message.isStreaming}
             />
           );
-        })}
-      </ConversationContent>
+        }
+        return (
+          <AssistantMessage
+            key={message.id ?? message.content}
+            text={message.content ?? message.reasoning_content}
+            isStreaming={message.isStreaming}
+          />
+        );
+      })}
+    </ConversationContent>
   );
 }

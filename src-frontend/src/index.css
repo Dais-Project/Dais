@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "@/styles/base.css";
 @import "@/styles/global.css";
+@import "@/styles/extra-utility.css";
 @import "@/styles/custom-utility.css";
 @import "@/styles/user-select.css";
 @import "@/styles/scroll-bar.css";
