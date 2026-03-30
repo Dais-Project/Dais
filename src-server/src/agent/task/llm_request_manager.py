@@ -24,12 +24,7 @@ class LlmRequestManager:
 
     def __init__(self, ctx: AgentContext):
         self._ctx = ctx
-        self._llm = self._llm_factory()
         self._current_stream: AsyncGenerator | None = None
-
-    @property
-    def llm(self) -> LLM:
-        return self._llm
 
     def _llm_factory(self) -> LLM:
         provider = LLM.create_provider(self._ctx.provider.type,
@@ -70,8 +65,9 @@ class LlmRequestManager:
         """
         assistant_message_id = str(uuid.uuid4())
         request_params = self._create_request_param()
+        llm = self._llm_factory()
         try:
-            self._current_stream = self._llm.stream_text(request_params)
+            self._current_stream = llm.stream_text(request_params)
             yield MessageStartEvent(message_id=assistant_message_id)
             async for chunk in self._current_stream:
                 match chunk:
@@ -93,6 +89,7 @@ class LlmRequestManager:
             yield ErrorEvent(error=str(e))
         finally:
             self._current_stream = None
+            await asyncio.shield(llm.close())
 
     async def cancel(self):
         if self._current_stream is not None:

@@ -7,6 +7,7 @@ from dais_sdk.types import (
     Message, ToolMessage, UserMessage, AssistantMessage,
     ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
+    ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError,
 )
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
@@ -138,6 +139,9 @@ class AgentTask:
                     async for chunk in llm_stream:
                         yield chunk
                         last_chunk = chunk
+                except (ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError) as e:
+                    self._logger.warning(f"LLM provider error: {str(e)}")
+                    continue # retry
                 except asyncio.CancelledError:
                     # Task cancelled by user
                     break
