@@ -1,16 +1,17 @@
 import { useMount, useUnmount } from "ahooks";
+import { ChevronsDownUpIcon } from "lucide-react";
+import { Conversation, ConversationFloatingContent, ConversationScrollToBottom, useVirtualConversationState } from "@/components/ai-elements/virtual-conversation";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UiMessage } from "@/types/message";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
 import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
-import { AssistantMessage } from "./components/messages/AssistantMessage";
-import { ToolMessage } from "./components/messages/BuiltInToolMessage";
-import { UserMessage } from "./components/messages/UserMessage";
-import { Conversation, ConversationFloatingContent, ConversationScrollToBottom } from "@/components/ai-elements/virtual-conversation";
-import { CollapsibleStoreProvider } from "./hooks/use-collapse-store";
+import { CollapsibleStoreProvider, useCollapsibleStore } from "./hooks/use-collapse-store";
+import { MessageDispatcher } from "./components/messages/MessageDispatcher";
 
 export function SessionViewSkeleton() {
   return (
@@ -38,38 +39,37 @@ export function SessionViewSkeleton() {
   );
 }
 
-function messageRender(message: UiMessage) {
-  switch (message.role) {
-    case "system":
-      return null;
-    case "tool":
-      return (
-        <ToolMessage
-          key={message.id ?? message.call_id}
-          message={message}
-        />
-      );
-    case "user":
-      return (
-        <UserMessage
-          key={message.id ?? message.content}
-          messageId={message.id ?? null}
-          text={message.content}
-          isStreaming={message.isStreaming}
-        />
-      );
-    case "assistant":
-      return (
-        <AssistantMessage
-          key={message.id ?? message.content}
-          text={message.content ?? message.reasoning_content}
-          isStreaming={message.isStreaming}
-        />
-      );
-    default:
-      console.warn("Unknown message role:", message);
-      return null;
-  }
+function CollapseAllButton() {
+  const { virtualizer } = useVirtualConversationState();
+  const collapseAll = useCollapsibleStore((store) => store.collapseAll);
+
+  const handleClick = () => {
+    collapseAll();
+    requestAnimationFrame(() => {
+      const scrollEl = virtualizer.scrollElement;
+      scrollEl && (scrollEl.scrollTop = 0);
+      virtualizer.measure();
+    });
+  };
+
+  return (
+    <div className="absolute top-4 right-4 z-20 pointer-events-auto">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={handleClick}
+            aria-label="Collapse all messages"
+          >
+            <ChevronsDownUpIcon className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Collapse all messages</TooltipContent>
+      </Tooltip>
+    </div>
+  );
 }
 
 type SessionViewProps = {
@@ -91,9 +91,10 @@ export function SessionView({ shouldStartStream }: SessionViewProps) {
     <CollapsibleStoreProvider>
       <Conversation<UiMessage>
         messages={messages}
-        messageRender={messageRender}
-        padding={{ top: 24, bottom: 240 }}
+        messageRender={MessageDispatcher}
+        padding={{ top: 24, bottom: 160 }}
       >
+        <CollapseAllButton />
         <ConversationFloatingContent>
           <ConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
           <div className="w-7/8 mx-auto pointer-events-auto">

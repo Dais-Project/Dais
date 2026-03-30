@@ -1,23 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useVirtualizer, elementScroll, VirtualizerOptions } from "@tanstack/react-virtual";
+import { useVirtualizer, Virtualizer } from "@tanstack/react-virtual";
 import { useMount, useThrottleFn } from "ahooks";
 import { ArrowDownIcon } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 
-/* --- Constants & Utils --- */
-
-const OVERSCAN = 3;
-
-function easeInOutQuint(t: number) {
-  return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t
-}
-
-/* --- Constants & Utils --- */
+const OVERSCAN = 5;
 
 type VirtualConversationState = {
   isAtBottom: boolean;
+  virtualizer: Virtualizer<HTMLDivElement, Element>;
 };
 
 type VirtualConversationActions = {
@@ -45,7 +38,7 @@ export function useVirtualConversationActions() {
 
 type VirtualConversationProps<TMessage> = {
   messages: TMessage[];
-  messageRender: (message: TMessage, index: number) => React.ReactNode;
+  messageRender: (props: { message: TMessage, index: number }) => React.ReactNode;
   children: React.ReactNode;
   className?: string;
   padding?: {
@@ -62,38 +55,15 @@ export function Conversation<TMessage>({
   messageRender,
 }: VirtualConversationProps<TMessage>) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollingRef = useRef<number>(0);
-  const scrollToFn: VirtualizerOptions<any, any>['scrollToFn'] =
-    useCallback((offset, canSmooth, instance) => {
-      const duration = 1000;
-      const start = scrollRef.current?.scrollTop || 0
-      const startTime = (scrollingRef.current = Date.now())
-
-      const run = () => {
-        if (scrollingRef.current !== startTime) return
-        const now = Date.now()
-        const elapsed = now - startTime
-        const progress = easeInOutQuint(Math.min(elapsed / duration, 1))
-        const interpolated = start + (offset - start) * progress
-
-        if (elapsed < duration) {
-          elementScroll(interpolated, canSmooth, instance)
-          requestAnimationFrame(run)
-        } else {
-          elementScroll(interpolated, canSmooth, instance)
-        }
-      }
-      requestAnimationFrame(run)
-    }, [])
-
   const virtualizer = useVirtualizer({
     count: messages.length,
-    estimateSize: () => 120,
+    estimateSize: (_) => 120,
     getScrollElement: () => scrollRef.current,
     overscan: OVERSCAN,
     paddingStart: padding?.top ?? 0,
     paddingEnd: padding?.bottom ?? 0,
-    scrollToFn,
+    isScrollingResetDelay: 300,
+    useFlushSync: false,
   });
   const items = virtualizer.getVirtualItems();
 
@@ -122,7 +92,7 @@ export function Conversation<TMessage>({
     virtualizer.scrollToIndex(messages.length - 1, { align: "end" });
   }, [virtualizer, messages]);
 
-  const state = useMemo(() => ({ isAtBottom }), [isAtBottom]);
+  const state = useMemo(() => ({ isAtBottom, virtualizer }), [isAtBottom, virtualizer]);
   const actions = useMemo(() => ({ scrollToBottom }), [scrollToBottom]);
 
   return (
@@ -152,7 +122,7 @@ export function Conversation<TMessage>({
                   data-index={index}
                   data-virtual-item
                 >
-                  {messageRender(messages[index], index)}
+                  {messageRender({ message: messages[index], index })}
                 </div>
               ))}
             </div>
