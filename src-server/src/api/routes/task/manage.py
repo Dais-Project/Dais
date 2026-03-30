@@ -26,9 +26,7 @@ async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
     )
     def transformer(rows):
         return [
-            task_schemas.TaskBrief.model_validate(
-                {**task.__dict__, "icon_name": icon_name}
-            )
+            task_schemas.TaskBrief.model_validate({**task.__dict__, "icon_name": icon_name})
             for task, icon_name in rows
         ]
     return await apaginate(db_session, final_query, transformer=transformer)
@@ -38,10 +36,7 @@ async def get_task(task_id: int, db_session: DbSessionDep):
     return await TaskService(db_session).get_task_by_id(task_id)
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
-async def create_task(
-    body: task_schemas.TaskCreate,
-    db_session: DbSessionDep,
-):
+async def create_task(body: task_schemas.TaskCreate, db_session: DbSessionDep):
     return await TaskService(db_session).create_task(body)
 
 @task_manage_router.post("/{task_id}/summarize-title", response_model=task_schemas.TaskRead)

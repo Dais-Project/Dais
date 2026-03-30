@@ -35,10 +35,15 @@ export function SessionViewSkeleton() {
 
 type SessionViewProps = {
   isUnmounted: boolean;
+  workspaceId: number;
   shouldStartStream: boolean;
 };
 
-export function SessionView({ isUnmounted, shouldStartStream }: SessionViewProps) {
+export function SessionView({
+  isUnmounted,
+  workspaceId,
+  shouldStartStream,
+}: SessionViewProps) {
   const { state } = useAgentTaskState();
   const { continue: continueTask, cancel: cancelTask } = useAgentTaskAction();
 
@@ -65,7 +70,7 @@ export function SessionView({ isUnmounted, shouldStartStream }: SessionViewProps
             {state === "error" && <ErrorRetry />}
           </div>
           <PromptInputProvider>
-            <PromptInput className="pointer-events-auto" />
+            <PromptInput className="pointer-events-auto" workspaceId={workspaceId} />
           </PromptInputProvider>
         </div>
       </div>

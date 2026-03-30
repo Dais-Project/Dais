@@ -122,6 +122,8 @@ export function Layout() {
           onLayoutChanged(layout);
         }}
         defaultLayout={defaultLayout}
+        data-is-resizing={isResizing || undefined}
+        data-resizable-group
       >
         <ResizablePanel
           id="sidebar"
@@ -137,7 +139,7 @@ export function Layout() {
         <ResizablePanel
           id="tabs"
           minSize={300}
-          className={cn("relative", { "resizable-panel-resizing": isResizing })}
+          className="relative"
           onResize={handleTabsResize}
         >
           <Activity mode={activityVisible(isResizing)}>

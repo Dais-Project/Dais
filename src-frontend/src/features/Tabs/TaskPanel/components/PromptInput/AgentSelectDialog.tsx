@@ -1,5 +1,5 @@
 import { ChevronsUpDownIcon } from "lucide-react";
-import { use, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { FallbackProps } from "react-error-boundary";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
@@ -14,7 +14,7 @@ import {
   SelectDialogTrigger,
 } from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
-import { useWorkspaceStore } from "@/stores/workspace-store";
+import { useGetWorkspaceSuspense } from "@/api/workspace";
 
 class NoCurrentWorkspaceError extends Error {
   constructor() {
@@ -42,24 +42,18 @@ export function AgentSelectErrorFallback({ error }: FallbackProps) {
 
 type AgentSelectDialogProps = {
   agentId: number | null;
+  workspaceId: number;
   onChange: (agentId: number) => void;
 };
 
 export function AgentSelectDialog({
   agentId,
+  workspaceId,
   onChange,
 }: AgentSelectDialogProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const currentWorkspacePromise = useWorkspaceStore(
-    (state) => state.currentPromise
-  );
-
-  if (currentWorkspacePromise === null) {
-    throw new NoCurrentWorkspaceError();
-  }
-
-  const currentWorkspace = use(currentWorkspacePromise);
-  const agents = currentWorkspace?.usable_agents ?? [];
+  const { data: workspace } = useGetWorkspaceSuspense(workspaceId);
+  const agents = workspace.usable_agents;
   const targetAgent = useMemo(
     () => agents.find((agent) => agent.id === agentId) ?? null,
     [agents, agentId]

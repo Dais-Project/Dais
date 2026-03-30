@@ -33,7 +33,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { resolveIconName } from "@/lib/resolve-iconname";
 
-function openTaskTab(task: TaskBrief) {
+function openTaskTab(workspace_id: number, task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find((t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id);
 
@@ -46,6 +46,7 @@ function openTaskTab(task: TaskBrief) {
       metadata: {
         isDraft: false,
         id: task.id,
+        workspace_id,
       },
     });
   }
@@ -61,10 +62,11 @@ function removeTaskTab(taskId: number) {
 type TaskItemProps = {
   task: TaskBrief;
   onRegenerateTitle: (task: TaskBrief) => void;
+  onOpen: (task: TaskBrief) => void;
   onDelete: (task: TaskBrief) => void;
 };
 
-function TaskItem({ task, onRegenerateTitle, onDelete }: TaskItemProps) {
+function TaskItem({ task, onRegenerateTitle, onOpen, onDelete }: TaskItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
@@ -72,7 +74,7 @@ function TaskItem({ task, onRegenerateTitle, onDelete }: TaskItemProps) {
     <ActionableItem>
       <ActionableItemTrigger
         className="cursor-pointer"
-        onClick={() => openTaskTab(task)}
+        onClick={() => onOpen(task)}
       >
         <ActionableItemIcon>
           <DynamicIcon name={resolveIconName(task.icon_name, "box")} />
@@ -161,6 +163,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
               key={task.id}
               task={task}
               onRegenerateTitle={handleRegenerateTitle}
+              onOpen={() => openTaskTab(workspaceId, task)}
               onDelete={asyncConfirm.trigger}
             />
           )}

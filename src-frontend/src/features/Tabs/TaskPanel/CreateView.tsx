@@ -9,22 +9,25 @@ import {
   useSummarizeTaskTitle,
 } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
-import { useWorkspaceStore } from "@/stores/workspace-store";
 import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
 import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 
-export function CreateView({ tabId }: { tabId: string }) {
+type CreateViewProps = {
+  tabId: string;
+  workspaceId: number;
+};
+
+export function CreateView({ tabId, workspaceId }: CreateViewProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const queryClient = useQueryClient();
-  const currentWorkspace = useWorkspaceStore((state) => state.current);
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
 
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
     mutation: {
       async onSuccess(taskRead) {
-        updateTaskTitle(currentWorkspace!.id, taskRead.id, taskRead.title);
+        updateTaskTitle(workspaceId, taskRead.id, taskRead.title);
       },
     },
   });
@@ -32,31 +35,26 @@ export function CreateView({ tabId }: { tabId: string }) {
     mutation: {
       async onSuccess(taskRead) {
         summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
-        if (currentWorkspace) {
-          await invalidateTaskQueries({ workspaceId: currentWorkspace.id });
-        }
+        await invalidateTaskQueries({ workspaceId });
         queryClient.removeQueries({
           queryKey: getGetTaskQueryKey(taskRead.id),
         });
         updateTabMetadata(tabId, {
           isDraft: false,
           id: taskRead.id,
+          workspace_id: taskRead.workspace_id,
         });
       },
     },
   });
 
   const handleSubmit = (message: PromptInputMessage, agentId: number) => {
-    if (!currentWorkspace) {
-      throw new Error("No current workspace");
-    }
-
     const userMessage = uiUserMessageFactory(message.text);
     createTaskMutation.mutateAsync({
       data: {
         title: DEFAULT_TAB_TITLE,
         agent_id: agentId,
-        workspace_id: currentWorkspace.id,
+        workspace_id: workspaceId,
         messages: [toSdkMessage(userMessage)],
       },
     });
@@ -72,7 +70,7 @@ export function CreateView({ tabId }: { tabId: string }) {
         <p className="text-lg text-muted-foreground">{t("create.description")}</p>
       </div>
       <PromptInputProvider>
-        <PromptInputDraft onSubmit={handleSubmit} />
+        <PromptInputDraft workspaceId={workspaceId} onSubmit={handleSubmit} />
       </PromptInputProvider>
     </div>
   );

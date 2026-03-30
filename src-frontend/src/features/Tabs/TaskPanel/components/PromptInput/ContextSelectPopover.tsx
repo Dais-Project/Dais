@@ -14,19 +14,20 @@ import { keepPreviousData } from "@tanstack/react-query";
 
 type OnSelectHandler = (path: string) => void;
 
-function FileTreeSuspense({ onSelect }: { onSelect?: OnSelectHandler }) {
-  const currentWorkspace = useWorkspaceStore((state) => state.current);
-  if (currentWorkspace === null) {
-    return null;
-  }
-  const { data: rootItems } = useListDirectorySuspense({ workspace_id: currentWorkspace.id });
+type FileTreeSuspenseProps = {
+  workspaceId: number;
+  onSelect?: OnSelectHandler;
+};
+
+function FileTreeSuspense({ workspaceId, onSelect }: FileTreeSuspenseProps) {
+  const { data: rootItems } = useListDirectorySuspense({ workspace_id: workspaceId });
   return (
     <LazyFileTree
       className="border-none p-0"
       rootNodes={rootItems.items}
       onSelect={onSelect}
       loadChildren={async (path) => {
-        const result = await listDirectory({ workspace_id: currentWorkspace.id, path: path });
+        const result = await listDirectory({ workspace_id: workspaceId, path: path });
         return result.items;
       }}
     />
@@ -35,17 +36,14 @@ function FileTreeSuspense({ onSelect }: { onSelect?: OnSelectHandler }) {
 
 type SearchResultsProps = {
   query: string;
+  workspaceId: number;
   onSelect?: OnSelectHandler;
 };
 
-function SearchResults({ query, onSelect }: SearchResultsProps) {
+function SearchResults({ query, workspaceId, onSelect }: SearchResultsProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const currentWorkspace = useWorkspaceStore((state) => state.current);
-  if (currentWorkspace === null) {
-    return null;
-  }
   const { data, isLoading } = useSearchFile(
-    { workspace_id: currentWorkspace.id, query },
+    { workspace_id: workspaceId, query },
     { query: { placeholderData: keepPreviousData } },
   );
   if (isLoading && data === undefined) {
@@ -74,7 +72,12 @@ function SearchResults({ query, onSelect }: SearchResultsProps) {
   );
 }
 
-function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
+type FilesMenuProps = {
+  workspaceId: number;
+  onSelect?: OnSelectHandler;
+};
+
+function FilesMenu({ workspaceId, onSelect }: FilesMenuProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, { wait: 150 });
@@ -89,7 +92,7 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
       />
       <CommandList className="p-1">
         {isSearching ? (
-          <SearchResults query={debouncedQuery} onSelect={onSelect} />
+          <SearchResults query={debouncedQuery} workspaceId={workspaceId} onSelect={onSelect} />
         ) : (
           <AsyncBoundary
             skeleton={(
@@ -98,7 +101,7 @@ function FilesMenu({ onSelect }: { onSelect?: OnSelectHandler }) {
               </div>
             )}
           >
-            <FileTreeSuspense onSelect={onSelect} />
+            <FileTreeSuspense workspaceId={workspaceId} onSelect={onSelect} />
           </AsyncBoundary>
         )}
       </CommandList>
@@ -111,12 +114,18 @@ export type ContextSelectPopoverRef = {
 };
 
 export type ContextSelectPopoverProps = {
+  workspaceId: number;
   ref?: React.Ref<ContextSelectPopoverRef>;
   onSelect?: OnSelectHandler;
   onClose?: () => void;
 };
 
-export function ContextSelectPopover({ onSelect, ref, onClose }: ContextSelectPopoverProps) {
+export function ContextSelectPopover({
+  workspaceId,
+  onSelect,
+  ref,
+  onClose,
+}: ContextSelectPopoverProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const [open, setOpen] = useState(false);
   const handleSelect = (path: string) => {
@@ -152,7 +161,7 @@ export function ContextSelectPopover({ onSelect, ref, onClose }: ContextSelectPo
         // prevent focusing the trigger button to trigger tooltip after closing
         onCloseAutoFocus={(event) => event.preventDefault()}
       >
-        <FilesMenu onSelect={handleSelect} />
+        <FilesMenu workspaceId={workspaceId} onSelect={handleSelect} />
       </PopoverContent>
     </Popover>
   );

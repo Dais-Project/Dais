@@ -14,13 +14,17 @@ export function TaskPanel({ id, isClosing, metadata }: TabPanelProps<TaskTabMeta
   const isInitialDraft = useRef(metadata.isDraft);
 
   if (metadata.isDraft) {
-    return <CreateView tabId={id} />;
+    return <CreateView tabId={id} workspaceId={metadata.workspace_id} />;
   }
 
   return (
     <AsyncBoundary skeleton={<SessionViewSkeleton />}>
       <AgentTaskProvider taskId={metadata.id}>
-        <SessionView isUnmounted={isClosing} shouldStartStream={isInitialDraft.current} />
+        <SessionView
+          isUnmounted={isClosing}
+          workspaceId={metadata.workspace_id}
+          shouldStartStream={isInitialDraft.current}
+        />
       </AgentTaskProvider>
     </AsyncBoundary>
   );

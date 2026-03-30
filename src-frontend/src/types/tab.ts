@@ -10,12 +10,12 @@ type SpecificTab<Name extends string, Metadata> = TabBase & {
   metadata: Metadata;
 };
 
-export type TaskTabMetadata =
+export type TaskTabMetadata = { workspace_id: number } & (
   | { isDraft: true }
   | {
       id: number;
       isDraft: false;
-    };
+    });
 
 export type WorkspaceTabMetadata =
   | { mode: "create" }
