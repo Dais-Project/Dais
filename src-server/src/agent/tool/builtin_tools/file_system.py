@@ -1,15 +1,14 @@
 import asyncio
 import difflib
 import shutil
-import pathspec
 import xml.etree.ElementTree as ET
-from typing import Annotated, Iterator, TypedDict, override
+from typing import Annotated, TypedDict, override
 from pathlib import Path
+from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
+from dais_scantree.ignore_rule import load_gitignore_spec
 from markitdown import MarkItDown
 from binaryornot.check import is_binary
 from src.db.models import toolset as toolset_models
-from src.utils.scandir_recursive import scandir_recursive_bfs
-from src.utils.ignore_rules import load_gitignore_spec, should_exclude
 from src.binaries import RIPGREP_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
 
@@ -192,161 +191,132 @@ class FileSystemToolset(BuiltInToolset):
         List files and directories within the specified directory.
 
         Use this when you need to explore the project structure, understand the codebase organization, or find specific files.
-        The tool provides a numbered list with type indicators ([file], [dir], or [symlink]) for easy reference.
-        Directories are listed before files, and items are sorted alphabetically within their type.
+        Directories are indicated by a trailing slash. Symlinks show their target path.
 
         Examples:
-            Non-recursive listing:
+            # Non-recursive listing:
             >>> list_directory("src")
-            Directory: src/
-            1 [dir] agent
-            2 [dir] db
-            3 [symlink -> /usr/local/lib] external_lib
-            4 [file] __init__.py
-            5 [file] app.py
+            Directory: /absolute/path/to/src
+            1. agent/
+            2. db/
+            3. external_lib -> /usr/local/lib/
+            4. __init__.py
+            5. app.py
 
             - - -
 
-            Recursive listing with depth limit:
+            # Recursive listing with depth limit:
             >>> list_directory("src", recursive=True, max_depth=2)
-            Directory: src/
-            1 [dir] agent
-              1.1 [dir] tools
-              1.2 [file] context.py
-            2 [dir] db
-              2.1 [dir] models
-            3 [symlink -> <unreadable>] unreadable_link
-            4 [file] __init__.py
+            Directory: /absolute/path/to/src
+            routes/
+              endpoint1/
+              endpoint2/
+            schemas/
+            main.py
+            broken_link -> <unreadable>
+            __init__.py
 
             - - -
 
-            Unlimited recursive listing:
+            # Unlimited recursive listing:
             >>> list_directory("src", recursive=True)
-            Directory: src/
-            1 [dir] agent
-              1.1 [dir] tools
-                1.1.1 [file] file_system.py
-              1.2 [file] context.py
-            2 [symlink -> /external/data] data
-            3 [file] __init__.py
+            Directory: /absolute/path/to/src
+            routes/
+              endpoint1/
+                subendpoint1/
+                  ...
+                subendpoint2/
+                  ...
+            __init__.py
 
         Returns:
             A formatted string containing:
-            - Directory header showing the path being listed
-            - Numbered list of directories (first) and files (second) with type indicators
-            - For recursive mode: hierarchical numbering (e.g., 1, 1.1, 1.1.1)
-            - Directories are marked with [dir], files with [file], symlinks with [symlink -> target]
-            - Items are sorted: directories first, then files, alphabetically within each type
+            - Directory header showing the path being listed (absolute path)
+            - Non-recursive mode:
+                - Directories (trailing slash) listed before files, alphabetically within each type
+                - Numbered list (1. 2. 3. ...)
+            - Recursive mode:
+                - Indentation (2 spaces per level) represents nesting depth
+            - Symlink representation:
+                - Symlinks are shown as: name -> target (with trailing slash if target is a directory)
+                - Broken or unreadable symlinks are shown as: name -> <unreadable>
+            - Special files (sockets, devices, FIFOs) are shown as: <special file>
         """
-
-        def filter_items(items: Iterator[Path], spec: pathspec.PathSpec | None) -> Iterator[Path]:
-            nonlocal include_hidden, abs_path
-            return filter(lambda x: not should_exclude(x, spec, abs_path, include_hidden), items)
-
         def format_item(item: Path) -> str:
+            if item.is_dir(follow_symlinks=False):
+                return item.name + "/"
+            if item.is_file(follow_symlinks=False):
+                return item.name
             if item.is_symlink():
                 try:
                     target = item.readlink()
-                    item_type = f"symlink -> {target}"
                 except (OSError, ValueError):
-                    item_type = "symlink -> <unreadable>"
-            elif item.is_dir():
-                item_type = "dir"
-            else:
-                item_type = "file"
-            return f"[{item_type}] {item.name}"
+                    return f"{item.name} -> <unreadable>"
+                target_path = target.as_posix()
+                if (item.parent / target).is_dir(): target_path += "/"
+                return f"{item.name} -> {target_path}"
+            return "<special file>"
 
         def format_items_flat(directory: Path) -> list[str]:
             """Format directory contents in non-recursive mode."""
-            try:
-                items = sorted(
-                    filter_items(directory.iterdir(), gitignore_spec),
-                    key=lambda x: (not x.is_dir(), x.name.lower())
-                )
-            except PermissionError:
-                return ["Error: Permission denied"]
+            gitignore_spec = (load_gitignore_spec(abs_path)
+                             if not include_gitignored else None)
 
+            items: list[Path] = []
+            for entry in directory.iterdir():
+                if not include_hidden and entry.name.startswith("."):
+                    continue
+                entry_path = entry.name
+                if entry.is_dir(): entry_path += "/"
+                if gitignore_spec is not None:
+                    if gitignore_spec.match_file(entry_path):
+                        continue
+                items.append(entry)
+
+            items = sorted(items, key=lambda x: (not x.is_dir(), x.name.lower()))
             if len(items) == 0:
                 return ["(empty directory)"]
 
             lines = []
             for idx, item in enumerate(items, 1):
-                lines.append(f"{idx} {format_item(item)}")
+                lines.append(f"{idx}. {format_item(item)}")
             return lines
 
-        def format_items_recursive(
-            directory: Path,
-            prefix: str,
-            indent: int,
-            current_depth: int,
-            max_depth: int | None
-        ) -> list[str]:
+        def format_items_recursive(directory: Path, max_depth: int | None) -> list[str]:
             """
             Recursively format directory contents.
 
             Args:
                 directory: Current directory path
-                prefix: Number prefix (e.g., "1.", "1.1.")
-                indent: Indentation level
-                current_depth: Current depth (starting from 1)
                 max_depth: Maximum depth limit
             """
-            if max_depth is not None and current_depth > max_depth:
-                return []
-
-            local_gitignore_spec = (load_gitignore_spec(directory)
-                                    if not include_gitignored else None)
-            if gitignore_spec and local_gitignore_spec:
-                local_gitignore_spec = gitignore_spec + local_gitignore_spec
-
-            try:
-                items = sorted(
-                    filter_items(directory.iterdir(), local_gitignore_spec),
-                    key=lambda x: (not x.is_dir(), x.name.lower())
-                )
-            except PermissionError:
-                return []
-
-            indent_str = "  " * indent
-            if len(items) == 0:
-                return [indent_str + "(empty directory)"]
-
             lines = []
-            for idx, item in enumerate(items, 1):
-                current_prefix = f"{prefix}{idx}" if prefix else str(idx)
-
-                lines.append(f"{indent_str}{current_prefix} {format_item(item)}")
-                if item.is_dir():
-                    lines.extend(format_items_recursive(
-                        item,
-                        f"{current_prefix}.",
-                        indent + 1,
-                        current_depth + 1,
-                        max_depth
-                    ))
+            for entry, depth in scantree_dfs(directory, MAX_SCAN_LIMIT, max_depth, include_hidden, include_gitignored):
+                indent = "  " * (depth - 1)
+                entry_path = Path(entry)
+                lines.append(f"{indent}{format_item(entry_path)}")
             return lines
 
         if max_depth is not None and max_depth < 1:
             raise ValueError(f"Invalid max_depth: {max_depth}")
 
+        MAX_SCAN_LIMIT = 200_000
         abs_path = self._ctx.cwd / path
         include_hidden = show_all
         include_gitignored = show_all
-        gitignore_spec = (load_gitignore_spec(abs_path)
-                          if not include_gitignored else None)
 
         if not abs_path.exists():
             raise FileNotFoundError(f"Directory not found at {path}")
         if not abs_path.is_dir():
             raise NotADirectoryError(f"Path {path} is not a directory")
 
-        result_lines = [f"Directory: {path}"]
-
+        result_lines = [f"Directory: {abs_path}"]
+        if not recursive and max_depth is not None:
+            result_lines.append("Warning: max_depth is ignored in non-recursive mode.")
         if recursive:
-            result_lines.extend(format_items_recursive(abs_path, "", 0, 1, max_depth))
+            result_lines.extend(format_items_recursive(abs_path, max_depth))
         else:
             result_lines.extend(format_items_flat(abs_path))
-
         return "\n".join(result_lines)
 
     @built_in_tool(validate=True)
@@ -437,8 +407,9 @@ class FileSystemToolset(BuiltInToolset):
 
         def scan_collect(directory: Path) -> list[str]:
             matches = []
-            for entry in scandir_recursive_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
+            for entry in scantree_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
                 if len(matches) >= limit: break
+                if entry.is_symlink(): continue
                 path = Path(entry)
                 if path.match(pattern):
                     matches.append(path.relative_to(abs_path).as_posix())

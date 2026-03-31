@@ -327,6 +327,18 @@ wheels = [
 ]
 
 [[package]]
+name = "dais-scantree"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pathspec" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3a/91/b16fc25dcd8bca52346ad75c5f0997c148e5f8e21497eec1b490b13eb2df/dais_scantree-0.2.2.tar.gz", hash = "sha256:d7e101246fd058675dde61fbf1f523dc04e2db6e6c1a290e9702db0caec4f42a", size = 2314, upload-time = "2026-03-31T13:56:00.63Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/2f/70bf8fcce937c9c8bebf4c1dabcee05018f56c37201e1fa4ac11a41ec8bd/dais_scantree-0.2.2-py3-none-any.whl", hash = "sha256:1645231c657f07f2a9c4a380fbd58131551e38b8a2314e3c035e0abc0053b39b", size = 4316, upload-time = "2026-03-31T13:55:59.609Z" },
+]
+
+[[package]]
 name = "dais-sdk"
 version = "0.9.8"
 source = { registry = "https://pypi.org/simple" }
@@ -354,6 +366,7 @@ dependencies = [
     { name = "aiosqlite" },
     { name = "alembic" },
     { name = "binaryornot" },
+    { name = "dais-scantree" },
     { name = "dais-sdk" },
     { name = "dais-shell" },
     { name = "fastapi" },
@@ -395,6 +408,7 @@ requires-dist = [
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "alembic", specifier = "==1.18.4" },
     { name = "binaryornot", specifier = "==0.6.0" },
+    { name = "dais-scantree", specifier = "==0.2.2" },
     { name = "dais-sdk", specifier = "==0.9.8" },
     { name = "dais-shell", specifier = "==0.1.8" },
     { name = "fastapi", specifier = "==0.135.1" },

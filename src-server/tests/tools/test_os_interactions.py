@@ -4,23 +4,6 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from src.agent.tool.builtin_tools.os_interactions import OsInteractionsToolset
-from src.agent.tool.toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
-from src.agent.types import ContextUsage
-
-
-@pytest.fixture(autouse=True)
-def mock_built_in_toolset_init(mocker):
-    def _init(self, ctx, toolset_ent=None):
-        self._ctx = ctx
-        self._tools_cache = []
-        self._tool_ent_map = None
-
-    mocker.patch.object(BuiltInToolset, "__init__", _init)
-
-
-@pytest.fixture
-def built_in_toolset_context(temp_workspace):
-    return BuiltInToolsetContext(temp_workspace, ContextUsage.default())
 
 
 def parse_shell_result(result: str) -> tuple[ET.Element, ET.Element, ET.Element]:
