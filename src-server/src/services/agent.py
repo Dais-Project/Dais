@@ -55,6 +55,7 @@ class AgentService(ServiceBase):
 
         self._db_session.add(new_agent)
         await self._db_session.flush()
+        self._db_session.expunge(new_agent)
 
         new_agent = await self.get_agent_by_id(new_agent.id)
         return new_agent

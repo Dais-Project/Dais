@@ -2,13 +2,13 @@ import asyncio
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from dais_scantree import bfs as scantree_bfs
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
 from rapidfuzz import fuzz
 from src.db import DbSessionDep
 from src.services.workspace import WorkspaceService
 from src.schemas import task as task_schemas
-from src.utils.scandir_recursive import scandir_recursive_bfs
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -59,7 +59,8 @@ type SearchCandidate = tuple[str, str, Literal["folder", "file"]]
 @lru_cache(maxsize=8)
 def _scan_cached(root: Path, scan_limit: int) -> list[SearchCandidate]:
     candidates: list[SearchCandidate] = []
-    for entry in scandir_recursive_bfs(root, scan_limit):
+    for entry in scantree_bfs(root, scan_limit):
+        if entry.is_symlink(): continue
         rel_path = Path(entry.path).relative_to(root).as_posix()
         candidates.append((entry.name, rel_path, "folder" if entry.is_dir() else "file"))
     return candidates

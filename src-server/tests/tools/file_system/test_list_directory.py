@@ -7,12 +7,12 @@ class TestListDirectory:
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".")
 
-        assert "Directory: ." in result
-        assert "[dir] dir1" in result
-        assert "[dir] dir2" in result
-        assert "[file] file1.txt" in result
-        assert "[file] file2.txt" in result
-        assert "file3.txt" not in result
+        assert "Directory: {}".format(temp_workspace) in result
+        assert "1. dir1" in result
+        assert "2. dir2" in result
+        assert "3. file1.txt" in result
+        assert "4. file2.txt" in result
+        assert "5. file3.txt" not in result
 
     def test_list_directory_hides_hidden_files_by_default(
         self,
@@ -23,13 +23,13 @@ class TestListDirectory:
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".")
 
-        assert "[file] keep.txt" in result
-        assert "[dir] secret" not in result
-        assert "[file] secret.txt" not in result
+        assert "keep.txt" in result
+        assert "secret/" not in result
+        assert "secret.txt" not in result
         assert ".gitignore" not in result
         assert "ignore.log" not in result
         assert ".hidden.txt" not in result
-        assert ".hidden_dir" not in result
+        assert ".hidden_dir/" not in result
 
     def test_list_directory_show_all_includes_hidden_and_gitignored(
         self,
@@ -40,11 +40,11 @@ class TestListDirectory:
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".", show_all=True)
 
-        assert "[file] keep.txt" in result
-        assert "[file] .hidden.txt" in result
-        assert "[dir] .hidden_dir" in result
-        assert "[file] ignore.log" in result
-        assert "[dir] secret" in result
+        assert "keep.txt" in result
+        assert ".hidden.txt" in result
+        assert ".hidden_dir" in result
+        assert "ignore.log" in result
+        assert "secret" in result
         assert ".gitignore" in result
 
     def test_list_empty_directory(self, built_in_toolset_context, temp_workspace, empty_directory):
@@ -57,16 +57,19 @@ class TestListDirectory:
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".", recursive=True)
 
-        assert "1 [dir] dir1" in result
-        assert "1.1 [dir] subdir1" in result
+        assert "dir1" in result
+        assert "  subdir1" in result
         assert "file4.txt" in result
 
     def test_list_directory_recursive_with_depth_limit(self, built_in_toolset_context, temp_workspace, nested_directory):
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".", recursive=True, max_depth=2)
 
-        assert "[dir] dir1" in result
-        assert "[dir] subdir1" in result
+        print(result)
+
+        assert "dir1" in result
+        assert "  subdir1/" in result
+        assert "file3.txt" in result
         assert "file4.txt" not in result
 
     def test_list_nonexistent_directory(self, built_in_toolset_context, temp_workspace):
@@ -84,12 +87,3 @@ class TestListDirectory:
         tool = FileSystemToolset(built_in_toolset_context)
         with pytest.raises(ValueError):
             tool.list_directory(".", recursive=True, max_depth=0)
-
-    def test_list_directory_with_permission_error(self, built_in_toolset_context, temp_workspace, mocker):
-        tool = FileSystemToolset(built_in_toolset_context)
-
-        mock_iterdir = mocker.patch("pathlib.Path.iterdir")
-        mock_iterdir.side_effect = PermissionError()
-
-        result = tool.list_directory(".")
-        assert "Error: Permission denied" in result

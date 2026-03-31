@@ -72,7 +72,7 @@ function ActivityBarItem({ id, icon, ...props }: ActivityBarItemProps) {
 export function ActivityBar() {
   const isOpen = useSidebarStore((state) => state.isOpen);
   return (
-    <div className={cn("flex flex-col justify-between bg-muted", isOpen && "border-r")}>
+    <div className={cn("flex flex-col justify-between bg-layout-activity-bar", isOpen && "border-r")}>
       <div className="flex flex-col items-center">
         {topViews.map(({ id, title, icon }) => (
           <Tooltip key={id}>

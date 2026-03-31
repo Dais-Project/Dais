@@ -43,9 +43,9 @@ class TestEdgeCases:
         tool = FileSystemToolset(built_in_toolset_context)
         result = tool.list_directory(".")
 
-        lines = result.split("\n")
-        dir_lines = [line for line in lines if "[dir]" in line]
-        file_lines = [line for line in lines if "[file]" in line]
+        lines = result.split("\n")[1:]
+        dir_lines = [line for line in lines if line.endswith("/")]
+        file_lines = [line for line in lines if not line.endswith("/")]
 
         assert len(dir_lines) == 2
         assert len(file_lines) == 2

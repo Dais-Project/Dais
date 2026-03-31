@@ -1,0 +1,20 @@
+@theme inline {
+  --color-layout-activity-bar: var(--layout-activity-bar);
+  --color-layout-sidebar: var(--layout-sidebar);
+  --color-layout-tabs-bar: var(--layout-tabs-bar);
+  --color-layout-tabs-content: var(--layout-tabs-content);
+}
+
+:root {
+  --layout-activity-bar: var(--muted);
+  --layout-sidebar: var(--sidebar);
+  --layout-tabs-bar: var(--layout-sidebar);
+  --layout-tabs-content: var(--background);
+}
+
+.dark {
+  --layout-activity-bar: var(--muted);
+  --layout-sidebar: var(--sidebar);
+  --layout-tabs-bar: var(--layout-sidebar);
+  --layout-tabs-content: color-mix(in oklch, var(--layout-sidebar) 60%, var(--background));
+}

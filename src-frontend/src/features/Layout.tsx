@@ -4,7 +4,6 @@ import { type PanelSize, useDefaultLayout, useGroupRef, usePanelRef } from "reac
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSidebarStore } from "@/stores/sidebar-store";
-import { cn } from "@/lib/utils";
 import { backendReady } from "@/api";
 import { activityVisible } from "@/lib/activity-visible";
 import { ActivityBar } from "./ActivityBar";
@@ -15,7 +14,7 @@ import { SideBarListSkeleton } from "./SideBar/components/SideBarListSkeleton";
 
 function SideBarSkeleton() {
   return (
-    <div className="h-full w-[320px] shrink-0 bg-muted/40 hidden sm:block">
+    <div className="h-full w-[320px] shrink-0 bg-layout-sidebar hidden sm:block">
       <div className="border-b p-3">
         <Skeleton className="h-8 w-full rounded-none" />
       </div>
@@ -28,8 +27,8 @@ function SideBarSkeleton() {
 
 function TabsSkeleton() {
   return (
-    <div className="flex h-full min-w-0 flex-1 flex-col bg-card">
-      <div className="flex h-10 items-center gap-2 border-b bg-muted/40 px-2">
+    <div className="flex h-full min-w-0 flex-1 flex-col bg-layout-tabs-content">
+      <div className="flex h-10 items-center gap-2 border-b bg-layout-tabs-bar px-2">
         <Skeleton className="h-6 w-32 rounded-none" />
         <Skeleton className="h-6 w-28 rounded-none" />
         <Skeleton className="h-6 w-40 rounded-none" />

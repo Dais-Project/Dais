@@ -2,6 +2,7 @@ import type { AppTheme } from "@/types/common";
 
 export function applyTheme(theme: AppTheme): (() => void) | undefined {
   function applyThemeInner() {
+    document.body.classList.add("theme-switching");
     document.body.classList.remove("dark", "light");
     if (theme === "dark") {
       document.body.classList.add("dark");
@@ -15,6 +16,11 @@ export function applyTheme(theme: AppTheme): (() => void) | undefined {
         darkModeMediaQuery.matches ? "dark" : "light"
       );
     }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.body.classList.remove("theme-switching");
+      });
+    });
   }
 
   applyThemeInner();

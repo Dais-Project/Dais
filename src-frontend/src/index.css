@@ -1,15 +1,25 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Base styles & App styles */
 @import "@/styles/base.css";
 @import "@/styles/global.css";
-@import "@/styles/extra-utility.css";
-@import "@/styles/custom-utility.css";
+@import "@/styles/layout.css";
+
+/* Functional utilities */
 @import "@/styles/user-select.css";
 @import "@/styles/scroll-bar.css";
+
+/* Extra utilities */
+@import "@/styles/extra-utility.css";
+@import "@/styles/custom-utility.css";
+
+/* Library patches */
 @import "@/styles/shadcn-patch.css";
 @import "@/styles/ai-elements-patch.css";
 @import "@/styles/resizable.css";
 @import "@/styles/vditor.css";
+
 @source "../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));

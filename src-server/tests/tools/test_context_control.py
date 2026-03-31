@@ -8,24 +8,8 @@ import pytest
 import src.services as services_module
 from src.agent.tool.builtin_tools import context_control
 from src.agent.tool.builtin_tools.context_control import ContextControlToolset, materialize_skill
-from src.agent.tool.toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
-from src.agent.types import ContextUsage
+from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
 from src.schemas import skill as skill_schemas
-
-
-@pytest.fixture(autouse=True)
-def mock_built_in_toolset_init(mocker):
-    def _init(self, ctx, toolset_ent=None):
-        self._ctx = ctx
-        self._tools_cache = []
-        self._tool_ent_map = None
-
-    mocker.patch.object(BuiltInToolset, "__init__", _init)
-
-
-@pytest.fixture
-def built_in_toolset_context(temp_workspace: Path) -> BuiltInToolsetContext:
-    return BuiltInToolsetContext(temp_workspace, ContextUsage.default())
 
 
 def make_skill_read(
