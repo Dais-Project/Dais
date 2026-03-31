@@ -9,12 +9,12 @@
   --layout-activity-bar: var(--muted);
   --layout-sidebar: var(--sidebar);
   --layout-tabs-bar: var(--layout-sidebar);
-  --layout-tabs-content: var(--card);
+  --layout-tabs-content: var(--background);
 }
 
 .dark {
   --layout-activity-bar: var(--muted);
   --layout-sidebar: var(--sidebar);
   --layout-tabs-bar: var(--layout-sidebar);
-  --layout-tabs-content: var(--card);
+  --layout-tabs-content: color-mix(in oklch, var(--layout-sidebar) 60%, var(--background));
 }
