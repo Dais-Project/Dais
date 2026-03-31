@@ -63,6 +63,11 @@
       "parse_error": "文件编辑参数解析失败",
       "title": "Dais 想要编辑文件："
     },
+    "fetch": {
+      "generating": "数据获取参数生成中...",
+      "parse_error": "数据获取参数解析失败",
+      "title": "Dais 想要获取外部数据："
+    },
     "find_files": {
       "generating": "文件搜索参数生成中...",
       "parse_error": "文件搜索参数解析失败",

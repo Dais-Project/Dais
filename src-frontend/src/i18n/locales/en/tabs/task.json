@@ -63,6 +63,11 @@
       "parse_error": "Failed to parse edit file arguments",
       "title": "Dais wants to edit a file:"
     },
+    "fetch": {
+      "generating": "Preparing request...",
+      "parse_error": "Failed to parse request",
+      "title": "Dais wants to fetch external data:"
+    },
     "find_files": {
       "generating": "Generating find files arguments...",
       "parse_error": "Failed to parse find files arguments",
@@ -72,19 +77,19 @@
       "title": "Task completed"
     },
     "list_directory": {
-      "empty": "Directory contents are empty",
+      "empty": "No files found",
       "generating": "Generating list directory arguments...",
       "parse_error": "Failed to parse list directory arguments",
       "title": "Dais wants to view a folder:"
     },
     "read_file": {
-      "empty": "File content is empty",
+      "empty": "File is empty",
       "generating": "Generating read file arguments...",
       "parse_error": "Failed to parse read file arguments",
       "title": "Dais wants to read a file:"
     },
     "load_skill": {
-      "empty": "Skill content is empty",
+      "empty": "Skill is empty",
       "generating": "Generating load skill arguments...",
       "parse_error": "Failed to parse load skill arguments",
       "resources_dir": "Resources directory",
