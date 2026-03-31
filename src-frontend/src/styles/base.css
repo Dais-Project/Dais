@@ -15,3 +15,7 @@ input[type="password"]::-ms-reveal {
 .dark input[type="number"] {
   color-scheme: dark;
 }
+
+.theme-switching * {
+  transition: none !important;
+}
