@@ -11,3 +11,7 @@
   /* hide empty code block header */
   display: none;
 }
+
+[data-streamdown="code-block-body"] {
+  @apply shadcn-scroll-horizontal;
+}
