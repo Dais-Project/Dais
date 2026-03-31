@@ -89,7 +89,7 @@ export function ActionableItemTrigger({
         variant="outline"
         size="sm"
         className={cn(
-          "group flex cursor-default flex-nowrap rounded-none border-x-0 border-t-0 hover:bg-accent/30",
+          "group flex cursor-default flex-nowrap rounded-none border-x-0 border-t-0 hover:bg-accent/60",
           className
         )}
         onClick={onClick}

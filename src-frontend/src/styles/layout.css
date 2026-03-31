@@ -7,14 +7,14 @@
 
 :root {
   --layout-activity-bar: var(--muted);
-  --layout-sidebar: color-mix(in oklch, var(--muted) 40%, var(--background));
-  --layout-tabs-bar: color-mix(in oklch, var(--muted) 40%, var(--background));
+  --layout-sidebar: var(--sidebar);
+  --layout-tabs-bar: var(--layout-sidebar);
   --layout-tabs-content: var(--card);
 }
 
 .dark {
   --layout-activity-bar: var(--muted);
-  --layout-sidebar: color-mix(in oklch, var(--muted) 75%, var(--background));
-  --layout-tabs-bar: color-mix(in oklch, var(--muted) 75%, var(--background));
+  --layout-sidebar: var(--sidebar);
+  --layout-tabs-bar: var(--layout-sidebar);
   --layout-tabs-content: var(--card);
 }
