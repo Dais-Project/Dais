@@ -17,6 +17,7 @@ export function AssistantMessage({ text, isStreaming }: AssistantMessageProps) {
         <Markdown
           mode={!isStreaming ? "static" : "streaming"}
           parseIncompleteMarkdown={isStreaming}
+          controls={{ code: { download: false } }}
         >
           {text.trim()}
         </Markdown>

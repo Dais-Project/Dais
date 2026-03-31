@@ -26,14 +26,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
 import { StoredTab, useTabsStore } from "@/stores/tabs-store";
-import type {
-  AgentTabMetadata,
-  ProviderTabMetadata,
-  SkillTabMetadata,
-  Tab,
-  ToolsetTabMetadata,
-  WorkspaceTabMetadata,
-} from "@/types/tab";
+import type { Tab } from "@/types/tab";
 import { activityVisible } from "@/lib/activity-visible";
 import { AgentPanel } from "./AgentPanel";
 import { ProviderPanel } from "./ProviderPanel";

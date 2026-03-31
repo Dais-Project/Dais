@@ -5,7 +5,7 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemSearchText, ToolMessageMetadata } from "@/api/generated/schemas";
 import { SearchTextToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -41,14 +41,13 @@ export function SearchText({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={SearchIcon}>
-        <div className="flex items-center min-w-0">
-          <span className="font-medium text-sm">{t("tool.search_text.title")}</span>
+        <BuiltInToolTitle title={t("tool.search_text.title")}>
           {toolArguments && (
-            <div className="flex-1 truncate font-medium font-mono text-sm">
+            <div className="truncate font-medium font-mono text-sm">
               {toolArguments.regex}
             </div>
           )}
-        </div>
+        </BuiltInToolTitle>
       </BuiltInToolHeader>
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {userApproval && (

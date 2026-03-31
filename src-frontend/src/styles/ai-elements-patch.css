@@ -7,7 +7,7 @@
   @apply shadcn-scroll-horizontal;
 }
 
-[data-streamdown="code-block-header"]:has(:empty) {
+[data-streamdown="code-block-header"][data-language=""] {
   /* hide empty code block header */
   display: none;
 }

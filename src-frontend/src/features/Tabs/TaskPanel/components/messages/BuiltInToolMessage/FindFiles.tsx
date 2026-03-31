@@ -7,7 +7,7 @@ import type { FileSystemFindFiles, ToolMessageMetadata } from "@/api/generated/s
 import { FindFilesToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { tryParseSchema } from "@/lib/utils";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
@@ -58,14 +58,13 @@ export function FindFiles({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FolderSearchIcon}>
-        <div className="flex items-center min-w-0">
-          <span className="font-medium text-sm">{t("tool.find_files.title")}</span>
+        <BuiltInToolTitle title={t("tool.find_files.title")}>
           {toolArguments && (
-            <div className="flex-1 truncate font-medium font-mono text-sm">
+            <div className="truncate font-medium font-mono text-sm">
               {toolArguments.pattern}
             </div>
           )}
-        </div>
+        </BuiltInToolTitle>
       </BuiltInToolHeader>
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {userApproval && (

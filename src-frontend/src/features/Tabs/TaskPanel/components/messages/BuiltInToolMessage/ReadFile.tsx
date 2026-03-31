@@ -8,7 +8,7 @@ import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { getFileExtension } from "@/lib/path";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -105,14 +105,13 @@ export function ReadFile({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FileTextIcon}>
-        <div className="flex items-center min-w-0">
-          <span className="font-medium text-sm">{t("tool.read_file.title")}</span>
+        <BuiltInToolTitle title={t("tool.read_file.title")}>
           {toolArguments?.path && (
-            <MiddleEllipsis className="flex-1 font-medium font-mono text-sm">
+            <MiddleEllipsis className="font-medium font-mono text-sm">
               {toolArguments.path}
             </MiddleEllipsis>
           )}
-        </div>
+        </BuiltInToolTitle>
       </BuiltInToolHeader>
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {userApproval && (

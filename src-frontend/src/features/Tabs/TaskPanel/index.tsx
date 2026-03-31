@@ -23,7 +23,11 @@ export function TaskPanel({ id, isClosing, metadata }: TabPanelProps<TaskTabMeta
         <SessionView
           isUnmounted={isClosing}
           workspaceId={metadata.workspace_id}
-          shouldStartStream={isInitialDraft.current}
+          shouldStartStream={(() => {
+            const value = isInitialDraft.current;
+            isInitialDraft.current = false;
+            return value;
+          })()}
         />
       </AgentTaskProvider>
     </AsyncBoundary>

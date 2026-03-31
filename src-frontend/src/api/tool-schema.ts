@@ -12,6 +12,7 @@ import type {
   OsInteractionsShell,
   UserInteractionAskUser,
   UserInteractionShowPlan,
+  WebInteractionFetch,
 } from "@/api/generated/schemas";
 
 /* --- User Interaction Tools --- */
@@ -64,6 +65,18 @@ export const ShellToolSchema: z.ZodType<OsInteractionsShell> = z.object({
 });
 
 /* --- OS Interaction Tools --- */
+
+/* --- Web Interaction Tools --- */
+
+export const FetchToolSchema: z.ZodType<WebInteractionFetch> = z.object({
+  url: z.string(),
+  method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH"]).optional(),
+  headers: z.record(z.string(), z.string()).nullish(),
+  body: z.string().nullish(),
+  raw: z.boolean().optional(),
+});
+
+/* --- Web Interaction Tools --- */
 
 /* --- File System Tools --- */
 

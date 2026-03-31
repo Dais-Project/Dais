@@ -5,7 +5,7 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { ContextControlLoadSkill, ToolMessageMetadata } from "@/api/generated/schemas";
 import { LoadSkillToolSchema } from "@/api/tool-schema";
 import { Markdown } from "@/components/custom/Markdown";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -74,12 +74,11 @@ export function LoadSkill({ message }: ToolMessageProps) {
   return (
     <BuiltInToolContainer defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={BookOpenIcon}>
-        <div className="flex items-center min-w-0">
-          <span className="font-medium text-sm">{t("tool.load_skill.title")}</span>
+        <BuiltInToolTitle title={t("tool.load_skill.title")}>
           {toolArguments?.name && (
             <div className="flex-1 truncate font-medium font-mono text-sm">{toolArguments.name}</div>
           )}
-        </div>
+        </BuiltInToolTitle>
       </BuiltInToolHeader>
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {userApproval && (
