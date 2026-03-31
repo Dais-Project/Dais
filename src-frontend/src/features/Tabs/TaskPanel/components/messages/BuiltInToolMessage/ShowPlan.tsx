@@ -20,8 +20,6 @@ import { useToolActionable } from "../../../hooks/use-tool-actionable";
 
 const APPROVED_ANSWER = "Approved";
 
-// TODO: show a diff of the plan with the previous plan if exists
-
 type PlanAlternativesProps = {
   alternatives: string[];
   selectedAlternative: string | null;

@@ -13,6 +13,7 @@ import { ShowPlan } from "./ShowPlan";
 import { UpdateTodos } from "./UpdateTodos";
 import { WriteFile } from "./WriteFile";
 import { Shell } from "./Shell";
+import { Fetch } from "./Fetch";
 
 export type ToolMessageProps = {
   message: UiToolMessage;
@@ -44,6 +45,8 @@ export function ToolMessage(props: ToolMessageProps) {
       return <LoadSkill {...props} />;
     case BuiltInTools.OsInteractions__shell:
       return <Shell {...props} />;
+    case BuiltInTools.WebInteraction__fetch:
+      return <Fetch {...props} />;
     default:
       return <GeneralToolMessage {...props} />;
   }

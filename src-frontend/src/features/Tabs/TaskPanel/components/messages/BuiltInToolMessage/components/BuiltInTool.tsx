@@ -47,7 +47,7 @@ export function BuiltInToolHeader({
 }: BuiltInToolHeaderProps) {
   return (
     <CollapsibleTrigger className={cn("sticky top-0 z-1 bg-card rounded-md flex w-full cursor-pointer items-center justify-between gap-4 p-3", className)}>
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex flex-1 items-center gap-2 min-w-0">
         <Icon className={cn("size-4 text-muted-foreground shrink-0", iconClassName)} />
         {title && <span className="font-medium text-sm">{title}</span>}
         {children}
@@ -59,6 +59,19 @@ export function BuiltInToolHeader({
         <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
       </div>
     </CollapsibleTrigger>
+  );
+}
+
+type BuiltInToolTitleProps = {
+  title: string;
+} & React.ComponentProps<"div">;
+
+export function BuiltInToolTitle({ children, title, className, ...props }: BuiltInToolTitleProps) {
+  return (
+    <div className={cn("flex flex-1 items-center min-w-0", className)} {...props}>
+      <span className="font-medium text-sm text-nowrap">{title}</span>
+      {children}
+    </div>
   );
 }
 
