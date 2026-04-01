@@ -37,7 +37,7 @@ export function AskUser({ message }: ToolMessageProps) {
   };
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader
         title={t("tool.ask_user.title")}
         icon={MessageCircleQuestionMark}

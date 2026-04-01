@@ -8,6 +8,7 @@ import { ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmati
 import { useAgentTaskAction } from "../../hooks/use-agent-task";
 import { useToolName } from "../../hooks/use-tool-name";
 import { useToolActionable } from "../../hooks/use-tool-actionable";
+import { useCollapsibleStore } from "../../hooks/use-collapsible-store";
 
 function getToolState(message: UiToolMessage): ToolState {
   if (message.isStreaming) {
@@ -37,9 +38,17 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
   const toolState = getToolState(message);
   const { toolName, toolsetName } = useToolName(message.name);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const collapsed = useCollapsibleStore((state) => state.collapsedMap[message.call_id] ?? hasResult);
+  const setCollapsed = useCollapsibleStore((state) => state.setCollapsed);
   const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+
   return (
-    <Tool className="selectable visibility-auto mb-0" defaultOpen={toolState === "approval-requested"}>
+    <Tool
+      open={!collapsed}
+      onOpenChange={(open) => setCollapsed(message.call_id, !open)}
+      defaultOpen={toolState === "approval-requested"}
+      className="selectable visibility-auto mb-0"
+    >
       <ToolHeader
         className="sticky top-0 z-10 rounded-md bg-card"
         toolName={toolName}

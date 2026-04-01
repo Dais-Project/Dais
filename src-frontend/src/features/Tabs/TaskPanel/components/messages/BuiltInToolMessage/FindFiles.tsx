@@ -56,7 +56,7 @@ export function FindFiles({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FolderSearchIcon}>
         <BuiltInToolTitle title={t("tool.find_files.title")}>
           {toolArguments && (

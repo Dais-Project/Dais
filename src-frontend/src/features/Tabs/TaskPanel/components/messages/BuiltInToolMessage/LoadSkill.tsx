@@ -72,7 +72,7 @@ export function LoadSkill({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={BookOpenIcon}>
         <BuiltInToolTitle title={t("tool.load_skill.title")}>
           {toolArguments?.name && (

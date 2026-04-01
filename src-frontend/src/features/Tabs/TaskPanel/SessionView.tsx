@@ -4,8 +4,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
+import { CollapseAllButton } from "./components/CollapseAll";
 import { TaskConversationContent, TaskConversationProvider, TaskConversationScrollToBottom } from "./components/TaskConversation";
 import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
+import { CollapsibleStoreProvider } from "./hooks/use-collapsible-store";
 
 export function SessionViewSkeleton() {
   return (
@@ -60,20 +62,25 @@ export function SessionView({
   });
 
   return (
-    <TaskConversationProvider className="relative flex h-full flex-col">
-      <TaskConversationContent />
-      <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
-        <div className="mx-auto w-full max-w-3xl">
-          <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
-          <div className="w-7/8 mx-auto pointer-events-auto">
-            {state === "idle" && <ContinueTask />}
-            {state === "error" && <ErrorRetry />}
-          </div>
-          <PromptInputProvider>
-            <PromptInput className="pointer-events-auto" workspaceId={workspaceId} />
-          </PromptInputProvider>
+    <CollapsibleStoreProvider>
+      <TaskConversationProvider className="relative flex h-full flex-col">
+        <TaskConversationContent />
+        <div className="absolute top-4 right-4 z-20">
+          <CollapseAllButton />
         </div>
-      </div>
-    </TaskConversationProvider>
+        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
+          <div className="mx-auto w-full max-w-3xl">
+            <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
+            <div className="w-7/8 mx-auto pointer-events-auto">
+              {state === "idle" && <ContinueTask />}
+              {state === "error" && <ErrorRetry />}
+            </div>
+            <PromptInputProvider>
+              <PromptInput className="pointer-events-auto" workspaceId={workspaceId} />
+            </PromptInputProvider>
+          </div>
+        </div>
+      </TaskConversationProvider>
+    </CollapsibleStoreProvider>
   );
 }

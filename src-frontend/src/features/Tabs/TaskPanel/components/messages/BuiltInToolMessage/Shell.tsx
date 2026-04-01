@@ -1,11 +1,12 @@
 import { OsInteractionsShell, ToolMessageMetadata } from "@/api/generated/schemas";
 import { ShellToolSchema } from "@/api/tool-schema";
+import { CollapsibleTerminal } from "@/components/custom/CollapsibleTerminal";
 import { ToolMessageProps } from ".";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
-import { CollapsibleTerminal } from "@/components/custom/CollapsibleTerminal";
+import { useCollapsibleStore } from "../../../hooks/use-collapsible-store";
 
 type ShellResult = {
   stdout: string | null;
@@ -47,7 +48,9 @@ function parseShellResult(resultText: string): ShellResult {
 export function Shell({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<OsInteractionsShell>(message, ShellToolSchema);
-  const { disabled, markAsSubmitted } = useToolActionable(message);
+  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const collapsed = useCollapsibleStore((state) => state.collapsedMap[message.call_id] ?? !hasResult);
+  const setCollapsed = useCollapsibleStore((state) => state.setCollapsed);
   const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
 
   const commandInput = (() => {
@@ -81,6 +84,8 @@ export function Shell({ message }: ToolMessageProps) {
       {...commandOutput}
       isStreaming={message.isStreaming}
       autoScroll={true}
+      open={!collapsed}
+      onOpenChange={(open) => setCollapsed(message.call_id, !open)}
       defaultOpen={true}
       className="visibility-auto"
       title={toolArguments?.command ?? "Shell"}

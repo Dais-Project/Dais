@@ -51,12 +51,14 @@ export type CollapsibleTerminalProps = {
   children?: React.ReactNode;
   isStreaming?: boolean;
   autoScroll?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   defaultOpen?: boolean;
   title?: string;
   className?: string;
 };
 
-export const CollapsibleTerminal = ({
+export function CollapsibleTerminal({
   input,
   stdout,
   stderr,
@@ -64,14 +66,26 @@ export const CollapsibleTerminal = ({
   isStreaming = false,
   autoScroll = true,
   defaultOpen = true,
+  open: controlledOpen,
+  onOpenChange,
   title,
   className,
-}: CollapsibleTerminalProps) => {
-  const [open, setOpen] = useState(defaultOpen);
+}: CollapsibleTerminalProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+
   const [showStderr, setShowStderr] = useState(false);
 
   const activeOutput = (showStderr || stdout === null) ? stderr : stdout;
   const composedOutput = `\u001b[0m$ ${input}\n${activeOutput}`;
+
+  const setOpen = (next: boolean) => {
+    if (!isControlled) {
+      setUncontrolledOpen(next);
+    }
+    onOpenChange?.(next);
+  };
 
   return (
     <Terminal
@@ -110,4 +124,4 @@ export const CollapsibleTerminal = ({
       </Collapsible>
     </Terminal>
   );
-};
+}

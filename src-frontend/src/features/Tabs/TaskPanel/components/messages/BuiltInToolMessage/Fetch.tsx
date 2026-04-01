@@ -191,7 +191,7 @@ export function Fetch({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={GlobeIcon}>
         <BuiltInToolTitle className="gap-2" title={t("tool.fetch.title")}>
           {toolArguments?.method && (

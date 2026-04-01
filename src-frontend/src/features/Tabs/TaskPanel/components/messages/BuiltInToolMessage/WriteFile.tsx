@@ -40,7 +40,7 @@ export function WriteFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={PencilIcon}>
         <BuiltInToolTitle title={t("tool.write_file.title")}>
           {toolArguments?.path && (

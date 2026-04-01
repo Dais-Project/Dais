@@ -103,7 +103,7 @@ export function ReadFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
       <BuiltInToolHeader icon={FileTextIcon}>
         <BuiltInToolTitle title={t("tool.read_file.title")}>
           {toolArguments?.path && (
