@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useCollapsibleStore } from "../../../../hooks/use-collapsible-store";
+import { useCollapsed } from "../../../../hooks/use-collapsible-store";
 
 type BuiltInToolContainerProps = {
   id: string;
@@ -17,12 +17,11 @@ export function BuiltInToolContainer({
   children,
   defaultOpen = false,
 }: BuiltInToolContainerProps) {
-  const collapsed = useCollapsibleStore((state) => state.collapsedMap[id] ?? !defaultOpen);
-  const setCollapsed = useCollapsibleStore((state) => state.setCollapsed);
+  const [collapsed, setCollapsed] = useCollapsed(id, !defaultOpen);
   return (
     <Collapsible
       open={!collapsed}
-      onOpenChange={(open) => setCollapsed(id, !open)}
+      onOpenChange={(open) => setCollapsed(!open)}
       defaultOpen={defaultOpen}
       className="group w-full rounded-md border visibility-auto"
     >

@@ -6,7 +6,7 @@ import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
-import { useCollapsibleStore } from "../../../hooks/use-collapsible-store";
+import { useCollapsed } from "../../../hooks/use-collapsible-store";
 
 type ShellResult = {
   stdout: string | null;
@@ -49,8 +49,7 @@ export function Shell({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<OsInteractionsShell>(message, ShellToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const collapsed = useCollapsibleStore((state) => state.collapsedMap[message.call_id] ?? !hasResult);
-  const setCollapsed = useCollapsibleStore((state) => state.setCollapsed);
+  const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
   const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
 
   const commandInput = (() => {
@@ -85,7 +84,7 @@ export function Shell({ message }: ToolMessageProps) {
       isStreaming={message.isStreaming}
       autoScroll={true}
       open={!collapsed}
-      onOpenChange={(open) => setCollapsed(message.call_id, !open)}
+      onOpenChange={(open) => setCollapsed(!open)}
       defaultOpen={true}
       className="visibility-auto"
       title={toolArguments?.command ?? "Shell"}
