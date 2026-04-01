@@ -90,7 +90,7 @@ export function TasksView() {
 
         <button
           onClick={handleRecentToggle}
-          className="flex items-center gap-1 py-1.5 px-1.5 font-medium text-sm border-y cursor-pointer"
+          className="flex items-center gap-1 py-1.5 px-1.5 font-medium text-sm border-y cursor-pointer outline-none"
         >
           {isRecentCollapsed
             ? <ChevronRightIcon className="size-4" />

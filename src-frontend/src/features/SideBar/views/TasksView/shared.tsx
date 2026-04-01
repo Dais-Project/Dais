@@ -48,6 +48,7 @@ export function removeTaskTab(taskId: number) {
 
 type TaskItemProps = {
   task: TaskBrief;
+  ref: React.Ref<HTMLDivElement>;
   onRegenerateTitle: (task: TaskBrief) => void;
   onOpen: (task: TaskBrief) => void;
   onDelete: (task: TaskBrief) => void;
