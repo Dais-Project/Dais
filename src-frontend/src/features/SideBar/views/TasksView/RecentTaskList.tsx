@@ -45,7 +45,7 @@ export function RecentTaskList() {
     },
   });
 
-  const query = useGetRecentTasksSuspenseInfinite(undefined, {
+  const query = useGetRecentTasksSuspenseInfinite({ size: 20 }, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS
   });
   const allItems = query.data.pages.flatMap((page) => page.items);
@@ -74,10 +74,11 @@ export function RecentTaskList() {
         selectItems={(page) => page.items}
         itemHeight={69}
         overscan={1}
-        itemRender={(task) => (
+        itemRender={({ item, key, ref }) => (
           <TaskItem
-            key={task.id}
-            task={task}
+            key={key}
+            task={item}
+            ref={ref}
             onRegenerateTitle={(item) => summarizeTaskTitleMutation.mutate({ taskId: item.id })}
             onOpen={handleOpen}
             onDelete={asyncConfirm.trigger}

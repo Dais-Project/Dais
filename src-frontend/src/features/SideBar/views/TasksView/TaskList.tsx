@@ -75,13 +75,14 @@ export function TaskList({ workspaceId }: TaskListProps) {
         className="limit-width"
         selectItems={(page) => page.items}
         itemHeight={69}
-        overscan={1}
-        itemRender={(task) => (
+        overscan={3}
+        itemRender={({ item, key, ref }) => (
           <TaskItem
-            key={task.id}
-            task={task}
+            key={key}
+            task={item}
+            ref={ref}
             onRegenerateTitle={handleRegenerateTitle}
-            onOpen={() => openTaskTab(workspaceId, task)}
+            onOpen={() => openTaskTab(workspaceId, item)}
             onDelete={asyncConfirm.trigger}
           />
         )}

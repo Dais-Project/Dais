@@ -1,10 +1,10 @@
-import { useInViewport, useThrottleFn } from "ahooks";
+import { useDebounceFn, useInViewport } from "ahooks";
 import { useEffect, useMemo, useRef } from "react";
 import type {
   InfiniteData,
   UseSuspenseInfiniteQueryResult,
 } from "@tanstack/react-query";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 
@@ -43,10 +43,18 @@ export function InfiniteScroll<T, P>({
   );
 }
 
-type InfiniteVirtualScrollProps<T, P> = InfiniteScrollProps<T, P> & {
+type InfiniteVirtualScrollProps<TItem, TPage> = {
+  query: UseSuspenseInfiniteQueryResult<InfiniteData<TPage>>;
+  selectItems: (page: TPage) => TItem[];
   itemHeight: number,
   overscan?: number,
   className?: string,
+  itemRender: (props: {
+    item: TItem,
+    index: number,
+    key: VirtualItem["key"],
+    ref: Virtualizer<HTMLDivElement, Element>["measureElement"]
+  }) => React.ReactNode;
 };
 
 export function InfiniteVirtualScroll<T, P>({
@@ -64,36 +72,26 @@ export function InfiniteVirtualScroll<T, P>({
     return data.pages.flatMap(selectItems);
   }, [data.pages, selectItems]);
 
-  const virtualizer = useVirtualizer({
-    count: hasNextPage ? dataItems.length + 1 : dataItems.length,
-    overscan: overscan,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => itemHeight,
-  });
+  const { run: handleScroll } = useDebounceFn((virtualizerInstance) => {
+    const totalSize = virtualizerInstance.getTotalSize();
+    const currentScroll = virtualizerInstance.scrollOffset;
+    const containerSize = virtualizerInstance.scrollRect.height;
 
-  const vItems = virtualizer.getVirtualItems();
-
-  const { run: scrollHandler } = useThrottleFn(() => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) return;
-    const distance =
-      scrollEl.scrollHeight -
-      scrollEl.scrollTop -
-      scrollEl.clientHeight;
-
-    const isAtBottom = distance < 2;
-    if (isAtBottom && !isFetchingNextPage) {
+    const isAtBottomMargin = 100;
+    const isAtBottom = Math.abs(currentScroll + containerSize - totalSize) < isAtBottomMargin;
+    if (isAtBottom && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, { wait: 100 });
 
-  useEffect(() => {
-    const scrollEl = virtualizer.scrollElement;
-    if (!scrollEl) return;
-    scrollHandler();
-    scrollEl.addEventListener("scroll", scrollHandler);
-    return () => scrollEl.removeEventListener("scroll", scrollHandler);
-  }, [virtualizer]);
+  const virtualizer = useVirtualizer({
+    count: dataItems.length,
+    overscan: overscan,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => itemHeight,
+    onChange: handleScroll,
+  });
+  const vItems = virtualizer.getVirtualItems();
 
   return (
     <ScrollArea
@@ -116,18 +114,14 @@ export function InfiniteVirtualScroll<T, P>({
             transform: `translateY(${vItems[0]?.start ?? 0}px)`,
           }}
         >
-          {vItems.map((vItem) => {
-            const itemData = dataItems[vItem.index];
-            return (
-              <div
-                key={vItem.key}
-                data-index={vItem.index}
-                ref={virtualizer.measureElement}
-              >
-                {itemRender(itemData, vItem.index)}
-              </div>
-            );
-          })}
+          {vItems.map(
+            (vItem) => (itemRender({
+              item: dataItems[vItem.index],
+              ref: virtualizer.measureElement,
+              key: vItem.key,
+              index: vItem.index,
+            }))
+          )}
         </div>
       </div>
     </ScrollArea>
