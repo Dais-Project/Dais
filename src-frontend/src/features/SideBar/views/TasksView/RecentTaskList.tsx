@@ -11,9 +11,8 @@ import {
   useSummarizeTaskTitle,
 } from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
+import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { updateTaskTitle } from "@/features/resource/task-actions";
@@ -69,21 +68,22 @@ export function RecentTaskList() {
 
   return (
     <>
-      <ScrollArea className="limit-width h-full">
-        <InfiniteScroll
-          query={query}
-          selectItems={(page) => page.items}
-          itemRender={(task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onRegenerateTitle={(item) => summarizeTaskTitleMutation.mutate({ taskId: item.id })}
-              onOpen={handleOpen}
-              onDelete={asyncConfirm.trigger}
-            />
-          )}
-        />
-      </ScrollArea>
+      <InfiniteVirtualScroll
+        query={query}
+        className="limit-width"
+        selectItems={(page) => page.items}
+        itemHeight={69}
+        overscan={1}
+        itemRender={(task) => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            onRegenerateTitle={(item) => summarizeTaskTitleMutation.mutate({ taskId: item.id })}
+            onOpen={handleOpen}
+            onDelete={asyncConfirm.trigger}
+          />
+        )}
+      />
 
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
