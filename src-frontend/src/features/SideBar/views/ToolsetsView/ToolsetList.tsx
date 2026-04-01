@@ -106,30 +106,28 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
         </ActionableItemIcon>
         <ActionableItemInfo
           titleRender={
-            <>
-              {toolset.name}
-              {
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          "inline-block size-2 rounded-full",
-                          getStatusColor(toolset.status)
-                        )}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{
-                        toolset.error_code
-                          ? getErrorMessage(toolset.error_code)
-                          : t(`toolsets.status.${toolset.status}`)
-                      }</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              }
-            </>
+            <div className="space-x-2">
+              <span>{toolset.name}</span>
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        "inline-block size-2 rounded-full",
+                        getStatusColor(toolset.status)
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{
+                      toolset.error_code
+                        ? getErrorMessage(toolset.error_code)
+                        : t(`toolsets.status.${toolset.status}`)
+                    }</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           }
         />
       </ActionableItemTrigger>

@@ -117,7 +117,11 @@ export function ActionableItemInfo({
 }: ActionableItemInfoProps) {
   return (
     <ItemContent className="min-w-0">
-      <ItemTitle>{titleRender ?? title}</ItemTitle>
+      <ItemTitle className="w-full min-w-0">
+        <div className="min-w-0 flex-1 truncate">
+          {titleRender ?? title}
+        </div>
+      </ItemTitle>
       {description && (
         <ItemDescription className="line-clamp-none truncate whitespace-nowrap">
           {description}
