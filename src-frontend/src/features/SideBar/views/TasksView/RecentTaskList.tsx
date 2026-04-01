@@ -1,36 +1,34 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import type { TaskBrief } from "@/api/generated/schemas";
 import {
+  getTask,
   getGetTaskQueryKey,
+  invalidateTaskQueries,
   useDeleteTask,
-  useGetTasksSuspenseInfinite,
+  useGetRecentTasksSuspenseInfinite,
   useSummarizeTaskTitle,
 } from "@/api/task";
-import { invalidateTaskQueries } from "@/api/task";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { updateTaskTitle } from "@/features/resource/task-actions";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
 
-type TaskListProps = {
-  workspaceId: number;
-};
-
-export function TaskList({ workspaceId }: TaskListProps) {
+export function RecentTaskList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
+
   const deleteTaskMutation = useDeleteTask();
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
     mutation: {
       onSuccess(taskRead) {
-        updateTaskTitle(workspaceId, taskRead.id, taskRead.title);
+        updateTaskTitle(taskRead.workspace_id, taskRead.id, taskRead.title);
       },
     },
   });
@@ -38,32 +36,32 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     async onConfirm(task) {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
-      await invalidateTaskQueries({ workspaceId, taskId: task.id });
-      queryClient.removeQueries({
-        queryKey: getGetTaskQueryKey(task.id),
-      });
+      await invalidateTaskQueries({ taskId: task.id });
+      queryClient.removeQueries({ queryKey: getGetTaskQueryKey(task.id) });
       removeTaskTab(task.id);
+
       toast.success(t("tasks.toast.delete_success_title"), {
         description: t("tasks.toast.delete_success_description"),
       });
-    }
+    },
   });
 
-  const handleRegenerateTitle = (task: TaskBrief) => {
-    summarizeTaskTitleMutation.mutate({ taskId: task.id });
+  const query = useGetRecentTasksSuspenseInfinite(undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS
+  });
+  const allItems = query.data.pages.flatMap((page) => page.items);
+
+  const handleOpen = async (task: TaskBrief) => {
+    const taskRead = await getTask(task.id);
+    openTaskTab(taskRead.workspace_id, task);
   };
 
-  const query = useGetTasksSuspenseInfinite(
-    { workspace_id: workspaceId },
-    { query: PAGINATED_QUERY_DEFAULT_OPTIONS }
-  );
-
-  if (query.data.pages.length === 0) {
+  if (allItems.length === 0) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("tasks.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("tasks.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("tasks.recent.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("tasks.recent.empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -79,13 +77,14 @@ export function TaskList({ workspaceId }: TaskListProps) {
             <TaskItem
               key={task.id}
               task={task}
-              onRegenerateTitle={handleRegenerateTitle}
-              onOpen={() => openTaskTab(workspaceId, task)}
+              onRegenerateTitle={(item) => summarizeTaskTitleMutation.mutate({ taskId: item.id })}
+              onOpen={handleOpen}
               onDelete={asyncConfirm.trigger}
             />
           )}
         />
       </ScrollArea>
+
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
         description={t("tasks.dialog.delete_description_with_name", {

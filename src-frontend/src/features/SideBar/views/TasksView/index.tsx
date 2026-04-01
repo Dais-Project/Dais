@@ -1,4 +1,5 @@
-import { PlusIcon } from "lucide-react";
+import { Activity, useState } from "react";
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { i18n } from "@/i18n";
 import { TABS_TASK_NAMESPACE, SIDEBAR_NAMESPACE } from "@/i18n/resources";
@@ -11,9 +12,11 @@ import {
 } from "@/components/ui/empty";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { activityVisible } from "@/lib/activity-visible";
+import { TaskList } from "./TaskList";
+import { RecentTaskList } from "./RecentTaskList";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
-import { TaskList } from "./TaskList";
 
 function openTaskCreateTab(workspaceId: number) {
   const addTab = useTabsStore.getState().add;
@@ -27,28 +30,50 @@ function openTaskCreateTab(workspaceId: number) {
   });
 }
 
+
+function CurrentWorkspaceTasks({ workspaceId, className }: {
+  workspaceId?: number,
+  className?: string,
+}) {
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  if (!workspaceId) {
+    return (
+      <Empty className={className}>
+        <EmptyContent>
+          <EmptyTitle>{t("tasks.empty.no_workspace.title")}</EmptyTitle>
+          <EmptyDescription>{t("tasks.empty.no_workspace.description")}</EmptyDescription>
+        </EmptyContent>
+      </Empty>
+    );
+  }
+
+  return (
+    <div className={className}>
+      <AsyncBoundary skeleton={<SideBarListSkeleton />}>
+        <TaskList workspaceId={workspaceId} />
+      </AsyncBoundary>
+    </div>
+  );
+}
+
+function RecentTasks({ className }: { className?: string }) {
+  return (
+    <div className={className}>
+      <AsyncBoundary skeleton={<SideBarListSkeleton />}>
+        <RecentTaskList />
+      </AsyncBoundary>
+    </div>
+  );
+}
+
 export function TasksView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const [isRecentCollapsed, setIsRecentCollapsed] = useState(false);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
-  const content = (() => {
-    if (!currentWorkspace) {
-      return (
-        <Empty>
-          <EmptyContent>
-            <EmptyTitle>{t("tasks.empty.no_workspace.title")}</EmptyTitle>
-            <EmptyDescription>{t("tasks.empty.no_workspace.description")}</EmptyDescription>
-          </EmptyContent>
-        </Empty>
-      );
-    }
-
-    return (
-      <AsyncBoundary skeleton={<SideBarListSkeleton />}>
-        <TaskList workspaceId={currentWorkspace.id} />
-      </AsyncBoundary>
-    );
-  })();
+  const handleRecentToggle = () => {
+    setIsRecentCollapsed((prev) => !prev);
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -60,8 +85,22 @@ export function TasksView() {
           disabled={currentWorkspace === null}
         />
       </SideBarHeader>
-      <div className="h-full min-h-0 flex-1">
-        {content}
+      <div className="flex flex-col flex-1 min-h-0">
+        <CurrentWorkspaceTasks className="flex-1 min-h-0" workspaceId={currentWorkspace?.id} />
+
+        <button
+          onClick={handleRecentToggle}
+          className="flex items-center gap-1 py-1.5 px-1.5 font-medium text-sm border-y cursor-pointer"
+        >
+          {isRecentCollapsed
+            ? <ChevronRightIcon className="size-4" />
+            : <ChevronDownIcon className="size-4" />
+          }
+          最近任务
+        </button>
+        <Activity mode={activityVisible(!isRecentCollapsed)}>
+          <RecentTasks className="flex-1 min-h-0" />
+        </Activity>
       </div>
     </div>
   );

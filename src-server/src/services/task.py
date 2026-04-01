@@ -26,6 +26,15 @@ class TaskService(ServiceBase):
             .order_by(task_models.Task.id.desc())
         )
 
+    def get_recent_tasks_query(self):
+        return (
+            select(task_models.Task)
+            .order_by(
+                task_models.Task.last_run_at.desc(),
+                task_models.Task.id.desc(),
+            )
+        )
+
     async def get_task_by_id(self, id: int) -> task_models.Task:
         task = await self._db_session.get(
             task_models.Task, id,

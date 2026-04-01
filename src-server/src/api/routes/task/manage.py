@@ -31,6 +31,21 @@ async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
         ]
     return await apaginate(db_session, final_query, transformer=transformer)
 
+@task_manage_router.get("/recent", response_model=Page[task_schemas.TaskBrief])
+async def get_recent_tasks(db_session: DbSessionDep):
+    tasks_query = TaskService(db_session).get_recent_tasks_query()
+    final_query = (
+        tasks_query
+        .add_columns(agent_models.Agent.icon_name)
+        .outerjoin(task_models.Task.agent)
+    )
+    def transformer(rows):
+        return [
+            task_schemas.TaskBrief.model_validate({**task.__dict__, "icon_name": icon_name})
+            for task, icon_name in rows
+        ]
+    return await apaginate(db_session, final_query, transformer=transformer)
+
 @task_manage_router.get("/{task_id}", response_model=task_schemas.TaskRead)
 async def get_task(task_id: int, db_session: DbSessionDep):
     return await TaskService(db_session).get_task_by_id(task_id)
