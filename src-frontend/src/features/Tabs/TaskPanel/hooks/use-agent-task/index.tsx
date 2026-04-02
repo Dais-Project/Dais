@@ -115,10 +115,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const [agentId, setAgentId] = useState(data.agent_id);
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
-  const [todos, setTodos] = useState<TodoItem[] | null>(() => {
-    const todo = findLatestTodoList(data.messages);
-    return todo ?? null;
-  });
+  const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
 
   const setData = useCallback(
     (updater: ImmerUpdater<UiMessage[]>) => {
@@ -217,6 +214,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const onError = (eventData: ErrorEvent) => {
+    if (!isForeground()) {
+      sendNotification(t("notification.task_failed.title"), {
+        body: t("notification.task_failed.description"),
+        onClick: backToCurrentTab,
+      });
+    }
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });

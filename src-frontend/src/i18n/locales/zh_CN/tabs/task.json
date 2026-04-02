@@ -20,7 +20,11 @@
     "require_permission": "Dais 想要使用 {{toolName}}",
     "require_permission_multiple": "Dais 想要调用多个工具",
     "require_response": "Dais 正在等待你的回复",
-    "task_done": "Dais 已完成任务"
+    "task_done": "Dais 已完成任务",
+    "task_failed": {
+      "title": "Dais 执行任务失败",
+      "description": "请打开任务面板查看详细错误信息。"
+    }
   },
   "prompt": {
     "agent": {
