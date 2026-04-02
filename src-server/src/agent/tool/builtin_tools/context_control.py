@@ -1,6 +1,7 @@
+import asyncio
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Annotated, override
+from typing import override
 from src.db import db_context
 from src.schemas import skill as skill_schemas
 from src.common import DATA_DIR
@@ -54,7 +55,7 @@ class ContextControlToolset(BuiltInToolset):
 
         async with db_context() as db_session:
             skill = await SkillService(db_session).get_skill_by_id(id)
-        skill_resources_dir = materialize_skill(skill_schemas.SkillRead.model_validate(skill), skill.hash)
+        skill_resources_dir = await asyncio.to_thread(materialize_skill, skill_schemas.SkillRead.model_validate(skill), skill.hash)
 
         root = ET.Element("load_skill_result")
         ET.SubElement(root, "resources_dir").text = str(skill_resources_dir)

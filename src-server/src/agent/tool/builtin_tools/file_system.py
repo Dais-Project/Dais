@@ -1,19 +1,17 @@
 import asyncio
 import difflib
-import shutil
 import xml.etree.ElementTree as ET
 from typing import Annotated, TypedDict, override
 from pathlib import Path
+from binaryornot.check import is_binary
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
 from markitdown import MarkItDown
-from binaryornot.check import is_binary
 from src.db.models import toolset as toolset_models
 from src.binaries import RIPGREP_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
 
 
-# TODO: use to_thread to prevent blocking
 class FileSystemToolset(BuiltInToolset):
     def __init__(self,
                  ctx: BuiltInToolsetContext,
@@ -32,32 +30,7 @@ class FileSystemToolset(BuiltInToolset):
     def _is_markitdown_convertable_binary(self, path: str) -> bool:
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    def read_file(self,
-                  path: Annotated[str,
-                    "The path of the file to read (relative to the current working directory)."],
-                  offset: Annotated[int, "The line number to start reading from (1-based)."] = 1,
-                  max_lines: Annotated[int, "The maximum number of lines to read."] = 2000,
-                 ) -> str:
-        """
-        Read the contents of a file at the specified path.
-        For text files, this tool will directly return the file content;
-        for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
-
-        Returns:
-            A XML string with the file content and metadata as attributes:
-            - start_line: The line number of the first line returned (1-based).
-            - end_line: The line number of the last line returned (1-based).
-            - total_lines: The total number of lines in the file.
-
-            Example:
-                <file_content start_line="1" end_line="50" total_lines="312">
-                def foo():
-                    ...
-                </file_content>
-
-        To read the next chunk, pass end_line + 1 as the offset in the next call.
-        """
+    def _read_file_impl(self, path: str, offset: int, max_lines: int) -> str:
         abs_path = self._ctx.cwd / path
 
         if not abs_path.exists():
@@ -83,13 +56,51 @@ class FileSystemToolset(BuiltInToolset):
         root.text = "\n".join(result_lines)
         return ET.tostring(root, encoding="unicode")
 
+    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    async def read_file(self,
+                        path: Annotated[str,
+                          "The path of the file to read (relative to the current working directory)."],
+                        offset: Annotated[int, "The line number to start reading from (1-based)."] = 1,
+                        max_lines: Annotated[int, "The maximum number of lines to read."] = 2000,
+                        ) -> str:
+        """
+        Read the contents of a file at the specified path.
+        For text files, this tool will directly return the file content;
+        for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
+
+        Returns:
+            A XML string with the file content and metadata as attributes:
+            - start_line: The line number of the first line returned (1-based).
+            - end_line: The line number of the last line returned (1-based).
+            - total_lines: The total number of lines in the file.
+
+            Example:
+                <file_content start_line="1" end_line="50" total_lines="312">
+                def foo():
+                    ...
+                </file_content>
+
+        To read the next chunk, pass end_line + 1 as the offset in the next call.
+        """
+        return await asyncio.to_thread(self._read_file_impl, path, offset, max_lines)
+
+    def _write_file_impl(self, path: str, content: str) -> str:
+        abs_path = self._ctx.cwd / path
+
+        if abs_path.exists() and str(abs_path) not in self._read_file_set:
+            raise PermissionError(f"File already exists and was not read before: {path}")
+
+        abs_path.parent.mkdir(parents=True, exist_ok=True)
+        abs_path.write_text(content, encoding="utf-8")
+        return "File written successfully."
+
     @built_in_tool(validate=True)
-    def write_file(self,
-                   path: Annotated[str,
-                    "The path of the file to write (relative to the current working directory)."],
-                   content: Annotated[str,
-                    "The content to write to the file."]
-                   ) -> str:
+    async def write_file(self,
+                         path: Annotated[str,
+                          "The path of the file to write (relative to the current working directory)."],
+                         content: Annotated[str,
+                          "The content to write to the file."]
+                         ) -> str:
         """
         Write content to a file at the specified path.
         Use this when you need to create a new file or overwrite an existing file with new content.
@@ -104,41 +115,14 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             A success message if the file was written successfully.
         """
-        abs_path = self._ctx.cwd / path
+        return await asyncio.to_thread(self._write_file_impl, path, content)
 
-        if abs_path.exists() and str(abs_path) not in self._read_file_set:
-            raise PermissionError(f"File already exists and was not read before: {path}")
-
-        abs_path.parent.mkdir(parents=True, exist_ok=True)
-        abs_path.write_text(content, encoding="utf-8")
-        return "File written successfully."
-
-    @built_in_tool(validate=True)
-    def edit_file(self,
-                  path: Annotated[str,
-                    "The path of the file to edit (relative to the current working directory)."],
-                  old_content: Annotated[str,
-                    "The exact snippet to be replaced. Must match exactly once in the file."],
-                  new_content: Annotated[str,
-                    "The new snippet that will replace old_content."],
-                  expected_replacements: Annotated[int,
-                    "Number of replacements expected. Defaults to 1 if not specified. Use when you want to replace multiple occurrences of the same text."] = 1
-                  ) -> str:
-        """
-        Edit a file by replacing a specific snippet with new content.
-        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change (though you may include a few extra lines BEFORE and AFTER the target text to ensure uniqueness).
-
-        Use this when you need to edit an existing file with existing content you have read before.
-        If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
-        The tool will raise an error if the actual count differs (too few or too many) from `expected_replacements`.
-
-        Returns:
-            The unified diff of the applied change.
-
-        Note:
-            If old_content matches more times than expected, expand it to include more surrounding context until it uniquely identifies the target location(s).
-        """
-
+    def _edit_file_impl(self,
+                        path: str,
+                        old_content: str,
+                        new_content: str,
+                        expected_replacements: int,
+                        ) -> str:
         def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
             diff = difflib.unified_diff(
                 old_content.splitlines(),
@@ -168,25 +152,143 @@ class FileSystemToolset(BuiltInToolset):
         abs_path.write_text(new_file_content, encoding="utf-8")
         return generate_diff(old_file_content, new_file_content, path)
 
+    @built_in_tool(validate=True)
+    async def edit_file(self,
+                        path: Annotated[str,
+                            "The path of the file to edit (relative to the current working directory)."],
+                        old_content: Annotated[str,
+                            "The exact snippet to be replaced. Must match exactly once in the file."],
+                        new_content: Annotated[str,
+                            "The new snippet that will replace old_content."],
+                        expected_replacements: Annotated[int,
+                            "Number of replacements expected. Defaults to 1 if not specified. Use when you want to replace multiple occurrences of the same text."] = 1
+                        ) -> str:
+        """
+        Edit a file by replacing a specific snippet with new content.
+        `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change (though you may include a few extra lines BEFORE and AFTER the target text to ensure uniqueness).
+
+        Use this when you need to edit an existing file with existing content you have read before.
+        If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
+        The tool will raise an error if the actual count differs (too few or too many) from `expected_replacements`.
+
+        Returns:
+            The unified diff of the applied change.
+
+        Note:
+            If old_content matches more times than expected, expand it to include more surrounding context until it uniquely identifies the target location(s).
+        """
+        return await asyncio.to_thread(
+            self._edit_file_impl,
+            path,
+            old_content,
+            new_content,
+            expected_replacements,
+        )
+
+    def _list_directory_impl(self,
+                             path: str,
+                             recursive: bool,
+                             max_depth: int | None,
+                             show_all: bool,
+                             ) -> str:
+        def format_item(item: Path) -> str:
+            if item.is_dir(follow_symlinks=False):
+                return item.name + "/"
+            if item.is_file(follow_symlinks=False):
+                return item.name
+            if item.is_symlink():
+                try:
+                    target = item.readlink()
+                except (OSError, ValueError):
+                    return f"{item.name} -> <unreadable>"
+                target_path = target.as_posix()
+                if (item.parent / target).is_dir():
+                    target_path += "/"
+                return f"{item.name} -> {target_path}"
+            return "<special file>"
+
+        def format_items_flat(directory: Path) -> list[str]:
+            """Format directory contents in non-recursive mode."""
+            gitignore_spec = (load_gitignore_spec(abs_path)
+                             if not include_gitignored else None)
+
+            items: list[Path] = []
+            for entry in directory.iterdir():
+                if not include_hidden and entry.name.startswith("."):
+                    continue
+                entry_path = entry.name
+                if entry.is_dir():
+                    entry_path += "/"
+                if gitignore_spec is not None:
+                    if gitignore_spec.match_file(entry_path):
+                        continue
+                items.append(entry)
+
+            items = sorted(items, key=lambda x: (not x.is_dir(), x.name.lower()))
+            if len(items) == 0:
+                return ["(empty directory)"]
+
+            lines = []
+            for idx, item in enumerate(items, 1):
+                lines.append(f"{idx}. {format_item(item)}")
+            return lines
+
+        def format_items_recursive(directory: Path, max_depth: int | None) -> list[str]:
+            """
+            Recursively format directory contents.
+
+            Args:
+                directory: Current directory path
+                max_depth: Maximum depth limit
+            """
+            lines = []
+            for entry, depth in scantree_dfs(directory, MAX_SCAN_LIMIT, max_depth, include_hidden, include_gitignored):
+                indent = "  " * (depth - 1)
+                entry_path = Path(entry)
+                lines.append(f"{indent}{format_item(entry_path)}")
+            return lines
+
+        if max_depth is not None and max_depth < 1:
+            raise ValueError(f"Invalid max_depth: {max_depth}")
+
+        MAX_SCAN_LIMIT = 200_000
+        abs_path = self._ctx.cwd / path
+        include_hidden = show_all
+        include_gitignored = show_all
+
+        if not abs_path.exists():
+            raise FileNotFoundError(f"Directory not found at {path}")
+        if not abs_path.is_dir():
+            raise NotADirectoryError(f"Path {path} is not a directory")
+
+        result_lines = [f"Directory: {abs_path}"]
+        if not recursive and max_depth is not None:
+            result_lines.append("Warning: max_depth is ignored in non-recursive mode.")
+        if recursive:
+            result_lines.extend(format_items_recursive(abs_path, max_depth))
+        else:
+            result_lines.extend(format_items_flat(abs_path))
+        return "\n".join(result_lines)
+
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    def list_directory(self,
-                       path: Annotated[str,
-                        "The path of the directory to list contents for (relative to the current working directory)."] = ".",
-                       recursive: Annotated[bool,
-                        "Whether to list files recursively. Use True for recursive listing, False for top-level only."] = False,
-                       max_depth: Annotated[int | None,
-                        """
-                        Maximum depth for recursive listing.
-                        - Unset: No limit (list all nested directories)
-                        - 1: Only direct children (equivalent to recursive=False)
-                        - 2: List up to 2 levels deep
-                        - n: List up to n levels deep
-                        This parameter is only effective when recursive=True.
-                        """] = None,
-                       show_all: Annotated[bool,
-                        "Whether to include hidden files and files ignored by .gitignore."
-                        "Use this if you can't find a specific file you're looking for."] = False,
-                       ) -> str:
+    async def list_directory(self,
+                             path: Annotated[str,
+                              "The path of the directory to list contents for (relative to the current working directory)."] = ".",
+                             recursive: Annotated[bool,
+                              "Whether to list files recursively. Use True for recursive listing, False for top-level only."] = False,
+                             max_depth: Annotated[int | None,
+                              """
+                              Maximum depth for recursive listing.
+                              - Unset: No limit (list all nested directories)
+                              - 1: Only direct children (equivalent to recursive=False)
+                              - 2: List up to 2 levels deep
+                              - n: List up to n levels deep
+                              This parameter is only effective when recursive=True.
+                              """] = None,
+                             show_all: Annotated[bool,
+                              "Whether to include hidden files and files ignored by .gitignore."
+                              "Use this if you can't find a specific file you're looking for."] = False,
+                             ) -> str:
         """
         List files and directories within the specified directory.
 
@@ -242,63 +344,36 @@ class FileSystemToolset(BuiltInToolset):
                 - Broken or unreadable symlinks are shown as: name -> <unreadable>
             - Special files (sockets, devices, FIFOs) are shown as: <special file>
         """
-        def format_item(item: Path) -> str:
-            if item.is_dir(follow_symlinks=False):
-                return item.name + "/"
-            if item.is_file(follow_symlinks=False):
-                return item.name
-            if item.is_symlink():
-                try:
-                    target = item.readlink()
-                except (OSError, ValueError):
-                    return f"{item.name} -> <unreadable>"
-                target_path = target.as_posix()
-                if (item.parent / target).is_dir(): target_path += "/"
-                return f"{item.name} -> {target_path}"
-            return "<special file>"
+        return await asyncio.to_thread(
+            self._list_directory_impl,
+            path,
+            recursive,
+            max_depth,
+            show_all,
+        )
 
-        def format_items_flat(directory: Path) -> list[str]:
-            """Format directory contents in non-recursive mode."""
-            gitignore_spec = (load_gitignore_spec(abs_path)
-                             if not include_gitignored else None)
+    class FindFilesResult(TypedDict):
+        search_root: str
+        total: int
+        matches: list[str]
 
-            items: list[Path] = []
-            for entry in directory.iterdir():
-                if not include_hidden and entry.name.startswith("."):
+    def _find_files_impl(self,
+                         pattern: str,
+                         path: str,
+                         limit: int,
+                         show_all: bool,
+                         ) -> FindFilesResult:
+        def scan_collect(directory: Path) -> list[str]:
+            matches = []
+            for entry in scantree_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
+                if len(matches) >= limit:
+                    break
+                if entry.is_symlink():
                     continue
-                entry_path = entry.name
-                if entry.is_dir(): entry_path += "/"
-                if gitignore_spec is not None:
-                    if gitignore_spec.match_file(entry_path):
-                        continue
-                items.append(entry)
-
-            items = sorted(items, key=lambda x: (not x.is_dir(), x.name.lower()))
-            if len(items) == 0:
-                return ["(empty directory)"]
-
-            lines = []
-            for idx, item in enumerate(items, 1):
-                lines.append(f"{idx}. {format_item(item)}")
-            return lines
-
-        def format_items_recursive(directory: Path, max_depth: int | None) -> list[str]:
-            """
-            Recursively format directory contents.
-
-            Args:
-                directory: Current directory path
-                max_depth: Maximum depth limit
-            """
-            lines = []
-            for entry, depth in scantree_dfs(directory, MAX_SCAN_LIMIT, max_depth, include_hidden, include_gitignored):
-                indent = "  " * (depth - 1)
                 entry_path = Path(entry)
-                lines.append(f"{indent}{format_item(entry_path)}")
-            return lines
-
-        if max_depth is not None and max_depth < 1:
-            raise ValueError(f"Invalid max_depth: {max_depth}")
+                if entry_path.match(pattern):
+                    matches.append(entry_path.relative_to(abs_path).as_posix())
+            return matches
 
         MAX_SCAN_LIMIT = 200_000
         abs_path = self._ctx.cwd / path
@@ -310,38 +385,31 @@ class FileSystemToolset(BuiltInToolset):
         if not abs_path.is_dir():
             raise NotADirectoryError(f"Path {path} is not a directory")
 
-        result_lines = [f"Directory: {abs_path}"]
-        if not recursive and max_depth is not None:
-            result_lines.append("Warning: max_depth is ignored in non-recursive mode.")
-        if recursive:
-            result_lines.extend(format_items_recursive(abs_path, max_depth))
-        else:
-            result_lines.extend(format_items_flat(abs_path))
-        return "\n".join(result_lines)
-
-    class SearchFileResult(TypedDict):
-        search_root: str
-        total: int
-        matches: list[str]
+        results = scan_collect(abs_path)
+        return {
+            "search_root": abs_path.as_posix(),
+            "total": len(results),
+            "matches": results,
+        }
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
-    def find_files(self,
-                   pattern: Annotated[str,
-                       """
-                       A glob pattern to match against file NAMES and PATHS.
-                       Pattern examples:
-                       - "*.py"       → files whose name ends with .py
-                       - "main.*"     → files named "main" with any extension
-                       - "docs/*.md"  → .md files inside the "docs/" directory
-                       """],
-                   path: Annotated[str,
-                       "The path of the directory to search in (relative to the current working directory)."] = ".",
-                   limit: Annotated[int,
-                       "The maximum number of matching file paths to return."] = 60,
-                   show_all: Annotated[bool,
-                       "Whether to include hidden files and files ignored by .gitignore. "
-                       "Use this if you can't find a specific file you're looking for."] = False
-                   ) -> SearchFileResult:
+    async def find_files(self,
+                         pattern: Annotated[str,
+                             """
+                             A glob pattern to match against file NAMES and PATHS.
+                             Pattern examples:
+                             - "*.py"       → files whose name ends with .py
+                             - "main.*"     → files named "main" with any extension
+                             - "docs/*.md"  → .md files inside the "docs/" directory
+                             """],
+                         path: Annotated[str,
+                             "The path of the directory to search in (relative to the current working directory)."] = ".",
+                         limit: Annotated[int,
+                             "The maximum number of matching file paths to return."] = 60,
+                         show_all: Annotated[bool,
+                             "Whether to include hidden files and files ignored by .gitignore. "
+                             "Use this if you can't find a specific file you're looking for."] = False
+                         ) -> FindFilesResult:
         """
         Search for files whose **NAMES or PATHS** match the glob pattern within a directory.
         Use this when you need to locate files by name, extension, or path structure.
@@ -380,33 +448,13 @@ class FileSystemToolset(BuiltInToolset):
             - total: The total number of matching files found.
             - matches: A list of relative file paths that match the pattern.
         """
-
-        def scan_collect(directory: Path) -> list[str]:
-            matches = []
-            for entry in scantree_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
-                if len(matches) >= limit: break
-                if entry.is_symlink(): continue
-                path = Path(entry)
-                if path.match(pattern):
-                    matches.append(path.relative_to(abs_path).as_posix())
-            return matches
-
-        MAX_SCAN_LIMIT = 200_000
-        abs_path = self._ctx.cwd / path
-        include_hidden = show_all
-        include_gitignored = show_all
-
-        if not abs_path.exists():
-            raise FileNotFoundError(f"Directory not found at {path}")
-        if not abs_path.is_dir():
-            raise NotADirectoryError(f"Path {path} is not a directory")
-
-        results = scan_collect(abs_path)
-        return {
-            "search_root": abs_path.as_posix(),
-            "total": len(results),
-            "matches": results,
-        }
+        return await asyncio.to_thread(
+            self._find_files_impl,
+            pattern,
+            path,
+            limit,
+            show_all,
+        )
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     async def search_text(self,
