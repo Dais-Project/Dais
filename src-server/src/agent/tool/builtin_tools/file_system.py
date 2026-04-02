@@ -6,10 +6,10 @@ from pathlib import Path
 from binaryornot.check import is_binary
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
-from markitdown import MarkItDown
 from src.db.models import toolset as toolset_models
 from src.binaries import RIPGREP_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
+from ...utils.markdown import MarkdownConverter
 
 
 class FileSystemToolset(BuiltInToolset):
@@ -18,7 +18,7 @@ class FileSystemToolset(BuiltInToolset):
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
 
-        self._md = MarkItDown()
+        self._markdown_converter: MarkdownConverter = MarkdownConverter()
 
         # this set should stores file absolute path
         self._read_file_set = set()
@@ -36,9 +36,9 @@ class FileSystemToolset(BuiltInToolset):
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
 
-        if self._is_markitdown_convertable_binary(path):
-            result = self._md.convert(abs_path)
-            lines = result.markdown.splitlines()
+        if self._markdown_converter.is_convertable_binary(path):
+            result = self._markdown_converter.convert(abs_path)
+            lines = result.splitlines()
         elif is_binary(str(abs_path)):
             raise ValueError(f"File {path} is a binary file, and is not supported to read.")
         else:

@@ -8,6 +8,8 @@ from typing import Annotated, Any, Literal, override
 from pydantic import BaseModel, Discriminator, Field, field_validator
 from src.db.models import toolset as toolset_models
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
+from ...utils.markdown import MarkdownConverter
+
 
 class FormBody(BaseModel):
     type: Literal["form"]
@@ -50,6 +52,7 @@ class WebInteractionToolset(BuiltInToolset):
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
         self._magika = Magika()
+        self._markdown_converter = MarkdownConverter()
 
     @property
     @override
@@ -59,6 +62,9 @@ class WebInteractionToolset(BuiltInToolset):
         if res.status_code == 204: return ""
         content_type = await asyncio.to_thread(self._magika.identify_bytes, res.content)
         if not content_type.output.is_text:
+            if self._markdown_converter.is_convertable_binary(content_type.output.label):
+                result = self._markdown_converter.convert(res.content)
+                return result
             return f"[Binary Data: {content_type.output.label}]"
         elif content_type.output.label == ContentTypeLabel.HTML and not raw:
             extracted = await asyncio.to_thread(trafilatura.extract, res.text, output_format="markdown")
@@ -96,12 +102,12 @@ class WebInteractionToolset(BuiltInToolset):
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=False))
     async def fetch(self,
-              url: Annotated[str, "The URL to fetch, should include the protocol (http:// or https://)."],
-              method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"] = "GET",
-              headers: dict[str, str] | None = None,
-              body: FetchBody | None = None,
-              raw: Annotated[bool, "Whether to return the original response body, you can set this to True when the original HTML response is needed."] = False,
-              ) -> str:
+                    url: Annotated[str, "The URL to fetch, should include the protocol (http:// or https://)."],
+                    method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"] = "GET",
+                    headers: dict[str, str] | None = None,
+                    body: FetchBody | None = None,
+                    raw: Annotated[bool, "Whether to return the original response body, you can set this to True when the original HTML response is needed."] = False,
+                    ) -> str:
         """
         Execute HTTP/HTTPS requests to fetch web pages, interact with REST APIs, download source code, or submit data.
         Use this tool when you need to browse the internet, retrieve external documentation, read remote config files/code, or call web services.
@@ -109,7 +115,8 @@ class WebInteractionToolset(BuiltInToolset):
         Content Handling:
             - General Text (Code, Configs, JSON, CSV, Plain Text): Returned directly as-is.
             - HTML Pages: By default (raw=False), HTML is intelligently extracted into clean, readable Markdown (stripping navbars, ads, and footers). If you need to parse specific DOM elements or the extraction fails, set `raw=True` to get the original HTML.
-            - Binary Files: Safe to fetch. The tool will not dump binary data; instead, it identifies the file type and returns a placeholder (e.g., `[Binary Data: application/pdf]`).
+            - Binary Files (PDF, DOCX, PPTX, XLSX, EPUB): Automatically converted to Markdown for direct reading.
+              Other binary types (e.g., images, archives) are not converted and return a placeholder (e.g., `[Binary Data: image/png]`).
             - Redirects: Automatically followed and recorded in the result.
 
         Body Payload Construction:
