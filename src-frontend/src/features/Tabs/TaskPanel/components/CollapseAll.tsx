@@ -19,7 +19,12 @@ export function CollapseAllButton() {
           <ChevronsDownUpIcon className="size-4" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Collapse all messages</TooltipContent>
+      <TooltipContent
+        align="end"
+        side="bottom"
+      >
+        Collapse all messages
+      </TooltipContent>
     </Tooltip>
   );
 }
