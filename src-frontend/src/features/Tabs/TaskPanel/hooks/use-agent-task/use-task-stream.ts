@@ -1,4 +1,3 @@
-import { useUnmount } from "ahooks";
 import { type RefObject, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
@@ -54,7 +53,6 @@ function createOverrideCallbacks(
 export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
   const abortController = useRef<AbortController | null>(null);
-  useUnmount(() => abortController.current?.abort());
 
   const startStream = useCallback(
     <Body extends Record<string, unknown>>(streamApi: TaskStreamFn<Body & { agent_id: number }>, body: Body) => {

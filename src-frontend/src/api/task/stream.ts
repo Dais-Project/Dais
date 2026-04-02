@@ -1,7 +1,5 @@
 import type {
   ContinueTaskBody,
-  ToolAnswerBody,
-  ToolReviewBody,
   AgentEvent,
   TextChunkEvent,
   ToolCallChunkEvent,

@@ -10,7 +10,7 @@ import { SessionView, SessionViewSkeleton } from "./SessionView";
 
 export const DEFAULT_TAB_TITLE = i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE });
 
-export function TaskPanel({ id, isClosing, metadata }: TabPanelProps<TaskTabMetadata>) {
+export function TaskPanel({ id, metadata }: TabPanelProps<TaskTabMetadata>) {
   const isInitialDraft = useRef(metadata.isDraft);
 
   if (metadata.isDraft) {
@@ -21,7 +21,7 @@ export function TaskPanel({ id, isClosing, metadata }: TabPanelProps<TaskTabMeta
     <AsyncBoundary skeleton={<SessionViewSkeleton />}>
       <AgentTaskProvider taskId={metadata.id}>
         <SessionView
-          isUnmounted={isClosing}
+          tabId={id}
           workspaceId={metadata.workspace_id}
           shouldStartStream={(() => {
             const value = isInitialDraft.current;

@@ -1,6 +1,7 @@
-import { useMount, useUnmount } from "ahooks";
+import { useMount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTabUnmount } from "@/stores/tabs-store";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
@@ -36,13 +37,13 @@ export function SessionViewSkeleton() {
 }
 
 type SessionViewProps = {
-  isUnmounted: boolean;
+  tabId: string;
   workspaceId: number;
   shouldStartStream: boolean;
 };
 
 export function SessionView({
-  isUnmounted,
+  tabId,
   workspaceId,
   shouldStartStream,
 }: SessionViewProps) {
@@ -54,12 +55,7 @@ export function SessionView({
       continueTask();
     }
   });
-  useUnmount(() => {
-    if (!isUnmounted) {
-      return;
-    }
-    cancelTask();
-  });
+  useTabUnmount(tabId, cancelTask);
 
   return (
     <CollapsibleStoreProvider>
