@@ -52,7 +52,9 @@ async def get_task(task_id: int, db_session: DbSessionDep):
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
 async def create_task(body: task_schemas.TaskCreate, db_session: DbSessionDep):
-    return await TaskService(db_session).create_task(body)
+    new_task = await TaskService(db_session).create_task(body)
+    await db_session.commit() # ensure new task persisted when frontend calls `/summarize-title`
+    return new_task
 
 @task_manage_router.post("/{task_id}/summarize-title", response_model=task_schemas.TaskRead)
 async def summarize_task_title(task_id: int, db_session: DbSessionDep):
