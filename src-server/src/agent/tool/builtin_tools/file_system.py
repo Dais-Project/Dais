@@ -319,30 +319,6 @@ class FileSystemToolset(BuiltInToolset):
             result_lines.extend(format_items_flat(abs_path))
         return "\n".join(result_lines)
 
-    @built_in_tool(validate=True)
-    def delete(self,
-               path: Annotated[str,
-                "The path of the file or directory to delete (relative to the current working directory)."]
-               ) -> str:
-        """
-        Delete a file or directory at the specified path.
-
-        Returns:
-            A success message if the target was deleted successfully.
-        """
-        abs_path = self._ctx.cwd / path
-
-        if not abs_path.exists():
-            raise FileNotFoundError(f"'{path}' not found.")
-
-        if abs_path.is_dir():
-            shutil.rmtree(abs_path)
-        else:
-            if str(abs_path) in self._read_file_set:
-                self._read_file_set.remove(str(abs_path))
-            abs_path.unlink()
-        return f"'{path}' deleted successfully."
-
     class SearchFileResult(TypedDict):
         search_root: str
         total: int

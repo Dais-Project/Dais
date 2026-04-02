@@ -32,10 +32,6 @@ class TestIntegration:
         file_path = temp_workspace / filename
         assert "Edited content" in file_path.read_text(encoding="utf-8")
 
-        result = tool.delete(filename)
-        assert "deleted successfully" in result
-        assert not file_path.exists()
-
     def test_read_file_set_consistency_across_operations(self, built_in_toolset_context, temp_workspace):
         tool = FileSystemToolset(built_in_toolset_context)
 
@@ -52,11 +48,6 @@ class TestIntegration:
         tool.read_file(filename2)
 
         abs_path2 = str(temp_workspace / filename2)
-        assert abs_path2 in tool._read_file_set
-
-        tool.delete(filename1)
-        assert abs_path1 not in tool._read_file_set
-
         assert abs_path2 in tool._read_file_set
 
         tool.write_file(filename2, "New content")
