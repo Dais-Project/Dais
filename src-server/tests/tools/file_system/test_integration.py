@@ -44,15 +44,9 @@ class TestIntegration:
         file1_path.write_text("Content 1", encoding="utf-8")
         await tool.read_file(filename1)
 
-        abs_path1 = str(file1_path)
-        assert abs_path1 in tool._read_file_set
-
         filename2 = "file2.txt"
         await tool.write_file(filename2, "Content 2")
         await tool.read_file(filename2)
-
-        abs_path2 = str(temp_workspace / filename2)
-        assert abs_path2 in tool._read_file_set
 
         await tool.write_file(filename2, "New content")
 

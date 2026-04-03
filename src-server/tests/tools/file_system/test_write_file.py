@@ -39,31 +39,6 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == content
 
     @pytest.mark.asyncio
-    async def test_write_file_overwrite_read_file(self, built_in_toolset_context, temp_workspace, sample_text_file):
-        filename, _ = sample_text_file
-        tool = FileSystemToolset(built_in_toolset_context)
-
-        await tool.read_file(filename)
-
-        new_content = "New content after overwrite"
-        result = await tool.write_file(filename, new_content)
-
-        assert result == "File written successfully."
-        file_path = temp_workspace / filename
-        assert file_path.read_text(encoding="utf-8") == new_content
-
-    @pytest.mark.asyncio
-    async def test_write_file_overwrite_unread_file_raises_error(self, built_in_toolset_context, temp_workspace, sample_text_file):
-        filename, _ = sample_text_file
-        tool = FileSystemToolset(built_in_toolset_context)
-
-        with pytest.raises(PermissionError) as exc_info:
-            await tool.write_file(filename, "Trying to overwrite")
-
-        assert "File already exists and was not read before" in str(exc_info.value)
-        assert filename in str(exc_info.value)
-
-    @pytest.mark.asyncio
     async def test_write_empty_file(self, built_in_toolset_context, temp_workspace):
         tool = FileSystemToolset(built_in_toolset_context)
 

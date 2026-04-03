@@ -17,11 +17,7 @@ class FileSystemToolset(BuiltInToolset):
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
-
         self._markdown_converter = MarkdownConverter(ctx)
-
-        # this set should stores file absolute path
-        self._read_file_set = set()
 
     @property
     @override
@@ -73,9 +69,7 @@ class FileSystemToolset(BuiltInToolset):
         else:
             lines = await asyncio.to_thread(read_file_lines, abs_path)
 
-        self._read_file_set.add(str(abs_path))
         result_lines = lines[(offset - 1):(offset + max_lines - 1)]
-
         root = ET.Element("file_content", attrib={
             "start_line": str(offset),
             "end_line": str(offset + len(result_lines) - 1),
@@ -86,10 +80,6 @@ class FileSystemToolset(BuiltInToolset):
 
     def _write_file_impl(self, path: str, content: str) -> str:
         abs_path = self._ctx.cwd / path
-
-        if abs_path.exists() and str(abs_path) not in self._read_file_set:
-            raise PermissionError(f"File already exists and was not read before: {path}")
-
         abs_path.parent.mkdir(parents=True, exist_ok=True)
         abs_path.write_text(content, encoding="utf-8")
         return "File written successfully."
@@ -106,7 +96,7 @@ class FileSystemToolset(BuiltInToolset):
         Use this when you need to create a new file or overwrite an existing file with new content.
         If the parent directory of the specified path does not exist, it will be created automatically.
 
-        WARNING: This tool will raise an error when overwriting existing files that are not read before.
+        IMPORTANT: This tool overwrites existing files. Before using it, ensure the target file does not contain important information that should be preserved.
 
         Examples:
             >>> write_file("test.txt", "Hello World!")

@@ -72,8 +72,7 @@ class MarkdownCacheService(ServiceBase):
         select_result = await self._db_session.execute(stmt)
 
         to_delete_ids: list[int] = []
-        for cache in select_result:
-            id, source_path = cache.tuple()
+        for id, source_path in select_result.tuples():
             abs_source_path = self._cwd / source_path
             source_exists = await asyncio.to_thread(abs_source_path.exists)
             if not source_exists:
