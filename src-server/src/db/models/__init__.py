@@ -13,6 +13,7 @@ from .workspace import Workspace
 from .task import Task
 from .toolset import Toolset, Tool
 from .skill import Skill
+from .markdown_cache import MarkdownCache
 
 __all__ = [
     "Base",
@@ -22,4 +23,5 @@ __all__ = [
     "Task",
     "Toolset", "Tool",
     "Skill",
+    "MarkdownCache",
 ]
