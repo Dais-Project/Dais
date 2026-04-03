@@ -3,12 +3,20 @@ from sqlalchemy.orm import selectinload
 from src.db.models import skill as skill_models
 from src.schemas import skill as skill_schemas
 from .service_base import ServiceBase
-from .exceptions import (
-    SkillNotFoundError,
-    SkillNameAlreadyExistsError,
-)
+from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
 from .utils import build_load_options, Relations
 
+
+class SkillNotFoundError(NotFoundError):
+    def __init__(self, skill_identifier: int | str) -> None:
+        super().__init__(ServiceErrorCode.SKILL_NOT_FOUND, "Skill", skill_identifier)
+
+class SkillNameAlreadyExistsError(ConflictError):
+    def __init__(self, name: str) -> None:
+        super().__init__(
+            ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS,
+            f"Skill '{name}' already exists",
+        )
 
 class SkillService(ServiceBase):
     @staticmethod

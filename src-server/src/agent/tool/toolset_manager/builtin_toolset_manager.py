@@ -10,22 +10,14 @@ from ...types import ContextUsage
 
 
 class BuiltinToolsetManager(ToolsetManager):
-    def __init__(self, cwd: str, usage: ContextUsage):
-        self._ctx = BuiltInToolsetContext(cwd, usage)
+    def __init__(self, workspace_id: int, cwd: str, usage: ContextUsage):
+        self._ctx = BuiltInToolsetContext(workspace_id, cwd, usage)
         self._toolset_map: dict[str, toolset_models.Toolset] | None = None
         self._toolsets: list[BuiltInToolset] | None = None
 
-    async def initialize(self):
-        from ....services import ToolsetService
-
-        async with db_context() as db_session:
-            toolset_ents = await ToolsetService(db_session).get_all_built_in_toolsets()
-        self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
-
-        self._toolsets = []
-        for toolset_t in BUILT_IN_TOOLSETS:
-            toolset_ent = self._toolset_map[toolset_t.internal_key()]
-            self._toolsets.append(toolset_t(self._ctx, toolset_ent))
+    @classmethod
+    def default(cls):
+        return cls(1, "~", ContextUsage.default())
 
     @staticmethod
     async def sync_toolsets(db_session: AsyncSession):
@@ -44,3 +36,15 @@ class BuiltinToolsetManager(ToolsetManager):
             if not toolset_ent.is_enabled: continue
             result.append(toolset)
         return result
+
+    async def initialize(self):
+        from ....services import ToolsetService
+
+        async with db_context() as db_session:
+            toolset_ents = await ToolsetService(db_session).get_all_built_in_toolsets()
+        self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
+
+        self._toolsets = []
+        for toolset_t in BUILT_IN_TOOLSETS:
+            toolset_ent = self._toolset_map[toolset_t.internal_key()]
+            self._toolsets.append(toolset_t(self._ctx, toolset_ent))

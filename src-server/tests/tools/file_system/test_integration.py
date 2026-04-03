@@ -1,15 +1,17 @@
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+import pytest
 
 
 class TestIntegration:
-    def test_write_edit_workflow(self, built_in_toolset_context, temp_workspace):
+    @pytest.mark.asyncio
+    async def test_write_edit_workflow(self, built_in_toolset_context, temp_workspace):
         tool = FileSystemToolset(built_in_toolset_context)
         filename = "workflow_test.txt"
 
         initial_content = "Initial content\nSecond line"
-        tool.write_file(filename, initial_content)
+        await tool.write_file(filename, initial_content)
 
-        result = tool.edit_file(filename, "Initial content", "Modified content")
+        result = await tool.edit_file(filename, "Initial content", "Modified content")
 
         assert "---" in result
         file_path = temp_workspace / filename
@@ -17,40 +19,42 @@ class TestIntegration:
         assert "Modified content" in final_content
         assert "Initial content" not in final_content
 
-    def test_read_write_edit_delete_workflow(self, built_in_toolset_context, temp_workspace, sample_text_file):
+    @pytest.mark.asyncio
+    async def test_read_write_edit_delete_workflow(self, built_in_toolset_context, temp_workspace, sample_text_file):
         filename, original_content = sample_text_file
         tool = FileSystemToolset(built_in_toolset_context)
 
-        read_content = tool.read_file(filename)
+        read_content = await tool.read_file(filename)
         assert original_content in read_content
 
         new_content = "Completely new content\nNew line 2"
-        tool.write_file(filename, new_content)
+        await tool.write_file(filename, new_content)
 
-        tool.edit_file(filename, "Completely new content", "Edited content")
+        await tool.edit_file(filename, "Completely new content", "Edited content")
 
         file_path = temp_workspace / filename
         assert "Edited content" in file_path.read_text(encoding="utf-8")
 
-    def test_read_file_set_consistency_across_operations(self, built_in_toolset_context, temp_workspace):
+    @pytest.mark.asyncio
+    async def test_read_file_set_consistency_across_operations(self, built_in_toolset_context, temp_workspace):
         tool = FileSystemToolset(built_in_toolset_context)
 
         filename1 = "file1.txt"
         file1_path = temp_workspace / filename1
         file1_path.write_text("Content 1", encoding="utf-8")
-        tool.read_file(filename1)
+        await tool.read_file(filename1)
 
         abs_path1 = str(file1_path)
         assert abs_path1 in tool._read_file_set
 
         filename2 = "file2.txt"
-        tool.write_file(filename2, "Content 2")
-        tool.read_file(filename2)
+        await tool.write_file(filename2, "Content 2")
+        await tool.read_file(filename2)
 
         abs_path2 = str(temp_workspace / filename2)
         assert abs_path2 in tool._read_file_set
 
-        tool.write_file(filename2, "New content")
+        await tool.write_file(filename2, "New content")
 
         file2_path = temp_workspace / filename2
         assert file2_path.read_text(encoding="utf-8") == "New content"

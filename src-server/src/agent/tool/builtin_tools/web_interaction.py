@@ -8,7 +8,7 @@ from typing import Annotated, Any, Literal, override
 from pydantic import BaseModel, Discriminator, Field, field_validator
 from src.db.models import toolset as toolset_models
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
-from ...utils.markdown import MarkdownConverter
+from .utils.markdown import MarkdownConverter
 
 
 class FormBody(BaseModel):
@@ -52,7 +52,7 @@ class WebInteractionToolset(BuiltInToolset):
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
         self._magika = Magika()
-        self._markdown_converter = MarkdownConverter()
+        self._markdown_converter = MarkdownConverter(ctx)
 
     @property
     @override
@@ -63,7 +63,7 @@ class WebInteractionToolset(BuiltInToolset):
         content_type = await asyncio.to_thread(self._magika.identify_bytes, res.content)
         if not content_type.output.is_text:
             if self._markdown_converter.is_convertable_binary(content_type.output.label):
-                result = self._markdown_converter.convert(res.content)
+                result = await self._markdown_converter.convert(res.content)
                 return result
             return f"[Binary Data: {content_type.output.label}]"
         elif content_type.output.label == ContentTypeLabel.HTML and not raw:

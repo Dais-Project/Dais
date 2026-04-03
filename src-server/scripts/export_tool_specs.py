@@ -5,7 +5,7 @@ from src.agent.tool.toolset_manager.builtin_toolset_manager import BuiltinToolse
 from src.agent.types import ContextUsage
 
 async def main():
-    built_in_toolset_manager = BuiltinToolsetManager("~", ContextUsage.default())
+    built_in_toolset_manager = BuiltinToolsetManager.default()
     await built_in_toolset_manager.initialize()
     schemas = []
     for toolset in built_in_toolset_manager.toolsets:

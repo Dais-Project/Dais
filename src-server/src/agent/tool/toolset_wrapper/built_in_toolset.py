@@ -20,13 +20,14 @@ class BuiltInToolDefaults(TypedDict, total=False):
     needs_user_interaction: bool
 
 class BuiltInToolsetContext:
-    def __init__(self, cwd: str | Path, usage: ContextUsage):
+    def __init__(self, workspace_id: int, cwd: str | Path, usage: ContextUsage):
+        self.workspace_id = workspace_id
         self.cwd = self.resolve_cwd(cwd)
         self.usage = usage
 
     @classmethod
     def default(cls):
-        return cls(Path.cwd(), ContextUsage.default())
+        return cls(1, Path.cwd(), ContextUsage.default())
 
     @staticmethod
     def resolve_cwd(cwd: str | Path) -> Path:

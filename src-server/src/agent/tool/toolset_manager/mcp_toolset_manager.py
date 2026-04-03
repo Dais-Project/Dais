@@ -3,7 +3,8 @@ from enum import Enum
 from typing import Sequence, override
 from loguru import logger
 from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset
-from src.db import db_context, toolset_models
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.db import toolset_models
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset, McpToolsetStatus
 
@@ -34,11 +35,9 @@ class McpToolsetManager(ToolsetManager):
                 for toolset in self._toolset_map.values()
                 if toolset.status == McpToolsetStatus.CONNECTED]
 
-    async def initialize(self):
+    async def initialize(self, db_session: AsyncSession):
         from ....services import ToolsetService
-
-        async with db_context() as db_session:
-            toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
+        toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
     def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):

@@ -9,7 +9,7 @@ from dais_scantree.ignore_rule import load_gitignore_spec
 from src.db.models import toolset as toolset_models
 from src.binaries import RIPGREP_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
-from ...utils.markdown import MarkdownConverter
+from .utils.markdown import MarkdownConverter
 
 
 class FileSystemToolset(BuiltInToolset):
@@ -18,7 +18,7 @@ class FileSystemToolset(BuiltInToolset):
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
 
-        self._markdown_converter: MarkdownConverter = MarkdownConverter()
+        self._markdown_converter = MarkdownConverter(ctx)
 
         # this set should stores file absolute path
         self._read_file_set = set()
@@ -29,32 +29,6 @@ class FileSystemToolset(BuiltInToolset):
 
     def _is_markitdown_convertable_binary(self, path: str) -> bool:
         return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
-
-    def _read_file_impl(self, path: str, offset: int, max_lines: int) -> str:
-        abs_path = self._ctx.cwd / path
-
-        if not abs_path.exists():
-            raise FileNotFoundError(f"File not found at {path}")
-
-        if self._markdown_converter.is_convertable_binary(path):
-            result = self._markdown_converter.convert(abs_path)
-            lines = result.splitlines()
-        elif is_binary(str(abs_path)):
-            raise ValueError(f"File {path} is a binary file, and is not supported to read.")
-        else:
-            with open(abs_path, "r", encoding="utf-8") as f:
-                lines = f.read().splitlines()
-
-        self._read_file_set.add(str(abs_path))
-        result_lines = lines[(offset - 1):(offset + max_lines - 1)]
-
-        root = ET.Element("file_content", attrib={
-            "start_line": str(offset),
-            "end_line": str(offset + len(result_lines) - 1),
-            "total_lines": str(len(lines)),
-        })
-        root.text = "\n".join(result_lines)
-        return ET.tostring(root, encoding="unicode")
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     async def read_file(self,
@@ -82,7 +56,33 @@ class FileSystemToolset(BuiltInToolset):
 
         To read the next chunk, pass end_line + 1 as the offset in the next call.
         """
-        return await asyncio.to_thread(self._read_file_impl, path, offset, max_lines)
+        def read_file_lines(path: Path) -> list[str]:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read().splitlines()
+
+        abs_path = self._ctx.cwd / path
+
+        if not abs_path.exists():
+            raise FileNotFoundError(f"File not found at {path}")
+
+        if self._markdown_converter.is_convertable_binary(path):
+            result = await self._markdown_converter.convert(abs_path)
+            lines = result.splitlines()
+        elif is_binary(str(abs_path)):
+            raise ValueError(f"File {path} is a binary file, and is not supported to read.")
+        else:
+            lines = await asyncio.to_thread(read_file_lines, abs_path)
+
+        self._read_file_set.add(str(abs_path))
+        result_lines = lines[(offset - 1):(offset + max_lines - 1)]
+
+        root = ET.Element("file_content", attrib={
+            "start_line": str(offset),
+            "end_line": str(offset + len(result_lines) - 1),
+            "total_lines": str(len(lines)),
+        })
+        root.text = "\n".join(result_lines)
+        return ET.tostring(root, encoding="unicode")
 
     def _write_file_impl(self, path: str, content: str) -> str:
         abs_path = self._ctx.cwd / path
