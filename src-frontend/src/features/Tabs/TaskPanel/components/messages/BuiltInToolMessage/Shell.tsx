@@ -7,6 +7,7 @@ import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useCollapsed } from "../../../hooks/use-collapsible-store";
+import { useMemo } from "react";
 
 type ShellResult = {
   stdout: string | null;
@@ -61,7 +62,7 @@ export function Shell({ message }: ToolMessageProps) {
     }
     return [toolArguments.command, ...toolArguments.args].join(" ");
   })();
-  const commandOutput: ShellResult = (() => {
+  const commandOutput: ShellResult = useMemo(() => {
     if (message.isStreaming) {
       return { stdout: "生成命令中...", stderr: null };
     }
@@ -75,7 +76,7 @@ export function Shell({ message }: ToolMessageProps) {
       return { stdout: "正在执行...", stderr: null };
     }
     return parseShellResult(message.result);
-  })();
+  }, [message.isStreaming, message.error, message.result, userApproval]);
 
   return (
     <CollapsibleTerminal

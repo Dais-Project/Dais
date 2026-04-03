@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,24 +18,22 @@ import { CopyButton } from "../ui/copy-button";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 
 type ActiveOutputProps = {
-  showStderr: boolean;
-  setShowStderr: (showStderr: boolean) => void;
+  value: "stdout" | "stderr";
+  disabled?: boolean;
+  onChange?: (value: "stdout" | "stderr") => void;
 };
 
-function ActiveOutputSwitch({ showStderr, setShowStderr }: ActiveOutputProps) {
-  const currentValue = showStderr ? "stderr" : "stdout";
-  const handleValueChange = (value: string) => {
-    if (value === "stderr") {
-      setShowStderr(true);
-    } else {
-      setShowStderr(false);
-    }
-  };
+function ActiveOutputSwitch({
+  value,
+  disabled,
+  onChange,
+}: ActiveOutputProps) {
   return (
     <ToggleGroup
       type="single"
-      value={currentValue}
-      onValueChange={handleValueChange}
+      value={value}
+      disabled={disabled}
+      onValueChange={onChange}
       onClick={(e) => e.stopPropagation()}
     >
       <ToggleGroupItem className="h-7 px-2 text-xs font-normal" value="stdout">stdout</ToggleGroupItem>
@@ -75,10 +73,15 @@ export function CollapsibleTerminal({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const open = isControlled ? controlledOpen : uncontrolledOpen;
 
-  const [showStderr, setShowStderr] = useState(false);
-
-  const activeOutput = (showStderr || stdout === null) ? stderr : stdout;
+  const [currentOutput, setCurrentOutput] = useState<"stdout" | "stderr">("stdout");
+  const activeOutput = (currentOutput === "stdout") ? stdout : stderr;
   const composedOutput = `\u001b[0m$ ${input}\n${activeOutput}`;
+
+  useEffect(() => {
+    if (!stdout && stderr) {
+      setCurrentOutput("stderr");
+    }
+  }, [stdout, stderr]);
 
   const setOpen = (next: boolean) => {
     if (!isControlled) {
@@ -98,7 +101,11 @@ export function CollapsibleTerminal({
         <CollapsibleTrigger asChild>
           <TerminalHeader className="sticky top-0 z-1 cursor-pointer">
             <TerminalTitle>{title}</TerminalTitle>
-            {stderr && stdout && <ActiveOutputSwitch showStderr={showStderr} setShowStderr={setShowStderr} />}
+            <ActiveOutputSwitch
+              value={currentOutput}
+              disabled={!stdout || !stderr}
+              onChange={setCurrentOutput}
+            />
 
             <TerminalStatus />
             <TerminalActions>
