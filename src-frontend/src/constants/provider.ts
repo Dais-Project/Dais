@@ -6,13 +6,13 @@ import {
 
 export const PROVIDER_TYPE_LABELS: Partial<Record<LlmProviders, string>> = {
   [LlmProviders.openai]: "OpenAI",
-  // [LlmProviders.anthropic]: "Anthropic",
+  [LlmProviders.anthropic]: "Anthropic",
   // [LlmProviders.gemini]: "Gemini",
 };
 
 export const PROVIDER_DEFAULT_URLS: Partial<Record<LlmProviders, string>> = {
   [LlmProviders.openai]: "https://api.openai.com/v1",
-  // [LlmProviders.anthropic]: "https://api.anthropic.com/v1",
+  [LlmProviders.anthropic]: "https://api.anthropic.com/v1",
   // [LlmProviders.gemini]: "https://generativelanguage.googleapis.com/v1beta",
 };
 

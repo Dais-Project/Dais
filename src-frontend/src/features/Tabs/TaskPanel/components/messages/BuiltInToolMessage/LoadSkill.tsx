@@ -76,7 +76,7 @@ export function LoadSkill({ message }: ToolMessageProps) {
       <BuiltInToolHeader icon={BookOpenIcon}>
         <BuiltInToolTitle title={t("tool.load_skill.title")}>
           {toolArguments?.name && (
-            <div className="flex-1 truncate font-medium font-mono text-sm">{toolArguments.name}</div>
+            <div className="truncate font-medium font-mono text-sm">{toolArguments.name}</div>
           )}
         </BuiltInToolTitle>
       </BuiltInToolHeader>
