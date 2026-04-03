@@ -15,4 +15,4 @@ def mock_built_in_toolset_init(mocker):
 
 @pytest.fixture
 def built_in_toolset_context(temp_workspace):
-    return BuiltInToolsetContext(temp_workspace, ContextUsage.default())
+    return BuiltInToolsetContext(1, temp_workspace, ContextUsage.default())
