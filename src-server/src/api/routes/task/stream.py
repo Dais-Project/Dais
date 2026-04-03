@@ -99,7 +99,6 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
         if has_executed:
             await asyncio.shield(task.persist())
 
-
     if body.message is not None:
         # when appending new user message,
         # discard incomplete tool calls with user ignore first

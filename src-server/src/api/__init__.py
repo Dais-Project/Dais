@@ -28,12 +28,12 @@ from .exception_handlers import (
     handle_http_exception,
     handle_unexpected_exception,
 )
-from .lifespan import lifespan
+from .lifespan import LifespanManager
 from .exceptions import ApiError
 
 
 app = FastAPI(
-    lifespan=lifespan,
+    lifespan=LifespanManager(),
     separate_input_output_schemas=False,
     responses={
         400: {"model": ErrorResponseSchema},

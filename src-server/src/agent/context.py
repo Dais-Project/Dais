@@ -99,7 +99,7 @@ class AgentContext:
         usage.max_tokens = model.context_size
         messages = task.messages
 
-        builtin_toolset_manager = BuiltinToolsetManager(workspace.directory, ContextUsage.default())
+        builtin_toolset_manager = BuiltinToolsetManager(workspace.id, workspace.directory, ContextUsage.default())
         await builtin_toolset_manager.initialize()
         mcp_toolset_manager = use_mcp_toolset_manager()
         return cls(task.id,
