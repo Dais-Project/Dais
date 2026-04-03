@@ -3,12 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import skill as skill_models
 from src.schemas import skill as skill_schemas
-from src.services.exceptions import (
-    ServiceErrorCode,
+from src.services.exceptions import ServiceErrorCode
+from src.services.skill import (
+    SkillService,
     SkillNameAlreadyExistsError,
     SkillNotFoundError,
 )
-from src.services.skill import SkillService
 
 
 class TestSkillService:

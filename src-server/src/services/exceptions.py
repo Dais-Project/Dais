@@ -61,16 +61,3 @@ class BadRequestError(ServiceError):
 class UnavailableError(ServiceError):
     def __init__(self, error_code: ServiceErrorCode, message: str) -> None:
         super().__init__(ServiceStatusCode.UNAVAILABLE, error_code, message)
-
-
-class SkillNotFoundError(NotFoundError):
-    def __init__(self, skill_identifier: int | str) -> None:
-        super().__init__(ServiceErrorCode.SKILL_NOT_FOUND, "Skill", skill_identifier)
-
-
-class SkillNameAlreadyExistsError(ConflictError):
-    def __init__(self, name: str) -> None:
-        super().__init__(
-            ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS,
-            f"Skill '{name}' already exists",
-        )
