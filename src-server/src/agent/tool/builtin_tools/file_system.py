@@ -3,7 +3,6 @@ import difflib
 import xml.etree.ElementTree as ET
 from typing import Annotated, TypedDict, override
 from pathlib import Path
-from binaryornot.check import is_binary
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
 from src.db.models import toolset as toolset_models
@@ -11,6 +10,17 @@ from src.binaries import RIPGREP_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
 from .utils.markdown import MarkdownConverter
 
+
+# Since `is_binary` from binaryornot sometimes misdetects some files as binary,
+# we defines a enhanced wrapper function here.
+# TODO: remove this function once binaryornot.check.is_binary is fixed.
+def is_binary(path: Path) -> bool:
+    from binaryornot.helpers import has_binary_extension, is_binary_string
+    if has_binary_extension(path):
+        return True
+    with open(path, "rb") as f:
+        bytes = f.read()
+        return is_binary_string(bytes)
 
 class FileSystemToolset(BuiltInToolset):
     def __init__(self,
