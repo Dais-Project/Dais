@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useRef, useState } from "react";
+import { Dispatch, type RefObject, SetStateAction, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
 import type { TaskState } from ".";
@@ -26,7 +26,7 @@ export type TaskStreamFn<Body extends { agent_id: number }> = (
 
 function createOverrideCallbacks(
   sseCallbacksRef: RefObject<TaskSseCallbacks>,
-  setState: (state: TaskState) => void
+  setState: Dispatch<SetStateAction<TaskState>>,
 ): TaskSseCallbacks {
   const overrides: TaskSseCallbacks = {
     onMessageStart(...args) {
@@ -38,7 +38,10 @@ function createOverrideCallbacks(
       sseCallbacksRef.current.onError?.(...args);
     },
     onClose() {
-      setState("idle");
+      setState((prev) => {
+        if (prev === "error") return prev;
+        return "idle";
+      });
       sseCallbacksRef.current.onClose?.();
     },
   };
