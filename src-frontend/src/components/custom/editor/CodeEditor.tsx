@@ -9,7 +9,8 @@ import { json } from "@codemirror/lang-json";
 import { xml } from "@codemirror/lang-xml";
 import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
-import { ArboristTree, TreeItem } from "../file-tree";
+import { ArboristTree, ArboristTreeHeaderAction, TreeItem } from "../file-tree";
+import { MaximizeIcon, MinimizeIcon } from "lucide-react";
 
 function getLanguageExtensions(filename: string): LanguageSupport | null {
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
@@ -37,11 +38,11 @@ export type CodeEditorProps = {
 export function CodeEditor({
   value,
   title,
-  className,
   theme,
   onChange,
 }: CodeEditorProps) {
   const editorLatestValueRef = useRef<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedItem = useMemo(() => {
     if (!selectedId) {
@@ -124,58 +125,72 @@ export function CodeEditor({
   }, [selectedItem]);
 
   return (
-    <div className={cn("hidden-during-resizing overflow-hidden rounded-md border w-full h-[60vh]", className)}>
-      <ResizablePanelGroup orientation="horizontal">
-        {/* ── Left: File tree ── */}
-        <ResizablePanel
-          minSize={200}
-          defaultSize={200}
-          maxSize={"60%"}
-        >
-          <ArboristTree
-            data={value}
-            title={title ?? "EXPLORER"}
-            selectedId={selectedId ?? undefined}
-            onSelect={(node) => setSelectedId(node.id)}
-            onMove={handleMove}
-            onRename={handleRename}
-            onDelete={handleDelete}
-            onCreate={handleCreate}
-          />
-        </ResizablePanel>
-
-        <ResizableHandle />
-
-        {/* ── Right: Editor ── */}
-        <ResizablePanel className="flex flex-col bg-background">
-          {selectedItem ? (
-            <CodeMirror
-              value={(selectedItem.type === "file" && selectedItem.content) || ""}
-              onChange={(content) => editorLatestValueRef.current = content}
-              onBlur={handleEditorBlur}
-              extensions={extensions}
-              theme={theme}
-              className="flex-1 text-base overflow-auto [&_.cm-editor]:h-full [&_.cm-scroller]:h-full [&_.cm-scroller]:shadcn-scroll"
-              height="100%"
-              basicSetup={{
-                lineNumbers: true,
-                foldGutter: true,
-                dropCursor: true,
-                allowMultipleSelections: true,
-                indentOnInput: true,
-                bracketMatching: true,
-                closeBrackets: true,
-                autocompletion: true,
-                highlightActiveLine: true,
-              }}
+    <div className="hidden-during-resizing overflow-hidden rounded-md border w-full h-[60vh]">
+      <div
+        className={cn("bg-background",
+          { "fixed inset-0 z-50 h-screen": isFullscreen },
+        )}
+        data-fullscreen-wrapper
+      >
+        <ResizablePanelGroup className="bg-transparent dark:bg-input/30" orientation="horizontal">
+          {/* ── Left: File tree ── */}
+          <ResizablePanel
+            minSize={200}
+            defaultSize={200}
+            maxSize={"60%"}
+          >
+            <ArboristTree
+              data={value}
+              title={title ?? "EXPLORER"}
+              selectedId={selectedId ?? undefined}
+              onSelect={(node) => setSelectedId(node.id)}
+              onMove={handleMove}
+              onRename={handleRename}
+              onDelete={handleDelete}
+              onCreate={handleCreate}
+              actions={(
+                <ArboristTreeHeaderAction
+                  icon={isFullscreen ? MinimizeIcon : MaximizeIcon}
+                  title="切换全屏"
+                  onClick={() => setIsFullscreen((prev) => !prev)}
+                />
+              )}
             />
-          ) : (
-            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-              从左侧选择一个文件开始编辑
-            </div>
-          )}
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          </ResizablePanel>
+
+          <ResizableHandle />
+
+          {/* ── Right: Editor ── */}
+          <ResizablePanel className="flex flex-col bg-background">
+            {selectedItem ? (
+              <CodeMirror
+                value={(selectedItem.type === "file" && selectedItem.content) || ""}
+                onChange={(content) => editorLatestValueRef.current = content}
+                onBlur={handleEditorBlur}
+                extensions={extensions}
+                theme={theme}
+                className="flex-1 text-base overflow-auto [&_.cm-editor]:h-full [&_.cm-scroller]:h-full [&_.cm-scroller]:shadcn-scroll"
+                height="100%"
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: true,
+                  dropCursor: true,
+                  allowMultipleSelections: true,
+                  indentOnInput: true,
+                  bracketMatching: true,
+                  closeBrackets: true,
+                  autocompletion: true,
+                  highlightActiveLine: true,
+                }}
+              />
+            ) : (
+              <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                从左侧选择一个文件开始编辑
+              </div>
+            )}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
     </div>
   );
 }

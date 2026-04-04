@@ -28,7 +28,6 @@ export function SkillResourceField() {
           const next = produce(field.value, updater);
           field.onChange(next);
         }}
-        className="bg-transparent dark:bg-input/30"
         title=""
       />
     </FieldItem>

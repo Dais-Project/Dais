@@ -21,6 +21,7 @@ import {
   FilePlusIcon,
   FileTextIcon,
   BookTextIcon,
+  LucideIcon,
 } from "lucide-react";
 import { AutoSizer } from "react-virtualized-auto-sizer";
 import { cn } from "@/lib/utils";
@@ -148,9 +149,38 @@ function TreeNodeRender({ node, style, dragHandle }: NodeRendererProps<TreeNode>
   );
 }
 
+type ArboristTreeHeaderActionProps = {
+  icon: LucideIcon;
+  title: string;
+  onClick?: () => void;
+};
+
+export function ArboristTreeHeaderAction({
+  icon: Icon,
+  title,
+  onClick
+}: ArboristTreeHeaderActionProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          size="icon-sm"
+          variant="ghost"
+          onClick={onClick}
+        >
+          <Icon className="size-3.5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{title}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 type ArboristTreeHeaderProps = {
   title: string;
   className?: string;
+  actions?: React.ReactNode;
   handleCreateFile?: () => void;
   handleCreateFolder?: () => void;
 };
@@ -158,6 +188,7 @@ type ArboristTreeHeaderProps = {
 function ArboristTreeHeader({
   title,
   className,
+  actions,
   handleCreateFile,
   handleCreateFolder,
 }: ArboristTreeHeaderProps) {
@@ -165,33 +196,10 @@ function ArboristTreeHeader({
     <div className={cn("flex justify-between items-center px-2 py-1", className)}>
       <div className="text-sm font-medium">{title}</div>
       <div className="flex items-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              onClick={handleCreateFile}
-            >
-              <FilePlusIcon className="size-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>新建文件</TooltipContent>
-        </Tooltip>
+        <ArboristTreeHeaderAction icon={FilePlusIcon} title="新建文件" onClick={handleCreateFile} />
+        <ArboristTreeHeaderAction icon={FolderPlusIcon} title="新建文件夹" onClick={handleCreateFolder} />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              onClick={handleCreateFolder}
-            >
-              <FolderPlusIcon className="size-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>新建文件夹</TooltipContent>
-        </Tooltip>
+        {actions}
       </div>
     </div>
   );
@@ -202,6 +210,7 @@ type ArboristTreeProps = {
   title: string;
   selectedId?: string;
   className?: string;
+  actions?: React.ReactNode;
   onMove?: MoveHandler<TreeItem>;
   onRename?: RenameHandler<TreeItem>;
   onDelete?: DeleteHandler<TreeItem>;
@@ -214,6 +223,7 @@ export function ArboristTree({
   title,
   selectedId,
   className,
+  actions,
   onMove,
   onRename,
   onDelete,
@@ -277,6 +287,7 @@ export function ArboristTree({
       <ArboristTreeHeader
         title={title}
         className="border-b"
+        actions={actions}
         handleCreateFile={handleCreateFile}
         handleCreateFolder={handleCreateFolder}
       />
