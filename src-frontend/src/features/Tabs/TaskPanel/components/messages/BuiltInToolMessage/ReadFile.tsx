@@ -1,7 +1,7 @@
 import { FileTextIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { BundledLanguage } from "shiki";
+import { BundledLanguage, bundledLanguages } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemReadFile, ToolMessageMetadata } from "@/api/generated/schemas";
 import { ReadFileToolSchema } from "@/api/tool-schema";
@@ -14,6 +14,8 @@ import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
+
+const MARKDOWNED_FILE_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx", "epub"];
 
 type ParsedReadFileResult = {
   fileContent: string;
@@ -59,7 +61,13 @@ type ReadFileContentProps = {
 function ReadFileContent({ arguments: toolArguments, result }: ReadFileContentProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { language, fileContent, startLineNumber } = useMemo(() => {
-    const language = getFileExtension(toolArguments.path) ?? "text";
+    const extension = getFileExtension(toolArguments.path);
+    const language = (() => {
+      if (extension === null) return "text";
+      if (extension in bundledLanguages) return extension;
+      if (MARKDOWNED_FILE_EXTENSIONS.includes(extension)) return "markdown";
+      return "text";
+    })();
     const { fileContent, startLineNumber } = parseReadFileResult(result);
     return { language, fileContent, startLineNumber };
   }, [toolArguments, result]);

@@ -9,6 +9,13 @@ import { cn } from "@/lib/utils";
 
 type MarkdownProps = React.ComponentProps<typeof Streamdown>;
 
+const STREAMDOWN_PLUGINS = {
+  code,
+  mermaid,
+  math,
+  cjk,
+};
+
 export function Markdown({ className, ...props }: MarkdownProps) {
   return (
     <Streamdown
@@ -16,7 +23,7 @@ export function Markdown({ className, ...props }: MarkdownProps) {
         "visibility-auto size-full font-medium text-foreground text-sm-plus [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
-      plugins={{ code, mermaid, math, cjk }}
+      plugins={STREAMDOWN_PLUGINS}
       controls={{ code: false }}
       linkSafety={{
         enabled: true,
