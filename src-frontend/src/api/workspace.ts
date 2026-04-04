@@ -7,6 +7,7 @@ export {
   useGetWorkspaceSuspense,
   useGetWorkspacesSuspenseInfinite,
   useUpdateWorkspace,
+  openWorkspace,
 } from "./generated/endpoints/workspace/workspace";
 
 import queryClient from "@/query-client";

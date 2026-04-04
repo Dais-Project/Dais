@@ -4,6 +4,7 @@ from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.db import DbSessionDep
 from src.services.workspace import WorkspaceService
 from src.schemas import workspace as workspace_schemas
+from src.utils.open_in_file_manager import open_in_file_manager
 
 
 workspaces_router = APIRouter(tags=["workspace"])
@@ -35,3 +36,10 @@ async def update_workspace(
 @workspaces_router.delete("/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workspace(workspace_id: int, db_session: DbSessionDep):
     await WorkspaceService(db_session).delete_workspace(workspace_id)
+
+# --- --- --- --- --- ---
+
+@workspaces_router.post("/{workspace_id}/open", status_code=status.HTTP_204_NO_CONTENT)
+async def open_workspace(workspace_id: int, db_session: DbSessionDep):
+    workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
+    await open_in_file_manager(workspace.directory)

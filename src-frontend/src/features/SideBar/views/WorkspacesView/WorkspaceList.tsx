@@ -1,9 +1,10 @@
-import { CircleIcon, FolderIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { CircleIcon, FolderIcon, FolderOpenIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
 import {
   invalidateWorkspaceQueries,
+  openWorkspace,
   useDeleteWorkspace,
   useGetWorkspacesSuspenseInfinite,
 } from "@/api/workspace";
@@ -31,6 +32,7 @@ import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab } from "@/types/tab";
+import { isTauri } from "@/lib/tauri";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
@@ -90,6 +92,13 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
     });
   };
 
+  const handleOpenInFileManager = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isTauri) {
+      openWorkspace(workspace.id);
+    }
+  };
+
   return (
     <ActionableItem>
       <ActionableItemTrigger>
@@ -113,6 +122,12 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
           <PencilIcon />
           <span>{t("workspaces.menu.edit")}</span>
         </ActionableItemMenuItem>
+        {isTauri && (
+          <ActionableItemMenuItem onClick={handleOpenInFileManager}>
+            <FolderOpenIcon />
+            <span>{t("workspaces.menu.open_in_file_manager")}</span>
+          </ActionableItemMenuItem>
+        )}
         <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(workspace)}>
           <TrashIcon />
           <span>{t("workspaces.menu.delete")}</span>
