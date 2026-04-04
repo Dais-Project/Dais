@@ -74,7 +74,7 @@ class FileSystemToolset(BuiltInToolset):
         if self._markdown_converter.is_convertable_binary(path):
             result = await self._markdown_converter.convert(abs_path)
             lines = result.splitlines()
-        elif is_binary(str(abs_path)):
+        elif is_binary(abs_path):
             raise ValueError(f"File {path} is a binary file, and is not supported to read.")
         else:
             lines = await asyncio.to_thread(read_file_lines, abs_path)
