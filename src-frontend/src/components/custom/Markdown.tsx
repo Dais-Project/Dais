@@ -4,8 +4,8 @@ import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import { Streamdown } from "streamdown";
 import { LinkSafetyModal } from "@/components/ai-elements/link-modal";
+import { isTauri } from "@/lib/tauri";
 import { cn } from "@/lib/utils";
-import { isTauri } from "@tauri-apps/api/core";
 
 type MarkdownProps = React.ComponentProps<typeof Streamdown>;
 
@@ -26,7 +26,7 @@ export function Markdown({ className, ...props }: MarkdownProps) {
             isOpen={isOpen}
             onClose={onClose}
             onConfirm={async () => {
-              if (isTauri()) {
+              if (isTauri) {
                 const { openUrl } = await import("@tauri-apps/plugin-opener");
                 await openUrl(url);
               }

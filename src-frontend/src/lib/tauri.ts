@@ -1,17 +1,19 @@
-import { isTauri } from "@tauri-apps/api/core";
+import { isTauri as _isTauri } from "@tauri-apps/api/core";
 
 enum TauriCommand {
   OpenDevtools = "open_devtools",
 }
 
+export const isTauri = _isTauri();
+
 export async function openDevtools() {
-  if (!isTauri()) return;
+  if (!isTauri) return;
   const { invoke } = await import("@tauri-apps/api/core");
   await invoke(TauriCommand.OpenDevtools);
 }
 
 export async function sendNotification(title: string, body?: string) {
-  if (!isTauri()) {
+  if (!isTauri) {
     return;
   }
 
@@ -29,7 +31,7 @@ export async function sendNotification(title: string, body?: string) {
 }
 
 (() => {
-  if (!isTauri()) {
+  if (!isTauri) {
     return;
   }
 

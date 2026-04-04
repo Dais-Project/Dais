@@ -1,5 +1,4 @@
-import { isTauri } from "@tauri-apps/api/core";
-import { sendNotification as sendTauriNotification } from "./tauri";
+import { isTauri, sendNotification as sendTauriNotification } from "./tauri";
 
 const LISTENER_TIMEOUT_MS = 60_000;
 
@@ -67,7 +66,7 @@ export async function sendNotification(
   title: string,
   options?: NotificationOptions,
 ) {
-  if (isTauri()) {
+  if (isTauri) {
     await createTauriNotification(title, options);
     return;
   }
