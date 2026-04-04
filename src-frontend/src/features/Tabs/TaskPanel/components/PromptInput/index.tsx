@@ -103,6 +103,9 @@ function usePromptInputHandlers(): UsePromptInputHandlersResult {
   };
 
   const handleSelectPath = (path: string) => {
+    if (path.includes(" ")) {
+      path = `"${path}"`;
+    }
     handleInsert((textBefore) => {
       if (textBefore.length === 0) {
         return path;
