@@ -18,9 +18,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ScrollTextIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import { Activity } from "react";
+import { Activity, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from "react-tabs";
 import { TABS_NAMESPACE } from "@/i18n/resources";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
@@ -46,16 +45,13 @@ const tabIconMap: Record<Tab["type"], LucideIcon> = {
 
 export type TabPanelProps<Metadata> = Omit<StoredTab, "metadata"> & { metadata: Metadata };
 
-function SortableTab({ tab, ...props }: { tab: StoredTab } & React.ComponentProps<typeof ReactTab>) {
+function SortableTab({ tab }: { tab: StoredTab }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id });
   const activeTabId = useTabsStore((state) => state.activeTabId);
   const removeTab = useTabsStore((state) => state.remove);
   const setActiveTab = useTabsStore((state) => state.setActive);
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-  };
+  const style = { transform: CSS.Translate.toString(transform), transition };
 
   const handleTabClose = (e: React.MouseEvent<SVGSVGElement>, tabId: string) => {
     e.stopPropagation();
@@ -77,26 +73,25 @@ function SortableTab({ tab, ...props }: { tab: StoredTab } & React.ComponentProp
     const TargetIcon = tabIconMap[tab.type];
     return <TargetIcon size="1em" />;
   })();
-
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={cn("flex", {
-        "z-10 border-l": isDragging,
-      })}
+      className={cn("flex", { "z-10 border-l": isDragging })}
       {...attributes}
       {...listeners}
     >
-      <ReactTab
-        {...props}
+      <div
+        role="tab"
+        id={`tab-${tab.id}`}
+        aria-selected={tab.id === activeTabId}
+        aria-controls={`panel-${tab.id}`}
+        tabIndex={tab.id === activeTabId ? 0 : -1}
         onMouseDown={(e) => handleMouseDown(e, tab.id)}
         className={cn(
           "group flex min-w-24 shrink-0 cursor-pointer items-center justify-between gap-2 text-nowrap border-r border-b p-2 pl-3 text-muted-foreground text-sm outline-0 transition-colors duration-200 ease-in-out",
           "hover:text-primary",
-          {
-            "border-b-transparent bg-layout-tabs-content! text-primary!": tab.id === activeTabId,
-          }
+          { "border-b-transparent bg-layout-tabs-content! text-primary!": tab.id === activeTabId }
         )}
       >
         <div className="text-base">{tabIcon}</div>
@@ -110,11 +105,68 @@ function SortableTab({ tab, ...props }: { tab: StoredTab } & React.ComponentProp
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         />
-      </ReactTab>
+      </div>
     </div>
   );
 }
-SortableTab.tabsRole = "Tab";
+
+function TabBar() {
+  const scrollAreaRef = useHorizontalScroll<HTMLDivElement>();
+  const tabs = useTabsStore((state) => state.tabs);
+  const setActiveTab = useTabsStore((state) => state.setActive);
+  const activeTabId = useTabsStore((state) => state.activeTabId);
+  const removeTab = useTabsStore((state) => state.remove);
+
+  const focusTab = (id: string) => {
+    setActiveTab(id);
+    requestAnimationFrame(() => {
+      document.getElementById(`tab-${id}`)?.focus();
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
+    switch (e.key) {
+      case "ArrowRight":
+        e.preventDefault();
+        focusTab(tabs[(currentIndex + 1) % tabs.length].id);
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        focusTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length].id);
+        break;
+      case "Home":
+        e.preventDefault();
+        focusTab(tabs[0].id);
+        break;
+      case "End":
+        e.preventDefault();
+        focusTab(tabs[tabs.length - 1].id);
+        break;
+      case "Delete":
+        e.preventDefault();
+        if (activeTabId) removeTab(activeTabId);
+        break;
+    }
+  };
+
+  return (
+    <ScrollArea ref={scrollAreaRef}>
+      <SortableContext items={tabs.map((tab) => tab.id)} strategy={horizontalListSortingStrategy}>
+        <div
+          role="tablist"
+          aria-label="Tabs"
+          onKeyDown={handleKeyDown}
+          className="flex shrink-0 bg-layout-tabs-bar"
+        >
+          {tabs.map((tab) => <SortableTab key={tab.id} tab={tab} />)}
+          <div className="flex-1 border-b" />
+        </div>
+      </SortableContext>
+      <ScrollBar className="h-1.5" orientation="horizontal" />
+    </ScrollArea>
+  );
+}
 
 function TabPanelRenderer({ tab }: { tab: StoredTab }) {
   switch (tab.type) {
@@ -135,38 +187,55 @@ function TabPanelRenderer({ tab }: { tab: StoredTab }) {
   }
 }
 
-export function Tabs() {
+function TabPanels() {
   const { t } = useTranslation(TABS_NAMESPACE);
   const tabs = useTabsStore((state) => state.tabs);
   const activeTabId = useTabsStore((state) => state.activeTabId);
-  const setActiveTab = useTabsStore((state) => state.setActive);
+  const sortedTabs = useMemo(() => [...tabs].sort((a, b) => a.createdAt - b.createdAt), [tabs]);
+
+  if (activeTabId === null || sortedTabs.length === 0) {
+    return (
+      <div className="flex flex-1 h-full items-center justify-center">
+        <p className="mb-16">{t("tabs.empty.no_tabs_open")}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex-1 overflow-hidden bg-layout-tabs-content">
+      {sortedTabs.map((tab) => (
+        <Activity key={tab.id} mode={activityVisible(tab.id === activeTabId)}>
+          <div
+            role="tabpanel"
+            id={`panel-${tab.id}`}
+            aria-labelledby={`tab-${tab.id}`}
+            tabIndex={0}
+            className="h-full"
+          >
+            <TabPanelRenderer tab={tab} />
+          </div>
+        </Activity>
+      ))}
+    </div>
+  );
+}
+
+export function Tabs() {
+  const tabs = useTabsStore((state) => state.tabs);
   const updateTabs = useTabsStore((state) => state.update);
 
-  const scrollAreaRef = useHorizontalScroll<HTMLDivElement>();
   const sensors = useSensors(
     useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
-
-  const handleTabSelect = (index: number) => {
-    if (tabs[index]) {
-      setActiveTab(tabs[index].id);
-    }
-  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over && active.id !== over.id) {
       const oldIndex = tabs.findIndex((tab) => tab.id === active.id);
       const newIndex = tabs.findIndex((tab) => tab.id === over.id);
       updateTabs((draft) => arrayMove(draft, oldIndex, newIndex));
     }
   };
-
-  const activeIndex = tabs.findIndex((tab) => tab.id === activeTabId);
 
   return (
     <DndContext
@@ -175,45 +244,10 @@ export function Tabs() {
       onDragEnd={handleDragEnd}
       modifiers={[restrictToHorizontalAxis]}
     >
-      <ReactTabs
-        selectedIndex={activeIndex}
-        onSelect={handleTabSelect}
-        forceRenderTabPanel={true}
-        className="flex h-full flex-col"
-        selectedTabPanelClassName="!block"
-      >
-        <ScrollArea ref={scrollAreaRef}>
-          <SortableContext items={tabs.map((tab) => tab.id)} strategy={horizontalListSortingStrategy}>
-            <ReactTabList className="shink-0 flex bg-layout-tabs-bar">
-              {tabs.map((tab) => <SortableTab key={tab.id} tab={tab} />)}
-              <div className="flex-1 border-b" />
-            </ReactTabList>
-          </SortableContext>
-          <ScrollBar className="h-1.5" orientation="horizontal" />
-        </ScrollArea>
-
-        <div className="grow overflow-hidden bg-layout-tabs-content">
-          {(() => {
-            if (activeTabId === null) {
-              return null;
-            }
-            if (tabs.length === 0) {
-              return (
-                <div className="flex h-full items-center justify-center">
-                  <p>{t("tabs.empty.no_tabs_open")}</p>
-                </div>
-              );
-            }
-            return tabs.map((tab) => (
-              <ReactTabPanel key={tab.id} className="hidden h-full">
-                <Activity mode={activityVisible(tab.id === activeTabId)}>
-                  <TabPanelRenderer tab={tab} />
-                </Activity>
-              </ReactTabPanel>
-            ));
-          })()}
-        </div>
-      </ReactTabs>
+      <div className="flex h-full flex-col">
+        <TabBar />
+        <TabPanels />
+      </div>
     </DndContext>
   );
 }

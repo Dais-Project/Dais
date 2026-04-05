@@ -38,7 +38,10 @@ const TabsCloseHandlerRegistry = new (class {
   }
 })();
 
-export type StoredTab = Tab & { id: TabId };
+export type StoredTab = Tab & {
+  id: TabId;
+  createdAt: number;
+};
 
 type TabsState = {
   tabs: StoredTab[];
@@ -48,7 +51,7 @@ type TabsState = {
 type TabsActions = {
   add: (tab: Tab) => void;
   setActive: (pattern: string | ((tab: StoredTab) => boolean)) => void;
-  update: (updater: (draft: Draft<StoredTab[]>) => void | StoredTab[]) => void;
+  update: (updater: (draft: Draft<StoredTab[]>) => StoredTab[] | undefined) => void;
   updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
   remove: (pattern: string | ((tab: StoredTab) => boolean)) => void;
 };
@@ -66,7 +69,7 @@ export const useTabsStore = create<TabsStore>()(
       activeTabId: null,
       add(tab) {
         set((state: TabsState) => {
-          const newTab = { ...tab, id: tabIdFactory(), isClosing: false };
+          const newTab = { ...tab, id: tabIdFactory(), createdAt: Date.now() };
           state.tabs.push(newTab);
           state.activeTabId = newTab.id;
         });
@@ -91,7 +94,12 @@ export const useTabsStore = create<TabsStore>()(
         });
       },
       update(updater) {
-        set((state) => updater(state.tabs));
+        set((state) => {
+          const tabsDraft = updater(state.tabs);
+          if (tabsDraft !== undefined) {
+            state.tabs = tabsDraft;
+          }
+        });
       },
       updateMetadata(id, metadata) {
         set((state: TabsState) => {
