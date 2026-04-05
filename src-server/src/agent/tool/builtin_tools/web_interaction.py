@@ -11,6 +11,8 @@ from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset
 from .utils.markdown import MarkdownConverter
 
 
+DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"}
+
 class FormBody(BaseModel):
     type: Literal["form"]
     data: dict[str, str]
@@ -163,7 +165,7 @@ class WebInteractionToolset(BuiltInToolset):
                 <text>...[Error response body]...</text>
             </error>
         """
-        request_kwargs: dict[str, Any] = {"headers": {}}
+        request_kwargs: dict[str, Any] = {"headers": DEFAULT_HEADER.copy()}
         if body is not None:
             request_kwargs.update(body.to_params())
         if headers is not None:
