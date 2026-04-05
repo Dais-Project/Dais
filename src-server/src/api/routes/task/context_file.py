@@ -1,4 +1,5 @@
 import asyncio
+import time
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -57,18 +58,22 @@ def _list_directory(workspace_root: Path, path: str) -> list[task_schemas.Contex
 
 type SearchCandidate = tuple[str, str, Literal["folder", "file"]]
 @lru_cache(maxsize=8)
-def _scan_cached(root: Path, scan_limit: int) -> list[SearchCandidate]:
+def _scan_cached(root: Path, scan_limit: int, _slot: int = 0) -> list[SearchCandidate]:
     candidates: list[SearchCandidate] = []
     for entry in scantree_bfs(root, scan_limit):
         if entry.is_symlink(): continue
         rel_path = Path(entry.path).relative_to(root).as_posix()
         candidates.append((entry.name, rel_path, "folder" if entry.is_dir() else "file"))
     return candidates
+def _scan_cached_ttl(root: Path, scan_limit: int) -> list[SearchCandidate]:
+    TTL = 15
+    slot = int(time.monotonic() // TTL)
+    return _scan_cached(root, scan_limit, slot)
 
 def _search_file(query: str, workspace_root: Path, match_limit: int) -> list[task_schemas.ContextFileItem]:
     MAX_SCAN_LIMIT = 10_000
     SCORE_CUTOFF = 60
-    candidates = _scan_cached(workspace_root, MAX_SCAN_LIMIT)
+    candidates = _scan_cached_ttl(workspace_root, MAX_SCAN_LIMIT)
 
     results: list[tuple[float, task_schemas.ContextFileItem]] = []
     for basename, rel_path, node_type in candidates:
