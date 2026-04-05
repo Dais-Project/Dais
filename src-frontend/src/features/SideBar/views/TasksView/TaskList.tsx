@@ -76,14 +76,15 @@ export function TaskList({ workspaceId }: TaskListProps) {
         selectItems={(page) => page.items}
         itemHeight={69}
         overscan={3}
-        itemRender={({ item, key, ref }) => (
+        itemRender={({ item, key, index, ref }) => (
           <TaskItem
             key={key}
             task={item}
             ref={ref}
-            onRegenerateTitle={handleRegenerateTitle}
+            index={index}
             onOpen={() => openTaskTab(workspaceId, item)}
             onDelete={asyncConfirm.trigger}
+            onRegenerateTitle={handleRegenerateTitle}
           />
         )}
       />

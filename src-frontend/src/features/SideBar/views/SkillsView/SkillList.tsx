@@ -49,11 +49,12 @@ function openSkillEditTab(skillId: number, skillName: string) {
 
 type SkillItemProps = {
   skill: SkillBrief;
+  index: number;
   ref?: React.Ref<HTMLDivElement>;
   onDelete?: (skill: SkillBrief) => void;
 };
 
-function SkillItem({ skill, ref, onDelete }: SkillItemProps) {
+function SkillItem({ skill, index, ref, onDelete }: SkillItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -63,7 +64,7 @@ function SkillItem({ skill, ref, onDelete }: SkillItemProps) {
 
   return (
     <ActionableItem>
-      <ActionableItemTrigger ref={ref}>
+      <ActionableItemTrigger ref={ref} data-index={index}>
         <ActionableItemIcon seed={skill.name}>
           <ScrollTextIcon />
         </ActionableItemIcon>
@@ -130,10 +131,11 @@ export function SkillList() {
         selectItems={(page) => page.items}
         itemHeight={69}
         overscan={3}
-        itemRender={({ item, key, ref }) => (
+        itemRender={({ item, key, ref, index }) => (
           <SkillItem
             key={key}
             ref={ref}
+            index={index}
             skill={item}
             onDelete={asyncConfirm.trigger}
           />

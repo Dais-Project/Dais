@@ -68,6 +68,7 @@ type WorkspaceItemProps = {
   workspace: WorkspaceBrief;
   disabled: boolean;
   isSelected: boolean;
+  index: number;
   ref?: React.Ref<HTMLDivElement>;
   onSelect?: (workspaceId: number) => void;
   onDelete?: (workspace: WorkspaceBrief) => void;
@@ -77,6 +78,7 @@ function WorkspaceItem({
   workspace,
   disabled,
   isSelected,
+  index,
   ref,
   onSelect,
   onDelete,
@@ -108,7 +110,7 @@ function WorkspaceItem({
 
   return (
     <ActionableItem>
-      <ActionableItemTrigger ref={ref}>
+      <ActionableItemTrigger ref={ref} data-index={index}>
         <ActionableItemIcon
           role="button"
           className={disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
@@ -195,11 +197,12 @@ export function WorkspaceList() {
         selectItems={(page) => page.items}
         itemHeight={69}
         overscan={3}
-        itemRender={({ item, key, ref }) => (
+        itemRender={({ item, key, index, ref }) => (
           <WorkspaceItem
             key={key}
             workspace={item}
             ref={ref}
+            index={index}
             disabled={isCurrentWorkspaceLoading}
             isSelected={item.id === currentWorkspace?.id}
             onSelect={setCurrentWorkspace}

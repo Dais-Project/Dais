@@ -56,11 +56,12 @@ function openAgentEditTab({ agentId, agentName }: OpenAgentEditTabParams) {
 
 type AgentItemProps = {
   agent: AgentBrief;
+  index: number;
   ref?: React.Ref<HTMLDivElement>;
   onDelete?: (agent: AgentBrief) => void;
 };
 
-function AgentItem({ agent, ref, onDelete }: AgentItemProps) {
+function AgentItem({ agent, index, ref, onDelete }: AgentItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -72,7 +73,7 @@ function AgentItem({ agent, ref, onDelete }: AgentItemProps) {
   };
   return (
     <ActionableItem>
-      <ActionableItemTrigger ref={ref}>
+      <ActionableItemTrigger ref={ref} data-index={index}>
         <ActionableItemIcon seed={agent.name}>
           <DynamicIcon name={resolveIconName(agent.icon_name, "bot")} />
         </ActionableItemIcon>
@@ -134,10 +135,11 @@ export function AgentList() {
         selectItems={(page) => page.items}
         itemHeight={69}
         overscan={3}
-        itemRender={({ item, key, ref }) => (
+        itemRender={({ item, key, ref, index }) => (
           <AgentItem
             key={key}
             ref={ref}
+            index={index}
             agent={item}
             onDelete={asyncConfirm.trigger}
           />

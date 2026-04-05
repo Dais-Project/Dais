@@ -48,13 +48,21 @@ export function removeTaskTab(taskId: number) {
 
 type TaskItemProps = {
   task: TaskBrief;
+  index: number;
   ref: React.Ref<HTMLDivElement>;
   onRegenerateTitle: (task: TaskBrief) => void;
   onOpen: (task: TaskBrief) => void;
   onDelete: (task: TaskBrief) => void;
 };
 
-export function TaskItem({ task, ref, onRegenerateTitle, onOpen, onDelete }: TaskItemProps) {
+export function TaskItem({
+  task,
+  index,
+  ref,
+  onOpen,
+  onDelete,
+  onRegenerateTitle,
+}: TaskItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
@@ -64,6 +72,7 @@ export function TaskItem({ task, ref, onRegenerateTitle, onOpen, onDelete }: Tas
         ref={ref}
         className="cursor-pointer"
         onClick={() => onOpen(task)}
+        data-index={index}
       >
         <ActionableItemIcon>
           <DynamicIcon name={resolveIconName(task.icon_name, "box")} />

@@ -55,6 +55,10 @@ export function RecentTaskList() {
     openTaskTab(taskRead.workspace_id, task);
   };
 
+  const handleRegenerateTitle = (task: TaskBrief) => {
+    summarizeTaskTitleMutation.mutate({ taskId: task.id });
+  };
+
   if (allItems.length === 0) {
     return (
       <Empty>
@@ -74,14 +78,15 @@ export function RecentTaskList() {
         selectItems={(page) => page.items}
         itemHeight={69}
         overscan={1}
-        itemRender={({ item, key, ref }) => (
+        itemRender={({ item, key, index, ref }) => (
           <TaskItem
             key={key}
             task={item}
             ref={ref}
-            onRegenerateTitle={(item) => summarizeTaskTitleMutation.mutate({ taskId: item.id })}
+            index={index}
             onOpen={handleOpen}
             onDelete={asyncConfirm.trigger}
+            onRegenerateTitle={handleRegenerateTitle}
           />
         )}
       />
