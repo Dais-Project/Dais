@@ -23,6 +23,38 @@ type ParsedReadFileResult = {
   startLineNumber: number;
 };
 
+function decodeXmlEntities(text: string): string {
+  return text
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&apos;", "'")
+    .replaceAll("&#39;", "'")
+    .replaceAll("&amp;", "&");
+}
+
+function fallbackParseReadFileResult(resultText: string): ParsedReadFileResult | null {
+  const openTagMatch = resultText.match(/<file_content\b([^>]*)>/);
+  if (!openTagMatch || openTagMatch.index === undefined) {
+    return null;
+  }
+
+  const openTag = openTagMatch[0];
+  const attributes = openTagMatch[1] ?? "";
+  const contentStartIndex = openTagMatch.index + openTag.length;
+  const contentEndIndex = resultText.indexOf("</file_content>", contentStartIndex);
+  if (contentEndIndex === -1) {
+    return null;
+  }
+
+  const startLineMatch = attributes.match(/\bstart_line="(\d+)"/);
+  const parsedStartLine = Number.parseInt(startLineMatch?.[1] ?? "1", 10);
+  const startLineNumber = Number.isFinite(parsedStartLine) && parsedStartLine > 0 ? parsedStartLine : 1;
+  const fileContent = decodeXmlEntities(resultText.slice(contentStartIndex, contentEndIndex));
+
+  return { fileContent, startLineNumber };
+}
+
 function parseReadFileResult(resultText: string): ParsedReadFileResult {
   if (resultText.trim().length === 0) {
     return { fileContent: "", startLineNumber: 1 };
@@ -36,22 +68,25 @@ function parseReadFileResult(resultText: string): ParsedReadFileResult {
     const parser = new DOMParser();
     const doc = parser.parseFromString(resultText, "application/xml");
     const parserError = doc.querySelector("parsererror");
-    if (parserError) {
-      return { fileContent: resultText, startLineNumber: 1 };
+    if (!parserError) {
+      const contentNode = doc.querySelector("file_content");
+      if (contentNode) {
+        const startLineAttribute = contentNode.getAttribute("start_line") ?? "1";
+        const parsedStartLine = Number.parseInt(startLineAttribute, 10);
+        const startLineNumber = Number.isFinite(parsedStartLine) && parsedStartLine > 0 ? parsedStartLine : 1;
+        return { fileContent: contentNode.textContent ?? "", startLineNumber };
+      }
     }
-
-    const contentNode = doc.querySelector("file_content");
-    if (!contentNode) {
-      return { fileContent: resultText, startLineNumber: 1 };
-    }
-
-    const startLineAttribute = contentNode.getAttribute("start_line") ?? "1";
-    const parsedStartLine = Number.parseInt(startLineAttribute, 10);
-    const startLineNumber = Number.isFinite(parsedStartLine) && parsedStartLine > 0 ? parsedStartLine : 1;
-    return { fileContent: contentNode.textContent ?? "", startLineNumber };
   } catch {
-    return { fileContent: resultText, startLineNumber: 1 };
+    // Fall through to string-based parsing.
   }
+
+  const fallbackResult = fallbackParseReadFileResult(resultText);
+  if (fallbackResult !== null) {
+    return fallbackResult;
+  }
+
+  return { fileContent: resultText, startLineNumber: 1 };
 }
 
 type ReadFileContentProps = {
