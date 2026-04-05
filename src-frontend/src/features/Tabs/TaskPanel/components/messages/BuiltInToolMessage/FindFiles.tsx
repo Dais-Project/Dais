@@ -3,12 +3,13 @@ import { useTranslation } from "react-i18next";
 import type { BundledLanguage } from "shiki";
 import z from "zod";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemFindFiles, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { FileSystemFindFiles } from "@/api/generated/schemas";
 import { FindFilesToolSchema } from "@/api/tool-schema";
+import { getToolMessageMetadata } from "@/types/message";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { tryParseSchema } from "@/lib/utils";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { ToolMessageProps } from ".";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -38,7 +39,7 @@ export function FindFiles({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemFindFiles>(message, FindFilesToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -57,7 +58,7 @@ export function FindFiles({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={FolderSearchIcon}>
+      <BuiltInToolHeader icon={FolderSearchIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.find_files.title")}>
           {toolArguments && (
             <div className="truncate font-medium font-mono text-sm">

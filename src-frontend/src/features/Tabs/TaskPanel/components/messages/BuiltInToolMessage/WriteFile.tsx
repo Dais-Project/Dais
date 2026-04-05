@@ -2,24 +2,25 @@ import { PencilIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemWriteFile, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { FileSystemWriteFile } from "@/api/generated/schemas";
 import { WriteFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { getFileExtension } from "@/lib/path";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { getToolMessageMetadata } from "@/types/message";
 import { ToolMessageProps } from ".";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
+import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
-import { ToolConfirmation } from "./components/ToolConfirmation";
 
 export function WriteFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemWriteFile>(message, WriteFileToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
   const language = (toolArguments?.path && getFileExtension(toolArguments?.path)) ?? "text";
 
   const content = (() => {
@@ -41,7 +42,7 @@ export function WriteFile({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={PencilIcon}>
+      <BuiltInToolHeader icon={PencilIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.write_file.title")}>
           {toolArguments?.path && (
             <MiddleEllipsis className="font-medium font-mono text-sm">

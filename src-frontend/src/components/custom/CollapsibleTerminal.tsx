@@ -11,7 +11,6 @@ import {
   TerminalActions,
   TerminalContent,
   TerminalHeader,
-  TerminalStatus,
   TerminalTitle,
 } from "@/components/ai-elements/terminal";
 import { CopyButton } from "../ui/copy-button";
@@ -47,6 +46,7 @@ export type CollapsibleTerminalProps = {
   stdout: string | null;
   stderr: string | null;
   children?: React.ReactNode;
+  actions?: React.ReactNode;
   isStreaming?: boolean;
   autoScroll?: boolean;
   open?: boolean;
@@ -61,6 +61,7 @@ export function CollapsibleTerminal({
   stdout,
   stderr,
   children,
+  actions,
   isStreaming = false,
   autoScroll = true,
   defaultOpen = true,
@@ -106,9 +107,8 @@ export function CollapsibleTerminal({
               disabled={!stdout || !stderr}
               onChange={setCurrentOutput}
             />
-
-            <TerminalStatus />
             <TerminalActions>
+              {actions}
               <CopyButton
                 size="icon"
                 variant="ghost"
@@ -116,10 +116,10 @@ export function CollapsibleTerminal({
                 content={activeOutput ?? ""}
                 onClick={(e) => e.stopPropagation()}
               />
-              <ChevronDownIcon
-                size={16}
-                className={cn("transition-transform", open ? "rotate-0" : "-rotate-90")}
-              />
+              <ChevronDownIcon className={cn(
+                "size-4 transition-transform",
+                { "rotate-180": open }
+              )} />
             </TerminalActions>
           </TerminalHeader>
         </CollapsibleTrigger>

@@ -84,15 +84,15 @@ export const getStatusBadge = (status: ToolState) => {
 };
 
 type RiskBadgeProps = {
-  riskLevel: number;
-  riskReason?: string;
+  level: number;
+  reason?: string;
 };
 
-export function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
+export function RiskBadge({ level, reason }: RiskBadgeProps) {
   const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
   const normalizedRisk = Math.min(
     100,
-    Math.max(0, Math.ceil(riskLevel / 10) * 10)
+    Math.max(0, Math.ceil(level / 10) * 10)
   );
 
   const configs = [
@@ -133,14 +133,14 @@ export function RiskBadge({ riskLevel, riskReason }: RiskBadgeProps) {
     </Badge>
   );
 
-  if (!riskReason) {
+  if (!reason) {
     return badge;
   }
 
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>{badge}</TooltipTrigger>
-      <TooltipContent align="end">{riskReason}</TooltipContent>
+      <TooltipContent align="end">{reason}</TooltipContent>
     </Tooltip>
   );
 }
@@ -190,7 +190,7 @@ export const ToolHeader = ({
     </div>
     <div className="flex items-center gap-2">
       {(typeof riskLevel === "number") && (
-        <RiskBadge riskLevel={riskLevel} riskReason={riskReason} />
+        <RiskBadge level={riskLevel} reason={riskReason} />
       )}
       <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
     </div>

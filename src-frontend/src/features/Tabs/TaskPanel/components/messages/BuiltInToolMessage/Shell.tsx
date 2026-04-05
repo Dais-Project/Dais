@@ -1,13 +1,15 @@
-import { OsInteractionsShell, ToolMessageMetadata } from "@/api/generated/schemas";
+import { useMemo } from "react";
+import { OsInteractionsShell } from "@/api/generated/schemas";
 import { ShellToolSchema } from "@/api/tool-schema";
 import { CollapsibleTerminal } from "@/components/custom/CollapsibleTerminal";
+import { RiskBadge } from "@/components/ai-elements/tool";
 import { ToolMessageProps } from ".";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useCollapsed } from "../../../hooks/use-collapsible-store";
-import { useMemo } from "react";
+import { getToolMessageMetadata } from "@/types/message";
 
 type ShellResult = {
   stdout: string | null;
@@ -51,7 +53,7 @@ export function Shell({ message }: ToolMessageProps) {
   const toolArguments = useToolArgument<OsInteractionsShell>(message, ShellToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
   const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const commandInput = (() => {
     if (toolArguments === null) {
@@ -89,6 +91,9 @@ export function Shell({ message }: ToolMessageProps) {
       defaultOpen={true}
       className="visibility-auto"
       title={toolArguments?.command ?? "Shell"}
+      actions={(risk.level !== undefined) ? (
+        <RiskBadge level={risk.level} reason={risk.reason} />
+      ) : null}
     >
       {userApproval && (
         <ToolConfirmation

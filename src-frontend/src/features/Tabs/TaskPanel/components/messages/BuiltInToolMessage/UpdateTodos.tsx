@@ -1,14 +1,15 @@
 import { ListTodoIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { ExecutionControlUpdateTodos, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
+import { getToolMessageMetadata } from "@/types/message";
 import { UpdateTodosSchema } from "@/api/tool-schema";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
 import { ToolMessageProps } from ".";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "./components/BuiltInTool";
+import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
-import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 
 export function UpdateTodos({ message }: ToolMessageProps) {
@@ -17,7 +18,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
   const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message, UpdateTodosSchema);
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const todos = toolArguments?.todos ?? [];
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -41,6 +42,7 @@ export function UpdateTodos({ message }: ToolMessageProps) {
       <BuiltInToolHeader
         title={t("tool.update_todos.title")}
         icon={ListTodoIcon}
+        risk={risk}
       />
       <BuiltInToolContent>{content}</BuiltInToolContent>
       {userApproval && (

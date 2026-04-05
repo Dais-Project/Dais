@@ -60,7 +60,7 @@ export function BuiltInToolHeader({
       </div>
       <div className="flex items-center gap-2">
         {(typeof risk.level === "number") && (
-          <RiskBadge riskLevel={risk.level} riskReason={risk.reason} />
+          <RiskBadge level={risk.level} reason={risk.reason} />
         )}
         <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
       </div>

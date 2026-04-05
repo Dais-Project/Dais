@@ -3,13 +3,14 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { BundledLanguage, bundledLanguages } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemReadFile, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { FileSystemReadFile } from "@/api/generated/schemas";
 import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { getFileExtension } from "@/lib/path";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { getToolMessageMetadata } from "@/types/message";
 import { ToolMessageProps } from ".";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
@@ -93,7 +94,7 @@ export function ReadFile({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemReadFile>(message, ReadFileToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -112,7 +113,7 @@ export function ReadFile({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={FileTextIcon}>
+      <BuiltInToolHeader icon={FileTextIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.read_file.title")}>
           {toolArguments?.path && (
             <MiddleEllipsis className="font-medium font-mono text-sm">

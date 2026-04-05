@@ -1,23 +1,24 @@
 import { PencilIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemEditFile, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { FileSystemEditFile } from "@/api/generated/schemas";
 import { EditFileToolSchema } from "@/api/tool-schema";
 import { DiffView } from "@/components/custom/DiffView";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { ToolConfirmation } from "./components/ToolConfirmation";
+import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
+import { getToolMessageMetadata } from "@/types/message";
 import { ToolMessageProps } from ".";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
-import { ToolConfirmation } from "./components/ToolConfirmation";
-import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 
 export function EditFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemEditFile>(message, EditFileToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -49,7 +50,7 @@ export function EditFile({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={PencilIcon}>
+      <BuiltInToolHeader icon={PencilIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.edit_file.title")}>
           {toolArguments?.path && (
             <MiddleEllipsis className="font-medium font-mono text-sm">

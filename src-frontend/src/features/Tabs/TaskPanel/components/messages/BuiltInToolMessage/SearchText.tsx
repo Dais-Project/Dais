@@ -2,22 +2,23 @@ import { SearchIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemSearchText, ToolMessageMetadata } from "@/api/generated/schemas";
+import type { FileSystemSearchText } from "@/api/generated/schemas";
 import { SearchTextToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
+import { getToolMessageMetadata } from "@/types/message";
 import { ToolMessageProps } from ".";
+import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
+import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
-import { ToolConfirmation } from "./components/ToolConfirmation";
 
 export function SearchText({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemSearchText>(message, SearchTextToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -40,7 +41,7 @@ export function SearchText({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={SearchIcon}>
+      <BuiltInToolHeader icon={SearchIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.search_text.title")}>
           {toolArguments && (
             <div className="truncate font-medium font-mono text-sm">

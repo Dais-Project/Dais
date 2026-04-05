@@ -2,7 +2,7 @@ import { Activity } from "react";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput, ToolState } from "@/components/ai-elements/tool";
 import { activityVisible } from "@/lib/activity-visible";
 import { ToolMessageMetadata } from "@/api/generated/schemas";
-import { UiToolMessage } from "@/types/message";
+import { getToolMessageMetadata, UiToolMessage } from "@/types/message";
 import { ToolMessageProps } from "./BuiltInToolMessage";
 import { ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmation";
 import { useAgentTaskAction } from "../../hooks/use-agent-task";
@@ -39,7 +39,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
   const { toolName, toolsetName } = useToolName(message.name);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
   const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   return (
     <Tool
@@ -53,8 +53,8 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
         toolName={toolName}
         toolsetName={toolsetName}
         state={toolState}
-        riskLevel={(message.metadata as ToolMessageMetadata).risk_level}
-        riskReason={(message.metadata as ToolMessageMetadata).risk_reason}
+        riskLevel={risk.level}
+        riskReason={risk.reason}
       />
       <ToolContent>
         <ToolInput input={toolArguments} />

@@ -3,24 +3,22 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type {
-  ToolMessageMetadata,
-  WebInteractionFetch,
-} from "@/api/generated/schemas";
+import type { WebInteractionFetch } from "@/api/generated/schemas";
 import { FetchToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
+import { ToolMessageProps } from ".";
 import {
   BuiltInToolContainer,
   BuiltInToolContent,
   BuiltInToolError,
   BuiltInToolHeader,
   BuiltInToolTitle,
-} from "@/features/Tabs/TaskPanel/components/messages/BuiltInToolMessage/components/BuiltInTool";
-import { ToolMessageProps } from ".";
+} from "./components/BuiltInTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
+import { getToolMessageMetadata } from "@/types/message";
 
 type ParsedFetchResult =
   | {
@@ -118,7 +116,7 @@ function FetchContent({ result }: { result: string }) {
     );
   }
 
-  const reponseSummary = (
+  const responseSummary = (
     <div className="text-sm">
       <span className="text-muted-foreground">响应状态：</span>
       <span className="font-medium font-mono">{parsed.statusCode ?? "-"} {parsed.reasonPhrase}</span>
@@ -129,7 +127,7 @@ function FetchContent({ result }: { result: string }) {
     const errorText = parsed.text.trim().length === 0 ? "(empty error response body)" : parsed.text;
     return (
       <div className="px-4 pb-4 space-y-2">
-        {reponseSummary}
+        {responseSummary}
         <CodeBlock
           code={errorText}
           language={"text" as BundledLanguage}
@@ -142,7 +140,7 @@ function FetchContent({ result }: { result: string }) {
   if (parsed.content.trim().length === 0) {
     return (
       <div className="px-4 pb-4 space-y-2">
-        {reponseSummary}
+        {responseSummary}
         <p className="text-muted-foreground text-sm">Empty response</p>
       </div>
     );
@@ -150,7 +148,7 @@ function FetchContent({ result }: { result: string }) {
 
   return (
     <div className="px-4 pb-4 space-y-2">
-      {reponseSummary}
+      {responseSummary}
       <CodeBlock
         code={parsed.content}
         language={"markdown" as BundledLanguage}
@@ -165,7 +163,7 @@ export function Fetch({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<WebInteractionFetch>(message, FetchToolSchema);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const userApproval = (message.metadata as ToolMessageMetadata).user_approval;
+  const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -192,7 +190,7 @@ export function Fetch({ message }: ToolMessageProps) {
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
-      <BuiltInToolHeader icon={GlobeIcon}>
+      <BuiltInToolHeader icon={GlobeIcon} risk={risk}>
         <BuiltInToolTitle className="gap-2" title={t("tool.fetch.title")}>
           {toolArguments?.method && (
             <span className="font-medium font-mono text-sm text-muted-foreground">
