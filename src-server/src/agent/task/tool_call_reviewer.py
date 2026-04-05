@@ -99,6 +99,9 @@ class ToolCallReviewer:
             assert is_agent_tool_metadata(dispatch.message.metadata)
             if "risk_level" not in dispatch.message.metadata:
                 self._logger.warning(f"Tool call {dispatch.message.call_id} has no risk level")
+                # the model did not return the right call_id,
+                # consider it as high_risk to fallback to manual review
+                high_risk.append(dispatch)
                 continue
             if dispatch.message.metadata["risk_level"] > settings.smart_approve_threshold:
                 high_risk.append(dispatch)
