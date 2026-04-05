@@ -9,7 +9,7 @@ import {
   useGetWorkspacesSuspenseInfinite,
 } from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
+import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -24,7 +24,6 @@ import {
   EmptyDescription,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
@@ -69,18 +68,26 @@ type WorkspaceItemProps = {
   workspace: WorkspaceBrief;
   disabled: boolean;
   isSelected: boolean;
-  onSelect: (workspaceId: number) => void;
-  onDelete: (workspace: WorkspaceBrief) => void;
+  ref?: React.Ref<HTMLDivElement>;
+  onSelect?: (workspaceId: number) => void;
+  onDelete?: (workspace: WorkspaceBrief) => void;
 };
 
-function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: WorkspaceItemProps) {
+function WorkspaceItem({
+  workspace,
+  disabled,
+  isSelected,
+  ref,
+  onSelect,
+  onDelete,
+}: WorkspaceItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   const handleSelect = (e: React.MouseEvent) => {
     if (disabled) {
       return;
     }
-    onSelect(workspace.id);
+    onSelect?.(workspace.id);
     e.stopPropagation();
   };
 
@@ -101,7 +108,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
 
   return (
     <ActionableItem>
-      <ActionableItemTrigger>
+      <ActionableItemTrigger ref={ref}>
         <ActionableItemIcon
           role="button"
           className={disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
@@ -128,7 +135,7 @@ function WorkspaceItem({ workspace, disabled, isSelected, onSelect, onDelete }: 
             <span>{t("workspaces.menu.open_in_file_manager")}</span>
           </ActionableItemMenuItem>
         )}
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(workspace)}>
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(workspace)}>
           <TrashIcon />
           <span>{t("workspaces.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -182,22 +189,24 @@ export function WorkspaceList() {
 
   return (
     <>
-      <ScrollArea className="limit-width flex-1">
-        <InfiniteScroll
-          query={query}
-          selectItems={(page) => page.items}
-          itemRender={(workspace) => (
-            <WorkspaceItem
-              key={workspace.id}
-              workspace={workspace}
-              disabled={isCurrentWorkspaceLoading}
-              isSelected={workspace.id === currentWorkspace?.id}
-              onSelect={setCurrentWorkspace}
-              onDelete={asyncConfirm.trigger}
-            />
-          )}
-        />
-      </ScrollArea>
+      <InfiniteVirtualScroll
+        query={query}
+        className="limit-width"
+        selectItems={(page) => page.items}
+        itemHeight={69}
+        overscan={3}
+        itemRender={({ item, key, ref }) => (
+          <WorkspaceItem
+            key={key}
+            workspace={item}
+            ref={ref}
+            disabled={isCurrentWorkspaceLoading}
+            isSelected={item.id === currentWorkspace?.id}
+            onSelect={setCurrentWorkspace}
+            onDelete={asyncConfirm.trigger}
+          />
+        )}
+      />
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
         description={t("workspaces.dialog.delete_description_with_name", {

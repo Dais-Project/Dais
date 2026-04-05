@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { invalidateAgentQueries, useDeleteAgent, useGetAgentsSuspenseInfinite } from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
-import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
+import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
   ActionableItemIcon,
@@ -15,7 +15,6 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
@@ -57,10 +56,11 @@ function openAgentEditTab({ agentId, agentName }: OpenAgentEditTabParams) {
 
 type AgentItemProps = {
   agent: AgentBrief;
-  onDelete: (agent: AgentBrief) => void;
+  ref?: React.Ref<HTMLDivElement>;
+  onDelete?: (agent: AgentBrief) => void;
 };
 
-function AgentItem({ agent, onDelete }: AgentItemProps) {
+function AgentItem({ agent, ref, onDelete }: AgentItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -72,7 +72,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
   };
   return (
     <ActionableItem>
-      <ActionableItemTrigger>
+      <ActionableItemTrigger ref={ref}>
         <ActionableItemIcon seed={agent.name}>
           <DynamicIcon name={resolveIconName(agent.icon_name, "bot")} />
         </ActionableItemIcon>
@@ -83,7 +83,7 @@ function AgentItem({ agent, onDelete }: AgentItemProps) {
           <PencilIcon />
           <span>{t("agents.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(agent)}>
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(agent)}>
           <TrashIcon />
           <span>{t("agents.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -128,19 +128,21 @@ export function AgentList() {
 
   return (
     <>
-      <ScrollArea className="flex-1 limit-width">
-        <InfiniteScroll
-          query={query}
-          selectItems={(page) => page.items}
-          itemRender={(agent) => (
-            <AgentItem
-              key={agent.id}
-              agent={agent}
-              onDelete={asyncConfirm.trigger}
-            />
-          )}
-        />
-      </ScrollArea>
+      <InfiniteVirtualScroll
+        query={query}
+        className="limit-width"
+        selectItems={(page) => page.items}
+        itemHeight={69}
+        overscan={3}
+        itemRender={({ item, key, ref }) => (
+          <AgentItem
+            key={key}
+            ref={ref}
+            agent={item}
+            onDelete={asyncConfirm.trigger}
+          />
+        )}
+      />
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
         description={t("agents.dialog.delete_description_with_name", {

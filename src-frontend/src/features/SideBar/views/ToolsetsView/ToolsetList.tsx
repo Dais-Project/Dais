@@ -85,7 +85,7 @@ function openToolsetEditTab({
 
 type ToolsetItemProps = {
   toolset: ToolsetBrief;
-  onDelete: (toolset: ToolsetBrief) => void;
+  onDelete?: (toolset: ToolsetBrief) => void;
 };
 
 function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
@@ -136,7 +136,7 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
           <PencilIcon />
           <span>{t("toolsets.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(toolset)}>
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(toolset)}>
           <TrashIcon />
           <span>{t("toolsets.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -171,7 +171,7 @@ export function ToolsetList() {
 
   return (
     <>
-      <ScrollArea className="limit-width flex-1">
+      <ScrollArea className="limit-width flex-1 h-full">
         {toolsets.map((toolset) => (
           <ToolsetItem
             key={toolset.id}

@@ -66,7 +66,7 @@ export function SkillsView() {
           disabled={uploadArchiveMutation.isPending}
         />
       </SideBarHeader>
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <AsyncBoundary skeleton={<SideBarListSkeleton />}>
           <SkillList />
         </AsyncBoundary>

@@ -30,7 +30,7 @@ export function AgentsView() {
           onClick={openAgentCreateTab}
         />
       </SideBarHeader>
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <AsyncBoundary skeleton={<SideBarListSkeleton />}>
           <AgentList />
         </AsyncBoundary>

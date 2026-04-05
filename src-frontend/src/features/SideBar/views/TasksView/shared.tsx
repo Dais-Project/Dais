@@ -54,13 +54,17 @@ type TaskItemProps = {
   onDelete: (task: TaskBrief) => void;
 };
 
-export function TaskItem({ task, onRegenerateTitle, onOpen, onDelete }: TaskItemProps) {
+export function TaskItem({ task, ref, onRegenerateTitle, onOpen, onDelete }: TaskItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
   return (
     <ActionableItem>
-      <ActionableItemTrigger className="cursor-pointer" onClick={() => onOpen(task)}>
+      <ActionableItemTrigger
+        ref={ref}
+        className="cursor-pointer"
+        onClick={() => onOpen(task)}
+      >
         <ActionableItemIcon>
           <DynamicIcon name={resolveIconName(task.icon_name, "box")} />
         </ActionableItemIcon>
