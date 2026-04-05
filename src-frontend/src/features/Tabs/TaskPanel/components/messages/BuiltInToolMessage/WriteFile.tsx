@@ -19,7 +19,7 @@ export function WriteFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemWriteFile>(message, WriteFileToolSchema);
-  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
   const language = (toolArguments?.path && getFileExtension(toolArguments?.path)) ?? "text";
 
@@ -41,7 +41,7 @@ export function WriteFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id}>
       <BuiltInToolHeader icon={PencilIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.write_file.title")}>
           {toolArguments?.path && (

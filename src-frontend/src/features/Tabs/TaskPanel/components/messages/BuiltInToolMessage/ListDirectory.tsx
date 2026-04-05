@@ -18,7 +18,7 @@ export function ListDirectory({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemListDirectory>(message, ListDirectoryToolSchema);
-  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
@@ -44,7 +44,7 @@ export function ListDirectory({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id}>
       <BuiltInToolHeader icon={FolderTreeIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.list_directory.title")}>
           {toolArguments?.path && (

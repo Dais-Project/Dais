@@ -17,7 +17,7 @@ export function EditFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<FileSystemEditFile>(message, EditFileToolSchema);
-  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
@@ -49,7 +49,7 @@ export function EditFile({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id}>
       <BuiltInToolHeader icon={PencilIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.edit_file.title")}>
           {toolArguments?.path && (

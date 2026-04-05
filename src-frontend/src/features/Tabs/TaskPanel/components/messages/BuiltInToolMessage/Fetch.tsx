@@ -162,7 +162,7 @@ export function Fetch({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<WebInteractionFetch>(message, FetchToolSchema);
-  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
@@ -189,7 +189,7 @@ export function Fetch({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id}>
       <BuiltInToolHeader icon={GlobeIcon} risk={risk}>
         <BuiltInToolTitle className="gap-2" title={t("tool.fetch.title")}>
           {toolArguments?.method && (

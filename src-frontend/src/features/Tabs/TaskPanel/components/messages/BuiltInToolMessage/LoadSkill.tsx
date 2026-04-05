@@ -54,7 +54,7 @@ export function LoadSkill({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
   const toolArguments = useToolArgument<ContextControlLoadSkill>(message, LoadSkillToolSchema);
-  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
@@ -73,7 +73,7 @@ export function LoadSkill({ message }: ToolMessageProps) {
   })();
 
   return (
-    <BuiltInToolContainer id={message.call_id} defaultOpen={!hasResult}>
+    <BuiltInToolContainer id={message.call_id}>
       <BuiltInToolHeader icon={BookOpenIcon} risk={risk}>
         <BuiltInToolTitle title={t("tool.load_skill.title")}>
           {toolArguments?.name && (
