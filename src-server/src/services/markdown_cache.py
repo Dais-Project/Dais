@@ -22,34 +22,42 @@ class MarkdownCacheService(ServiceBase):
         hash = hashlib.sha256(abs_path.read_bytes())
         return hash.hexdigest()
 
-    def _normalize_path(self, path: Path) -> Path:
+    def _normalize_path(self, path: Path) -> Path | None:
         """Normalize the path to be relative to the workspace root."""
         if not path.is_absolute(): return path
-        return path.relative_to(self._cwd)
+        try:
+            path.relative_to(self._cwd)
+        except ValueError:
+            # invalid path, may not be the subdir of cwd
+            return None
 
     async def get(self, path: Path) -> str | None:
-        path = self._normalize_path(path)
-        hash = await asyncio.to_thread(self._compute_hash, path)
+        normalized_path = self._normalize_path(path)
+        if normalized_path is None: return None
+
+        hash = await asyncio.to_thread(self._compute_hash, normalized_path)
         if hash is None: return None
 
         stmt = select(markdown_cache_models.MarkdownCache).where(
             markdown_cache_models.MarkdownCache.workspace_id == self._workspace_id,
             markdown_cache_models.MarkdownCache.hash == hash,
-            markdown_cache_models.MarkdownCache.source_path == path.as_posix(),
+            markdown_cache_models.MarkdownCache.source_path == normalized_path.as_posix(),
         )
         select_result = await self._db_session.scalar(stmt)
         if not select_result: return None
         return select_result.content
 
     async def set(self, path: Path, content: str):
-        path = self._normalize_path(path)
-        hash = await asyncio.to_thread(self._compute_hash, path)
-        if hash is None: return None
+        normalized_path = self._normalize_path(path)
+        if normalized_path is None: return
+
+        hash = await asyncio.to_thread(self._compute_hash, normalized_path)
+        if hash is None: return
 
         stmt = select(markdown_cache_models.MarkdownCache).where(
             markdown_cache_models.MarkdownCache.workspace_id == self._workspace_id,
             markdown_cache_models.MarkdownCache.hash == hash,
-            markdown_cache_models.MarkdownCache.source_path == path.as_posix(),
+            markdown_cache_models.MarkdownCache.source_path == normalized_path.as_posix(),
         )
         select_result = await self._db_session.scalar(stmt)
         if select_result:
@@ -59,7 +67,7 @@ class MarkdownCacheService(ServiceBase):
             new_cache = markdown_cache_models.MarkdownCache(
                 hash=hash,
                 content=content,
-                source_path=path.as_posix(),
+                source_path=normalized_path.as_posix(),
                 workspace_id=self._workspace_id,
             )
             self._db_session.add(new_cache)

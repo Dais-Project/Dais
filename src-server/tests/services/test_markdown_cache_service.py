@@ -106,3 +106,24 @@ class TestMarkdownCacheService:
 
         assert [cache.source_path for cache in caches] == ["existing.md"]
         assert [cache.content for cache in caches] == ["existing cache"]
+
+    @pytest.mark.asyncio
+    async def test_get_and_set_ignore_absolute_path_outside_workspace(
+        self,
+        db_session: AsyncSession,
+        temp_workspace: Path,
+        tmp_path: Path,
+    ):
+        outside_file = tmp_path / "outside.md"
+        outside_file.write_text("# Outside", encoding="utf-8")
+        service = MarkdownCacheService(db_session, workspace_id=1, cwd=temp_workspace)
+
+        await service.set(outside_file, "outside content")
+        await db_session.flush()
+
+        count_stmt = select(func.count()).select_from(MarkdownCache)
+        cache_count = await db_session.scalar(count_stmt)
+        result = await service.get(outside_file)
+
+        assert cache_count == 0
+        assert result is None

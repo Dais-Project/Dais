@@ -79,7 +79,7 @@ def test_list_directory_nonexistent_path(temp_workspace: Path):
 
 
 def test_search_file_applies_cutoff_and_formats_folder_path(monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
-    def fake_scan_cached(root: Path, scan_limit: int):
+    def fake_scan_cached(root: Path, scan_limit: int, _slot: int = 0):
         assert root == temp_workspace.resolve()
         assert scan_limit == 10_000
         return [
@@ -111,7 +111,7 @@ def test_search_file_applies_cutoff_and_formats_folder_path(monkeypatch: pytest.
 
 
 def test_search_file_respects_match_limit(monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
-    def fake_scan_cached(root: Path, scan_limit: int):
+    def fake_scan_cached(root: Path, scan_limit: int, _slot: int = 0):
         assert root == temp_workspace.resolve()
         assert scan_limit == 10_000
         return [
