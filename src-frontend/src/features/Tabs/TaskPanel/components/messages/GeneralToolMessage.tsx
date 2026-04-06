@@ -38,14 +38,14 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
   const toolState = getToolState(message);
   const { toolName, toolsetName } = useToolName(message.name);
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
+  const [collapsed, setCollapsed] = useCollapsed(message.call_id, true);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   return (
     <Tool
       open={!collapsed}
       onOpenChange={(open) => setCollapsed(!open)}
-      defaultOpen={toolState === "approval-requested"}
+      defaultOpen={false}
       className="selectable visibility-auto mb-0"
     >
       <ToolHeader
