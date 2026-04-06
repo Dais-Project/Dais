@@ -50,11 +50,13 @@ function TaskConversationItem({ isStreaming, children }: TaskConversationItemPro
     }
   }, [isScrolling, inView]);
 
+  const shouldRender = isShown || isStreaming || heightRef.current === null;
+
   return (
     <div ref={ref}>
-      {(isShown || isStreaming || heightRef.current === null)
+      {shouldRender
         ? children
-        : <div style={{ height: heightRef.current }} />}
+        : <div style={{ height: heightRef.current! }} />}
     </div>
   );
 }
