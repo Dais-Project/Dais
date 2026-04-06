@@ -5,7 +5,7 @@ import { AgentEditForm } from "@/features/Tabs/AgentPanel/AgentEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
-import { TabPanelFrame } from "../TabPanelFrame";
+import { TabPanelFrame } from "../components/TabPanelFrame";
 
 function AgentCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);

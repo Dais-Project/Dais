@@ -4,7 +4,7 @@ import { ToolsetEditForm } from "@/features/Tabs/ToolsetPanel/ToolsetEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { ToolsetTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
-import { TabPanelFrame } from "../TabPanelFrame";
+import { TabPanelFrame } from "../components/TabPanelFrame";
 import { ToolsetCreateForm } from "./ToolsetCreateForm";
 
 function ToolsetCreatePanel({ tabId }: { tabId: string }) {
