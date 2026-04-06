@@ -5,7 +5,7 @@ import { ProviderEditForm } from "@/features/Tabs/ProviderPanel/ProviderEditForm
 import { useTabsStore } from "@/stores/tabs-store";
 import type { ProviderTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
-import { TabPanelFrame } from "../TabPanelFrame";
+import { TabPanelFrame } from "../components/TabPanelFrame";
 
 function ProviderCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);

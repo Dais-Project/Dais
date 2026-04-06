@@ -3,7 +3,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { WorkspaceTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
-import { TabPanelFrame } from "../TabPanelFrame";
+import { TabPanelFrame } from "../components/TabPanelFrame";
 import { WorkspaceCreateForm } from "./WorkspaceCreateForm";
 import { WorkspaceEditForm } from "./WorkspaceEditForm";
 

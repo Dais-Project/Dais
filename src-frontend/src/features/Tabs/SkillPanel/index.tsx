@@ -4,7 +4,7 @@ import { SkillEditForm } from "@/features/Tabs/SkillPanel/SkillEditForm";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { SkillTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
-import { TabPanelFrame } from "../TabPanelFrame";
+import { TabPanelFrame } from "../components/TabPanelFrame";
 import { SkillCreateForm } from "./SkillCreateForm";
 
 function SkillCreatePanel({ tabId }: { tabId: string }) {
