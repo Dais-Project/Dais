@@ -1,23 +1,62 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useThrottle } from "ahooks";
 import { ArrowDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { useCallback } from "react";
-import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { StickToBottom, StickToBottomContext, useStickToBottomContext } from "use-stick-to-bottom";
+
+type ConversationState = {
+  isScrolling: boolean;
+};
+const ConversationContext = createContext<ConversationState | null>(null);
+
+export function useConversationContext(): ConversationState {
+  const context = useContext(ConversationContext);
+  if (!context) {
+    throw new Error("useConversationContext must be used within Provider");
+  }
+  return context;
+}
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 
-export const Conversation = ({ className, ...props }: ConversationProps) => (
-  <StickToBottom
-    className={cn("relative flex-1 overflow-y-hidden", className)}
-    initial="smooth"
-    resize="smooth"
-    role="log"
-    {...props}
-  />
-);
+export const Conversation = ({ className, ...props }: ConversationProps) => {
+  const contextRef = useRef<StickToBottomContext | null>(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  useEffect(() => {
+    const scrollEl = contextRef.current?.scrollRef.current;
+    const handleScroll = () => setIsScrolling(true);
+    const handleScrollEnd = () => setIsScrolling(false);
+    if (scrollEl) {
+      scrollEl.addEventListener("scroll", handleScroll);
+      scrollEl.addEventListener("scrollend", handleScrollEnd);
+    }
+    return () => {
+      if (scrollEl) {
+        scrollEl.removeEventListener("scroll", handleScroll);
+        scrollEl.removeEventListener("scrollend", handleScrollEnd);
+      }
+    }
+  }, []);
+
+  const throttledIsScrolling = useThrottle(isScrolling, { wait: 16 });
+  const value = useMemo(() => ({ isScrolling: throttledIsScrolling }), [throttledIsScrolling]);
+
+  return (
+    <ConversationContext value={value}>
+      <StickToBottom
+        className={cn("relative flex-1 overflow-y-hidden", className)}
+        initial="smooth"
+        resize="smooth"
+        role="log"
+        contextRef={contextRef}
+        {...props}
+      />
+    </ConversationContext>
+  );
+};
 
 export type ConversationContentProps = ComponentProps<
   typeof StickToBottom.Content
