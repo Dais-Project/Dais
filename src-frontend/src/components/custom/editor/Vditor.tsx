@@ -113,6 +113,7 @@ export function Vditor({
       value: initialValue,
       toolbar: CUSTOM_VDITOR_TOOLBAR,
       blur: changeHandler,
+      input: changeHandler,
       after: () => vditorRef.current = vditor,
     });
   });
