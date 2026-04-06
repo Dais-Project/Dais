@@ -24,9 +24,9 @@ import { TABS_NAMESPACE } from "@/i18n/resources";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
+import { activityVisible } from "@/lib/activity-visible";
 import { StoredTab, useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
-import { activityVisible } from "@/lib/activity-visible";
 import { AgentPanel } from "./AgentPanel";
 import { ProviderPanel } from "./ProviderPanel";
 import { SkillPanel } from "./SkillPanel";
@@ -43,7 +43,10 @@ const tabIconMap: Record<Tab["type"], LucideIcon> = {
   skill: ScrollTextIcon,
 };
 
-export type TabPanelProps<Metadata> = Omit<StoredTab, "metadata"> & { metadata: Metadata };
+export type TabPanelProps<Metadata> = Omit<StoredTab, "metadata"> & {
+  isActive: boolean;
+  metadata: Metadata;
+};
 
 function SortableTab({ tab }: { tab: StoredTab }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id });
@@ -168,24 +171,51 @@ function TabBar() {
   );
 }
 
-function TabPanelRenderer({ tab }: { tab: StoredTab }) {
+function TabPanelRenderer({
+  tab,
+  isActive,
+}: {
+  tab: StoredTab;
+  isActive: boolean;
+}) {
   switch (tab.type) {
     case "task":
-      return <TaskPanel {...tab} />;
+      return <TaskPanel {...tab} isActive={isActive} />;
     case "workspace":
-      return <WorkspacePanel {...tab} />;
+      return (
+        <Activity mode={activityVisible(isActive)}>
+          <WorkspacePanel isActive={isActive} {...tab} />
+        </Activity>
+      );
     case "agent":
-      return <AgentPanel {...tab} />;
+      return (
+        <Activity mode={activityVisible(isActive)}>
+          <AgentPanel isActive={isActive} {...tab} />
+        </Activity>
+      );
     case "provider":
-      return <ProviderPanel {...tab} />;
+      return (
+        <Activity mode={activityVisible(isActive)}>
+          <ProviderPanel isActive={isActive} {...tab} />
+        </Activity>
+      );
     case "toolset":
-      return <ToolsetPanel {...tab} />;
+      return (
+        <Activity mode={activityVisible(isActive)}>
+          <ToolsetPanel isActive={isActive} {...tab} />
+        </Activity>
+      );
     case "skill":
-      return <SkillPanel {...tab} />;
+      return (
+        <Activity mode={activityVisible(isActive)}>
+          <SkillPanel isActive={isActive} {...tab} />
+        </Activity>
+      );
     default:
       return null;
   }
 }
+
 
 function TabPanels() {
   const { t } = useTranslation(TABS_NAMESPACE);
@@ -202,19 +232,22 @@ function TabPanels() {
   }
   return (
     <div className="flex-1 overflow-hidden bg-layout-tabs-content">
-      {sortedTabs.map((tab) => (
-        <Activity key={tab.id} mode={activityVisible(tab.id === activeTabId)}>
+      {sortedTabs.map((tab) => {
+        const isActive = tab.id === activeTabId;
+        return (
           <div
             role="tabpanel"
+            key={tab.id}
             id={`panel-${tab.id}`}
             aria-labelledby={`tab-${tab.id}`}
-            tabIndex={0}
+            tabIndex={isActive ? 0 : -1}
             className="h-full"
+            style={{ display: isActive ? "block" : "none" }}
           >
-            <TabPanelRenderer tab={tab} />
+            <TabPanelRenderer tab={tab} isActive={isActive} />
           </div>
-        </Activity>
-      ))}
+        );
+      })}
     </div>
   );
 }

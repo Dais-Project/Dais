@@ -1,7 +1,6 @@
 import { useMount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTabUnmount } from "@/stores/tabs-store";
 import { ContinueTask } from "./components/ContinueTask";
 import { ErrorRetry } from "./components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "./components/PromptInput";
@@ -37,25 +36,22 @@ export function SessionViewSkeleton() {
 }
 
 type SessionViewProps = {
-  tabId: string;
   workspaceId: number;
   shouldStartStream: boolean;
 };
 
 export function SessionView({
-  tabId,
   workspaceId,
   shouldStartStream,
 }: SessionViewProps) {
   const { state } = useAgentTaskState();
-  const { continue: continueTask, cancel: cancelTask } = useAgentTaskAction();
+  const { continue: continueTask } = useAgentTaskAction();
 
   useMount(() => {
     if (shouldStartStream) {
       continueTask();
     }
   });
-  useTabUnmount(tabId, cancelTask);
 
   return (
     <CollapsibleStoreProvider>

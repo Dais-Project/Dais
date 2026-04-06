@@ -3,40 +3,9 @@ import { nanoid } from "nanoid";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { type Draft } from "immer";
-import { useEffect } from "react";
-import { useLatest } from "ahooks";
 import type { Tab } from "@/types/tab";
 
 type TabId = string;
-type CloseHandler = () => void;
-const TabsCloseHandlerRegistry = new (class {
-  private map = new Map<TabId, Set<CloseHandler>>();
-
-  register(id: TabId, handler: CloseHandler) {
-    if (!this.map.has(id)) {
-      this.map.set(id, new Set());
-    }
-    this.map.get(id)!.add(handler);
-  }
-
-  unregister(id: TabId, handler: CloseHandler) {
-    const handlers = this.map.get(id);
-    if (handlers) {
-      handlers.delete(handler);
-      if (handlers.size === 0) {
-        this.map.delete(id);
-      }
-    }
-  }
-
-  trigger(id: TabId) {
-    const handlers = this.map.get(id);
-    if (handlers) {
-      handlers.forEach((handler) => handler());
-      this.map.delete(id);
-    }
-  }
-})();
 
 export type StoredTab = Tab & {
   id: TabId;
@@ -69,7 +38,11 @@ export const useTabsStore = create<TabsStore>()(
       activeTabId: null,
       add(tab) {
         set((state: TabsState) => {
-          const newTab = { ...tab, id: tabIdFactory(), createdAt: Date.now() };
+          const newTab = {
+            ...tab,
+            id: tabIdFactory(),
+            createdAt: Date.now(),
+          };
           state.tabs.push(newTab);
           state.activeTabId = newTab.id;
         });
@@ -113,10 +86,6 @@ export const useTabsStore = create<TabsStore>()(
       remove(pattern) {
         if (typeof pattern === "function") {
           set((state: TabsState) => {
-            state.tabs.forEach((t) => pattern(t)
-              && TabsCloseHandlerRegistry.trigger(t.id));
-          });
-          set((state: TabsState) => {
             state.tabs = state.tabs.filter((t) => !pattern(t));
             if (!state.tabs.find((t) => t.id === state.activeTabId)) {
               state.activeTabId = state.tabs.at(-1)?.id ?? null;
@@ -125,10 +94,6 @@ export const useTabsStore = create<TabsStore>()(
           return;
         }
         const id = pattern;
-        set((state: TabsState) => {
-          const targetTab = state.tabs.find((t) => t.id === id);
-          targetTab && TabsCloseHandlerRegistry.trigger(targetTab.id);
-        });
         set((state: TabsState) => {
           const idx = state.tabs.findIndex((t) => t.id === id);
           if (idx === -1) {
@@ -151,12 +116,3 @@ export const useTabsStore = create<TabsStore>()(
     { name: "tabs" }
   ),
 );
-
-export function useTabUnmount(tabId: TabId, callback: () => void) {
-  const callbackRef = useLatest(callback);
-  useEffect(() => {
-    const handler = () => callbackRef.current();
-    TabsCloseHandlerRegistry.register(tabId, handler);
-    return () => TabsCloseHandlerRegistry.unregister(tabId, handler);
-  }, [tabId]);
-}

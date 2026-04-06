@@ -2,6 +2,7 @@ import { Dispatch, type RefObject, SetStateAction, useCallback, useRef, useState
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/task";
 import type { TaskState } from ".";
+import { useUnmount } from "ahooks";
 
 type TaskStreamProps = {
   taskId: number;
@@ -92,6 +93,8 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
     abortController.current = null;
     setState("idle");
   }, [setState]);
+
+  useUnmount(cancel);
 
   return {
     state,
