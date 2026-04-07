@@ -3,7 +3,7 @@ import time
 from typing import Literal
 from dais_sdk.types import UserMessage
 from loguru import logger
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from pydantic import BaseModel
 from src.agent.context import AgentContext
 from src.agent.task import AgentTask, MessageNotFoundError
@@ -41,11 +41,18 @@ async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
     ctx = await AgentContext.create(task_read)
     return AgentTask(ctx)
 
+def parse_append_message_body(body: str = Form(...)) -> TaskAppendMessageBody:
+    return TaskAppendMessageBody.model_validate_json(body)
+
 task_control_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskControlRoute")
 
 @task_control_router.post("/{task_id}/messages", response_model=task_schemas.TaskRead)
-async def append_task_message(task_id: int, body: TaskAppendMessageBody):
+async def append_task_message(
+    task_id: int,
+    body: TaskAppendMessageBody = Depends(parse_append_message_body),
+    files: list[UploadFile] = File(default=[]),
+):
     task = await create_agent_task(task_id, body.agent_id)
     task.discard_pending_tool_calls()
     task.append_message(body.message)

@@ -25,7 +25,6 @@ class TaskRead(TaskBase):
 class TaskCreate(TaskBase):
     agent_id: int
     workspace_id: int
-    messages: list[Message]
 
 """
 Note: This schema is backend only type.

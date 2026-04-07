@@ -17,7 +17,6 @@ import {
   usePromptInputController,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import { uiUserMessageFactory } from "@/types/message";
 import { cn } from "@/lib/utils";
 import { IMAGE_MIME_TYPE, EPUB_MIME_TYPE, PDF_MIME_TYPE, PLAINTEXT_MIME_TYPE, DOCX_MIME_TYPE, XLSX_MIME_TYPE, PPTX_MIME_TYPE } from "@/constants/mimetypes";
 import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
@@ -254,9 +253,11 @@ export function PromptInput({ workspaceId, className }: PromptInputProps) {
       className={cn("rounded-md bg-background", className)}
       {...PROMPTINPUT_FILE_DROP_OPTIONS}
       onSubmit={(message) => {
-        const userMessage = uiUserMessageFactory(message.text);
         if (ableToSubmit) {
-          appendMessage(userMessage);
+          appendMessage(
+            message.text,
+            message.files.map((file) => file.raw)
+          );
         } else if (state === "running") {
           cancel();
         }

@@ -33,7 +33,7 @@ import {
 } from "@/api/task";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
-import { UiUserMessage, type SdkMessage } from "@/types/message";
+import { toSdkMessage, uiUserMessageFactory, type SdkMessage } from "@/types/message";
 import { UiMessage } from "@/types/message";
 import { toUiMessage } from "@/types/message";
 import { sendNotification } from "@/lib/notification";
@@ -81,7 +81,7 @@ export type AgentTaskActions = {
   setAgentId: (agentId: number) => void;
   answerTool: (toolCallId: string, answer: string) => void;
   reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
-  appendMessage: (message: UiUserMessage) => void;
+  appendMessage: (text: string, attachments: File[]) => void;
   editMessage: (messageId: string, content: string) => void;
   continue: () => void;
   cancel: () => void;
@@ -317,12 +317,17 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     }, [toolReviewMutation, taskId, agentId]
   );
 
-  const appendMessage = useCallback((message: UiUserMessage) => {
+  const appendMessage = useCallback((text: string, attachments: File[]) => {
     if (agentId === null) {
       toast.error("任务失败", { description: "请先选择一个 Agent。" });
       return;
     }
-    appendMessageMutation.mutate({ taskId, data: { message, agent_id: agentId } });
+    const userMessage = uiUserMessageFactory(text);
+    const body = JSON.stringify({
+      message: toSdkMessage(userMessage),
+      agent_id: agentId,
+    });
+    appendMessageMutation.mutate({ taskId, data: { body, files: attachments } });
   }, [appendMessageMutation, taskId, agentId]);
 
   const editMessage = useCallback((messageId: string, content: string) => {

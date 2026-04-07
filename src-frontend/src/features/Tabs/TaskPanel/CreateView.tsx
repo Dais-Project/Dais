@@ -1,18 +1,16 @@
 import logo from "@shared/icon-square.png";
-import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
-  getGetTaskQueryKey,
   invalidateTaskQueries,
+  useAppendTaskMessage,
   useCreateTask,
   useSummarizeTaskTitle,
 } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
-import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
+import { updateTaskTitle } from "@/features/resource/task-actions";
 import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
-import { updateTaskTitle } from "@/features/resource/task-actions";
 
 type CreateViewProps = {
   tabId: string;
@@ -21,7 +19,6 @@ type CreateViewProps = {
 
 export function CreateView({ tabId, workspaceId }: CreateViewProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const queryClient = useQueryClient();
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
 
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
@@ -31,33 +28,42 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
       },
     },
   });
-  const createTaskMutation = useCreateTask({
+  const appendMessageMutation = useAppendTaskMessage({
     mutation: {
       async onSuccess(taskRead) {
-        summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
-        await invalidateTaskQueries({ workspaceId });
-        queryClient.removeQueries({
-          queryKey: getGetTaskQueryKey(taskRead.id),
-        });
         updateTabMetadata(tabId, {
           isDraft: false,
           id: taskRead.id,
           workspace_id: taskRead.workspace_id,
         });
+      }
+    }
+  });
+  const createTaskMutation = useCreateTask({
+    mutation: {
+      async onSuccess(taskRead) {
+        await invalidateTaskQueries({ workspaceId });
+        summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
       },
     },
   });
 
-  const handleSubmit = (message: PromptInputMessage, agentId: number) => {
-    const userMessage = uiUserMessageFactory(message.text);
-    createTaskMutation.mutateAsync({
+  const handleSubmit = async (message: PromptInputMessage, agentId: number) => {
+    const taskRead = await createTaskMutation.mutateAsync({
       data: {
         title: DEFAULT_TAB_TITLE,
         agent_id: agentId,
         workspace_id: workspaceId,
-        messages: [toSdkMessage(userMessage)],
       },
     });
+    const body = JSON.stringify({
+      message: message.text,
+      agent_id: agentId,
+    });
+    appendMessageMutation.mutate({
+      taskId: taskRead.id,
+      data: { body, files: message.files.map((file) => file.raw) },
+    })
   };
 
   return (
