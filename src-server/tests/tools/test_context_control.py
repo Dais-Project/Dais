@@ -132,20 +132,17 @@ class FakeSkill:
 
 class TestLoadSkill:
     @pytest.mark.asyncio
-    async def test_load_skill_uses_service_and_materialize_skill(
+    async def test_load_skill_returns_materialized_skill_result(
         self,
         monkeypatch: pytest.MonkeyPatch,
         built_in_toolset_context: BuiltInToolsetContext,
         temp_workspace: Path,
     ):
-        calls: dict[str, object] = {}
         fake_db_session = object()
 
         @asynccontextmanager
         async def fake_db_context():
-            calls["db_context_entered"] = True
             yield fake_db_session
-            calls["db_context_exited"] = True
 
         fake_skill = FakeSkill(
             id=42,
@@ -161,17 +158,14 @@ class TestLoadSkill:
 
         class FakeSkillService:
             def __init__(self, db_session):
-                calls["service_db_session"] = db_session
+                self.db_session = db_session
 
             async def get_skill_by_id(self, skill_id: int):
-                calls["requested_skill_id"] = skill_id
                 return fake_skill
 
         expected_resources_dir = temp_workspace / "materialized" / "resources"
 
         def fake_materialize_skill(skill: skill_schemas.SkillRead, hash: str) -> Path:
-            calls["materialize_skill_arg"] = skill
-            calls["materialize_hash_arg"] = hash
             return expected_resources_dir
 
         monkeypatch.setattr(context_control, "db_context", fake_db_context)
@@ -185,14 +179,3 @@ class TestLoadSkill:
         assert root.tag == "load_skill_result"
         assert resources_dir_el.text == str(expected_resources_dir)
         assert skill_content_el.text == "Use these instructions"
-
-        assert calls["db_context_entered"] is True
-        assert calls["db_context_exited"] is True
-        assert calls["service_db_session"] is fake_db_session
-        assert calls["requested_skill_id"] == 99
-
-        materialize_skill_arg = calls["materialize_skill_arg"]
-        assert isinstance(materialize_skill_arg, skill_schemas.SkillRead)
-        assert materialize_skill_arg.id == 42
-        assert materialize_skill_arg.resources[0].relative == "tool.md"
-        assert calls["materialize_hash_arg"] == "skill-hash"

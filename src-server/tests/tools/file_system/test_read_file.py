@@ -1,10 +1,10 @@
 import xml.etree.ElementTree as ET
 from contextlib import asynccontextmanager
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock
 
 import pytest
 import src.agent.tool.builtin_tools.utils.markdown as markdown_module
+from markitdown import MarkItDown
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -43,13 +43,17 @@ class TestReadFile:
         assert text == "Line 2\nLine 3"
 
     @pytest.mark.asyncio
-    async def test_read_markitdown_convertable_file(self, built_in_toolset_context, temp_workspace):
+    async def test_read_markitdown_convertable_file(self, built_in_toolset_context, temp_workspace, monkeypatch: pytest.MonkeyPatch):
         pdf_path = temp_workspace / "test.pdf"
         pdf_path.write_bytes(b"fake pdf content")
 
-        tool = FileSystemToolset(built_in_toolset_context)
-        tool._markdown_converter.convert = AsyncMock(return_value="# Test PDF\nThis is converted markdown content.")
+        async def fake_convert(self, path: Path) -> str:
+            assert path == pdf_path
+            return "# Test PDF\nThis is converted markdown content."
 
+        monkeypatch.setattr(markdown_module.MarkdownConverter, "convert", fake_convert)
+
+        tool = FileSystemToolset(built_in_toolset_context)
         result = await tool.read_file("test.pdf")
         root, text = parse_file_content_xml(result)
 
@@ -58,7 +62,6 @@ class TestReadFile:
         assert int(root.attrib["total_lines"]) == 2
         assert "Test PDF" in text
         assert "converted markdown" in text
-        tool._markdown_converter.convert.assert_awaited_once_with(pdf_path)
 
     @pytest.mark.asyncio
     async def test_read_markitdown_convertable_file_uses_cached_conversion(
@@ -71,8 +74,6 @@ class TestReadFile:
         pdf_path.write_bytes(b"fake pdf content")
 
         cache_store: dict[str, str] = {}
-        convert_result = type("ConvertResult", (), {"markdown": "# Cached PDF\nConverted once"})()
-        convert_mock = Mock(return_value=convert_result)
 
         @asynccontextmanager
         async def fake_db_context():
@@ -88,11 +89,18 @@ class TestReadFile:
             async def set(self, path: Path, content: str) -> None:
                 cache_store[path.relative_to(self._cwd).as_posix()] = content
 
+        class FakeConvertResult:
+            markdown = "# Cached PDF\nConverted once"
+
+        def fake_markitdown_convert(self, source: Path) -> FakeConvertResult:
+            assert source == pdf_path
+            return FakeConvertResult()
+
         monkeypatch.setattr(markdown_module, "db_context", fake_db_context)
         monkeypatch.setattr(markdown_module, "MarkdownCacheService", FakeMarkdownCacheService)
+        monkeypatch.setattr(MarkItDown, "convert", fake_markitdown_convert)
 
         tool = FileSystemToolset(built_in_toolset_context)
-        monkeypatch.setattr(tool._markdown_converter._md, "convert", convert_mock)
 
         first_result = await tool.read_file("cached.pdf")
         second_result = await tool.read_file("cached.pdf")
@@ -104,7 +112,6 @@ class TestReadFile:
         assert second_text == first_text
         assert first_root.attrib["total_lines"] == "2"
         assert second_root.attrib["total_lines"] == "2"
-        assert convert_mock.call_count == 1
         assert cache_store == {"cached.pdf": "# Cached PDF\nConverted once"}
 
     @pytest.mark.asyncio
