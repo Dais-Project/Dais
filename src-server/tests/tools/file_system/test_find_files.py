@@ -4,6 +4,7 @@ from src.agent.tool.builtin_tools import file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
+@pytest.mark.tool
 class TestFindFiles:
     def _fake_scandir_recursive(self, directory: Path, total_entries: int):
         for index in range(total_entries):

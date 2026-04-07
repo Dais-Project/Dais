@@ -10,6 +10,7 @@ def parse_file_content_xml(result: str) -> tuple[ET.Element, str]:
     return root, text
 
 
+@pytest.mark.tool
 class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_unicode_filename(self, built_in_toolset_context, temp_workspace):

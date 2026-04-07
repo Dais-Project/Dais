@@ -14,6 +14,7 @@ def parse_file_content_xml(result: str) -> tuple[ET.Element, str]:
     return root, text
 
 
+@pytest.mark.tool
 class TestReadFile:
     @pytest.mark.asyncio
     async def test_read_text_file_default(self, built_in_toolset_context, temp_workspace, sample_text_file):

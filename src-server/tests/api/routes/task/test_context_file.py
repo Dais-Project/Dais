@@ -10,6 +10,7 @@ from src.api.routes.task.context_file import (
 )
 
 
+@pytest.mark.api
 def test_list_directory_success(temp_workspace: Path):
     (temp_workspace / "src").mkdir()
     (temp_workspace / "src" / "components").mkdir()
@@ -23,6 +24,7 @@ def test_list_directory_success(temp_workspace: Path):
     ]
 
 
+@pytest.mark.api
 def test_list_directory_filters_hidden_and_sorts(temp_workspace: Path):
     (temp_workspace / "z-folder").mkdir()
     (temp_workspace / "a-folder").mkdir()
@@ -49,6 +51,7 @@ def test_list_directory_filters_hidden_and_sorts(temp_workspace: Path):
     ]
 
 
+@pytest.mark.api
 def test_list_directory_empty_directory(temp_workspace: Path):
     (temp_workspace / "empty").mkdir()
 
@@ -57,6 +60,7 @@ def test_list_directory_empty_directory(temp_workspace: Path):
     assert items == []
 
 
+@pytest.mark.api
 def test_list_directory_path_is_file(temp_workspace: Path):
     (temp_workspace / "note.txt").write_text("note", encoding="utf-8")
 
@@ -66,11 +70,13 @@ def test_list_directory_path_is_file(temp_workspace: Path):
     assert exc_info.value.error_code == ApiErrorCode.PATH_NOT_DIRECTORY
 
 
+@pytest.mark.api
 def test_list_directory_outside_workspace(temp_workspace: Path):
     with pytest.raises(ContextFileInternalError, match="outside workspace"):
         _list_directory(temp_workspace.resolve(), "../")
 
 
+@pytest.mark.api
 def test_list_directory_nonexistent_path(temp_workspace: Path):
     with pytest.raises(ApiError) as exc_info:
         _list_directory(temp_workspace.resolve(), "missing")
@@ -78,6 +84,7 @@ def test_list_directory_nonexistent_path(temp_workspace: Path):
     assert exc_info.value.error_code == ApiErrorCode.PATH_NOT_FOUND
 
 
+@pytest.mark.api
 def test_search_file_applies_cutoff_and_formats_folder_path(monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
     def fake_scan_cached(root: Path, scan_limit: int, _slot: int = 0):
         assert root == temp_workspace.resolve()
@@ -110,6 +117,7 @@ def test_search_file_applies_cutoff_and_formats_folder_path(monkeypatch: pytest.
     ]
 
 
+@pytest.mark.api
 def test_search_file_respects_match_limit(monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
     def fake_scan_cached(root: Path, scan_limit: int, _slot: int = 0):
         assert root == temp_workspace.resolve()
@@ -142,6 +150,7 @@ def test_search_file_respects_match_limit(monkeypatch: pytest.MonkeyPatch, temp_
     ]
 
 
+@pytest.mark.api
 def test_list_directory_rejects_absolute_path(temp_workspace: Path):
     with pytest.raises(ContextFileInternalError, match="relative path"):
         _list_directory(temp_workspace.resolve(), str(temp_workspace.resolve()))

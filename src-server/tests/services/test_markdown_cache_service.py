@@ -8,6 +8,8 @@ from src.db.models.markdown_cache import MarkdownCache
 from src.services.markdown_cache import MarkdownCacheService
 
 
+@pytest.mark.service
+@pytest.mark.integration
 class TestMarkdownCacheService:
     @pytest.mark.asyncio
     async def test_get_returns_none_when_source_file_does_not_exist(

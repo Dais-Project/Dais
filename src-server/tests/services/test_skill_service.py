@@ -11,6 +11,8 @@ from src.services.skill import (
 )
 
 
+@pytest.mark.service
+@pytest.mark.integration
 class TestSkillService:
     @pytest.mark.asyncio
     async def test_get_skill_by_id_not_found(self, db_session: AsyncSession):

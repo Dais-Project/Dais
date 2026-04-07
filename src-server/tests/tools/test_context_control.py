@@ -44,6 +44,7 @@ def parse_load_skill_xml(result: str) -> tuple[ET.Element, ET.Element, ET.Elemen
     return root, resources_dir_el, skill_content_el
 
 
+@pytest.mark.tool
 class TestMaterializeSkill:
     def test_materialize_skill_creates_files_for_first_write(self, monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
         monkeypatch.setattr(context_control, "DATA_DIR", temp_workspace)
@@ -130,6 +131,7 @@ class FakeSkill:
     resources: list[FakeSkillResource]
 
 
+@pytest.mark.tool
 class TestLoadSkill:
     @pytest.mark.asyncio
     async def test_load_skill_returns_materialized_skill_result(

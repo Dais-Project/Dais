@@ -15,6 +15,7 @@ def parse_shell_result(result: str) -> tuple[ET.Element, ET.Element, ET.Element]
     return root, stdout_el, stderr_el
 
 
+@pytest.mark.tool
 class TestOsInteractionsShell:
     @pytest.mark.asyncio
     async def test_shell_executes_command(self, built_in_toolset_context):

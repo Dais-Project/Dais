@@ -8,6 +8,8 @@ from src.services.exceptions import ServiceErrorCode
 from src.services.llm_model import LlmModelService, ModelNotFoundError
 
 
+@pytest.mark.service
+@pytest.mark.integration
 class TestLlmModelService:
     @pytest.mark.asyncio
     async def test_get_model_by_id_not_found(self, db_session: AsyncSession):

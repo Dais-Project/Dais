@@ -11,6 +11,7 @@ CONVERTABLE_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx", "epub"]
 NON_CONVERTABLE_EXTENSIONS = ["txt", "py", "json", "md"]
 
 
+@pytest.mark.tool
 class TestFileSystemToolInit:
     @pytest.mark.asyncio
     async def test_read_file_resolves_absolute_cwd(self, built_in_toolset_context, temp_workspace):
@@ -34,6 +35,7 @@ class TestFileSystemToolInit:
             marker.unlink(missing_ok=True)
 
 
+@pytest.mark.tool
 class TestMarkitdownConvertableBinaryDetection:
     @pytest.mark.parametrize("ext", CONVERTABLE_EXTENSIONS)
     @pytest.mark.asyncio

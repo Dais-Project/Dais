@@ -10,6 +10,8 @@ from src.services.exceptions import ServiceErrorCode
 from src.services.task import TaskNotFoundError, TaskService
 
 
+@pytest.mark.service
+@pytest.mark.integration
 class TestTaskService:
     @pytest.mark.asyncio
     async def test_get_task_by_id_not_found(self, db_session: AsyncSession):
