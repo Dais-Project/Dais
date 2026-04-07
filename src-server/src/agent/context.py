@@ -16,13 +16,11 @@ from src.schemas import (
     skill as skill_schemas,
     task as task_schemas,
 )
-from src.services import (
-    AgentService,
-    WorkspaceService,
-    LlmModelService,
-    ProviderService,
-    TaskService,
-)
+from src.services.agent import AgentService
+from src.services.workspace import WorkspaceService
+from src.services.llm_model import LlmModelService
+from src.services.provider import ProviderService
+from src.services.task import TaskService
 from src.settings import use_app_setting_manager
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
 from .prompts import BASE_INSTRUCTION, NO_AVAILABLE_SKILLS, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION

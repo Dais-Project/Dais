@@ -5,6 +5,7 @@ from typing import override
 from src.db import db_context
 from src.schemas import skill as skill_schemas
 from src.common import DATA_DIR
+from src.services.skill import SkillService
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
 
 
@@ -66,8 +67,6 @@ class ContextControlToolset(BuiltInToolset):
                 - The directory is temporary and only valid for the duration of the current task.
                 - If a referenced file is not found under resources_dir, treat it as unavailable and proceed without it (or report the issue if the file is essential).
         """
-        from src.services import SkillService
-
         async with db_context() as db_session:
             skill = await SkillService(db_session).get_skill_by_id(id)
         skill_resources_dir = await asyncio.to_thread(materialize_skill, skill_schemas.SkillRead.model_validate(skill), skill.hash)

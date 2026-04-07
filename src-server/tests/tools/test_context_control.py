@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-import src.services as services_module
+from src.services.skill import SkillService
 from src.agent.tool.builtin_tools import context_control
 from src.agent.tool.builtin_tools.context_control import ContextControlToolset, materialize_skill
 from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
@@ -169,7 +169,7 @@ class TestLoadSkill:
             return expected_resources_dir
 
         monkeypatch.setattr(context_control, "db_context", fake_db_context)
-        monkeypatch.setattr(services_module, "SkillService", FakeSkillService)
+        monkeypatch.setattr(context_control, "SkillService", FakeSkillService)
         monkeypatch.setattr(context_control, "materialize_skill", fake_materialize_skill)
 
         tool = ContextControlToolset(built_in_toolset_context)

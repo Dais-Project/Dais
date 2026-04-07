@@ -38,7 +38,7 @@ class BuiltinToolsetManager(ToolsetManager):
         return result
 
     async def initialize(self):
-        from ....services import ToolsetService
+        from src.services.toolset import ToolsetService
 
         async with db_context() as db_session:
             toolset_ents = await ToolsetService(db_session).get_all_built_in_toolsets()

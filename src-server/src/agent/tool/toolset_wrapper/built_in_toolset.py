@@ -7,9 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..types import ToolMetadata
 from ...types import ContextUsage
 
-
 if TYPE_CHECKING:
     from ....db.models import toolset as toolset_models
+
 
 built_in_tool = python_tool
 
@@ -62,7 +62,7 @@ class BuiltInToolset(PythonToolset):
 
     @classmethod
     async def sync(cls, db_session: AsyncSession):
-        from ....services import ToolsetService
+        from src.services.toolset import ToolsetService
 
         temp_instance = cls(BuiltInToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
