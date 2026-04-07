@@ -248,14 +248,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const handleTaskContinue = useCallback(
-    (message?: UiUserMessage) => {
-      if (message) {
-        setData((draft) => {
-          draft.push(toUiMessage(message));
-        });
-      }
-      startStream(continueTask, { message });
-    },
+    () => startStream(continueTask, {}),
     [setData, startStream]
   );
 
