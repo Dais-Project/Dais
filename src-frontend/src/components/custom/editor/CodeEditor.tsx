@@ -127,7 +127,7 @@ export function CodeEditor({
   return (
     <div className="hidden-during-resizing overflow-hidden rounded-md border w-full h-[60vh]">
       <div
-        className={cn("bg-background",
+        className={cn("bg-background h-full",
           { "fixed inset-0 z-50 h-screen": isFullscreen },
         )}
         data-fullscreen-wrapper
