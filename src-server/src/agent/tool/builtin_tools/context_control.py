@@ -50,6 +50,21 @@ class ContextControlToolset(BuiltInToolset):
                     <resources_dir>/tmp/skill-123</resources_dir>
                     <skill_content>...</skill_content>
                 </load_skill_result>
+
+        How to use resources_dir:
+            The Skill's content may reference resource files by their bare filename (e.g. "template.docx",
+            "data.csv"). To resolve the absolute path of any such file, join resources_dir with the filename:
+
+                absolute_path = resources_dir + "/" + filename
+
+            Example:
+                If resources_dir is "/tmp/skill-123/resources" and the Skill references "references/template.docx",
+                the file is located at "/tmp/skill-123/resources/references/template.docx".
+
+            Notes:
+                - Always use resources_dir as the base path; do not assume any other location.
+                - The directory is temporary and only valid for the duration of the current task.
+                - If a referenced file is not found under resources_dir, treat it as unavailable and proceed without it (or report the issue if the file is essential).
         """
         from src.services import SkillService
 
