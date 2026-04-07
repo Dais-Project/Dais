@@ -1,3 +1,4 @@
+import pytest
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,23 +22,28 @@ class DummyService(ServiceBase):
 
 
 class TestServiceBase:
-    def test_apply_fields_updates_set_values(self, db_session: AsyncSession):
+    @pytest.mark.parametrize(
+        "data,exclude,expected_name,expected_count,expects_extra",
+        [
+            (DummyData(name="new", count=None, extra="ignored"), None, "new", 1, False),
+            (DummyData(name="new", count=2), {"count"}, "new", 1, False),
+        ],
+        ids=["updates-set-fields-only", "respects-exclude"],
+    )
+    def test_apply_fields_updates_entity(
+        self,
+        db_session: AsyncSession,
+        data: DummyData,
+        exclude: set[str] | None,
+        expected_name: str,
+        expected_count: int,
+        expects_extra: bool,
+    ):
         service = DummyService(db_session)
         entity = DummyEntity(name="old", count=1)
-        data = DummyData(name="new", count=None, extra="ignored")
 
-        service.apply_fields(entity, data)
+        service.apply_fields(entity, data, exclude=exclude)
 
-        assert entity.name == "new"
-        assert entity.count == 1
-        assert not hasattr(entity, "extra")
-
-    def test_apply_fields_respects_exclude(self, db_session: AsyncSession):
-        service = DummyService(db_session)
-        entity = DummyEntity(name="old", count=1)
-        data = DummyData(name="new", count=2)
-
-        service.apply_fields(entity, data, exclude={"count"})
-
-        assert entity.name == "new"
-        assert entity.count == 1
+        assert entity.name == expected_name
+        assert entity.count == expected_count
+        assert hasattr(entity, "extra") is expects_extra
