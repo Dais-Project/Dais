@@ -1,6 +1,9 @@
+import pytest
+
 from src.parent_watchdog import ParentWatchdog
 
 
+@pytest.mark.tool
 class TestParentWatchdog:
     def test_run_skips_when_stdin_is_tty(self, mocker):
         callback = mocker.MagicMock()

@@ -136,7 +136,7 @@ class McpToolset(Toolset):
         return self._error
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
-        from ....services import ToolsetService
+        from src.services.toolset import ToolsetService
 
         async with db_context() as db_session:
             toolset_service = ToolsetService(db_session)

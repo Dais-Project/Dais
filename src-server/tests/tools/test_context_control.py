@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-import src.services as services_module
+from src.services.skill import SkillService
 from src.agent.tool.builtin_tools import context_control
 from src.agent.tool.builtin_tools.context_control import ContextControlToolset, materialize_skill
 from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
@@ -44,23 +44,34 @@ def parse_load_skill_xml(result: str) -> tuple[ET.Element, ET.Element, ET.Elemen
     return root, resources_dir_el, skill_content_el
 
 
+@pytest.mark.tool
 class TestMaterializeSkill:
-    def test_materialize_skill_creates_files_for_first_write(self, monkeypatch: pytest.MonkeyPatch, temp_workspace: Path):
+    @pytest.mark.parametrize(
+        "resources",
+        [
+            [("README.md", "hello")],
+            [("README.md", "hello"), ("docs/setup/guide.md", "nested")],
+        ],
+        ids=["flat-resource", "nested-resources"],
+    )
+    def test_materialize_skill_creates_files_for_first_write(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        temp_workspace: Path,
+        resources: list[tuple[str, str]],
+    ):
         monkeypatch.setattr(context_control, "DATA_DIR", temp_workspace)
         skill = make_skill_read(
             skill_id=7,
             content="Skill instruction",
-            resources=[
-                ("README.md", "hello"),
-                ("docs/setup/guide.md", "nested"),
-            ],
+            resources=resources,
         )
 
         resources_dir = materialize_skill(skill, "hash-v1")
 
         assert resources_dir == temp_workspace / ".skills" / "7" / "resources"
-        assert (resources_dir / "README.md").read_text(encoding="utf-8") == "hello"
-        assert (resources_dir / "docs" / "setup" / "guide.md").read_text(encoding="utf-8") == "nested"
+        for relative, expected_content in resources:
+            assert (resources_dir / relative).read_text(encoding="utf-8") == expected_content
         assert (temp_workspace / ".skills" / "7" / "hash.txt").read_text(encoding="utf-8") == "hash-v1"
 
     def test_materialize_skill_does_not_overwrite_when_hash_is_unchanged(
@@ -130,6 +141,7 @@ class FakeSkill:
     resources: list[FakeSkillResource]
 
 
+@pytest.mark.tool
 class TestLoadSkill:
     @pytest.mark.asyncio
     async def test_load_skill_returns_materialized_skill_result(
@@ -169,7 +181,7 @@ class TestLoadSkill:
             return expected_resources_dir
 
         monkeypatch.setattr(context_control, "db_context", fake_db_context)
-        monkeypatch.setattr(services_module, "SkillService", FakeSkillService)
+        monkeypatch.setattr(context_control, "SkillService", FakeSkillService)
         monkeypatch.setattr(context_control, "materialize_skill", fake_materialize_skill)
 
         tool = ContextControlToolset(built_in_toolset_context)

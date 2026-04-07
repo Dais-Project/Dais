@@ -36,7 +36,8 @@ class McpToolsetManager(ToolsetManager):
                 if toolset.status == McpToolsetStatus.CONNECTED]
 
     async def initialize(self, db_session: AsyncSession):
-        from ....services import ToolsetService
+        from src.services.toolset import ToolsetService
+
         toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 

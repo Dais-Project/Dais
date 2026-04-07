@@ -2,6 +2,7 @@ import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
+@pytest.mark.tool
 class TestEditFile:
     @pytest.mark.asyncio
     async def test_edit_file_single_line(self, built_in_toolset_context, temp_workspace, file_with_content):

@@ -6,7 +6,6 @@ from . import DTOBase
 
 class TaskBase(DTOBase):
     title: str
-    messages: list[Message]
 
 class TaskBrief(TaskBase):
     id: int
@@ -21,10 +20,12 @@ class TaskRead(TaskBase):
     last_run_at: int
     agent_id: int | None
     workspace_id: int
+    messages: list[Message]
 
 class TaskCreate(TaskBase):
     agent_id: int
     workspace_id: int
+    messages: list[Message]
 
 """
 Note: This schema is backend only type.

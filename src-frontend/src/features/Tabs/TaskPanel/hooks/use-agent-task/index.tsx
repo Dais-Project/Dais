@@ -107,10 +107,12 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const { data } = useGetTaskSuspense(taskId, {
     query: {
-      staleTime: Number.POSITIVE_INFINITY,
+      staleTime: 0,
+      gcTime: 0,
+      refetchOnMount: true,
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
       refetchOnReconnect: false,
+      refetchInterval: false,
     },
   });
 

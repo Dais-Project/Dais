@@ -51,3 +51,23 @@ exclude = [
 ]
 pythonVersion = "3.14"
 typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --strict-markers --tb=short"
+asyncio_mode = "auto"
+markers = [
+    "service: service layer tests",
+    "api: API / route tests",
+    "tool: tool tests",
+    "integration: tests involving real database, file system, or component integration",
+    "slow: slow-running tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "*/alembic/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 60

@@ -2,6 +2,8 @@ from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 import pytest
 
 
+@pytest.mark.tool
+@pytest.mark.integration
 class TestIntegration:
     @pytest.mark.asyncio
     async def test_write_edit_workflow(self, built_in_toolset_context, temp_workspace):

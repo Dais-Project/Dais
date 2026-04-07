@@ -15,6 +15,7 @@ def parse_shell_result(result: str) -> tuple[ET.Element, ET.Element, ET.Element]
     return root, stdout_el, stderr_el
 
 
+@pytest.mark.tool
 class TestOsInteractionsShell:
     @pytest.mark.asyncio
     async def test_shell_executes_command(self, built_in_toolset_context):
@@ -74,14 +75,27 @@ class TestOsInteractionsShell:
         assert stderr_el.attrib["truncated"] == "true"
         assert "line 0" in stdout_text
         assert "line 1199" in stdout_text
-        assert "[..." in stdout_text
+        assert "[... " in stdout_text
         assert "err 0" in stderr_text
         assert "err 599" in stderr_text
-        assert "[..." in stderr_text
+        assert "[... " in stderr_text
 
     @pytest.mark.asyncio
-    async def test_shell_rejects_command_with_space(self, built_in_toolset_context):
+    @pytest.mark.parametrize(
+        "command,args",
+        [
+            ("python -c", ["print('x')"]),
+            ("cmd /c dir", []),
+        ],
+        ids=["python-inline-args", "cmd-inline-args"],
+    )
+    async def test_shell_rejects_command_with_inline_arguments(
+        self,
+        built_in_toolset_context,
+        command: str,
+        args: list[str],
+    ):
         tool = OsInteractionsToolset(built_in_toolset_context)
 
-        with pytest.raises(ValueError):
-            await tool.shell(command="python -c", args=["print('x')"])
+        with pytest.raises(ValueError, match="must be the executable only"):
+            await tool.shell(command=command, args=args)

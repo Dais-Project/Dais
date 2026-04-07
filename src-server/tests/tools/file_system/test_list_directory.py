@@ -2,6 +2,7 @@ import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
+@pytest.mark.tool
 class TestListDirectory:
     @pytest.mark.asyncio
     async def test_list_directory_non_recursive(self, built_in_toolset_context, temp_workspace, nested_directory):

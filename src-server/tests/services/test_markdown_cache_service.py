@@ -8,6 +8,8 @@ from src.db.models.markdown_cache import MarkdownCache
 from src.services.markdown_cache import MarkdownCacheService
 
 
+@pytest.mark.service
+@pytest.mark.integration
 class TestMarkdownCacheService:
     @pytest.mark.asyncio
     async def test_get_returns_none_when_source_file_does_not_exist(
@@ -62,21 +64,32 @@ class TestMarkdownCacheService:
         assert cache_record.content == "cached markdown v2"
 
     @pytest.mark.asyncio
-    async def test_set_and_get_normalize_absolute_path_to_relative_source_path(
+    @pytest.mark.parametrize(
+        "path_kind,relative_path",
+        [
+            ("relative", Path("docs/guide.md")),
+            ("absolute", Path("docs/guide.md")),
+        ],
+        ids=["relative-path", "absolute-path"],
+    )
+    async def test_set_and_get_normalize_workspace_paths_to_relative_source_path(
         self,
         db_session: AsyncSession,
         temp_workspace: Path,
+        path_kind: str,
+        relative_path: Path,
     ):
-        source_path = temp_workspace / "docs" / "guide.md"
+        source_path = temp_workspace / relative_path
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_text("# Guide", encoding="utf-8")
         service = MarkdownCacheService(db_session, workspace_id=1, cwd=temp_workspace)
+        target_path = relative_path if path_kind == "relative" else source_path
 
-        await service.set(source_path, "normalized content")
+        await service.set(target_path, "normalized content")
         await db_session.flush()
 
         cache_record = await db_session.scalar(select(MarkdownCache))
-        result = await service.get(source_path)
+        result = await service.get(target_path)
 
         assert cache_record is not None
         assert cache_record.source_path == "docs/guide.md"

@@ -2,6 +2,7 @@ import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
+@pytest.mark.tool
 class TestWriteFile:
     @pytest.mark.asyncio
     async def test_write_new_file(self, built_in_toolset_context, temp_workspace):
