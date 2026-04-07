@@ -68,7 +68,7 @@ class TestMarkdownCacheService:
         temp_workspace: Path,
     ):
         source_path = temp_workspace / "docs" / "guide.md"
-        source_path.parent.mkdir()
+        source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_text("# Guide", encoding="utf-8")
         service = MarkdownCacheService(db_session, workspace_id=1, cwd=temp_workspace)
 

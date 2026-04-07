@@ -195,9 +195,9 @@ class AgentContext:
                     return tool
         return None
 
-    async def persist(self):
+    async def persist(self) -> task_models.Task:
         async with db_context() as db_session:
-            await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
+            return await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
                 title=None, agent_id=None,
                 messages=self._messages,
                 usage=self._usage,

@@ -15,7 +15,7 @@ export function ErrorRetry() {
       </div>
       <AlertTitle className="flex flex-1 items-center justify-between">
         <div>{t("error.banner.title")}</div>
-        <Button onClick={() => continueTask()} size="sm">
+        <Button onClick={continueTask} size="sm">
           <RotateCcwIcon />
           {t("error.banner.action")}
         </Button>

@@ -1,6 +1,7 @@
 import asyncio
 import time
 from typing import Literal
+from dais_sdk.types import UserMessage
 from loguru import logger
 from fastapi import APIRouter, status
 from pydantic import BaseModel
@@ -17,7 +18,10 @@ class TaskControlBody(BaseModel):
     # to ensure that the agent_id for the target task is not None
     agent_id: int
 
-class TaskMessageEdit(BaseModel):
+class TaskAppendMessageBody(TaskControlBody):
+    message: UserMessage
+
+class TaskMessageEditBody(BaseModel):
     message_id: str
     content: str
 
@@ -40,8 +44,15 @@ async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
 task_control_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskControlRoute")
 
+@task_control_router.post("/{task_id}/messages", response_model=task_schemas.TaskRead)
+async def append_task_message(task_id: int, body: TaskAppendMessageBody):
+    task = await create_agent_task(task_id, body.agent_id)
+    task.discard_pending_tool_calls()
+    task.append_message(body.message)
+    return await asyncio.shield(task.persist())
+
 @task_control_router.patch("/{task_id}/messages", response_model=task_schemas.TaskRead)
-async def edit_task_message(task_id: int, body: TaskMessageEdit, db_session: DbSessionDep):    
+async def edit_task_message(task_id: int, body: TaskMessageEditBody, db_session: DbSessionDep):    
     task = await TaskService(db_session).get_task_by_id(task_id)
     target_index = None
 

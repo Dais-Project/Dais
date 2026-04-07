@@ -12,7 +12,7 @@ from dais_sdk.types import (
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
-from ..context import AgentContext
+from ..context import AgentContext, task_models
 from ..exception_handlers import (
     handle_tool_does_not_exist_error,
     handle_tool_argument_decode_error,
@@ -66,7 +66,7 @@ class AgentTask:
                     return True
         return False
 
-    def discard_pending_tool_calls(self) -> Generator[MessageReplaceEvent]:
+    def discard_pending_tool_calls(self):
         for message in reversed(self._ctx.messages):
             if message.role == "assistant":
                 # discard pending tool calls from the last assistant message
@@ -74,7 +74,6 @@ class AgentTask:
             if message.role == "tool" and not message.is_complete:
                 message.result = USER_IGNORED_TOOL_CALL_RESULT
                 message.metadata.clear()
-                yield MessageReplaceEvent(message=message)
 
     def append_message(self, message: UserMessage):
         self._ctx.messages.append(message)
@@ -181,8 +180,8 @@ class AgentTask:
             if not _exited_by_generator_close:
                 yield TaskDoneEvent()
 
-    async def persist(self):
-        await self._ctx.persist()
+    async def persist(self) -> task_models.Task:
+        return await self._ctx.persist()
 
     async def stop(self):
         self._is_running = False

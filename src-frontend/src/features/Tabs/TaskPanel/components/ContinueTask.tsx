@@ -6,7 +6,7 @@ import { BuiltInTools, type ToolMessageMetadata } from "@/api/generated/schemas"
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ClosableWrapper } from "@/components/custom/ClosableWrapper";
-import { type UiMessage, isToolMessageCompleted,  } from "@/types/message";
+import { type UiMessage, isToolMessageCompleted } from "@/types/message";
 import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
 
 function shouldShow(message: UiMessage[]): boolean {
@@ -56,7 +56,7 @@ export function ContinueTask() {
         </div>
         <AlertTitle className="flex flex-1 items-center justify-between">
           <div>{t("continue.banner.title")}</div>
-          <Button onClick={() => continueTask()} size="sm">
+          <Button onClick={continueTask} size="sm">
             <PlayIcon />
             {t("continue.banner.action")}
           </Button>

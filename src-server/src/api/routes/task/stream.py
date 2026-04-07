@@ -23,13 +23,7 @@ class TaskStreamBody(BaseModel):
     # to ensure that the agent_id for the target task is not None
     agent_id: int
 
-class ContinueTaskBody(TaskStreamBody):
-    message: UserMessage | None = None
-
-class ToolReviewBody(TaskStreamBody):
-    call_id: str
-    status: Literal["approved", "denied"]
-    auto_approve: bool = False
+class ContinueTaskBody(TaskStreamBody): ...
 
 async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
     async with db_context() as db_session:
@@ -84,8 +78,7 @@ task_stream_router = APIRouter(tags=["task", "stream"])
 )
 async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
     """
-    This endpoint is used to directly continue the existing task,
-    or continue with a new UserMessage
+    Directly continue a existing task
     """
     task = await create_agent_task(task_id, body.agent_id)
 
@@ -99,14 +92,7 @@ async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
         if has_executed:
             await asyncio.shield(task.persist())
 
-    if body.message is not None:
-        # when appending new user message,
-        # discard incomplete tool calls with user ignore first
-        for event in task.discard_pending_tool_calls():
-            yield event
-        task.append_message(body.message)
-        await asyncio.shield(task.persist())
-    elif task.has_pending_tool_calls():
+    if task.has_pending_tool_calls():
         # prevent starting agent loop when there are still unresolved tool calls
         yield TaskDoneEvent()
         return

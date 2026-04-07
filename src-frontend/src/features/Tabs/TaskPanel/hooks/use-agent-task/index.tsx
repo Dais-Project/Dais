@@ -25,6 +25,7 @@ import {
   getGetTaskQueryKey,
   invalidateTaskQueries,
   type TaskSseCallbacks,
+  useAppendTaskMessage,
   useEditTaskMessage,
   useGetTaskSuspense,
   useToolAnswer,
@@ -78,10 +79,11 @@ export type AgentTaskState = {
 
 export type AgentTaskActions = {
   setAgentId: (agentId: number) => void;
-  continue: (message?: UiUserMessage) => void;
   answerTool: (toolCallId: string, answer: string) => void;
   reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
+  appendMessage: (message: UiUserMessage) => void;
   editMessage: (messageId: string, content: string) => void;
+  continue: () => void;
   cancel: () => void;
 };
 
@@ -266,7 +268,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const answerToolMutation = useToolAnswer({
     mutation: {
-      onSuccess: (eventData) => {
+      onSuccess(eventData) {
         sseCallbacksRef.current.onMessageReplace?.(eventData);
         handleTaskContinue();
       },
@@ -275,7 +277,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const toolReviewMutation = useToolReviews({
     mutation: {
-      onSuccess: (eventData) => {
+      onSuccess(eventData) {
         if (eventData) {
           sseCallbacksRef.current.onMessageReplace?.(eventData);
         }
@@ -284,9 +286,18 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     },
   });
 
+  const appendMessageMutation = useAppendTaskMessage({
+    mutation: {
+      onSuccess(taskRead) {
+        setMessages(toUiMessage(taskRead.messages));
+        handleTaskContinue();
+      }
+    }
+  })
+
   const editMessageMutation = useEditTaskMessage({
     mutation: {
-      onSuccess: (taskRead) => {
+      onSuccess(taskRead) {
         setMessages(toUiMessage(taskRead.messages));
         handleTaskContinue();
       },
@@ -308,8 +319,16 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
         return;
       }
       toolReviewMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
-    }, [toolReviewMutation, taskId]
+    }, [toolReviewMutation, taskId, agentId]
   );
+
+  const appendMessage = useCallback((message: UiUserMessage) => {
+    if (agentId === null) {
+      toast.error("任务失败", { description: "请先选择一个 Agent。" });
+      return;
+    }
+    appendMessageMutation.mutate({ taskId, data: { message, agent_id: agentId } });
+  }, [appendMessageMutation, taskId, agentId]);
 
   const editMessage = useCallback((messageId: string, content: string) => {
     editMessageMutation.mutate({ taskId, data: { message_id: messageId, content } });
@@ -332,6 +351,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       answerTool,
       reviewTool,
       editMessage,
+      appendMessage,
       continue: handleTaskContinue,
       cancel: handleTaskCancel,
     }),
@@ -339,6 +359,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       answerTool,
       reviewTool,
       editMessage,
+      appendMessage,
       handleTaskContinue,
       handleTaskCancel,
     ]

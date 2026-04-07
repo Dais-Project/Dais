@@ -26,7 +26,7 @@ class MarkdownCacheService(ServiceBase):
         """Normalize the path to be relative to the workspace root."""
         if not path.is_absolute(): return path
         try:
-            path.relative_to(self._cwd)
+            return path.relative_to(self._cwd)
         except ValueError:
             # invalid path, may not be the subdir of cwd
             return None

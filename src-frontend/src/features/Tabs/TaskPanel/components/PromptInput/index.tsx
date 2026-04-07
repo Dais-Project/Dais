@@ -219,7 +219,7 @@ type PromptInputProps = {
 export function PromptInput({ workspaceId, className }: PromptInputProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { agentId, state } = useAgentTaskState();
-  const { setAgentId, continue: continueTask, cancel } = useAgentTaskAction();
+  const { setAgentId, appendMessage, cancel } = useAgentTaskAction();
   const {
     text,
     inputRef,
@@ -238,7 +238,7 @@ export function PromptInput({ workspaceId, className }: PromptInputProps) {
       onSubmit={(message) => {
         const userMessage = uiUserMessageFactory(message.text);
         if (ableToSubmit) {
-          continueTask(userMessage);
+          appendMessage(userMessage);
         } else if (state === "running") {
           cancel();
         }
