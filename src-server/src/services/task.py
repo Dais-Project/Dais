@@ -93,7 +93,11 @@ class TaskService(ServiceBase):
         return path
 
     async def load_task_resource(self, id: int, resource_id: int) -> Path | None:
-        resource = await self._db_session.get(task_models.TaskResource, resource_id)
+        stmt = select(task_models.TaskResource).where(
+            task_models.TaskResource.id == resource_id,
+            task_models.TaskResource._task_id == id,
+        )
+        resource = await self._db_session.scalar(stmt)
         if resource is None: return None
         resource_dir = await self._get_resource_dir(id)
         resource_path = resource_dir / resource.filename

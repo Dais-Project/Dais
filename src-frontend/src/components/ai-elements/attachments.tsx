@@ -1,8 +1,4 @@
-"use client";
-
-import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,
@@ -19,16 +15,14 @@ import {
   VideoIcon,
   XIcon,
 } from "lucide-react";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { UiFile } from "./prompt-input";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type AttachmentData =
-  | (FileUIPart & { id: string })
-  | (SourceDocumentUIPart & { id: string });
-
+export type AttachmentData = UiFile & { id: string };
 export type AttachmentMediaCategory =
   | "image"
   | "video"
@@ -55,11 +49,7 @@ const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof ImageIcon> = {
 export const getMediaCategory = (
   data: AttachmentData
 ): AttachmentMediaCategory => {
-  if (data.type === "source-document") {
-    return "source";
-  }
-
-  const mediaType = data.mediaType ?? "";
+  const mediaType = data.mimetype;
 
   if (mediaType.startsWith("image/")) {
     return "image";
@@ -78,25 +68,33 @@ export const getMediaCategory = (
 };
 
 export const getAttachmentLabel = (data: AttachmentData): string => {
-  if (data.type === "source-document") {
-    return data.title || data.filename || "Source";
-  }
-
   const category = getMediaCategory(data);
-  return data.filename || (category === "image" ? "Image" : "Attachment");
+  return data.name || (category === "image" ? "Image" : "Attachment");
 };
 
-const renderAttachmentImage = (
-  url: string,
-  filename: string | undefined,
-  isGrid: boolean
-) =>
-  isGrid ? (
+type AttachmentImageProps = {
+  filename: string;
+  file: File;
+  isGrid: boolean;
+};
+
+const AttachmentImage = memo(function ({ filename, file, isGrid }: AttachmentImageProps) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setDataUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  if (dataUrl === null) return null;
+
+  return isGrid ? (
     <img
       alt={filename || "Image"}
       className="size-full object-cover"
       height={96}
-      src={url}
+      src={dataUrl}
       width={96}
     />
   ) : (
@@ -104,10 +102,25 @@ const renderAttachmentImage = (
       alt={filename || "Image"}
       className="size-full rounded object-cover"
       height={20}
-      src={url}
+      src={dataUrl}
       width={20}
     />
   );
+});
+
+const AttachmentVideo = memo(function ({ file }: { file: File }) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setDataUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  if (dataUrl === null) return null;
+  return <video className="size-full object-cover" muted src={dataUrl} />;
+});
+
 
 // ============================================================================
 // Contexts
@@ -248,12 +261,12 @@ export const AttachmentPreview = ({
   );
 
   const renderContent = () => {
-    if (mediaCategory === "image" && data.type === "file" && data.url) {
-      return renderAttachmentImage(data.url, data.filename, variant === "grid");
+    if (mediaCategory === "image") {
+      return <AttachmentImage filename={data.name} file={data.raw} isGrid={variant === "grid"} />;
     }
 
-    if (mediaCategory === "video" && data.type === "file" && data.url) {
-      return <video className="size-full object-cover" muted src={data.url} />;
+    if (mediaCategory === "video") {
+      return <AttachmentVideo file={data.raw} />;
     }
 
     const Icon = mediaCategoryIcons[mediaCategory];
@@ -281,11 +294,11 @@ export const AttachmentPreview = ({
 // ============================================================================
 
 export type AttachmentInfoProps = HTMLAttributes<HTMLDivElement> & {
-  showMediaType?: boolean;
+  showMimetype?: boolean;
 };
 
 export const AttachmentInfo = ({
-  showMediaType = false,
+  showMimetype = false,
   className,
   ...props
 }: AttachmentInfoProps) => {
@@ -299,9 +312,9 @@ export const AttachmentInfo = ({
   return (
     <div className={cn("min-w-0 flex-1", className)} {...props}>
       <span className="block truncate">{label}</span>
-      {showMediaType && data.mediaType && (
+      {showMimetype && data.mimetype && (
         <span className="block truncate text-muted-foreground text-xs">
-          {data.mediaType}
+          {data.mimetype}
         </span>
       )}
     </div>

@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Mapping, TypeGuard, TypedDict
-from dais_sdk.types import ContentBlockType
 
 class UserApprovalStatus(str, Enum):
     PENDING = "pending"

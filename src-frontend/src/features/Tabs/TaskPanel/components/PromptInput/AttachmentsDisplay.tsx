@@ -12,9 +12,9 @@ function AttachmentItem({
     <Attachment
       data={attachment}
       onRemove={onRemove}
-      className="relative h-fit p-0"
+      className="relative h-fit p-0 border-none rounded-none"
     >
-      <AttachmentPreview className="size-14" />
+      <AttachmentPreview className="size-16 border rounded" />
       <AttachmentRemove className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 rounded-full p-0 bg-accent/70 dark:hover:bg-accent" />
     </Attachment>
   );
@@ -31,8 +31,8 @@ export function AttachmentsDisplay() {
     <Attachments variant="inline" className="pt-3">
       {attachments.files.map((attachment) => (
         <AttachmentItem
-          attachment={attachment}
           key={attachment.id}
+          attachment={attachment}
           onRemove={() => attachments.remove(attachment.id)}
         />
       ))}

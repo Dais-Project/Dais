@@ -13,7 +13,7 @@ const input: InputOptions = {
   target: "../openapi.json",
   filters: {
     mode: "exclude",
-    tags: ["stream"],
+    tags: ["stream", "files"],
   },
 };
 
