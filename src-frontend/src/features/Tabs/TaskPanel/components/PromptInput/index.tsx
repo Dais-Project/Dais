@@ -18,7 +18,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { IMAGE_MIME_TYPE, EPUB_MIME_TYPE, PDF_MIME_TYPE, PLAINTEXT_MIME_TYPE, DOCX_MIME_TYPE, XLSX_MIME_TYPE, PPTX_MIME_TYPE } from "@/constants/mimetypes";
+import { IMAGE_MIMETYPE, EPUB_MIMETYPE, PDF_MIMETYPE, PLAINTEXT_MIMETYPE, DOCX_MIMETYPE, XLSX_MIMETYPE, PPTX_MIMETYPE } from "@/constants/mimetypes";
 import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
@@ -42,13 +42,13 @@ const PROMPTINPUT_STATE_MAPPING: Record<TaskState, ChatStatus> = {
 };
 
 const ACCEPT_TYPES = [
-  IMAGE_MIME_TYPE,
-  EPUB_MIME_TYPE,
-  PDF_MIME_TYPE,
-  PLAINTEXT_MIME_TYPE,
-  DOCX_MIME_TYPE,
-  XLSX_MIME_TYPE,
-  PPTX_MIME_TYPE,
+  IMAGE_MIMETYPE,
+  EPUB_MIMETYPE,
+  PDF_MIMETYPE,
+  PLAINTEXT_MIMETYPE,
+  DOCX_MIMETYPE,
+  XLSX_MIMETYPE,
+  PPTX_MIMETYPE,
   ".pdf", ".docx", ".xlsx", ".pptx", ".epub", ".txt"
 ];
 const PROMPTINPUT_FILE_DROP_OPTIONS: Partial<BasePromptInputProps> = {

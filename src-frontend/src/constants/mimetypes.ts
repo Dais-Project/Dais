@@ -1,7 +1,7 @@
-export const IMAGE_MIME_TYPE = "image/*";
-export const EPUB_MIME_TYPE = "application/epub+zip";
-export const PDF_MIME_TYPE = "application/pdf";
-export const PLAINTEXT_MIME_TYPE = "text/plain";
-export const DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-export const XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-export const PPTX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+export const IMAGE_MIMETYPE = "image/*";
+export const EPUB_MIMETYPE = "application/epub+zip";
+export const PDF_MIMETYPE = "application/pdf";
+export const PLAINTEXT_MIMETYPE = "text/plain";
+export const DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+export const XLSX_MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+export const PPTX_MIMETYPE = "application/vnd.openxmlformats-officedocument.presentationml.presentation";

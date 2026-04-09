@@ -1,25 +1,53 @@
-import { Attachments, Attachment, AttachmentPreview, AttachmentRemove, AttachmentData } from "@/components/ai-elements/attachments";
+import {
+  Attachments,
+  Attachment,
+  AttachmentThumb,
+  AttachmentRemove,
+  AttachmentData,
+  AttachmentHoverCard,
+  AttachmentHoverCardContent,
+  AttachmentHoverCardTrigger,
+  AttachmentInfo,
+  AttachmentPreview,
+  AttachmentProvider,
+} from "@/components/ai-elements/attachments";
 import { usePromptInputAttachments } from "@/components/ai-elements/prompt-input";
+import { memo, useCallback } from "react";
 
-function AttachmentItem({
-  attachment,
-  onRemove,
-}: {
+type AttachmentItemProps = {
   attachment: AttachmentData;
-  onRemove: () => void;
-}) {
-  return (
-    <Attachment
-      data={attachment}
-      onRemove={onRemove}
-      className="relative h-fit p-0 border-none rounded-none"
-    >
-      <AttachmentPreview className="size-16 border rounded" />
-      <AttachmentRemove className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 rounded-full p-0 bg-accent/70 dark:hover:bg-accent" />
-    </Attachment>
-  );
-}
+  onRemove: (id: string) => void;
+};
 
+const AttachmentItem = memo(({ attachment, onRemove }: AttachmentItemProps) => {
+  const handleRemove = useCallback(
+    () => onRemove(attachment.id),
+    [onRemove, attachment.id]
+  );
+
+  return (
+    <AttachmentProvider data={attachment} onRemove={handleRemove}>
+      <AttachmentHoverCard key={attachment.id}>
+        <AttachmentHoverCardTrigger asChild>
+          <Attachment>
+            <div className="relative size-5 shrink-0">
+              <div className="absolute inset-0 transition-opacity group-hover:opacity-0">
+                <AttachmentThumb />
+              </div>
+              <AttachmentRemove className="absolute inset-0" />
+            </div>
+            <AttachmentInfo />
+          </Attachment>
+        </AttachmentHoverCardTrigger>
+        <AttachmentHoverCardContent className="w-80">
+          <AttachmentPreview />
+        </AttachmentHoverCardContent>
+      </AttachmentHoverCard>
+    </AttachmentProvider>
+  );
+});
+
+AttachmentItem.displayName = "AttachmentItem";
 export function AttachmentsDisplay() {
   const attachments = usePromptInputAttachments();
 

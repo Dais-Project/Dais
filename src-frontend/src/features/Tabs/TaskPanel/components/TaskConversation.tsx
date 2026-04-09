@@ -7,6 +7,7 @@ import { useAgentTaskState } from "../hooks/use-agent-task";
 import { ToolMessage } from "./messages/BuiltInToolMessage";
 import { AssistantMessage } from "./messages/AssistantMessage";
 import { UserMessage } from "./messages/UserMessage";
+import { TaskResourceMetadata } from "@/api/generated/schemas";
 
 export function TaskConversationProvider({ className, ...props }: ComponentProps<typeof Conversation>) {
   return (
@@ -77,6 +78,7 @@ export function TaskConversationContent() {
                   key={message.id ?? message.content}
                   messageId={message.id ?? null}
                   text={message.content}
+                  attachments={(message.attachments as TaskResourceMetadata[]) ?? null}
                   isStreaming={message.isStreaming}
                 />
               </TaskConversationItem>

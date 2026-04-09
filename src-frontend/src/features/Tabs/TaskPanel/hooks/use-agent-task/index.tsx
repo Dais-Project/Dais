@@ -47,12 +47,6 @@ import { useNotificationBuffer } from "./use-notification-buffer";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
-export type TaskStream<Body extends { agent_id: number }> = (
-  taskId: number,
-  body: Body,
-  callbacks: TaskSseCallbacks
-) => AbortController;
-
 // --- --- --- --- --- ---
 
 function findLatestTodoList(messages: SdkMessage[]): TodoItem[] | null {
@@ -74,6 +68,7 @@ export type AgentTaskState = {
   todos: TodoItem[] | null;
   usage: TaskUsage;
   messages: UiMessage[];
+  taskId: number;
   agentId: number | null;
 };
 
@@ -350,9 +345,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       todos,
       usage,
       messages,
+      taskId,
       agentId,
     }),
-    [state, todos, usage, messages, agentId]
+    [state, todos, usage, messages, taskId, agentId]
   );
 
   const actionValue = useMemo(

@@ -69,7 +69,7 @@ async def append_task_message(
                 user_message.attachments.append(TaskResourceMetadata(
                     resource_id=resource.id,
                     filename=file.filename,
-                    type=file.content_type,
+                    mimetype=file.content_type,
                 ))
 
     task.append_message(user_message)

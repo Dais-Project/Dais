@@ -17,7 +17,7 @@ def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
 class TaskResourceMetadata(TypedDict):
     resource_id: int
     filename: str
-    type: str
+    mimetype: str
 
 @staticmethod
 def is_task_resource_metadata(_: Mapping) -> TypeGuard[TaskResourceMetadata]:

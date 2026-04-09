@@ -43,12 +43,12 @@ class TaskResourceRetriever(ContentBlockResolver):
             resource_path = await TaskService(db_session).load_task_resource(self._task_id, metadata["resource_id"])
             if resource_path is None: return None
 
-            normalized_resource_type = normalize_content_type(metadata["type"])
+            normalized_resource_type = normalize_content_type(metadata["mimetype"])
             if normalized_resource_type == "text": return TextBlock(text=await resource_path.read_text())
 
             resource_bytes = await resource_path.read_bytes()
             resource_base64 = await asyncio.to_thread(to_base64_str, resource_bytes)
-            source = Base64Source(mime_type=metadata["type"], data=resource_base64)
+            source = Base64Source(mime_type=metadata["mimetype"], data=resource_base64)
             match normalized_resource_type:
                 case "image": return ImageBlock(source=source)
                 case "audio": return AudioBlock(source=source)
