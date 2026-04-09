@@ -1,6 +1,13 @@
+import asyncio
+import hashlib
+import shutil
+from anyio import Path
 from sqlalchemy import select
+from loguru import logger
+from src.common import DATA_DIR
 from src.db.models import task as task_models
 from src.schemas import task as task_schemas
+from src.utils import get_unique_filename
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 from .utils import build_load_options, Relations
@@ -12,6 +19,8 @@ class TaskNotFoundError(NotFoundError):
 
 
 class TaskService(ServiceBase):
+    _logger = logger.bind(name="TaskService")
+
     @staticmethod
     def relations() -> Relations:
         return [
@@ -47,8 +56,7 @@ class TaskService(ServiceBase):
     async def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
         new_task = task_models.Task(
             _workspace_id=data.workspace_id,
-            messages=data.messages,
-            **data.model_dump(exclude={"messages", "workspace_id"})
+            **data.model_dump(exclude={"workspace_id"})
         )
 
         self._db_session.add(new_task)
@@ -73,4 +81,48 @@ class TaskService(ServiceBase):
 
     async def delete_task(self, id: int) -> None:
         task = await self.get_task_by_id(id)
+        await self.delete_task_resource(id)
         await self._db_session.delete(task)
+
+
+    @staticmethod
+    async def _get_resource_dir(task_id: int) -> Path:
+        path = DATA_DIR / ".task-resources" / str(task_id)
+        path = Path(path) # convert to anyio.Path
+        await path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    async def load_task_resource(self, id: int, resource_id: int) -> Path | None:
+        resource = await self._db_session.get(task_models.TaskResource, resource_id)
+        if resource is None: return None
+        resource_dir = await self._get_resource_dir(id)
+        resource_path = resource_dir / resource.filename
+        if not await resource_path.exists(): return None
+        return resource_path
+
+    async def save_task_resource(self, id: int, filename: str, file_bytes: bytes) -> task_models.TaskResource:
+        checksum = (await asyncio.to_thread(hashlib.sha256, file_bytes)).hexdigest()
+        stmt = select(task_models.TaskResource).where(
+            task_models.TaskResource.checksum == checksum,
+            task_models.TaskResource._task_id == id,
+        )
+        existing_resource = await self._db_session.scalar(stmt)
+        if existing_resource is not None: return existing_resource
+
+        resource_dir = await self._get_resource_dir(id)
+        unique_name = get_unique_filename(filename)
+        resource_path = resource_dir / unique_name
+        await resource_path.write_bytes(file_bytes)
+
+        new_resource = task_models.TaskResource(
+            _task_id=id,
+            filename=unique_name,
+            checksum=checksum,
+        )
+        self._db_session.add(new_resource)
+        await self._db_session.flush()
+        return new_resource
+
+    async def delete_task_resource(self, id: int):
+        resource_dir = await self._get_resource_dir(id)
+        await asyncio.to_thread(shutil.rmtree, resource_dir, True)

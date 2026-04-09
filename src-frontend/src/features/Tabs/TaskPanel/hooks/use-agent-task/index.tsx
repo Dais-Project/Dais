@@ -327,11 +327,21 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       message: toSdkMessage(userMessage),
       agent_id: agentId,
     });
-    appendMessageMutation.mutate({ taskId, data: { body, files: attachments } });
+    appendMessageMutation.mutate({ taskId, data: { body, uploaded_files: attachments } });
   }, [appendMessageMutation, taskId, agentId]);
 
   const editMessage = useCallback((messageId: string, content: string) => {
-    editMessageMutation.mutate({ taskId, data: { message_id: messageId, content } });
+    if (agentId === null) {
+      toast.error("任务失败", { description: "请先选择一个 Agent。" });
+      return;
+    }
+    editMessageMutation.mutate({
+      taskId, data: {
+        message_id: messageId,
+        agent_id: agentId,
+        content
+      }
+    });
   }, [editMessageMutation, taskId]);
 
   const stateValue = useMemo(

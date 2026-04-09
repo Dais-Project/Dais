@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .agent import Agent
     from .workspace import Workspace
 
+
 message_adapter = TypeAdapter(Message)
 messages_adapter = TypeAdapter(list[Message])
 
@@ -33,6 +34,14 @@ class TaskUsage:
             total_tokens=0,
             max_tokens=0,
         )
+
+class TaskResource(Base):
+    __tablename__ = "task_resources"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    filename: Mapped[str]
+    checksum: Mapped[str]
+
+    _task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id", ondelete="CASCADE"))
 
 class Task(Base):
     __tablename__ = "tasks"

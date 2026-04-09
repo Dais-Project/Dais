@@ -1,23 +1,59 @@
 import asyncio
 import uuid
+from typing import override
 from collections.abc import AsyncGenerator
 from loguru import logger
 from dais_sdk import LLM
 from dais_sdk.types import (
+    ContentBlock,
+    ContentBlockMetadata,
+    ContentBlockResolver,
+    TextBlock, ImageBlock, AudioBlock, VideoBlock, DocumentBlock, Base64Source,
     LlmRequestParams,
     AssistantMessageEvent,
     TextChunkEvent as SdkTextChunkEvent,
     UsageChunkEvent as SdkUsageChunkEvent,
     ToolCallChunkEvent as SdkToolCallChunkEvent,
 )
+from src.db import db_context
+from src.agent.utils import normalize_content_type
+from src.services.task import TaskService
+from src.utils import to_base64_str
 from ..context import AgentContext
 from ..types import (
+    is_task_resource_metadata,
     MessageStartEvent, MessageEndEvent,
     TextChunkEvent, ToolCallChunkEvent, UsageChunkEvent,
     ToolCallEndEvent,
     TaskInterruptedEvent, ErrorEvent
 )
 
+
+class TaskResourceRetriever(ContentBlockResolver):
+    _logger = logger.bind(name="TaskResourceRetriever")
+
+    def __init__(self, task_id: int):
+        self._task_id = task_id
+        super().__init__()
+
+    @override
+    async def resolve(self, metadata: ContentBlockMetadata) -> ContentBlock | None:
+        assert is_task_resource_metadata(metadata)
+        async with db_context() as db_session:
+            resource_path = await TaskService(db_session).load_task_resource(self._task_id, metadata["resource_id"])
+            if resource_path is None: return None
+
+            normalized_resource_type = normalize_content_type(metadata["type"])
+            if normalized_resource_type == "text": return TextBlock(text=await resource_path.read_text())
+
+            resource_bytes = await resource_path.read_bytes()
+            resource_base64 = await asyncio.to_thread(to_base64_str, resource_bytes)
+            source = Base64Source(mime_type=metadata["type"], data=resource_base64)
+            match normalized_resource_type:
+                case "image": return ImageBlock(source=source)
+                case "audio": return AudioBlock(source=source)
+                case "video": return VideoBlock(source=source)
+                case "document": return DocumentBlock(source=source)
 
 class LlmRequestManager:
     _logger = logger.bind(name="LlmRequestManager")
@@ -30,7 +66,7 @@ class LlmRequestManager:
         provider = LLM.create_provider(self._ctx.provider.type,
                                                      self._ctx.provider.base_url,
                                                      api_key=self._ctx.provider.api_key)
-        return LLM(self._ctx.model.name, provider=provider)
+        return LLM(self._ctx.model.name, provider, TaskResourceRetriever(self._ctx.task_id))
 
     def _create_request_param(self) -> LlmRequestParams:
         params = LlmRequestParams(

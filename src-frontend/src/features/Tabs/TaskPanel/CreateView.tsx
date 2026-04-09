@@ -9,6 +9,7 @@ import {
 } from "@/api/task";
 import { useTabsStore } from "@/stores/tabs-store";
 import { updateTaskTitle } from "@/features/resource/task-actions";
+import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
 import { DEFAULT_TAB_TITLE } from ".";
 import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
 
@@ -36,14 +37,14 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
           id: taskRead.id,
           workspace_id: taskRead.workspace_id,
         });
+        summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
       }
     }
   });
   const createTaskMutation = useCreateTask({
     mutation: {
-      async onSuccess(taskRead) {
+      async onSuccess() {
         await invalidateTaskQueries({ workspaceId });
-        summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
       },
     },
   });
@@ -56,13 +57,14 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
         workspace_id: workspaceId,
       },
     });
+    const userMessage = uiUserMessageFactory(message.text);
     const body = JSON.stringify({
-      message: message.text,
+      message: toSdkMessage(userMessage),
       agent_id: agentId,
     });
     appendMessageMutation.mutate({
       taskId: taskRead.id,
-      data: { body, files: message.files.map((file) => file.raw) },
+      data: { body, uploaded_files: message.files.map((file) => file.raw) },
     })
   };
 
