@@ -3,8 +3,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
-import src.agent.tool.builtin_tools.utils.markdown as markdown_module
-from markitdown import MarkItDown
+import src.agent.tool.builtin_tools.file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
@@ -52,9 +51,25 @@ class TestReadFile:
             assert path == pdf_path
             return "# Test PDF\nThis is converted markdown content."
 
-        monkeypatch.setattr(markdown_module.MarkdownConverter, "convert", fake_convert)
+        @asynccontextmanager
+        async def fake_db_context():
+            yield object()
+
+        class FakeMarkdownCacheService:
+            def __init__(self, db_session, workspace_id: int, cwd: Path):
+                self._cwd = cwd
+
+            async def get(self, path: Path) -> str | None:
+                return None
+
+            async def set(self, path: Path, content: str) -> None:
+                return None
+
+        monkeypatch.setattr(file_system_module, "db_context", fake_db_context)
+        monkeypatch.setattr(file_system_module, "MarkdownCacheService", FakeMarkdownCacheService)
 
         tool = FileSystemToolset(built_in_toolset_context)
+        monkeypatch.setattr(tool._markdown_converter, "convert", fake_convert.__get__(tool._markdown_converter, type(tool._markdown_converter)))
         result = await tool.read_file("test.pdf")
         root, text = parse_file_content_xml(result)
 
@@ -93,15 +108,15 @@ class TestReadFile:
         class FakeConvertResult:
             markdown = "# Cached PDF\nConverted once"
 
-        def fake_markitdown_convert(self, source: Path) -> FakeConvertResult:
+        async def fake_convert(self, source: Path) -> str:
             assert source == pdf_path
-            return FakeConvertResult()
+            return FakeConvertResult.markdown
 
-        monkeypatch.setattr(markdown_module, "db_context", fake_db_context)
-        monkeypatch.setattr(markdown_module, "MarkdownCacheService", FakeMarkdownCacheService)
-        monkeypatch.setattr(MarkItDown, "convert", fake_markitdown_convert)
+        monkeypatch.setattr(file_system_module, "db_context", fake_db_context)
+        monkeypatch.setattr(file_system_module, "MarkdownCacheService", FakeMarkdownCacheService)
 
         tool = FileSystemToolset(built_in_toolset_context)
+        monkeypatch.setattr(tool._markdown_converter, "convert", fake_convert.__get__(tool._markdown_converter, type(tool._markdown_converter)))
 
         first_result = await tool.read_file("cached.pdf")
         second_result = await tool.read_file("cached.pdf")

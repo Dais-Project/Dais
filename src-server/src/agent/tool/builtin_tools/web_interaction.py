@@ -7,8 +7,8 @@ from magika import Magika, ContentTypeLabel
 from typing import Annotated, Any, Literal, override
 from pydantic import BaseModel, Discriminator, Field, field_validator
 from src.db.models import toolset as toolset_models
+from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
-from .utils.markdown import MarkdownConverter
 
 
 DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"}
@@ -54,7 +54,7 @@ class WebInteractionToolset(BuiltInToolset):
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
         self._magika = Magika()
-        self._markdown_converter = MarkdownConverter(ctx)
+        self._markdown_converter = MarkdownConverter()
 
     @property
     @override

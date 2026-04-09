@@ -5,10 +5,12 @@ from typing import Annotated, TypedDict, override
 from pathlib import Path
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
+from src.db import db_context
 from src.db.models import toolset as toolset_models
+from src.services.markdown_cache import MarkdownCacheService
 from src.binaries import RIPGREP_PATH
+from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
-from .utils.markdown import MarkdownConverter
 
 
 # Since `is_binary` from binaryornot sometimes misdetects some files as binary,
@@ -27,14 +29,11 @@ class FileSystemToolset(BuiltInToolset):
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
-        self._markdown_converter = MarkdownConverter(ctx)
+        self._markdown_converter = MarkdownConverter()
 
     @property
     @override
     def name(self) -> str: return "FileSystem"
-
-    def _is_markitdown_convertable_binary(self, path: str) -> bool:
-        return Path(path).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     async def read_file(self,
@@ -66,13 +65,23 @@ class FileSystemToolset(BuiltInToolset):
             with open(path, "r", encoding="utf-8") as f:
                 return f.read().splitlines()
 
+        async def convert_to_markdown_with_cache(path: Path) -> str:
+            async with db_context() as db_session:
+                markdown_cache_service = MarkdownCacheService(db_session, self._ctx.workspace_id, self._ctx.cwd)
+                cached = await markdown_cache_service.get(path)
+                if cached is not None: return cached
+
+                converted = await self._markdown_converter.convert(path)
+                await markdown_cache_service.set(path, converted)
+                return converted
+
         abs_path = self._ctx.cwd / path
 
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
 
         if self._markdown_converter.is_convertable_binary(path):
-            result = await self._markdown_converter.convert(abs_path)
+            result = await convert_to_markdown_with_cache(abs_path)
             lines = result.splitlines()
         elif is_binary(abs_path):
             raise ValueError(f"File {path} is a binary file, and is not supported to read.")
