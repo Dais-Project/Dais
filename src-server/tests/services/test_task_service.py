@@ -25,7 +25,7 @@ class TestTaskService:
         assert exc_info.value.error_code == ServiceErrorCode.TASK_NOT_FOUND
 
     @pytest.mark.asyncio
-    async def test_create_task_with_messages(
+    async def test_create_task(
         self,
         task_service: TaskService,
         workspace_factory,
@@ -45,7 +45,6 @@ class TestTaskService:
         task = await task_service.create_task(
             task_schemas.TaskCreate(
                 title="Task A",
-                messages=[UserMessage(content="Hello")],
                 agent_id=agent.id,
                 workspace_id=workspace.id,
             )
@@ -54,8 +53,7 @@ class TestTaskService:
         assert task.title == "Task A"
         assert task.workspace_id == workspace.id
         assert task.agent_id == agent.id
-        assert len(task.messages) == 1
-        assert task.messages[0].content == "Hello"
+        assert task.messages == []
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -88,7 +86,6 @@ class TestTaskService:
         created = await task_service.create_task(
             task_schemas.TaskCreate(
                 title="Task A",
-                messages=[UserMessage(content="Hello")],
                 agent_id=agent.id,
                 workspace_id=workspace.id,
             )
@@ -140,7 +137,6 @@ class TestTaskService:
         task = await task_service.create_task(
             task_schemas.TaskCreate(
                 title="Task A",
-                messages=[UserMessage(content="Hello")],
                 agent_id=agent.id,
                 workspace_id=workspace.id,
             )
