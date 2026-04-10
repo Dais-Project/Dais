@@ -1,6 +1,5 @@
-import asyncio
 import xml.etree.ElementTree as ET
-from pathlib import Path
+from anyio import Path
 from typing import override
 from src.db import db_context
 from src.schemas import skill as skill_schemas
@@ -9,22 +8,22 @@ from src.services.skill import SkillService
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
 
 
-def materialize_skill(skill: skill_schemas.SkillRead, hash: str) -> Path:
+async def materialize_skill(skill: skill_schemas.SkillRead, hash: str) -> Path:
     """
     Materialize a skill to a temporary directory and return the directory absolute path.
     """
     skills_dir = Path(DATA_DIR, ".skills", str(skill.id))
-    skills_dir.mkdir(parents=True, exist_ok=True)
+    await skills_dir.mkdir(parents=True, exist_ok=True)
     hash_file = skills_dir / "hash.txt"
     skill_resources_dir = skills_dir / "resources"
-    skill_resources_dir.mkdir(parents=True, exist_ok=True)
-    is_changed = (not hash_file.exists()) or (hash_file.read_text(encoding="utf-8") != hash)
+    await skill_resources_dir.mkdir(parents=True, exist_ok=True)
+    is_changed = (not await hash_file.exists()) or (await hash_file.read_text("utf-8") != hash)
     if is_changed:
         for resource in skill.resources:
             resource_path = skill_resources_dir / resource.relative
-            resource_path.parent.mkdir(parents=True, exist_ok=True)
-            resource_path.write_text(resource.content, encoding="utf-8")
-        hash_file.write_text(hash, encoding="utf-8")
+            await resource_path.parent.mkdir(parents=True, exist_ok=True)
+            await resource_path.write_text(resource.content, "utf-8")
+        await hash_file.write_text(hash, "utf-8")
     return skill_resources_dir
 
 class ContextControlToolset(BuiltInToolset):
@@ -69,7 +68,7 @@ class ContextControlToolset(BuiltInToolset):
         """
         async with db_context() as db_session:
             skill = await SkillService(db_session).get_skill_by_id(id)
-        skill_resources_dir = await asyncio.to_thread(materialize_skill, skill_schemas.SkillRead.model_validate(skill), skill.hash)
+        skill_resources_dir = await materialize_skill(skill_schemas.SkillRead.model_validate(skill), skill.hash)
 
         root = ET.Element("load_skill_result")
         ET.SubElement(root, "resources_dir").text = str(skill_resources_dir)

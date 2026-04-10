@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
-from pathlib import Path
+from os import PathLike
+from anyio import Path
 from loguru import logger
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,19 +12,21 @@ from .service_base import ServiceBase
 _logger = logger.bind(name="MarkdownCacheService")
 
 class MarkdownCacheService(ServiceBase):
-    def __init__(self, db_session: AsyncSession, workspace_id: int, cwd: Path) -> None:
+    def __init__(self, db_session: AsyncSession, workspace_id: int, cwd: PathLike) -> None:
         super().__init__(db_session)
-        self._cwd = cwd
+        self._cwd = Path(cwd)
         self._workspace_id = workspace_id
 
-    def _compute_hash(self, path: Path) -> str | None:
+    async def _compute_hash(self, path: Path) -> str | None:
         abs_path = self._cwd / path
-        if not abs_path.exists(): return None
-        hash = hashlib.sha256(abs_path.read_bytes())
+        if not await abs_path.exists(): return None
+        file_bytes= await abs_path.read_bytes()
+        hash = await asyncio.to_thread(hashlib.sha256, file_bytes)
         return hash.hexdigest()
 
-    def _normalize_path(self, path: Path) -> Path | None:
+    def _normalize_path(self, path: PathLike) -> Path | None:
         """Normalize the path to be relative to the workspace root."""
+        path = Path(path)
         if not path.is_absolute(): return path
         try:
             return path.relative_to(self._cwd)
@@ -31,11 +34,11 @@ class MarkdownCacheService(ServiceBase):
             # invalid path, may not be the subdir of cwd
             return None
 
-    async def get(self, path: Path) -> str | None:
+    async def get(self, path: PathLike) -> str | None:
         normalized_path = self._normalize_path(path)
         if normalized_path is None: return None
 
-        hash = await asyncio.to_thread(self._compute_hash, normalized_path)
+        hash = await self._compute_hash(normalized_path)
         if hash is None: return None
 
         stmt = select(markdown_cache_models.MarkdownCache).where(
@@ -51,7 +54,7 @@ class MarkdownCacheService(ServiceBase):
         normalized_path = self._normalize_path(path)
         if normalized_path is None: return
 
-        hash = await asyncio.to_thread(self._compute_hash, normalized_path)
+        hash = await self._compute_hash(normalized_path)
         if hash is None: return
 
         stmt = select(markdown_cache_models.MarkdownCache).where(
@@ -82,8 +85,7 @@ class MarkdownCacheService(ServiceBase):
         to_delete_ids: list[int] = []
         for id, source_path in select_result.tuples():
             abs_source_path = self._cwd / source_path
-            source_exists = await asyncio.to_thread(abs_source_path.exists)
-            if not source_exists:
+            if not await abs_source_path.exists():
                 _logger.info(f"Clearing unused cache: {source_path}")
                 to_delete_ids.append(id)
 

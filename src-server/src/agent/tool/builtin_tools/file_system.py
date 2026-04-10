@@ -2,7 +2,8 @@ import asyncio
 import difflib
 import xml.etree.ElementTree as ET
 from typing import Annotated, TypedDict, override
-from pathlib import Path
+from pathlib import Path as StdPath
+from anyio import Path as AnyioPath
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
 from src.db import db_context
@@ -16,7 +17,7 @@ from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetConte
 # Since `is_binary` from binaryornot sometimes misdetects some files as binary,
 # we defines a enhanced wrapper function here.
 # TODO: remove this function once binaryornot.check.is_binary is fixed.
-def is_binary(path: Path) -> bool:
+def is_binary(path: StdPath) -> bool:
     from binaryornot.helpers import has_binary_extension, is_binary_string
     if has_binary_extension(path):
         return True
@@ -34,6 +35,9 @@ class FileSystemToolset(BuiltInToolset):
     @property
     @override
     def name(self) -> str: return "FileSystem"
+
+    def _resolve_path(self, file_path: str) -> AnyioPath:
+        return AnyioPath(self._ctx.cwd / file_path)
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     async def read_file(self,
@@ -61,11 +65,7 @@ class FileSystemToolset(BuiltInToolset):
 
         To read the next chunk, pass end_line + 1 as the offset in the next call.
         """
-        def read_file_lines(path: Path) -> list[str]:
-            with open(path, "r", encoding="utf-8") as f:
-                return f.read().splitlines()
-
-        async def convert_to_markdown_with_cache(path: Path) -> str:
+        async def convert_to_markdown_with_cache(path: AnyioPath) -> str:
             async with db_context() as db_session:
                 markdown_cache_service = MarkdownCacheService(db_session, self._ctx.workspace_id, self._ctx.cwd)
                 cached = await markdown_cache_service.get(path)
@@ -75,18 +75,18 @@ class FileSystemToolset(BuiltInToolset):
                 await markdown_cache_service.set(path, converted)
                 return converted
 
-        abs_path = self._ctx.cwd / path
+        abs_path = self._resolve_path(path)
 
-        if not abs_path.exists():
+        if not await abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
 
         if self._markdown_converter.is_convertable_binary(abs_path):
             result = await convert_to_markdown_with_cache(abs_path)
             lines = result.splitlines()
-        elif is_binary(abs_path):
+        elif is_binary(StdPath(abs_path)):
             raise ValueError(f"File {path} is a binary file, and is not supported to read.")
         else:
-            lines = await asyncio.to_thread(read_file_lines, abs_path)
+            lines = (await abs_path.read_text("utf-8")).splitlines()
 
         result_lines = lines[(offset - 1):(offset + max_lines - 1)]
         root = ET.Element("file_content", attrib={
@@ -96,12 +96,6 @@ class FileSystemToolset(BuiltInToolset):
         })
         root.text = "\n".join(result_lines)
         return ET.tostring(root, encoding="unicode")
-
-    def _write_file_impl(self, path: str, content: str) -> str:
-        abs_path = self._ctx.cwd / path
-        abs_path.parent.mkdir(parents=True, exist_ok=True)
-        abs_path.write_text(content, encoding="utf-8")
-        return "File written successfully."
 
     @built_in_tool(validate=True)
     async def write_file(self,
@@ -124,42 +118,10 @@ class FileSystemToolset(BuiltInToolset):
         Returns:
             A success message if the file was written successfully.
         """
-        return await asyncio.to_thread(self._write_file_impl, path, content)
-
-    def _edit_file_impl(self,
-                        path: str,
-                        old_content: str,
-                        new_content: str,
-                        expected_replacements: int,
-                        ) -> str:
-        def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
-            diff = difflib.unified_diff(
-                old_content.splitlines(),
-                new_content.splitlines(),
-                fromfile=f"a/{file_name}",
-                tofile=f"b/{file_name}",
-            )
-            return "\n".join(diff)
-
-        abs_path = self._ctx.cwd / path
-
-        if not abs_path.exists():
-            raise FileNotFoundError(f"File not found at {path}")
-
-        content = abs_path.read_text(encoding="utf-8")
-        count = content.count(old_content)
-        if count == 0:
-            raise ValueError(f"Content not found in file: {path}")
-        if count < expected_replacements:
-            raise ValueError(
-                f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
-                f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
-            )
-
-        old_file_content = content
-        new_file_content = content.replace(old_content, new_content, expected_replacements)
-        abs_path.write_text(new_file_content, encoding="utf-8")
-        return generate_diff(old_file_content, new_file_content, path)
+        abs_path = self._resolve_path(path)
+        await abs_path.parent.mkdir(parents=True, exist_ok=True)
+        await abs_path.write_text(content, "utf-8")
+        return "File written successfully."
 
     @built_in_tool(validate=True)
     async def edit_file(self,
@@ -186,13 +148,35 @@ class FileSystemToolset(BuiltInToolset):
         Note:
             If old_content matches more times than expected, expand it to include more surrounding context until it uniquely identifies the target location(s).
         """
-        return await asyncio.to_thread(
-            self._edit_file_impl,
-            path,
-            old_content,
-            new_content,
-            expected_replacements,
-        )
+        def generate_diff(old_content: str, new_content: str, file_name: str) -> str:
+            diff = difflib.unified_diff(
+                old_content.splitlines(),
+                new_content.splitlines(),
+                fromfile=f"a/{file_name}",
+                tofile=f"b/{file_name}",
+            )
+            return "\n".join(diff)
+
+        abs_path = self._resolve_path(path)
+
+        if not await abs_path.exists():
+            raise FileNotFoundError(f"File not found at {path}")
+
+        content = await abs_path.read_text("utf-8")
+        count = content.count(old_content)
+        if count == 0:
+            raise ValueError(f"Content not found in file: {path}")
+        if count < expected_replacements:
+            raise ValueError(
+                f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
+                f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
+            )
+
+        old_file_content = content
+        new_file_content = content.replace(old_content, new_content, expected_replacements)
+        await abs_path.write_text(new_file_content, "utf-8")
+        diff = await asyncio.to_thread(generate_diff, old_file_content, new_file_content, path)
+        return diff
 
     def _list_directory_impl(self,
                              path: str,
@@ -200,12 +184,16 @@ class FileSystemToolset(BuiltInToolset):
                              max_depth: int | None,
                              show_all: bool,
                              ) -> str:
-        def format_item(item: Path) -> str:
-            if item.is_dir(follow_symlinks=False):
-                return item.name + "/"
+        """
+        Since the scan logic will be slower after refactored to async version,
+        we leave it sync here.
+        """
+        def format_item(item: StdPath) -> str:
             if item.is_file(follow_symlinks=False):
                 return item.name
-            if item.is_symlink():
+            elif item.is_dir(follow_symlinks=False):
+                return item.name + "/"
+            elif item.is_symlink():
                 try:
                     target = item.readlink()
                 except (OSError, ValueError):
@@ -214,14 +202,15 @@ class FileSystemToolset(BuiltInToolset):
                 if (item.parent / target).is_dir():
                     target_path += "/"
                 return f"{item.name} -> {target_path}"
-            return "<special file>"
+            else:
+                return "<special file>"
 
-        def format_items_flat(directory: Path) -> list[str]:
+        def format_items_flat(directory: StdPath) -> list[str]:
             """Format directory contents in non-recursive mode."""
             gitignore_spec = (load_gitignore_spec(abs_path)
                              if not include_gitignored else None)
 
-            items: list[Path] = []
+            items: list[StdPath] = []
             for entry in directory.iterdir():
                 if not include_hidden and entry.name.startswith("."):
                     continue
@@ -239,10 +228,11 @@ class FileSystemToolset(BuiltInToolset):
 
             lines = []
             for idx, item in enumerate(items, 1):
-                lines.append(f"{idx}. {format_item(item)}")
+                formated = format_item(item)
+                lines.append(f"{idx}. {formated}")
             return lines
 
-        def format_items_recursive(directory: Path, max_depth: int | None) -> list[str]:
+        def format_items_recursive(directory: StdPath, max_depth: int | None) -> list[str]:
             """
             Recursively format directory contents.
 
@@ -253,7 +243,7 @@ class FileSystemToolset(BuiltInToolset):
             lines = []
             for entry, depth in scantree_dfs(directory, MAX_SCAN_LIMIT, max_depth, include_hidden, include_gitignored):
                 indent = "  " * (depth - 1)
-                entry_path = Path(entry)
+                entry_path = StdPath(entry)
                 lines.append(f"{indent}{format_item(entry_path)}")
             return lines
 
@@ -372,14 +362,14 @@ class FileSystemToolset(BuiltInToolset):
                          limit: int,
                          show_all: bool,
                          ) -> FindFilesResult:
-        def scan_collect(directory: Path) -> list[str]:
+        def scan_collect(directory: StdPath) -> list[str]:
             matches = []
             for entry in scantree_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
                 if len(matches) >= limit:
                     break
                 if entry.is_symlink():
                     continue
-                entry_path = Path(entry)
+                entry_path = StdPath(entry)
                 if entry_path.match(pattern):
                     matches.append(entry_path.relative_to(abs_path).as_posix())
             return matches

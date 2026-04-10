@@ -59,7 +59,7 @@ class TaskResourceRetriever(ContentBlockResolver):
             if resource_path is None: return None
 
             normalized_resource_type = normalize_content_type(metadata["mimetype"])
-            if normalized_resource_type == "text": return TextBlock(text=await resource_path.read_text())
+            if normalized_resource_type == "text": return TextBlock(text=await resource_path.read_text("utf-8"))
 
             resource_bytes = await resource_path.read_bytes()
             resource_base64 = await asyncio.to_thread(to_base64_str, resource_bytes)

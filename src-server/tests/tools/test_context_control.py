@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
+from anyio import Path as AnyioPath
 import pytest
 
 from src.services.skill import SkillService
@@ -46,6 +47,7 @@ def parse_load_skill_xml(result: str) -> tuple[ET.Element, ET.Element, ET.Elemen
 
 @pytest.mark.tool
 class TestMaterializeSkill:
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "resources",
         [
@@ -54,7 +56,7 @@ class TestMaterializeSkill:
         ],
         ids=["flat-resource", "nested-resources"],
     )
-    def test_materialize_skill_creates_files_for_first_write(
+    async def test_materialize_skill_creates_files_for_first_write(
         self,
         monkeypatch: pytest.MonkeyPatch,
         temp_workspace: Path,
@@ -67,14 +69,15 @@ class TestMaterializeSkill:
             resources=resources,
         )
 
-        resources_dir = materialize_skill(skill, "hash-v1")
+        resources_dir = await materialize_skill(skill, "hash-v1")
 
         assert resources_dir == temp_workspace / ".skills" / "7" / "resources"
         for relative, expected_content in resources:
-            assert (resources_dir / relative).read_text(encoding="utf-8") == expected_content
-        assert (temp_workspace / ".skills" / "7" / "hash.txt").read_text(encoding="utf-8") == "hash-v1"
+            assert await (resources_dir / relative).read_text(encoding="utf-8") == expected_content
+        assert await AnyioPath(temp_workspace / ".skills" / "7" / "hash.txt").read_text(encoding="utf-8") == "hash-v1"
 
-    def test_materialize_skill_does_not_overwrite_when_hash_is_unchanged(
+    @pytest.mark.asyncio
+    async def test_materialize_skill_does_not_overwrite_when_hash_is_unchanged(
         self,
         monkeypatch: pytest.MonkeyPatch,
         temp_workspace: Path,
@@ -86,19 +89,20 @@ class TestMaterializeSkill:
             content="Skill instruction",
             resources=[("guide.txt", "version-1")],
         )
-        materialize_skill(original_skill, "same-hash")
+        await materialize_skill(original_skill, "same-hash")
 
         updated_skill = make_skill_read(
             skill_id=3,
             content="Skill instruction",
             resources=[("guide.txt", "version-2")],
         )
-        resources_dir = materialize_skill(updated_skill, "same-hash")
+        resources_dir = await materialize_skill(updated_skill, "same-hash")
 
-        assert (resources_dir / "guide.txt").read_text(encoding="utf-8") == "version-1"
-        assert (temp_workspace / ".skills" / "3" / "hash.txt").read_text(encoding="utf-8") == "same-hash"
+        assert await (resources_dir / "guide.txt").read_text(encoding="utf-8") == "version-1"
+        assert await AnyioPath(temp_workspace / ".skills" / "3" / "hash.txt").read_text(encoding="utf-8") == "same-hash"
 
-    def test_materialize_skill_overwrites_resources_when_hash_changes(
+    @pytest.mark.asyncio
+    async def test_materialize_skill_overwrites_resources_when_hash_changes(
         self,
         monkeypatch: pytest.MonkeyPatch,
         temp_workspace: Path,
@@ -110,17 +114,17 @@ class TestMaterializeSkill:
             content="Skill instruction",
             resources=[("guide.txt", "old-content")],
         )
-        materialize_skill(first_skill, "hash-old")
+        await materialize_skill(first_skill, "hash-old")
 
         second_skill = make_skill_read(
             skill_id=9,
             content="Skill instruction",
             resources=[("guide.txt", "new-content")],
         )
-        resources_dir = materialize_skill(second_skill, "hash-new")
+        resources_dir = await materialize_skill(second_skill, "hash-new")
 
-        assert (resources_dir / "guide.txt").read_text(encoding="utf-8") == "new-content"
-        assert (temp_workspace / ".skills" / "9" / "hash.txt").read_text(encoding="utf-8") == "hash-new"
+        assert await (resources_dir / "guide.txt").read_text(encoding="utf-8") == "new-content"
+        assert await AnyioPath(temp_workspace / ".skills" / "9" / "hash.txt").read_text(encoding="utf-8") == "hash-new"
 
 
 @dataclass
@@ -177,7 +181,7 @@ class TestLoadSkill:
 
         expected_resources_dir = temp_workspace / "materialized" / "resources"
 
-        def fake_materialize_skill(skill: skill_schemas.SkillRead, hash: str) -> Path:
+        async def fake_materialize_skill(skill: skill_schemas.SkillRead, hash: str) -> Path:
             return expected_resources_dir
 
         monkeypatch.setattr(context_control, "db_context", fake_db_context)

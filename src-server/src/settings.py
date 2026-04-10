@@ -7,7 +7,7 @@ from pydantic_core import core_schema
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 from .db import db_context
 from .services.llm_model import LlmModelService
-from .common import APP_NAME, DATA_DIR
+from .common import DATA_DIR
 
 
 class JsonFileSettingsSource(PydanticBaseSettingsSource):
@@ -22,7 +22,7 @@ class JsonFileSettingsSource(PydanticBaseSettingsSource):
         if not self.config_path.exists():
             return {}
         try:
-            return json.loads(self.config_path.read_text(encoding="utf-8"))
+            return json.loads(self.config_path.read_text("utf-8"))
         except (json.JSONDecodeError, OSError):
             return {}
 
