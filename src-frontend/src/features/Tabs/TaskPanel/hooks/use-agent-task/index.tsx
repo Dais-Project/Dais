@@ -23,7 +23,6 @@ import {
 import {
   continueTask,
   getGetTaskQueryKey,
-  invalidateTaskQueries,
   type TaskSseCallbacks,
   useAppendTaskMessage,
   useEditTaskMessage,
@@ -222,12 +221,21 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     toast.error(t("toast.task_failed.title"), {
       description: eventData.error,
     });
-    invalidateTaskQueries({ taskId });
   };
 
   const onClose = () => {
     messageLifecycle.handleClose();
-    invalidateTaskQueries({ taskId });
+    const lastMessage = messages.at(-1);
+    const isLastMessageNonEmptyAssistantMessage = (
+      lastMessage !== undefined &&
+      lastMessage?.role === "assistant" &&
+      lastMessage.content !== null &&
+      lastMessage.content.length > 0
+    );
+    if (isLastMessageNonEmptyAssistantMessage && !isForeground()) {
+      const notificationContent = t("notification.responded", { response: lastMessage.content });
+      sendNotification(notificationContent, { onClick: backToCurrentTab });
+    };
   };
 
   sseCallbacksRef.current = {

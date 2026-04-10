@@ -20,6 +20,7 @@
     "require_permission": "Dais wants to use {{toolName}}",
     "require_permission_multiple": "Dais wants to use multiple tools",
     "require_response": "Dais is waiting for your response",
+    "responded": "Dais responded: {{response}}",
     "task_done": "Dais has finished the task",
     "task_failed": {
       "title": "Dais failed to execute the task",
