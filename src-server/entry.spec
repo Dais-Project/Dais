@@ -2,6 +2,7 @@
 import os
 import platform
 import magika
+import binaryornot
 
 project_root = SPECPATH
 
@@ -22,6 +23,10 @@ if platform.system() == "Windows":
 else:
     ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg")
 
+# binaryornot resources
+binaryornot_pkg_dir = os.path.dirname(binaryornot.__file__)
+binaryornot_data = os.path.join(binaryornot_pkg_dir, "data")
+
 # node resources
 node_dir = os.path.join(project_root, "bin", "node")
 
@@ -39,6 +44,8 @@ a = Analysis(
 
         (magika_config_dir, "magika/config"),
         (magika_models_dir, "magika/models"),
+
+        (binaryornot_data, "binaryornot/data"),
 
         (ripgrep_bin_path, "bin/ripgrep"),
         (node_dir, "bin/node"),
