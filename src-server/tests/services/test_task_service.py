@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +14,13 @@ from src.services.task import TaskNotFoundError, TaskService
 @pytest.fixture
 def task_service(db_session: AsyncSession) -> TaskService:
     return TaskService(db_session)
+
+
+@pytest.fixture
+def task_resource_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    data_dir = tmp_path / "task-data"
+    monkeypatch.setattr("src.services.task.DATA_DIR", data_dir)
+    return data_dir
 
 
 @pytest.mark.service
@@ -117,13 +126,121 @@ class TestTaskService:
         assert [message.content for message in updated.messages] == [message.content for message in messages]
 
     @pytest.mark.asyncio
-    async def test_delete_task_removes_entity(
+    async def test_save_task_resource_creates_db_record_and_file(
+        self,
+        task_service: TaskService,
+        workspace_factory,
+        agent_factory,
+        task_resource_data_dir: Path,
+    ):
+        agent = await agent_factory(name="Agent A")
+        workspace = await workspace_factory(name="Workspace A")
+        task = await task_service.create_task(
+            task_schemas.TaskCreate(
+                title="Task A",
+                agent_id=agent.id,
+                workspace_id=workspace.id,
+            )
+        )
+        file_bytes = b"task resource content"
+
+        resource = await task_service.save_task_resource(task.id, "note.txt", file_bytes)
+        resource_path = task_resource_data_dir / ".task-resources" / str(task.id) / resource.filename
+
+        assert resource.id is not None
+        assert resource.filename.endswith(".txt")
+        assert resource.filename != "note.txt"
+        assert resource.checksum is not None
+        assert resource_path.exists()
+        assert resource_path.read_bytes() == file_bytes
+
+    @pytest.mark.asyncio
+    async def test_save_task_resource_reuses_existing_record_for_same_checksum(
+        self,
+        task_service: TaskService,
+        workspace_factory,
+        agent_factory,
+        task_resource_data_dir: Path,
+    ):
+        agent = await agent_factory(name="Agent A")
+        workspace = await workspace_factory(name="Workspace A")
+        task = await task_service.create_task(
+            task_schemas.TaskCreate(
+                title="Task A",
+                agent_id=agent.id,
+                workspace_id=workspace.id,
+            )
+        )
+        file_bytes = b"same-content"
+
+        first_resource = await task_service.save_task_resource(task.id, "note.txt", file_bytes)
+        second_resource = await task_service.save_task_resource(task.id, "other-name.txt", file_bytes)
+        resource_dir = task_resource_data_dir / ".task-resources" / str(task.id)
+        stored_files = sorted(path.name for path in resource_dir.iterdir())
+
+        assert second_resource.id == first_resource.id
+        assert second_resource.filename == first_resource.filename
+        assert stored_files == [first_resource.filename]
+
+    @pytest.mark.asyncio
+    async def test_load_task_resource_returns_saved_path(
+        self,
+        task_service: TaskService,
+        workspace_factory,
+        agent_factory,
+        task_resource_data_dir: Path,
+    ):
+        agent = await agent_factory(name="Agent A")
+        workspace = await workspace_factory(name="Workspace A")
+        task = await task_service.create_task(
+            task_schemas.TaskCreate(
+                title="Task A",
+                agent_id=agent.id,
+                workspace_id=workspace.id,
+            )
+        )
+        resource = await task_service.save_task_resource(task.id, "note.txt", b"resource-bytes")
+
+        resource_path = await task_service.load_task_resource(task.id, resource.id)
+
+        assert resource_path == task_resource_data_dir / ".task-resources" / str(task.id) / resource.filename
+
+    @pytest.mark.asyncio
+    async def test_load_task_resource_returns_none_when_record_or_file_missing(
+        self,
+        task_service: TaskService,
+        workspace_factory,
+        agent_factory,
+        task_resource_data_dir: Path,
+    ):
+        agent = await agent_factory(name="Agent A")
+        workspace = await workspace_factory(name="Workspace A")
+        task = await task_service.create_task(
+            task_schemas.TaskCreate(
+                title="Task A",
+                agent_id=agent.id,
+                workspace_id=workspace.id,
+            )
+        )
+        resource = await task_service.save_task_resource(task.id, "note.txt", b"resource-bytes")
+        resource_path = task_resource_data_dir / ".task-resources" / str(task.id) / resource.filename
+        resource_path.unlink()
+
+        missing_record_result = await task_service.load_task_resource(task.id, 999)
+        missing_file_result = await task_service.load_task_resource(task.id, resource.id)
+
+        assert missing_record_result is None
+        assert missing_file_result is None
+
+    @pytest.mark.asyncio
+    async def test_delete_task_removes_entity_and_task_resources(
         self,
         task_service: TaskService,
         db_session: AsyncSession,
         workspace_factory,
         agent_factory,
         tool_factory,
+        task_resource_data_dir: Path,
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
@@ -141,10 +258,15 @@ class TestTaskService:
                 workspace_id=workspace.id,
             )
         )
+        resource = await task_service.save_task_resource(task.id, "note.txt", b"resource-bytes")
+        resource_dir = task_resource_data_dir / ".task-resources" / str(task.id)
+        resource_path = resource_dir / resource.filename
 
         await task_service.delete_task(task.id)
         await db_session.flush()
         db_session.expunge_all()
 
+        assert not resource_path.exists()
+        assert not resource_dir.exists()
         with pytest.raises(TaskNotFoundError, match=f"Task '{task.id}' not found"):
             await task_service.get_task_by_id(task.id)
