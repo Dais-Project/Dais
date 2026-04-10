@@ -1,6 +1,6 @@
 import asyncio
-from typing import Literal
-from dais_sdk.types import UserMessage
+from typing import Literal, cast
+from dais_sdk.types import ContentBlockMetadata, UserMessage
 from loguru import logger
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from pydantic import BaseModel
@@ -53,24 +53,28 @@ async def append_task_message(
     body: TaskAppendMessageBody = Depends(parse_append_message_body),
     uploaded_files: list[UploadFile] = File(default=[]),
 ):
-    task = await create_agent_task(task_id, body.agent_id)
-    task.discard_pending_tool_calls()
-
-    user_message = body.message
-    if len(uploaded_files) > 0:
-        user_message.attachments = []
-
+    async def persist_attachments() -> list[TaskResourceMetadata]:
+        metadatas = []
         async with db_context() as db_session:
             for file in uploaded_files:
                 if file.filename is None or file.content_type is None:
                     raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.TASK_RESOURCE_SHOULD_HAVE_FILENAME_AND_CONTENTTYPE)
                 file_bytes = await file.read()
                 resource = await TaskService(db_session).save_task_resource(task_id, file.filename, file_bytes)
-                user_message.attachments.append(TaskResourceMetadata(
+                metadatas.append(TaskResourceMetadata(
                     resource_id=resource.id,
                     filename=file.filename,
                     mimetype=file.content_type,
                 ))
+        return metadatas
+
+    task = await create_agent_task(task_id, body.agent_id)
+    task.discard_pending_tool_calls()
+
+    user_message = body.message
+    if len(uploaded_files) > 0:
+        resource_metadatas = await asyncio.shield(persist_attachments())
+        user_message.attachments = cast(list[ContentBlockMetadata], resource_metadatas)
 
     task.append_message(user_message)
     return await asyncio.shield(task.persist())

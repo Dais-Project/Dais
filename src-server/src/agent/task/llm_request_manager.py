@@ -2,6 +2,7 @@ import asyncio
 import uuid
 from typing import override
 from collections.abc import AsyncGenerator
+from anyio import Path
 from loguru import logger
 from dais_sdk import LLM
 from dais_sdk.types import (
@@ -16,17 +17,17 @@ from dais_sdk.types import (
     ToolCallChunkEvent as SdkToolCallChunkEvent,
 )
 from src.db import db_context
-from src.agent.utils import normalize_content_type
 from src.services.task import TaskService
-from src.utils import to_base64_str
+from src.utils import MarkdownConverter, to_base64_str
 from ..context import AgentContext
 from ..types import (
-    is_task_resource_metadata,
+    is_task_resource_metadata, TaskResourceMetadata,
     MessageStartEvent, MessageEndEvent,
     TextChunkEvent, ToolCallChunkEvent, UsageChunkEvent,
     ToolCallEndEvent,
     TaskInterruptedEvent, ErrorEvent
 )
+from ..utils import get_magika, normalize_content_type
 
 
 class TaskResourceRetriever(ContentBlockResolver):
@@ -34,11 +35,25 @@ class TaskResourceRetriever(ContentBlockResolver):
 
     def __init__(self, task_id: int):
         self._task_id = task_id
+        self._magika = get_magika()
+        self._markdown_converter = MarkdownConverter()
         super().__init__()
 
-    @override
-    async def resolve(self, metadata: ContentBlockMetadata) -> ContentBlock | None:
-        assert is_task_resource_metadata(metadata)
+    async def _is_resource_convertable(self, path: Path) -> bool:
+        if MarkdownConverter.is_convertable_binary(path):
+            return True
+        result = await asyncio.to_thread(self._magika.identify_path, path)
+        return MarkdownConverter.is_convertable_binary(result.output.label)
+
+    async def _convert_to_markdown_cached(self, path: Path) -> str:
+        markdowned_path = path.with_name(path.name + ".md")
+        if await markdowned_path.exists():
+            return await markdowned_path.read_text("utf-8")
+        result = await self._markdown_converter.convert(path)
+        await markdowned_path.write_text(result, "utf-8")
+        return result
+
+    async def _resolve_resource(self, metadata: TaskResourceMetadata) -> ContentBlock | None:
         async with db_context() as db_session:
             resource_path = await TaskService(db_session).load_task_resource(self._task_id, metadata["resource_id"])
             if resource_path is None: return None
@@ -53,7 +68,21 @@ class TaskResourceRetriever(ContentBlockResolver):
                 case "image": return ImageBlock(source=source)
                 case "audio": return AudioBlock(source=source)
                 case "video": return VideoBlock(source=source)
-                case "document": return DocumentBlock(source=source)
+                case "document":
+                    if await self._is_resource_convertable(resource_path):
+                        markdowned = await self._convert_to_markdown_cached(resource_path)
+                        return TextBlock(text=markdowned)
+                    return DocumentBlock(source=source)
+
+    @override
+    async def resolve(self, metadata: ContentBlockMetadata) -> list[ContentBlock] | ContentBlock | None:
+        assert is_task_resource_metadata(metadata)
+        file_block = await self._resolve_resource(metadata)
+        if file_block is None: return None
+
+        attachment_start_block = TextBlock(text=f"<attachment filename=\"{metadata['filename']}\">")
+        attachment_end_block = TextBlock(text="</attachment>")
+        return [attachment_start_block, file_block, attachment_end_block]
 
 class LlmRequestManager:
     _logger = logger.bind(name="LlmRequestManager")

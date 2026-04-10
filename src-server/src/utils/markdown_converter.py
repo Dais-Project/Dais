@@ -1,15 +1,17 @@
 import asyncio
 import io
 from functools import singledispatchmethod
-from pathlib import Path
+from pathlib import Path as StdPath
+from anyio import Path as AnyioPath
 from loguru import logger
 from magika import ContentTypeLabel
 from markitdown import MarkItDown
 
 
+_markitdown = MarkItDown()
+
 class MarkdownConverter:
-    def __init__(self):
-        self._md = MarkItDown()
+    CONVERTABLE_EXTS = (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
 
     @singledispatchmethod
     @staticmethod
@@ -22,23 +24,27 @@ class MarkdownConverter:
     def _(label: ContentTypeLabel) -> bool:
         return label in (ContentTypeLabel.PDF, ContentTypeLabel.DOCX, ContentTypeLabel.PPTX, ContentTypeLabel.XLSX, ContentTypeLabel.EPUB)
 
-    @is_convertable_binary.register(str)
+    @is_convertable_binary.register(StdPath)
+    @is_convertable_binary.register(AnyioPath)
     @staticmethod
-    def _(filename: str):
-        return Path(filename).suffix.lower() in (".pdf", ".docx", ".pptx", ".xlsx", ".epub")
+    def _(filename: StdPath | AnyioPath) -> bool:
+        return filename.suffix.lower() in MarkdownConverter.CONVERTABLE_EXTS
+
 
     @singledispatchmethod
     async def convert(self, source) -> str:
         logger.warning(f"Unexpected value type: {type(source)}")
         return str(source)
 
-    @convert.register(Path)
-    async def _(self, path: Path) -> str:
-        result = await asyncio.to_thread(self._md.convert, path)
+    @convert.register(StdPath)
+    @convert.register(AnyioPath)
+    async def _(self, path: StdPath | AnyioPath) -> str:
+        path = StdPath(path)
+        result = await asyncio.to_thread(_markitdown.convert, path)
         return result.markdown
 
     @convert.register(bytes)
     async def _(self, binary: bytes) -> str:
         io_interface = io.BytesIO(binary)
-        result = await asyncio.to_thread(self._md.convert, io_interface)
+        result = await asyncio.to_thread(_markitdown.convert, io_interface)
         return result.markdown

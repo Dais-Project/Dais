@@ -55,12 +55,12 @@ function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
       case "video":
         return <video className="size-full object-cover" muted src={resourceUrl.toString()} />
       default:
-        const icon = attachmentCategoryIcons[resourceType];
-        return icon({ className: "size-4 text-muted-foreground" });
+        const Icon = attachmentCategoryIcons[resourceType];
+        return <Icon className="size-6 text-muted-foreground" />
     }
   })();
   return (
-    <div className="size-24 overflow-hidden rounded-lg">
+    <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
       {content}
     </div>
   );

@@ -118,13 +118,19 @@ class TaskService(ServiceBase):
         resource_path = resource_dir / unique_name
         await resource_path.write_bytes(file_bytes)
 
-        new_resource = task_models.TaskResource(
-            _task_id=id,
-            filename=unique_name,
-            checksum=checksum,
-        )
-        self._db_session.add(new_resource)
-        await self._db_session.flush()
+        try:
+            new_resource = task_models.TaskResource(
+                _task_id=id,
+                filename=unique_name,
+                checksum=checksum,
+            )
+            self._db_session.add(new_resource)
+            await self._db_session.flush()
+        except BaseException:
+            self._logger.exception(f"Failed to add db record for {filename}, reverting path writing...")
+            if await resource_path.exists():
+                await resource_path.unlink(missing_ok=True)
+            raise
         return new_resource
 
     async def delete_task_resource(self, id: int):

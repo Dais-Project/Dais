@@ -80,7 +80,7 @@ class FileSystemToolset(BuiltInToolset):
         if not abs_path.exists():
             raise FileNotFoundError(f"File not found at {path}")
 
-        if self._markdown_converter.is_convertable_binary(path):
+        if self._markdown_converter.is_convertable_binary(abs_path):
             result = await convert_to_markdown_with_cache(abs_path)
             lines = result.splitlines()
         elif is_binary(abs_path):

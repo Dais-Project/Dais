@@ -337,7 +337,7 @@ export function AttachmentInfo({
   }
 
   return (
-    <div className={cn("min-w-0 flex-1", className)} {...props}>
+    <div className={cn("min-w-0 max-w-64 flex-1", className)} {...props}>
       <span className="block truncate">{label}</span>
       {showMimetype && data.mimetype && (
         <span className="block truncate text-muted-foreground text-xs">
