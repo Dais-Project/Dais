@@ -9,6 +9,7 @@ from dais_sdk.types import (
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
     ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
@@ -78,24 +79,26 @@ class AgentTask:
     def append_message(self, message: UserMessage):
         self._ctx.messages.append(message)
 
-    def set_tool_call_result(self, call_id: str, result: str) -> MessageReplaceEvent:
-        """
-        Set the result for a tool call
+    def edit_message(self, message_id: str, new_content: str):
+        target_message = self._find_message(lambda message: message.role == "user" and message.id == message_id)
+        target_index: int | None = None
+        for index, message in enumerate(self._ctx.messages):
+            if message is target_message:
+                target_index = index
+                break
 
-        Raises:
-            ToolCallNotFoundError
-        """
+        assert target_index is not None
+        assert target_message.role == "user"
+        target_message.content = new_content
+        self._ctx.messages = self._ctx.messages[: target_index + 1]
+
+    def set_tool_call_result(self, call_id: str, result: str) -> MessageReplaceEvent:
         target_message = self._find_message(lambda m: m.role == "tool" and m.call_id == call_id)
-        cast(ToolMessage, target_message).result = result
+        assert target_message.role == "tool"
+        target_message.result = result
         return MessageReplaceEvent(message=target_message)
 
     async def approve_tool_call(self, call_id: str, approved: bool) -> MessageReplaceEvent | None:
-        """
-        Approve or deny a tool call
-
-        Raises:
-            ToolCallNotFoundError
-        """
         target_message = self._find_message(lambda m: m.role == "tool" and m.call_id == call_id)
         assert isinstance(target_message, ToolMessage)
 

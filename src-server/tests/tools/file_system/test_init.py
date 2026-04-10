@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock
 
+import src.agent.tool.builtin_tools.file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
 from src.agent.types import ContextUsage
@@ -37,11 +38,40 @@ class TestFileSystemToolInit:
 
 @pytest.mark.tool
 class TestMarkitdownConvertableBinaryDetection:
+    @pytest.fixture(autouse=True)
+    def mock_markdown_cache(self, monkeypatch: pytest.MonkeyPatch):
+        class FakeMarkdownCacheService:
+            def __init__(self, db_session, workspace_id: int, cwd: Path):
+                self._cwd = cwd
+
+            async def get(self, path: Path) -> str | None:
+                return None
+
+            async def set(self, path: Path, content: str) -> None:
+                return None
+
+        monkeypatch.setattr(file_system_module, "MarkdownCacheService", FakeMarkdownCacheService)
+
     @pytest.mark.parametrize("ext", CONVERTABLE_EXTENSIONS)
     @pytest.mark.asyncio
-    async def test_convertable_file_invokes_converter(self, built_in_toolset_context, temp_workspace, ext):
+    async def test_convertable_file_invokes_converter(
+        self,
+        built_in_toolset_context,
+        temp_workspace,
+        ext,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
         filename = f"test.{ext}"
         (temp_workspace / filename).write_bytes(b"fake binary content")
+
+        class FakeDbContext:
+            async def __aenter__(self):
+                return object()
+
+            async def __aexit__(self, exc_type, exc, tb):
+                return None
+
+        monkeypatch.setattr(file_system_module, "db_context", lambda: FakeDbContext())
 
         tool = FileSystemToolset(built_in_toolset_context)
         tool._markdown_converter.convert = AsyncMock(return_value="# converted")

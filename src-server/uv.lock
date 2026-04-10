@@ -340,7 +340,7 @@ wheels = [
 
 [[package]]
 name = "dais-sdk"
-version = "0.9.10"
+version = "0.10.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
@@ -353,9 +353,9 @@ dependencies = [
     { name = "starlette" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/a2/5018385bb5ecfac614ca3a0b47f0105cc111e3f9ba01cbf3dbc9550069ed/dais_sdk-0.9.10.tar.gz", hash = "sha256:04c014c72dfb33e3581c53a1ec5825403079b18e1ddde18781bfae60c9f18f4c", size = 23483, upload-time = "2026-04-04T05:20:35.035Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/12/f4/948eb533eb42e42266cc3feeaf7ae1bb51f85932fb9308d798cb4b104caa/dais_sdk-0.10.6.tar.gz", hash = "sha256:dd1a9c3332c42dfe32a2efb31068524627651d31dfe347cf6df639916ef90a08", size = 24164, upload-time = "2026-04-10T01:50:50.737Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/7f/601da670474acc272a17ad1fd1684f9fd1776d651199f6f187e5449c480e/dais_sdk-0.9.10-py3-none-any.whl", hash = "sha256:62fb8db24682f1dcad88b66aa01c8e78ad0b1cbff6a1ef250f17d04ff6fb8599", size = 36101, upload-time = "2026-04-04T05:20:33.586Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/be/bc36407b5d3efd31b1bcb1f5a8cc99ffac0e33698243b75a1db10d3b4793/dais_sdk-0.10.6-py3-none-any.whl", hash = "sha256:f4fe9c0125f9741e99ff38de807a7b032bff452291e768fddfb492a5225b1ac4", size = 37000, upload-time = "2026-04-10T01:50:49.555Z" },
 ]
 
 [[package]]
@@ -365,6 +365,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "aiosqlite" },
     { name = "alembic" },
+    { name = "anyio" },
     { name = "binaryornot" },
     { name = "dais-scantree" },
     { name = "dais-sdk" },
@@ -407,9 +408,10 @@ types = [
 requires-dist = [
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "alembic", specifier = "==1.18.4" },
+    { name = "anyio", specifier = ">=4.12.0" },
     { name = "binaryornot", specifier = "==0.6.0" },
     { name = "dais-scantree", specifier = "==0.2.2" },
-    { name = "dais-sdk", specifier = "==0.9.10" },
+    { name = "dais-sdk", specifier = "==0.10.6" },
     { name = "dais-shell", specifier = "==0.1.8" },
     { name = "fastapi", specifier = "==0.135.1" },
     { name = "fastapi-pagination", specifier = "==0.15.10" },

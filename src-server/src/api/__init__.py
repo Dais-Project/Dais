@@ -15,6 +15,7 @@ from .routes import (
     settings_router,
     task_control_router,
     task_manage_router,
+    task_resource_router,
     task_stream_router,
     context_file_router,
     health_router,
@@ -71,6 +72,7 @@ app.include_router(skills_router, prefix="/api/skills")
 app.include_router(settings_router, prefix="/api/settings")
 app.include_router(task_control_router, prefix="/api/tasks")
 app.include_router(task_manage_router, prefix="/api/tasks")
+app.include_router(task_resource_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 app.include_router(context_file_router, prefix="/api/tasks")
 

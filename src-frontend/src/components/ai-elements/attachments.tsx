@@ -1,8 +1,4 @@
-"use client";
-
-import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,
@@ -19,17 +15,15 @@ import {
   VideoIcon,
   XIcon,
 } from "lucide-react";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { UiFile } from "./prompt-input";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type AttachmentData =
-  | (FileUIPart & { id: string })
-  | (SourceDocumentUIPart & { id: string });
-
-export type AttachmentMediaCategory =
+export type AttachmentData = (UiFile & { id: string });
+export type AttachmentCategory =
   | "image"
   | "video"
   | "audio"
@@ -39,7 +33,7 @@ export type AttachmentMediaCategory =
 
 export type AttachmentVariant = "grid" | "inline" | "list";
 
-const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof ImageIcon> = {
+export const attachmentCategoryIcons: Record<AttachmentCategory, typeof ImageIcon> = {
   audio: Music2Icon,
   document: FileTextIcon,
   image: ImageIcon,
@@ -52,51 +46,55 @@ const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof ImageIcon> = {
 // Utility Functions
 // ============================================================================
 
-export const getMediaCategory = (
-  data: AttachmentData
-): AttachmentMediaCategory => {
-  if (data.type === "source-document") {
-    return "source";
-  }
-
-  const mediaType = data.mediaType ?? "";
-
-  if (mediaType.startsWith("image/")) {
+export function resolveMimetypeCategory(mimetype: string): AttachmentCategory {
+  if (mimetype.startsWith("image/")) {
     return "image";
   }
-  if (mediaType.startsWith("video/")) {
+  if (mimetype.startsWith("video/")) {
     return "video";
   }
-  if (mediaType.startsWith("audio/")) {
+  if (mimetype.startsWith("audio/")) {
     return "audio";
   }
-  if (mediaType.startsWith("application/") || mediaType.startsWith("text/")) {
+  if (mimetype.startsWith("application/") || mimetype.startsWith("text/")) {
     return "document";
   }
-
   return "unknown";
+}
+
+export function resolveAttachmentLabel(data: AttachmentData): string {
+  const category = resolveMimetypeCategory(data.mimetype);
+  return data.name || (category === "image" ? "Image" : "Attachment");
 };
 
-export const getAttachmentLabel = (data: AttachmentData): string => {
-  if (data.type === "source-document") {
-    return data.title || data.filename || "Source";
-  }
+export function useObjectUrl(file: File): string | null {
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
-  const category = getMediaCategory(data);
-  return data.filename || (category === "image" ? "Image" : "Attachment");
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return objectUrl;
+}
+
+type AttachmentImageProps = {
+  filename: string;
+  file: File;
+  isGrid: boolean;
 };
 
-const renderAttachmentImage = (
-  url: string,
-  filename: string | undefined,
-  isGrid: boolean
-) =>
-  isGrid ? (
+const AttachmentImage = memo(function ({ filename, file, isGrid }: AttachmentImageProps) {
+  const objectUrl = useObjectUrl(file);
+  if (objectUrl === null) return null;
+
+  return isGrid ? (
     <img
       alt={filename || "Image"}
       className="size-full object-cover"
       height={96}
-      src={url}
+      src={objectUrl}
       width={96}
     />
   ) : (
@@ -104,10 +102,17 @@ const renderAttachmentImage = (
       alt={filename || "Image"}
       className="size-full rounded object-cover"
       height={20}
-      src={url}
+      src={objectUrl}
       width={20}
     />
   );
+});
+
+const AttachmentVideo = memo(function ({ file }: { file: File }) {
+  const objectUrl = useObjectUrl(file);
+  if (objectUrl === null) return null;
+  return <video className="size-full object-cover" muted src={objectUrl} />;
+});
 
 // ============================================================================
 // Contexts
@@ -119,12 +124,12 @@ interface AttachmentsContextValue {
 
 const AttachmentsContext = createContext<AttachmentsContextValue | null>(null);
 
-interface AttachmentContextValue {
+type AttachmentContextValue = {
   data: AttachmentData;
-  mediaCategory: AttachmentMediaCategory;
-  onRemove?: () => void;
+  category: AttachmentCategory;
   variant: AttachmentVariant;
-}
+  onRemove?: () => void;
+};
 
 const AttachmentContext = createContext<AttachmentContextValue | null>(null);
 
@@ -180,49 +185,57 @@ export const Attachments = ({
 // Attachment - Item
 // ============================================================================
 
-export type AttachmentProps = HTMLAttributes<HTMLDivElement> & {
+export type AttachmentProviderProps = {
   data: AttachmentData;
+  children?: React.ReactNode,
   onRemove?: () => void;
 };
 
+export function AttachmentProvider({ data, children, onRemove }: AttachmentProviderProps) {
+  const { variant } = useAttachmentsContext();
+  const category = resolveMimetypeCategory(data.mimetype);
+
+  const contextValue = useMemo<AttachmentContextValue>(
+    () => ({ data, category, variant, onRemove }),
+    [data, category, variant, onRemove]
+  );
+  return (
+    <AttachmentContext.Provider value={contextValue}>
+      {children}
+    </AttachmentContext.Provider>
+  )
+}
+
+export type AttachmentProps = HTMLAttributes<HTMLDivElement>;
+
 export const Attachment = ({
-  data,
-  onRemove,
   className,
   children,
   ...props
 }: AttachmentProps) => {
   const { variant } = useAttachmentsContext();
-  const mediaCategory = getMediaCategory(data);
-
-  const contextValue = useMemo<AttachmentContextValue>(
-    () => ({ data, mediaCategory, onRemove, variant }),
-    [data, mediaCategory, onRemove, variant]
-  );
 
   return (
-    <AttachmentContext.Provider value={contextValue}>
-      <div
-        className={cn(
-          "group relative",
-          variant === "grid" && "size-24 overflow-hidden rounded-lg",
-          variant === "inline" && [
-            "flex h-8 cursor-pointer select-none items-center gap-1.5",
-            "rounded-md border border-border px-1.5",
-            "font-medium text-sm transition-all",
-            "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-          ],
-          variant === "list" && [
-            "flex w-full items-center gap-3 rounded-lg border p-3",
-            "hover:bg-accent/50",
-          ],
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    </AttachmentContext.Provider>
+    <div
+      className={cn(
+        "group relative",
+        variant === "grid" && "size-24 overflow-hidden rounded-lg",
+        variant === "inline" && [
+          "flex h-8 cursor-pointer select-none items-center gap-1.5",
+          "rounded-md border border-border px-1.5",
+          "font-medium text-sm transition-all",
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        ],
+        variant === "list" && [
+          "flex w-full items-center gap-3 rounded-lg border p-3",
+          "hover:bg-accent/50",
+        ],
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
   );
 };
 
@@ -230,17 +243,45 @@ export const Attachment = ({
 // AttachmentPreview - Media preview
 // ============================================================================
 
-export type AttachmentPreviewProps = HTMLAttributes<HTMLDivElement> & {
+export function AttachmentPreview() {
+  const { data, category } = useAttachmentContext();
+  const objectUrl = useObjectUrl(data.raw);
+  if (objectUrl === null) return null;
+
+  switch (category) {
+    case "image":
+      return <img className="size-full" src={objectUrl} />;
+    case "audio":
+      return <audio controls src={objectUrl} />
+    case "video":
+      return <video className="size-full object-cover" muted src={objectUrl} />;
+    default:
+      const label = resolveAttachmentLabel(data);
+      return (
+        <div className="space-y-1 px-0.5">
+          <h4 className="font-semibold text-sm leading-none">{label}</h4>
+          <p className="font-mono text-muted-foreground text-xs">
+            {data.mimetype}
+          </p>
+        </div>
+      );
+  }
+};
+
+// ============================================================================
+// AttachmentThumb - Media thumbnail
+// ============================================================================
+
+export type AttachmentThumbProps = HTMLAttributes<HTMLDivElement> & {
   fallbackIcon?: ReactNode;
 };
 
-export const AttachmentPreview = ({
+export function AttachmentThumb({
   fallbackIcon,
   className,
   ...props
-}: AttachmentPreviewProps) => {
-  const { data, mediaCategory, variant } = useAttachmentContext();
-
+}: AttachmentThumbProps) {
+  const { data, category, variant } = useAttachmentContext();
   const iconSize = variant === "inline" ? "size-3" : "size-4";
 
   const renderIcon = (Icon: typeof ImageIcon) => (
@@ -248,16 +289,15 @@ export const AttachmentPreview = ({
   );
 
   const renderContent = () => {
-    if (mediaCategory === "image" && data.type === "file" && data.url) {
-      return renderAttachmentImage(data.url, data.filename, variant === "grid");
+    switch (category) {
+      case "image":
+        return <AttachmentImage filename={data.name} file={data.raw} isGrid={variant === "grid"} />;
+      case "video":
+        return <AttachmentVideo file={data.raw} />;
+      default:
+        const Icon = attachmentCategoryIcons[category];
+        return fallbackIcon ?? renderIcon(Icon);
     }
-
-    if (mediaCategory === "video" && data.type === "file" && data.url) {
-      return <video className="size-full object-cover" muted src={data.url} />;
-    }
-
-    const Icon = mediaCategoryIcons[mediaCategory];
-    return fallbackIcon ?? renderIcon(Icon);
   };
 
   return (
@@ -281,27 +321,27 @@ export const AttachmentPreview = ({
 // ============================================================================
 
 export type AttachmentInfoProps = HTMLAttributes<HTMLDivElement> & {
-  showMediaType?: boolean;
+  showMimetype?: boolean;
 };
 
-export const AttachmentInfo = ({
-  showMediaType = false,
+export function AttachmentInfo({
+  showMimetype = false,
   className,
   ...props
-}: AttachmentInfoProps) => {
+}: AttachmentInfoProps) {
   const { data, variant } = useAttachmentContext();
-  const label = getAttachmentLabel(data);
+  const label = resolveAttachmentLabel(data);
 
   if (variant === "grid") {
     return null;
   }
 
   return (
-    <div className={cn("min-w-0 flex-1", className)} {...props}>
+    <div className={cn("min-w-0 max-w-64 flex-1", className)} {...props}>
       <span className="block truncate">{label}</span>
-      {showMediaType && data.mediaType && (
+      {showMimetype && data.mimetype && (
         <span className="block truncate text-muted-foreground text-xs">
-          {data.mediaType}
+          {data.mimetype}
         </span>
       )}
     </div>
@@ -316,12 +356,12 @@ export type AttachmentRemoveProps = ComponentProps<typeof Button> & {
   label?: string;
 };
 
-export const AttachmentRemove = ({
+export function AttachmentRemove({
   label = "Remove",
   className,
   children,
   ...props
-}: AttachmentRemoveProps) => {
+}: AttachmentRemoveProps) {
   const { onRemove, variant } = useAttachmentContext();
 
   const handleClick = useCallback(

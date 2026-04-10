@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   PromptInput as BasePromptInput,
+  PromptInputProps as BasePromptInputProps,
   PromptInputActionAddAttachmentsButton,
   PromptInputBody,
   PromptInputFooter,
@@ -16,8 +17,8 @@ import {
   usePromptInputController,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import { uiUserMessageFactory } from "@/types/message";
 import { cn } from "@/lib/utils";
+import { IMAGE_MIMETYPE, EPUB_MIMETYPE, PDF_MIMETYPE, PLAINTEXT_MIMETYPE, DOCX_MIMETYPE, XLSX_MIMETYPE, PPTX_MIMETYPE } from "@/constants/mimetypes";
 import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
@@ -38,6 +39,24 @@ const PROMPTINPUT_STATE_MAPPING: Record<TaskState, ChatStatus> = {
   waiting: "submitted",
   running: "streaming",
   error: "error",
+};
+
+const ACCEPT_TYPES = [
+  IMAGE_MIMETYPE,
+  EPUB_MIMETYPE,
+  PDF_MIMETYPE,
+  PLAINTEXT_MIMETYPE,
+  DOCX_MIMETYPE,
+  XLSX_MIMETYPE,
+  PPTX_MIMETYPE,
+  ".pdf", ".docx", ".xlsx", ".pptx", ".epub", ".txt"
+];
+const PROMPTINPUT_FILE_DROP_OPTIONS: Partial<BasePromptInputProps> = {
+  multiple: true,
+  globalDrop: true,
+  accept: ACCEPT_TYPES.join(","),
+  maxFiles: 5,
+  maxFileSize: 10 * 1024 * 1024,
 };
 
 type PromptInputAgentStateProps = {
@@ -168,8 +187,7 @@ export function PromptInputDraft({ workspaceId, onSubmit }: PromptInputDraftProp
 
   return (
     <BasePromptInput
-      globalDrop
-      multiple
+      {...PROMPTINPUT_FILE_DROP_OPTIONS}
       className="max-w-2xl rounded-md bg-background"
       onSubmit={(message) => {
         if (ableToSubmit) {
@@ -232,13 +250,14 @@ export function PromptInput({ workspaceId, className }: PromptInputProps) {
 
   return (
     <BasePromptInput
-      globalDrop
-      multiple
       className={cn("rounded-md bg-background", className)}
+      {...PROMPTINPUT_FILE_DROP_OPTIONS}
       onSubmit={(message) => {
-        const userMessage = uiUserMessageFactory(message.text);
         if (ableToSubmit) {
-          appendMessage(userMessage);
+          appendMessage(
+            message.text,
+            message.files.map((file) => file.raw)
+          );
         } else if (state === "running") {
           cancel();
         }

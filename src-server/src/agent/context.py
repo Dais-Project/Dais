@@ -168,8 +168,9 @@ class AgentContext:
         return self._model
 
     @property
-    def messages(self) -> list[Message]:
-        return self._messages
+    def messages(self) -> list[Message]: return self._messages
+    @messages.setter
+    def messages(self, new_messages: list[Message]): self._messages = new_messages
 
     @property
     def usable_tool_ids(self) -> set[int] | None:

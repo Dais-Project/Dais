@@ -9,7 +9,6 @@ import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { LazyFileTree } from "@/components/custom/LazyFileTree";
 import { Command, CommandEmpty, CommandLoading, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useWorkspaceStore } from "@/stores/workspace-store";
 import { keepPreviousData } from "@tanstack/react-query";
 
 type OnSelectHandler = (path: string) => void;

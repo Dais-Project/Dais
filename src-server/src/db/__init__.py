@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+import sqlite3
 from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import event
@@ -45,6 +46,7 @@ db_context = asynccontextmanager(get_db_session)
 
 @event.listens_for(engine.sync_engine, "connect")
 def on_connect(dbapi_conn, _):
+    dbapi_conn.execute("PRAGMA foreign_keys=ON")
     dbapi_conn.execute("PRAGMA journal_mode=WAL")
     dbapi_conn.execute("PRAGMA busy_timeout=3000")
 

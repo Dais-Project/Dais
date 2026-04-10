@@ -4,13 +4,14 @@ from sqlalchemy.orm import (
     relationship as _relationship
 )
 
+
 class Base(DeclarativeBase): ...
 relationship = partial(_relationship, lazy="raise")
 
 from .provider import Provider, LlmModel
 from .agent import Agent
 from .workspace import Workspace
-from .task import Task
+from .task import Task, TaskResource
 from .toolset import Toolset, Tool
 from .skill import Skill
 from .markdown_cache import MarkdownCache
@@ -20,7 +21,7 @@ __all__ = [
     "Provider", "LlmModel",
     "Agent",
     "Workspace",
-    "Task",
+    "Task", "TaskResource",
     "Toolset", "Tool",
     "Skill",
     "MarkdownCache",

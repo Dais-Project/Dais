@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TypeGuard, TypedDict
+from typing import Mapping, TypeGuard, TypedDict
 
 class UserApprovalStatus(str, Enum):
     PENDING = "pending"
@@ -11,6 +11,14 @@ class ToolMessageMetadata(TypedDict, total=False):
     risk_level: int
     risk_reason: str
 
-@staticmethod
 def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
+    return True
+
+class TaskResourceMetadata(TypedDict):
+    resource_id: int
+    filename: str
+    mimetype: str
+
+@staticmethod
+def is_task_resource_metadata(_: Mapping) -> TypeGuard[TaskResourceMetadata]:
     return True

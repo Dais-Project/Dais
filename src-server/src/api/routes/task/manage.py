@@ -63,20 +63,19 @@ async def summarize_task_title(task_id: int, db_session: DbSessionDep):
     settings = use_app_setting_manager().settings
     if settings.flash_model is None:
         raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED)
-
-    if len(task.messages) == 0 or task.messages[0].role != "user":
-        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED)
+    if len(task.messages) == 0:
+        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, "No message to summarize.")
 
     try:
         llm = await create_one_turn_llm(settings.flash_model)
         summarizer = TitleSummarization(llm, settings.reply_language)
         title = await summarizer(task.messages)
-    except Exception:
+    except Exception as e:
         _logger.exception("Failed to request title summarization")
-        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED)
+        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, str(e))
 
     if len(title) == 0:
-        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED)
+        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, "Generated empty content")
 
     update_data = task_schemas.TaskUpdate(
         title=title,
