@@ -4,7 +4,7 @@ import { type PanelSize, useDefaultLayout, useGroupRef, usePanelRef } from "reac
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSidebarStore } from "@/stores/sidebar-store";
-import { backendReady } from "@/api";
+import { BackendReadyPromise } from "@/api";
 import { activityVisible } from "@/lib/activity-visible";
 import { ActivityBar } from "./ActivityBar";
 import { SideBar } from "./SideBar";
@@ -57,10 +57,8 @@ export function LayoutSkeleton() {
 
 // --- --- --- --- --- ---
 
-const backendReadyPromise = backendReady();
-
 export function Layout() {
-  use(backendReadyPromise);
+  use(BackendReadyPromise);
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "panels",

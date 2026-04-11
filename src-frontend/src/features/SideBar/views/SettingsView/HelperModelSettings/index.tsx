@@ -5,6 +5,7 @@ import { ModelSelectDialog } from "@/components/custom/dialog/resource-dialog/Mo
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function HelperModelSettingsSuspense() {
@@ -22,6 +23,7 @@ function HelperModelSettingsSuspense() {
 
 export function HelperModelSettings() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const reload = useServerSettingsStore((s) => s.reload);
 
   return (
     <div className="px-4 py-2">
@@ -30,6 +32,15 @@ export function HelperModelSettings() {
           <SettingItem title={t("settings.helper_model.flash_model.title")}>
             <Skeleton className="h-9 w-24" />
           </SettingItem>
+        )}
+        errorRender={({ error, resetErrorBoundary }) => (
+          <FailedToLoad
+            error={error}
+            retry={() => {
+              reload();
+              resetErrorBoundary();
+            }}
+          />
         )}
       >
         <SettingItem title={t("settings.helper_model.flash_model.title")}>

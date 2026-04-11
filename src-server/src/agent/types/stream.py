@@ -87,6 +87,7 @@ class TaskInterruptedEvent(BaseModel):
 
 class ErrorEvent(BaseModel):
     error: str
+    retryable: bool = False
     event_id: Literal["ERROR"] = "ERROR"
 
 class ToolExecutedEvent(BaseModel):

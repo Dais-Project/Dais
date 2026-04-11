@@ -6,9 +6,8 @@ from anyio import Path
 from loguru import logger
 from dais_sdk import LLM
 from dais_sdk.types import (
-    ContentBlock,
-    ContentBlockMetadata,
-    ContentBlockResolver,
+    ContentBlock, ContentBlockMetadata, ContentBlockResolver,
+    ProviderNetworkError, ProviderRateLimitError, ProviderServerError, ProviderTimeoutError,
     TextBlock, ImageBlock, AudioBlock, VideoBlock, DocumentBlock, Base64Source,
     LlmRequestParams,
     AssistantMessageEvent,
@@ -151,7 +150,8 @@ class LlmRequestManager:
             raise
         except Exception as e:
             self._logger.exception(f"Failed to create llm call.")
-            yield ErrorEvent(error=str(e))
+            retryable = isinstance(e, (ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError))
+            yield ErrorEvent(error=str(e), retryable=retryable)
         finally:
             self._current_stream = None
             await asyncio.shield(llm.close())

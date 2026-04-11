@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, Generator, cast
+from typing import Callable
 from collections.abc import AsyncGenerator
 from loguru import logger
 from dais_sdk.tool import ToolCallExecutor
@@ -9,7 +9,6 @@ from dais_sdk.types import (
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
     ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
@@ -22,7 +21,7 @@ from ..exception_handlers import (
 from ..prompts import USER_IGNORED_TOOL_CALL_RESULT
 from ..types import (
     AgentGenerator, UserApprovalStatus, is_agent_tool_metadata,
-    ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskDoneEvent, ToolExecutedEvent,
+    ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskInterruptedEvent, TaskDoneEvent, ToolExecutedEvent, ErrorEvent
 )
 
 
@@ -132,6 +131,8 @@ class AgentTask:
 
     async def run(self) -> AgentGenerator:
         _exited_by_generator_close = False
+        retries = 0
+        max_retries = 3
 
         try:
             while self._is_running:
@@ -141,18 +142,25 @@ class AgentTask:
                     async for chunk in llm_stream:
                         yield chunk
                         last_chunk = chunk
-                except (ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError) as e:
-                    self._logger.warning(f"LLM provider error: {str(e)}")
-                    continue # retry
                 except asyncio.CancelledError:
                     # Task cancelled by user
                     break
 
-                assert last_chunk is not None
-                # normally, the final chunk should be one of MessageEndEvent, ErrorEvent, TaskInterruptedEvent
-                if not isinstance(last_chunk, (MessageEndEvent)):
-                    break
+                match last_chunk:
+                    case MessageEndEvent():
+                        retries = 0
+                    case ErrorEvent(error=error, retryable=retryable):
+                        self._logger.warning(f"LLM provider error: {error}")
+                        if retryable:
+                            retries += 1
+                            if retries >= max_retries: break
+                            continue # retry
+                    case TaskInterruptedEvent(): break
+                    case _ as chunk:
+                        self._logger.warning(f"Unexpected message event: {chunk}")
+                        break
 
+                assert isinstance(last_chunk, MessageEndEvent)
                 assistant_message = last_chunk.message
                 if (assistant_message.content == None and
                     assistant_message.reasoning_content == None and
