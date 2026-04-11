@@ -140,6 +140,9 @@ function usePromptInputHandlers(): UsePromptInputHandlersResult {
   };
 
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.nativeEvent.isComposing) {
+      return;
+    }
     if (e.key === "@") {
       e.preventDefault(); // prevent '@' from being entered into ContextSelectPopover
       contextSelectRef.current?.open();
@@ -271,7 +274,15 @@ export function PromptInput({ workspaceId, className }: PromptInputProps) {
           ref={inputRef}
           className="pt-2 text-sm-plus!"
           placeholder={t("prompt.input_placeholder")}
-          onKeyDown={handleTextareaKeyDown}
+          onKeyDown={(e) => {
+            const isEnterKey = e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing;
+            if (isEnterKey && state !== "idle") {
+              // prevent enter key triggers task cancel
+              e.preventDefault();
+              return;
+            }
+            handleTextareaKeyDown(e)
+          }}
         />
       </PromptInputBody>
       <PromptInputFooter className="gap-16">
