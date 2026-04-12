@@ -136,31 +136,36 @@ class AgentTask:
 
         try:
             while self._is_running:
-                last_chunk = None
+                last_chunk: MessageEndEvent | TaskInterruptedEvent | ErrorEvent | None = None
                 try:
                     llm_stream = self._llm_request_manager.create_llm_call()
                     async for chunk in llm_stream:
+                        if isinstance(chunk, self._llm_request_manager.FINISHING_CHUNK_TYPE):
+                            last_chunk = chunk
+                            continue
                         yield chunk
-                        last_chunk = chunk
                 except asyncio.CancelledError:
                     # Task cancelled by user
                     break
 
                 match last_chunk:
-                    case MessageEndEvent():
+                    case MessageEndEvent() as message_end_chunk:
                         retries = 0
-                    case ErrorEvent(error=error, retryable=retryable):
+                        yield message_end_chunk
+                    case ErrorEvent(error=error, retryable=retryable) as error_chunk:
                         self._logger.warning(f"LLM provider error: {error}")
-                        if retryable:
-                            retries += 1
-                            if retries >= max_retries: break
-                            continue # retry
-                    case TaskInterruptedEvent(): break
+                        if not retryable or retries >= max_retries:
+                            yield error_chunk
+                            break
+                        retries += 1
+                        continue # retry
+                    case TaskInterruptedEvent() as interrupted_chunk:
+                        yield interrupted_chunk
+                        break
                     case _ as chunk:
                         self._logger.warning(f"Unexpected message event: {chunk}")
                         break
 
-                assert isinstance(last_chunk, MessageEndEvent)
                 assistant_message = last_chunk.message
                 if (assistant_message.content == None and
                     assistant_message.reasoning_content == None and

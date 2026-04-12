@@ -85,6 +85,7 @@ class TaskResourceRetriever(ContentBlockResolver):
 
 class LlmRequestManager:
     _logger = logger.bind(name="LlmRequestManager")
+    FINISHING_CHUNK_TYPE = MessageEndEvent, TaskInterruptedEvent, ErrorEvent
 
     def __init__(self, ctx: AgentContext):
         self._ctx = ctx
