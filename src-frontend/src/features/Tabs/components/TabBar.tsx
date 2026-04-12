@@ -65,7 +65,7 @@ function SortableTab({ tab }: { tab: StoredTab }) {
         tabIndex={tab.id === activeTabId ? 0 : -1}
         onMouseDown={(e) => handleMouseDown(e, tab.id)}
         className={cn(
-          "group flex min-w-24 shrink-0 cursor-pointer items-center justify-between gap-2 text-nowrap border-r border-b p-2 pl-3 text-muted-foreground text-sm outline-0 transition-colors duration-200 ease-in-out",
+          "group flex min-w-24 shrink-0 cursor-pointer items-center justify-between gap-2 text-nowrap border-r border-b p-2.25 pl-3 text-muted-foreground text-sm outline-0 transition-colors duration-200 ease-in-out",
           "hover:text-primary",
           { "border-b-transparent bg-layout-tabs-content! text-primary!": tab.id === activeTabId }
         )}
