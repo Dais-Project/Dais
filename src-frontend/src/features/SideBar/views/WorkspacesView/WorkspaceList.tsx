@@ -1,4 +1,4 @@
-import { CircleIcon, FolderIcon, FolderOpenIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { CircleIcon, FolderIcon, FolderOpenIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
@@ -27,11 +27,11 @@ import {
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_NAMESPACE, TABS_TASK_NAMESPACE } from "@/i18n/resources";
+import { isTauri } from "@/lib/tauri";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab } from "@/types/tab";
-import { isTauri } from "@/lib/tauri";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
@@ -40,6 +40,18 @@ function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab
     icon: "folder-cog",
     metadata: { mode: "edit", id: workspaceId },
   };
+}
+
+function openTaskCreateTab(workspaceId: number) {
+  const addTab = useTabsStore.getState().add;
+  addTab({
+    title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
+    type: "task",
+    metadata: {
+      isDraft: true,
+      workspace_id: workspaceId,
+    },
+  });
 }
 
 type OpenWorkspaceEditTabParams = {
@@ -93,6 +105,11 @@ function WorkspaceItem({
     e.stopPropagation();
   };
 
+  const handleCreateTask = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openTaskCreateTab(workspace.id);
+  };
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     openWorkspaceEditTab({
@@ -126,6 +143,10 @@ function WorkspaceItem({
         <ActionableItemMenuItem onClick={handleSelect} disabled={isSelected}>
           <CircleIcon />
           <span>{t("workspaces.menu.select")}</span>
+        </ActionableItemMenuItem>
+        <ActionableItemMenuItem onClick={handleCreateTask}>
+          <PlusIcon />
+          <span>{t("workspaces.menu.create_task")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />

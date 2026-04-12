@@ -194,6 +194,7 @@
     "menu": {
       "delete": "Delete",
       "edit": "Edit workspace",
+      "create_task": "Create task in workspace",
       "open_in_file_manager": "Open in file manager",
       "select": "Set as current"
     },

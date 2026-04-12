@@ -194,6 +194,7 @@
     "menu": {
       "delete": "删除",
       "edit": "编辑工作区",
+      "create_task": "在此工作区中创建任务",
       "open_in_file_manager": "在文件管理器中打开",
       "select": "设为当前工作区"
     },
