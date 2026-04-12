@@ -8,6 +8,7 @@ import type { TabPanelProps } from "../index";
 import { CreateView } from "./CreateView";
 import { AgentTaskProvider } from "./hooks/use-agent-task";
 import { SessionView, SessionViewSkeleton } from "./SessionView";
+import { TaskTabIndicator } from "./components/TaskTabIndicator";
 
 export const DEFAULT_TAB_TITLE = i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE });
 
@@ -21,6 +22,7 @@ export function TaskPanel({ id, isActive, metadata }: TabPanelProps<TaskTabMetad
   return (
     <AsyncBoundary skeleton={<SessionViewSkeleton />}>
       <AgentTaskProvider taskId={metadata.id}>
+        <TaskTabIndicator tabId={id} />
         <Activity mode={activityVisible(isActive)}>
           <SessionView
             workspaceId={metadata.workspace_id}

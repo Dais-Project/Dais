@@ -9,8 +9,8 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
+import { StoredTab, type TabIndicator, useTabsStore } from "@/stores/tabs-store";
 import { Tab } from "@/types/tab";
-import { StoredTab, useTabsStore } from "@/stores/tabs-store";
 
 const TAB_ICON_MAP: Record<Tab["type"], LucideIcon> = {
   task: BotIcon,
@@ -21,9 +21,17 @@ const TAB_ICON_MAP: Record<Tab["type"], LucideIcon> = {
   skill: ScrollTextIcon,
 };
 
+const TAB_INDICATOR_CLASS_MAP: Record<TabIndicator, string> = {
+  "in-progress": "bg-info animate-pulse",
+  success: "bg-success",
+  warning: "bg-warning",
+  destructive: "bg-destructive",
+};
+
 function SortableTab({ tab }: { tab: StoredTab }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id });
   const activeTabId = useTabsStore((state) => state.activeTabId);
+  const indicator = useTabsStore((state) => state.indicators[tab.id] ?? null);
   const removeTab = useTabsStore((state) => state.remove);
   const setActiveTab = useTabsStore((state) => state.setActive);
 
@@ -49,6 +57,7 @@ function SortableTab({ tab }: { tab: StoredTab }) {
     const TargetIcon = TAB_ICON_MAP[tab.type];
     return <TargetIcon size="1em" />;
   })();
+
   return (
     <div
       ref={setNodeRef}
@@ -70,7 +79,18 @@ function SortableTab({ tab }: { tab: StoredTab }) {
           { "border-b-transparent bg-layout-tabs-content! text-primary!": tab.id === activeTabId }
         )}
       >
-        <div className="text-base">{tabIcon}</div>
+        <div className="relative text-base">
+          {tabIcon}
+          {indicator !== null && (
+            <span
+              aria-hidden
+              className={cn(
+                "absolute right-0 bottom-0 size-2 rounded-full border border-background translate-x-1/4 translate-y-1/4",
+                TAB_INDICATOR_CLASS_MAP[indicator]
+              )}
+            />
+          )}
+        </div>
         <span>{tab.title}</span>
         <XIcon
           size="1em"

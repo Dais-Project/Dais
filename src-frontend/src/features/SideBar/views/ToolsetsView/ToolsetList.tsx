@@ -36,16 +36,11 @@ import { ToolsetIcon } from "./ToolsetIcon";
 
 function getStatusColor(status: McpToolsetStatus): string {
   switch (status) {
-    case "connected":
-      return "bg-green-500";
-    case "connecting":
-      return "bg-yellow-500";
-    case "disconnected":
-      return "bg-slate-500";
-    case "error":
-      return "bg-red-500";
-    default:
-      return "bg-slate-500";
+    case "connected": return "bg-success";
+    case "connecting": return "bg-warning";
+    case "disconnected": return "bg-slate-500";
+    case "error": return "bg-destructive";
+    default: return "bg-slate-500";
   }
 }
 

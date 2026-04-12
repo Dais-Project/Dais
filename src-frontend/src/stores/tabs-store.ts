@@ -12,9 +12,12 @@ export type StoredTab = Tab & {
   createdAt: number;
 };
 
+export type TabIndicator = "in-progress" | "success" | "warning" | "destructive";
+
 type TabsState = {
   tabs: StoredTab[];
   activeTabId: TabId | null;
+  indicators: Record<TabId, TabIndicator>;
 };
 
 type TabsActions = {
@@ -23,6 +26,7 @@ type TabsActions = {
   update: (updater: (draft: Draft<StoredTab[]>) => StoredTab[] | undefined) => void;
   updateMetadata: (id: string, metadata: Tab["metadata"]) => void;
   remove: (pattern: string | ((tab: StoredTab) => boolean)) => void;
+  setIndicator: (tabId: string, indicator: TabIndicator | null) => void;
 };
 
 type TabsStore = TabsState & TabsActions;
@@ -36,6 +40,7 @@ export const useTabsStore = create<TabsStore>()(
     immer((set, _get) => ({
       tabs: [],
       activeTabId: null,
+      indicators: {},
       add(tab) {
         set((state: TabsState) => {
           const newTab = {
@@ -86,7 +91,11 @@ export const useTabsStore = create<TabsStore>()(
       remove(pattern) {
         if (typeof pattern === "function") {
           set((state: TabsState) => {
+            const removedTabs = state.tabs.filter(pattern);
             state.tabs = state.tabs.filter((t) => !pattern(t));
+            removedTabs.forEach((tab) => {
+              delete state.indicators[tab.id];
+            });
             if (!state.tabs.find((t) => t.id === state.activeTabId)) {
               state.activeTabId = state.tabs.at(-1)?.id ?? null;
             }
@@ -97,10 +106,10 @@ export const useTabsStore = create<TabsStore>()(
         set((state: TabsState) => {
           const idx = state.tabs.findIndex((t) => t.id === id);
           if (idx === -1) {
-            // passed in tabId does not exist
             return;
           }
           state.tabs.splice(idx, 1);
+          delete state.indicators[id];
           if (state.activeTabId !== id) {
             return;
           }
@@ -112,7 +121,26 @@ export const useTabsStore = create<TabsStore>()(
           state.activeTabId = hasTabOnRight ? state.tabs[idx].id : state.tabs[idx - 1].id;
         });
       },
+      setIndicator(tabId, indicator) {
+        set((state: TabsState) => {
+          const exists = state.tabs.some((tab) => tab.id === tabId);
+          if (!exists) {
+            return;
+          }
+          if (indicator === null) {
+            delete state.indicators[tabId];
+            return;
+          }
+          state.indicators[tabId] = indicator;
+        });
+      },
     })),
-    { name: "tabs" }
+    {
+      name: "tabs",
+      partialize: (state) => ({
+        tabs: state.tabs,
+        activeTabId: state.activeTabId,
+      }),
+    }
   ),
 );

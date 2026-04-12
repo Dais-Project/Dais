@@ -43,8 +43,14 @@ import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useNotificationBuffer } from "./use-notification-buffer";
+import { useTaskFlags } from "./use-task-flags";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
+
+export type TaskFlags = {
+  isSuccess: boolean;
+  requiresUserAction: boolean;
+};
 
 // --- --- --- --- --- ---
 
@@ -64,6 +70,7 @@ function findLatestTodoList(messages: SdkMessage[]): TodoItem[] | null {
 
 export type AgentTaskState = {
   state: TaskState;
+  flags: TaskFlags;
   todos: TodoItem[] | null;
   usage: TaskUsage;
   messages: UiMessage[];
@@ -111,6 +118,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   });
 
   const [agentId, setAgentId] = useState(data.agent_id);
+  const { flags, setFlag, reset: resetFlags } = useTaskFlags();
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
   const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
@@ -144,6 +152,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   });
 
   const onMessageStart = (eventData: MessageStartEvent) => {
+    resetFlags();
     messageLifecycle.handleMessageStart(eventData.message_id);
   };
 
@@ -178,6 +187,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
     switch (message.name) {
       case BuiltInTools.ExecutionControl__finish_task:
+        setFlag({ isSuccess: true });
         if (!isForeground()) {
           sendNotification(t("notification.task_done"), {
             onClick: backToCurrentTab,
@@ -194,6 +204,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const onToolRequireUserResponse = (_: ToolRequireUserResponseEvent) => {
+    setFlag({ requiresUserAction: true });
     if (!isForeground()) {
       sendNotification(t("notification.require_response"), {
         onClick: backToCurrentTab,
@@ -202,6 +213,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   };
 
   const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
+    setFlag({ requiresUserAction: true });
     if (!isForeground()) {
       permissionNotificationBuffer.enqueue(
         t("notification.require_permission", {
@@ -232,6 +244,9 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       lastMessage.content !== null &&
       lastMessage.content.length > 0
     );
+    if (isLastMessageNonEmptyAssistantMessage) {
+      setFlag({ requiresUserAction: true });
+    }
     if (isLastMessageNonEmptyAssistantMessage && !isForeground()) {
       const notificationContent = t("notification.responded", { response: lastMessage.content });
       sendNotification(notificationContent, { onClick: backToCurrentTab });
@@ -350,13 +365,14 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const stateValue = useMemo(
     () => ({
       state,
+      flags,
       todos,
       usage,
       messages,
       taskId,
       agentId,
     }),
-    [state, todos, usage, messages, taskId, agentId]
+    [state, flags, todos, usage, messages, taskId, agentId]
   );
 
   const actionValue = useMemo(
