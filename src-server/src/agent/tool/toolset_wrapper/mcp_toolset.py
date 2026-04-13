@@ -128,6 +128,10 @@ class McpToolset(Toolset):
         return self._inner_toolset.name
 
     @property
+    def id(self) -> int:
+        return self._toolset_id
+
+    @property
     def status(self) -> McpToolsetStatus:
         return self._status
 

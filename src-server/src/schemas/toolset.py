@@ -49,7 +49,7 @@ class ToolsetCreate(DTOBase):
 
 class ToolsetUpdate(DTOBase):
     name: str | None
-    type: ToolsetType | None
+    type: ToolsetType
     params: LocalServerParams | RemoteServerParams | None
     is_enabled: bool | None
     tools: list[ToolUpdate] | None
