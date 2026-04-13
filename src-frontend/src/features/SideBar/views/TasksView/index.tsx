@@ -1,4 +1,4 @@
-import { Activity, useState } from "react";
+import { Activity } from "react";
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { i18n } from "@/i18n";
@@ -17,6 +17,7 @@ import { TaskList } from "./TaskList";
 import { RecentTaskList } from "./RecentTaskList";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
+import { useLocalStorageState } from "ahooks";
 
 function openTaskCreateTab(workspaceId: number) {
   const addTab = useTabsStore.getState().add;
@@ -68,7 +69,9 @@ function RecentTasks({ className }: { className?: string }) {
 
 export function TasksView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const [isRecentCollapsed, setIsRecentCollapsed] = useState(false);
+  const [isRecentCollapsed, setIsRecentCollapsed] = useLocalStorageState("is-recent-tasks-collapsed", {
+    defaultValue: false,
+  });
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   const handleRecentToggle = () => {
