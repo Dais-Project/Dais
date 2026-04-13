@@ -22,7 +22,7 @@ export function TaskPanel({ id, isActive, metadata }: TabPanelProps<TaskTabMetad
   return (
     <AsyncBoundary skeleton={<SessionViewSkeleton />}>
       <AgentTaskProvider taskId={metadata.id}>
-        <TaskTabIndicator tabId={id} />
+        <TaskTabIndicator tabId={id} isActive={isActive} />
         <Activity mode={activityVisible(isActive)}>
           <SessionView
             workspaceId={metadata.workspace_id}
