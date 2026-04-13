@@ -1,7 +1,7 @@
 import asyncio
 import difflib
 import xml.etree.ElementTree as ET
-from typing import Annotated, TypedDict, override
+from typing import Annotated, Literal, TypedDict, override
 from pathlib import Path as StdPath
 from anyio import Path as AnyioPath
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
@@ -102,7 +102,8 @@ class FileSystemToolset(BuiltInToolset):
                          path: Annotated[str,
                           "The path of the file to write (relative to the current working directory)."],
                          content: Annotated[str,
-                          "The content to write to the file."]
+                          "The content to write to the file."],
+                         append: Annotated[bool, "If True, content will be appended to the end of the file instead of overwriting it."] = False,
                          ) -> str:
         """
         Write content to a file at the specified path.
@@ -120,7 +121,10 @@ class FileSystemToolset(BuiltInToolset):
         """
         abs_path = self._resolve_path(path)
         await abs_path.parent.mkdir(parents=True, exist_ok=True)
-        await abs_path.write_text(content, "utf-8")
+
+        open_mode: Literal["a", "w"] = "a" if append else "w"
+        async with await abs_path.open(open_mode, encoding="utf-8") as f:
+            await f.write(content)
         return "File written successfully."
 
     @built_in_tool(validate=True)
