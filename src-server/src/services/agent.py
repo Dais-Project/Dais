@@ -75,3 +75,4 @@ class AgentService(ServiceBase):
     async def delete_agent(self, id: int) -> None:
         agent = await self.get_agent_by_id(id)
         await self._db_session.delete(agent)
+        await self._db_session.flush()

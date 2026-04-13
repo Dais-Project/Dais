@@ -122,3 +122,4 @@ class SkillService(ServiceBase):
     async def delete_skill(self, id: int) -> None:
         skill = await self.get_skill_by_id(id)
         await self._db_session.delete(skill)
+        await self._db_session.flush()

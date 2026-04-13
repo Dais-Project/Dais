@@ -93,3 +93,4 @@ class MarkdownCacheService(ServiceBase):
             stmt = delete(markdown_cache_models.MarkdownCache).where(
                 markdown_cache_models.MarkdownCache.id.in_(to_delete_ids))
             await self._db_session.execute(stmt)
+        await self._db_session.flush()

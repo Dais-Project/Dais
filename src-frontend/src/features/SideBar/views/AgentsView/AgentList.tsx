@@ -104,6 +104,9 @@ export function AgentList() {
   const deleteAgentMutation = useDeleteAgent({
     mutation: {
       async onSuccess(_, variables) {
+        removeTabs((tab) => (tab.type === "agent" &&
+          tab.metadata.mode === "edit" &&
+          tab.metadata.id === variables.agentId));
         await invalidateAgentQueries(variables.agentId);
         toast.success(t("agents.toast.delete_success_title"), {
           description: t("agents.toast.delete_success_description"),
@@ -115,15 +118,6 @@ export function AgentList() {
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     async onConfirm(agent) {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
-      await invalidateAgentQueries(agent.id);
-
-      removeTabs((tab) => (tab.type === "agent" &&
-        tab.metadata.mode === "edit" &&
-        tab.metadata.id === agent.id));
-
-      toast.success(t("agents.toast.delete_success_title"), {
-        description: t("agents.toast.delete_success_description"),
-      });
     }
   });
 
@@ -133,6 +127,7 @@ export function AgentList() {
         query={query}
         className="limit-width"
         selectItems={(page) => page.items}
+        getItemKey={(item) => item.id}
         itemHeight={69}
         overscan={3}
         itemRender={({ item, key, ref, index }) => (

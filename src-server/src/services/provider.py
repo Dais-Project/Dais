@@ -132,3 +132,4 @@ class ProviderService(ServiceBase):
     async def delete_provider(self, id: int) -> None:
         provider = await self.get_provider_by_id(id)
         await self._db_session.delete(provider)
+        await self._db_session.flush()

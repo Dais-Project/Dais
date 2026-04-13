@@ -98,3 +98,4 @@ class WorkspaceService(ServiceBase):
     async def delete_workspace(self, id: int) -> None:
         workspace = await self.get_workspace_by_id(id)
         await self._db_session.delete(workspace)
+        await self._db_session.flush()

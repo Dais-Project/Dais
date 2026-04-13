@@ -3,8 +3,8 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TaskBrief } from "@/api/generated/schemas";
 import {
-  getTask,
   getGetTaskQueryKey,
+  getTask,
   invalidateTaskQueries,
   useDeleteTask,
   useGetRecentTasksSuspenseInfinite,
@@ -23,7 +23,6 @@ export function RecentTaskList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
 
-  const deleteTaskMutation = useDeleteTask();
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
     mutation: {
       onSuccess(taskRead) {
@@ -32,16 +31,22 @@ export function RecentTaskList() {
     },
   });
 
+  const deleteTaskMutation = useDeleteTask({
+    mutation: {
+      async onSuccess(_, variables) {
+        removeTaskTab(variables.taskId);
+        await invalidateTaskQueries({ taskId: variables.taskId });
+        queryClient.removeQueries({ queryKey: getGetTaskQueryKey(variables.taskId) });
+        toast.success(t("tasks.toast.delete_success_title"), {
+          description: t("tasks.toast.delete_success_description"),
+        });
+      }
+    }
+  });
+
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     async onConfirm(task) {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
-      await invalidateTaskQueries({ taskId: task.id });
-      queryClient.removeQueries({ queryKey: getGetTaskQueryKey(task.id) });
-      removeTaskTab(task.id);
-
-      toast.success(t("tasks.toast.delete_success_title"), {
-        description: t("tasks.toast.delete_success_description"),
-      });
     },
   });
 
@@ -76,6 +81,7 @@ export function RecentTaskList() {
         query={query}
         className="limit-width"
         selectItems={(page) => page.items}
+        getItemKey={(item) => item.id}
         itemHeight={69}
         overscan={1}
         itemRender={({ item, key, index, ref }) => (

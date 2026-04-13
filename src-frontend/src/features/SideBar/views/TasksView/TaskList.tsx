@@ -25,7 +25,19 @@ type TaskListProps = {
 export function TaskList({ workspaceId }: TaskListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
-  const deleteTaskMutation = useDeleteTask();
+
+  const deleteTaskMutation = useDeleteTask({
+    mutation: {
+      async onSuccess(_, variables) {
+        removeTaskTab(variables.taskId);
+        await invalidateTaskQueries({ workspaceId, taskId: variables.taskId });
+        queryClient.removeQueries({ queryKey: getGetTaskQueryKey(variables.taskId) });
+        toast.success(t("tasks.toast.delete_success_title"), {
+          description: t("tasks.toast.delete_success_description"),
+        });
+      }
+    }
+  });
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
     mutation: {
       onSuccess(taskRead) {
@@ -37,14 +49,6 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     async onConfirm(task) {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
-      await invalidateTaskQueries({ workspaceId, taskId: task.id });
-      queryClient.removeQueries({
-        queryKey: getGetTaskQueryKey(task.id),
-      });
-      removeTaskTab(task.id);
-      toast.success(t("tasks.toast.delete_success_title"), {
-        description: t("tasks.toast.delete_success_description"),
-      });
     }
   });
 
@@ -74,6 +78,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
         query={query}
         className="limit-width"
         selectItems={(page) => page.items}
+        getItemKey={(item) => item.id}
         itemHeight={69}
         overscan={3}
         itemRender={({ item, key, index, ref }) => (

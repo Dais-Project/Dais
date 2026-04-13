@@ -174,30 +174,35 @@ export function WorkspaceList() {
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore((state) => state.isLoading);
 
-  const asyncConfirm = useAsyncConfirm<WorkspaceBrief>({
-    async onConfirm(workspace) {
-      await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
-      await invalidateWorkspaceQueries(workspace.id);
-
-      removeTabs((tab) => (tab.type === "workspace" &&
-        tab.metadata.mode === "edit" &&
-        tab.metadata.id === workspace.id));
-
-      // clear current workspace if deleted
-      if (workspace.id === currentWorkspace?.id) {
-        await setCurrentWorkspace(null);
-      }
-
-      toast.success(t("workspaces.toast.delete_success_title"), {
-        description: t("workspaces.toast.delete_success_description"),
-      });
-    }
-  });
-
   const query = useGetWorkspacesSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
-  const deleteWorkspaceMutation = useDeleteWorkspace();
+
+  const deleteWorkspaceMutation = useDeleteWorkspace({
+    mutation: {
+      async onSuccess(_, variables) {
+        removeTabs((tab) => (tab.type === "workspace" &&
+          tab.metadata.mode === "edit" &&
+          tab.metadata.id === variables.workspaceId));
+        await invalidateWorkspaceQueries(variables.workspaceId);
+
+        // clear current workspace if deleted
+        const { current: currentWorkspace, setCurrent: setCurrentWorkspace } = useWorkspaceStore.getState();
+        if (variables.workspaceId === currentWorkspace?.id) {
+          await setCurrentWorkspace(null);
+        }
+
+        toast.success(t("workspaces.toast.delete_success_title"), {
+          description: t("workspaces.toast.delete_success_description"),
+        });
+      }
+    }
+  });
+  const asyncConfirm = useAsyncConfirm<WorkspaceBrief>({
+    async onConfirm(workspace) {
+      await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
+    }
+  });
 
   if (query.data.pages.length === 0) {
     return (
@@ -216,6 +221,7 @@ export function WorkspaceList() {
         query={query}
         className="limit-width"
         selectItems={(page) => page.items}
+        getItemKey={(item) => item.id}
         itemHeight={69}
         overscan={3}
         itemRender={({ item, key, index, ref }) => (

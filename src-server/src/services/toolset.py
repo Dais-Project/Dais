@@ -173,3 +173,4 @@ class ToolsetService(ServiceBase):
         if not toolset:
             raise ToolsetNotFoundError(id)
         await self._db_session.delete(toolset)
+        await self._db_session.flush()

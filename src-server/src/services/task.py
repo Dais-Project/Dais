@@ -83,6 +83,7 @@ class TaskService(ServiceBase):
         task = await self.get_task_by_id(id)
         await self.delete_task_resource(id)
         await self._db_session.delete(task)
+        await self._db_session.flush()
 
 
     @staticmethod

@@ -1,4 +1,4 @@
-import { useDebounceFn, useInViewport } from "ahooks";
+import { useDebounceFn, useInViewport, useLatest } from "ahooks";
 import { useEffect, useMemo, useRef } from "react";
 import type {
   InfiniteData,
@@ -46,6 +46,7 @@ export function InfiniteScroll<T, P>({
 type InfiniteVirtualScrollProps<TItem, TPage> = {
   query: UseSuspenseInfiniteQueryResult<InfiniteData<TPage>>;
   selectItems: (page: TPage) => TItem[];
+  getItemKey: (item: TItem) => string | number;
   itemHeight: number,
   overscan?: number,
   className?: string,
@@ -63,14 +64,18 @@ export function InfiniteVirtualScroll<T, P>({
   overscan = 3,
   className,
   selectItems,
+  getItemKey,
   itemRender,
 }: InfiniteVirtualScrollProps<T, P>) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const selectItemsLatest = useLatest(selectItems);
+  const getItemKeyLatest = useLatest(getItemKey);
+
   const dataItems = useMemo(() => {
-    return data.pages.flatMap(selectItems);
-  }, [data.pages, selectItems]);
+    return data.pages.flatMap(selectItemsLatest.current);
+  }, [data.pages]);
 
   const { run: handleScroll } = useDebounceFn((virtualizerInstance) => {
     const totalSize = virtualizerInstance.getTotalSize();
@@ -87,6 +92,10 @@ export function InfiniteVirtualScroll<T, P>({
   const virtualizer = useVirtualizer({
     count: dataItems.length,
     overscan: overscan,
+    getItemKey(index) {
+      const item = dataItems[index];
+      return getItemKeyLatest.current(item);
+    },
     getScrollElement: () => scrollRef.current,
     estimateSize: () => itemHeight,
     onChange: handleScroll,

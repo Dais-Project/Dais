@@ -98,6 +98,11 @@ export function SkillList() {
   const deleteSkillMutation = useDeleteSkill({
     mutation: {
       async onSuccess(_, variables) {
+        removeTabs((tab) => (
+          tab.type === "skill" &&
+          tab.metadata.mode === "edit" &&
+          tab.metadata.id === variables.skillId
+        ));
         await invalidateSkillQueries(variables.skillId);
         toast.success(t("skills.toast.delete_success_title"), {
           description: t("skills.toast.delete_success_description"),
@@ -109,17 +114,6 @@ export function SkillList() {
   const asyncConfirm = useAsyncConfirm<SkillBrief>({
     async onConfirm(skill) {
       await deleteSkillMutation.mutateAsync({ skillId: skill.id });
-      await invalidateSkillQueries(skill.id);
-
-      removeTabs((tab) => (
-        tab.type === "skill" &&
-        tab.metadata.mode === "edit" &&
-        tab.metadata.id === skill.id
-      ));
-
-      toast.success(t("skills.toast.delete_success_title"), {
-        description: t("skills.toast.delete_success_description"),
-      });
     },
   });
 
@@ -129,6 +123,7 @@ export function SkillList() {
         query={query}
         className="limit-width"
         selectItems={(page) => page.items}
+        getItemKey={(item) => item.id}
         itemHeight={69}
         overscan={3}
         itemRender={({ item, key, ref, index }) => (
