@@ -77,6 +77,13 @@
         "placeholder": "Select language",
         "title": "Model reply language"
       },
+      "autostart": {
+        "title": "Launch at startup",
+        "toast": {
+          "load_error": "Failed to load launch at startup status.",
+          "update_error": "Failed to update launch at startup status."
+        }
+      },
       "theme": {
         "dark": "Dark",
         "light": "Light",

@@ -2,9 +2,11 @@ import { useTranslation } from "react-i18next";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { AppTheme, Language } from "@/types/common";
+import { useAutostartSetting } from "./use-autostart-setting";
 
 export function GeneralSettings() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
@@ -14,6 +16,7 @@ export function GeneralSettings() {
     isLoading: isServerSettingsLoading,
     setPartial: setPartialServerConfig,
   } = useServerSettingsStore();
+  const { autostartEnabled, autostartLoading, handleAutostartChange, isTauri } = useAutostartSetting();
 
   const handleThemeChange = (value: string) => {
     setPartialConfig({ theme: value as AppTheme });
@@ -69,6 +72,16 @@ export function GeneralSettings() {
           </SelectContent>
         </Select>
       </SettingItem>
+
+      {isTauri && (
+        <SettingItem title={t("settings.general.autostart.title")}>
+          <Switch
+            checked={autostartEnabled}
+            onCheckedChange={handleAutostartChange}
+            disabled={autostartLoading}
+          />
+        </SettingItem>
+      )}
     </div>
   );
 }

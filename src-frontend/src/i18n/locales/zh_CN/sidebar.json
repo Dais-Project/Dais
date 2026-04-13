@@ -77,6 +77,13 @@
         "placeholder": "选择语言",
         "title": "模型回复语言"
       },
+      "autostart": {
+        "title": "开机自启",
+        "toast": {
+          "load_error": "加载开机自启状态失败。",
+          "update_error": "更新开机自启状态失败。"
+        }
+      },
       "theme": {
         "dark": "深色",
         "light": "浅色",

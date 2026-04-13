@@ -63,6 +63,16 @@ pub fn run(args: Args) {
       ("server_port", server_port.to_string()),
     ])))
     .setup(move |app| {
+      #[cfg(desktop)]
+      // init autostart plugin
+      let autostart_plugin_init_result = app.handle().plugin(tauri_plugin_autostart::init(
+        tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+        None,
+      ));
+      if let Err(err) = autostart_plugin_init_result {
+        eprintln!("Failed to initialize autostart plugin: {}", err);
+      }
+
       if !args.dev {
         // only start sidecar in production mode
         let child = start_sidecar(app.handle().clone(), server_port)?;

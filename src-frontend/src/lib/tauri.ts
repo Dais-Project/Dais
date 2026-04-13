@@ -12,6 +12,30 @@ export async function openDevtools() {
   await invoke(TauriCommand.OpenDevtools);
 }
 
+export async function getAutostartEnabled() {
+  if (!isTauri) {
+    return false;
+  }
+
+  const { isEnabled } = await import("@tauri-apps/plugin-autostart");
+  return await isEnabled();
+}
+
+export async function setAutostartEnabled(enabled: boolean) {
+  if (!isTauri) {
+    return;
+  }
+
+  const { disable, enable } = await import("@tauri-apps/plugin-autostart");
+
+  if (enabled) {
+    await enable();
+    return;
+  }
+
+  await disable();
+}
+
 export async function sendNotification(title: string, body?: string) {
   if (!isTauri) {
     return;
@@ -47,7 +71,7 @@ export async function sendNotification(title: string, body?: string) {
     if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
     }
-  })
+  });
 
   // ignore devtools keydown under production
   if (globalThis.__INJECTED__.dev === "true") {
