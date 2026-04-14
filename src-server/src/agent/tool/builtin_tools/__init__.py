@@ -1,6 +1,5 @@
 from enum import Enum
 from dais_sdk.types import ToolSchema
-from .context_control import ContextControlToolset
 from .execution_control import ExecutionControlToolset
 from .file_system import FileSystemToolset
 from .os_interactions import OsInteractionsToolset
@@ -10,7 +9,6 @@ from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 
 
 BUILT_IN_TOOLSETS: list[type[BuiltInToolset]] = [
-    ContextControlToolset,
     ExecutionControlToolset,
     FileSystemToolset,
     OsInteractionsToolset,

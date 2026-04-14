@@ -1,5 +1,6 @@
 import asyncio
 import difflib
+import os
 import xml.etree.ElementTree as ET
 from typing import Annotated, Literal, TypedDict, override
 from pathlib import Path as StdPath
@@ -37,7 +38,9 @@ class FileSystemToolset(BuiltInToolset):
     def name(self) -> str: return "FileSystem"
 
     def _resolve_path(self, file_path: str) -> AnyioPath:
-        return AnyioPath(self._ctx.cwd / file_path)
+        expanded_path = os.path.expandvars(file_path)
+        expanded_path = os.path.expanduser(expanded_path)
+        return AnyioPath(self._ctx.cwd / expanded_path)
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     async def read_file(self,
@@ -103,7 +106,8 @@ class FileSystemToolset(BuiltInToolset):
                           "The path of the file to write (relative to the current working directory)."],
                          content: Annotated[str,
                           "The content to write to the file."],
-                         append: Annotated[bool, "If True, content will be appended to the end of the file instead of overwriting it."] = False,
+                         append: Annotated[bool,
+                          "If True, content will be appended to the end of the file instead of overwriting it."] = False,
                          ) -> str:
         """
         Write content to a file at the specified path.
@@ -255,7 +259,7 @@ class FileSystemToolset(BuiltInToolset):
             raise ValueError(f"Invalid max_depth: {max_depth}")
 
         MAX_SCAN_LIMIT = 200_000
-        abs_path = self._ctx.cwd / path
+        abs_path = StdPath(self._resolve_path(path))
         include_hidden = show_all
         include_gitignored = show_all
 
@@ -379,7 +383,7 @@ class FileSystemToolset(BuiltInToolset):
             return matches
 
         MAX_SCAN_LIMIT = 200_000
-        abs_path = self._ctx.cwd / path
+        abs_path = StdPath(self._resolve_path(path))
         include_hidden = show_all
         include_gitignored = show_all
 
@@ -398,20 +402,20 @@ class FileSystemToolset(BuiltInToolset):
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
     async def find_files(self,
                          pattern: Annotated[str,
-                             """
-                             A glob pattern to match against file NAMES and PATHS.
-                             Pattern examples:
-                             - "*.py"       → files whose name ends with .py
-                             - "main.*"     → files named "main" with any extension
-                             - "docs/*.md"  → .md files inside the "docs/" directory
-                             """],
+                           """
+                           A glob pattern to match against file NAMES and PATHS.
+                           Pattern examples:
+                           - "*.py"       → files whose name ends with .py
+                           - "main.*"     → files named "main" with any extension
+                           - "docs/*.md"  → .md files inside the "docs/" directory
+                           """],
                          path: Annotated[str,
-                             "The path of the directory to search in (relative to the current working directory)."] = ".",
+                           "The path of the directory to search in (relative to the current working directory)."] = ".",
                          limit: Annotated[int,
-                             "The maximum number of matching file paths to return."] = 60,
+                           "The maximum number of matching file paths to return."] = 60,
                          show_all: Annotated[bool,
-                             "Whether to include hidden files and files ignored by .gitignore. "
-                             "Use this if you can't find a specific file you're looking for."] = False
+                           "Whether to include hidden files and files ignored by .gitignore. "
+                           "Use this if you can't find a specific file you're looking for."] = False
                          ) -> FindFilesResult:
         """
         Search for files whose **NAMES or PATHS** match the glob pattern within a directory.
