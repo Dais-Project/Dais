@@ -20,11 +20,6 @@ class SkillMaterializer:
         return {SkillMaterializer.SKILLS_DIR_ENVNAME: str(DATA_DIR / ".skills")}
 
     @staticmethod
-    def inject_skill_dir_env():
-        skill_dir_env = SkillMaterializer.get_skill_dir_env()
-        os.environ.update(skill_dir_env)
-
-    @staticmethod
     async def get_skills_dir() -> Path:
         path = Path(DATA_DIR, ".skills")
         await path.mkdir(exist_ok=True)
