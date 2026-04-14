@@ -5,6 +5,7 @@ from typing import TypedDict
 from pathlib import Path
 from fastapi import FastAPI
 from src.settings import use_app_setting_manager
+from src.agent.skills import SkillMaterializer
 from src.agent.tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
 from src.db import engine as database_engine, db_context
 from src.services.workspace import WorkspaceService
@@ -24,8 +25,11 @@ class LifespanManager:
         self._background_tasks: list[asyncio.Task] = []
 
     async def _init_resources(self):
+        SkillMaterializer.inject_skill_dir_env()
+        asyncio.create_task(SkillMaterializer.materialize_skills())
+
         await self.app_setting_manager.initialize()
-        
+
         async with db_context() as db_session:
             await BuiltinToolsetManager.sync_toolsets(db_session)
             await self.mcp_toolset_manager.initialize(db_session)

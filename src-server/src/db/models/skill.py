@@ -46,7 +46,9 @@ class Skill(Base):
         return h.hexdigest()
 
 async def init(db_session: AsyncSession) -> None:
-    import src.agent.skills.workspace_instruction_writer as workspace_instruction_writer_skill
+    from src.agent.skills.builtin_skills import (
+        workspace_instruction_writer as workspace_instruction_writer_skill
+    )
 
     stmt = select(Skill.id).limit(1)
     exists = await db_session.scalar(stmt)
