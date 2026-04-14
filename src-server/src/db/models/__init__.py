@@ -10,7 +10,7 @@ relationship = partial(_relationship, lazy="raise")
 
 from .provider import Provider, LlmModel
 from .agent import Agent
-from .workspace import Workspace
+from .workspace import Workspace, WorkspaceNote
 from .task import Task, TaskResource
 from .toolset import Toolset, Tool
 from .skill import Skill
@@ -20,7 +20,7 @@ __all__ = [
     "Base",
     "Provider", "LlmModel",
     "Agent",
-    "Workspace",
+    "Workspace", "WorkspaceNote",
     "Task", "TaskResource",
     "Toolset", "Tool",
     "Skill",

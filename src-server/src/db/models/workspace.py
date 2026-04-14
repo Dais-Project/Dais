@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import select
+from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,12 +16,22 @@ if TYPE_CHECKING:
     from .toolset import Tool
     from .skill import Skill
 
+class WorkspaceNote(Base):
+    __tablename__ = "memories"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    relative: Mapped[str]
+    content: Mapped[str]
+    _workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
+
 class Workspace(Base):
     __tablename__ = "workspaces"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     directory: Mapped[str]
     instruction: Mapped[str]
+
+    notes: Mapped[list[WorkspaceNote]] = relationship(back_populates="_workspace",
+                                                      cascade="all, delete-orphan")
 
     _tasks: Mapped[list[Task]] = relationship(back_populates="workspace",
                                               cascade="all, delete-orphan")
