@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .skill import Skill
 
 class WorkspaceNote(Base):
-    __tablename__ = "memories"
+    __tablename__ = "notes"
     id: Mapped[int] = mapped_column(primary_key=True)
     relative: Mapped[str]
     content: Mapped[str]
@@ -30,8 +30,7 @@ class Workspace(Base):
     directory: Mapped[str]
     instruction: Mapped[str]
 
-    notes: Mapped[list[WorkspaceNote]] = relationship(back_populates="_workspace",
-                                                      cascade="all, delete-orphan")
+    notes: Mapped[list[WorkspaceNote]] = relationship(cascade="all, delete-orphan")
 
     _tasks: Mapped[list[Task]] = relationship(back_populates="workspace",
                                               cascade="all, delete-orphan")
