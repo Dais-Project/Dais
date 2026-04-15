@@ -125,6 +125,76 @@ Use the `${read_file}` tool to read `$DAIS_SKILLS_DIR/[skill.id]/SKILL.md`.
 If the `SKILL.md` itself references additional files in the same directory, load those files as instructed before proceeding.
 If the file cannot be read after 3 attempts, notify the user per Section 6.2 and do not proceed with the affected task.
 
+## 8. Workspace Notes
+
+### 8.1. Purpose
+
+Workspace Notes is a persistent, file-based memory system for recording information that meets **all three** of the following criteria:
+
+- Not readily inferable from the workspace file alone
+- Likely to be needed in future sessions
+- Costly or impossible to reconstruct through re-reading source files
+
+### 8.2. What to Record
+
+Record information that falls into one or more of the following categories:
+
+- **Local knowledge summaries**: Distilled understanding of a specific module, document, or resource — recorded after thorough reading so the source file need not be re-read in future sessions.
+- **Decisions**: Conclusions reached through user–agent collaboration, including the rationale behind them.
+- **Learned responses**: Cases where the user corrected or guided agent behavior; record both the trigger condition and the appropriate response so it can be applied directly in future.
+- **Explicitly tracked items**: Any content the user has instructed (in Workspace Instructions or directly) to be recorded upon occurrence.
+
+Do **not** record information that is already captured in Workspace Instructions, or that can be trivially re-derived on demand.
+
+### 8.3. Notes Structure
+
+```tree
+$DAIS_NOTES_DIR/
+├── NOTES.md # root index: TOC of all category directories
+├── [category]/
+│   ├── NOTES.md # category index: TOC of entries in this directory
+│   └── [entry].md
+└── archives/
+    └── [category]/ # mirrors active structure
+        └── ...
+```
+
+Each entry file must include the last modified date.
+Each `NOTES.md` index must be kept in sync whenever entries are added, updated, archived, or deleted.
+
+### 8.4. When to Retrieve
+
+Before any of the following actions, check the root `NOTES.md` first to identify relevant categories, then read only those category indexes and entries that are clearly relevant:
+
+| Trigger                                                                  | Required action                                           |
+| ------------------------------------------------------------------------ | --------------------------------------------------------- |
+| Starting any non-trivial task                                            | Read root `NOTES.md` to identify relevant categories      |
+| About to read a large or complex workspace resource                      | Check if a summary note already exists; use it if current |
+| About to call `${ask_user}` for information that may have come up before | Check relevant category notes first                       |
+| A named entity (module, document, decision, recurring case) is mentioned | Check for a matching note before proceeding               |
+| User explicitly asks to "recall" something                               | Read relevant notes; do not rely on context alone         |
+
+**Never read the entire `notes/` directory at once.**
+
+### 8.5. How to Retrieve
+
+Follow a three-step drill-down; stop as soon as sufficient context is found:
+
+1. Read root `NOTES.md` → identify relevant categories
+2. Read the relevant category `NOTES.md` → identify relevant entries
+3. Read individual entry files only when the summary is insufficient
+
+If the index does not yield a clear match — for example, when the query is ambiguous across categories, or when searching within `archives/` — use the available file-search tool to locate relevant entries by keyword. Do not use file search as a substitute for reading the index first.
+
+### 8.6. Maintenance
+
+**Adding or updating**: After writing or modifying any entry, immediately update the corresponding category `NOTES.md` and, if the category is new, the root `NOTES.md`.
+
+**Archiving vs. deleting**: When an entry is encountered that may no longer be current:
+- If the information may still hold historical or reference value → move to the corresponding `archives/{category}/` directory
+- If the information is entirely obsolete and has no foreseeable future use → delete the entry
+In both cases, update the affected index files accordingly.
+
 ## Appendix A: Available Skills
 
 {available_skills}

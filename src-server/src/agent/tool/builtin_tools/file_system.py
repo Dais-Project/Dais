@@ -42,7 +42,8 @@ class FileSystemToolset(BuiltInToolset):
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
         self._path_expander = PathExpander({
-            **SkillMaterializer.get_skill_dir_env()
+            **SkillMaterializer.get_skill_dir_env(),
+            **ctx.note_manager.notes_dir_env,
         })
         self._markdown_converter = MarkdownConverter()
 

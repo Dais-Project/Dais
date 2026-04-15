@@ -48,3 +48,10 @@ class BuiltinToolsetManager(ToolsetManager):
         for toolset_t in BUILT_IN_TOOLSETS:
             toolset_ent = self._toolset_map[toolset_t.internal_key()]
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
+        await self._ctx.note_manager.materialize()
+
+    @classmethod
+    async def create(cls, workspace_id: int, cwd: str, usage: ContextUsage) -> BuiltinToolsetManager:
+        manager = cls(workspace_id, cwd, usage)
+        await manager.initialize()
+        return manager

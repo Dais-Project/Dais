@@ -1,5 +1,7 @@
+from anyio import Path
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from src.agent.notes.manager import NoteManager
 from src.db.models import workspace as workspace_models
 from src.db.models import agent as agent_models
 from src.db.models import toolset as toolset_models
@@ -14,6 +16,7 @@ from .utils import build_load_options, Relations
 class WorkspaceNotFoundError(NotFoundError):
     def __init__(self, workspace_id: int) -> None:
         super().__init__(ServiceErrorCode.WORKSPACE_NOT_FOUND, "Workspace", workspace_id)
+
 
 class WorkspaceService(ServiceBase):
     @staticmethod
@@ -30,10 +33,11 @@ class WorkspaceService(ServiceBase):
             .order_by(workspace_models.Workspace.id.asc())
         )
 
-    async def _update_relations(self,
-                                workspace: workspace_models.Workspace,
-                                data: workspace_schemas.WorkspaceCreate | workspace_schemas.WorkspaceUpdate
-                                ):
+    async def _update_relations(
+        self,
+        workspace: workspace_models.Workspace,
+        data: workspace_schemas.WorkspaceCreate | workspace_schemas.WorkspaceUpdate,
+    ):
         if data.usable_agent_ids is not None:
             stmt = (
                 select(agent_models.Agent)
@@ -59,12 +63,14 @@ class WorkspaceService(ServiceBase):
 
     async def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = await self._db_session.get(
-            workspace_models.Workspace, id,
+            workspace_models.Workspace,
+            id,
             options=[
                 selectinload(workspace_models.Workspace.usable_tools),
                 selectinload(workspace_models.Workspace.usable_agents)
                     .selectinload(agent_models.Agent.model),
                 selectinload(workspace_models.Workspace.usable_skills),
+                selectinload(workspace_models.Workspace.notes),
             ],
         )
         if not workspace:
@@ -98,4 +104,37 @@ class WorkspaceService(ServiceBase):
     async def delete_workspace(self, id: int) -> None:
         workspace = await self.get_workspace_by_id(id)
         await self._db_session.delete(workspace)
+        await self._db_session.flush()
+        await NoteManager(workspace.id).clear_materialized()
+
+    async def sync_workspace_notes(self, workspace_id: int) -> None:
+        workspace = await self._db_session.get(
+            workspace_models.Workspace,
+            workspace_id,
+            options=[selectinload(workspace_models.Workspace.notes)],
+        )
+        if workspace is None:
+            raise WorkspaceNotFoundError(workspace_id)
+
+        note_manager = NoteManager(workspace_id)
+        notes_dir = await note_manager.get_notes_dir()
+        notes: list[workspace_models.WorkspaceNote] = []
+
+        async def collect_notes(current_dir: Path) -> None:
+            nonlocal notes
+            async for child in current_dir.iterdir():
+                if await child.is_dir():
+                    await collect_notes(child)
+                    continue
+                if child.suffix.lower() != ".md":
+                    continue
+                relative = str(child.relative_to(notes_dir)).replace("\\", "/")
+                content = await child.read_text("utf-8")
+                notes.append(workspace_models.WorkspaceNote(
+                    relative=relative,
+                    content=content,
+                ))
+
+        await collect_notes(notes_dir)
+        workspace.notes = notes
         await self._db_session.flush()
