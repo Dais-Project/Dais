@@ -13,6 +13,9 @@
       "save": "Save",
       "saving": "Saving..."
     },
+    "notes": {
+      "label": "Workspace notes"
+    },
     "usable_agents": {
       "cancel": "Cancel",
       "confirm": "Confirm",

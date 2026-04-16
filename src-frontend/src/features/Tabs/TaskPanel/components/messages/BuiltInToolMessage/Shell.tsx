@@ -27,7 +27,8 @@ function parseShellResult(resultText: string): ShellResult {
 
   try {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(resultText, "application/xml");
+    const doc = parser.parseFromString(resultText, "text/html");
+    console.log(doc)
     const parserError = doc.querySelector("parsererror");
     if (parserError) {
       return { stdout: resultText, stderr: null };

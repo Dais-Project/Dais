@@ -3,8 +3,6 @@ import shutil
 from anyio import Path
 from src.common import DATA_DIR
 from src.db import db_context
-from src.db.models import workspace as workspace_models
-from src.services.workspace import WorkspaceService
 
 
 class NoteManager:
@@ -30,6 +28,8 @@ class NoteManager:
         return {NoteManager.NOTES_DIR_ENVNAME: str(DATA_DIR / ".notes" / str(self._workspace_id))}
 
     async def materialize(self) -> Path:
+        from src.services.workspace import WorkspaceService
+
         async with db_context() as db_session:
             workspace = await WorkspaceService(db_session).get_workspace_by_id(self._workspace_id)
             workspace_notes = workspace.notes

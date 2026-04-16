@@ -15,7 +15,9 @@ import { useWorkspaceStore } from "@/stores/workspace-store";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
 import { SkillMultiSelectField } from "./fields/SkillMultiSelectField";
 import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
+import { WorkspaceNoteField } from "./fields/WorkspaceNoteField";
 import {
+  editFormValuesToPayload,
   type WorkspaceEditFormValues,
   workspaceToEditFormValues,
 } from "./form-types";
@@ -55,7 +57,7 @@ export function WorkspaceEditForm({
   });
 
   function handleSubmit(data: WorkspaceEditFormValues) {
-    updateMutation.mutate({ workspaceId: workspace.id, data });
+    updateMutation.mutate({ workspaceId: workspace.id, data: editFormValuesToPayload(data) });
   }
 
   return (
@@ -78,6 +80,8 @@ export function WorkspaceEditForm({
         controlProps={{ className: "mt-2" }}
         minLength={0}
       />
+
+      <WorkspaceNoteField />
 
       <AgentMultiSelectField />
 

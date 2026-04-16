@@ -38,6 +38,15 @@ class WorkspaceService(ServiceBase):
         workspace: workspace_models.Workspace,
         data: workspace_schemas.WorkspaceCreate | workspace_schemas.WorkspaceUpdate,
     ):
+        if data.notes is not None:
+            workspace.notes = [
+                workspace_models.WorkspaceNote(
+                    relative=note.relative,
+                    content=note.content,
+                )
+                for note in data.notes
+            ]
+
         if data.usable_agent_ids is not None:
             stmt = (
                 select(agent_models.Agent)
@@ -78,7 +87,7 @@ class WorkspaceService(ServiceBase):
         return workspace
 
     async def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
-        create_data = data.model_dump(exclude={"usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
+        create_data = data.model_dump(exclude={"notes", "usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
         new_workspace = workspace_models.Workspace(**create_data)
 
         await self._update_relations(new_workspace, data)
@@ -92,7 +101,7 @@ class WorkspaceService(ServiceBase):
     async def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
         workspace = await self.get_workspace_by_id(id)
 
-        self.apply_fields(workspace, data, exclude={"usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
+        self.apply_fields(workspace, data, exclude={"notes", "usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
         await self._update_relations(workspace, data)
 
         await self._db_session.flush()
