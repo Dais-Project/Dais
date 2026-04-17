@@ -18,7 +18,10 @@ class OsInteractionsToolset(BuiltInToolset):
         super().__init__(ctx, toolset_ent)
         self._shell = AgentShell(
             extra_paths=[str(NODE_PATH.parent), str(UV_PATH.parent)],
-            extra_env={**SkillMaterializer.get_skill_dir_env()}
+            extra_env={
+                **SkillMaterializer.get_skill_dir_env(),
+                **ctx.note_manager.notes_dir_env,
+            }
         )
 
     @property

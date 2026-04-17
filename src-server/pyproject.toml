@@ -4,8 +4,8 @@ version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
     "anyio>=4.12.0",
-    "dais-sdk==0.10.6",
-    "dais-shell==0.1.8",
+    "dais-sdk==0.10.8",
+    "dais-shell==0.1.9",
     "dais-scantree==0.2.2",
     "alembic==1.18.4",
     "aiosqlite==0.22.1",
@@ -21,15 +21,15 @@ dependencies = [
     "RapidFuzz==3.14.3",
     "sqlalchemy[asyncio]==2.0.46",
     "uvicorn==0.40.0",
-    "trafilatura>=2.0.0",
+    "trafilatura==2.0.0",
     "magika>=0.6.2",
+    "watchfiles==1.1.1",
 ]
 
 [dependency-groups]
 dev = [
     "pyinstaller>=6.17.0",
     "psutil>=7.2.2",
-    "watchfiles>=1.1.1",
     "openapi-pydantic>=0.5.1",
     "pyright>=1.1.408",
 ]

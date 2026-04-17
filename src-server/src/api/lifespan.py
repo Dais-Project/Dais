@@ -25,9 +25,7 @@ class LifespanManager:
         self._background_tasks: list[asyncio.Task] = []
 
     async def _init_resources(self):
-        SkillMaterializer.inject_skill_dir_env()
         asyncio.create_task(SkillMaterializer.materialize_skills())
-
         await self.app_setting_manager.initialize()
 
         async with db_context() as db_session:

@@ -9,7 +9,8 @@ import { DEFAULT_WORKSPACE } from "@/constants/workspace";
 import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
 import { SkillMultiSelectField } from "./fields/SkillMultiSelectField";
 import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
-import type { WorkspaceCreateFormValues } from "./form-types";
+import { WorkspaceNoteField } from "./fields/WorkspaceNoteField";
+import { createFormValuesToPayload, type WorkspaceCreateFormValues } from "./form-types";
 
 type WorkspaceCreateFormProps = {
   onConfirm?: () => void;
@@ -31,7 +32,7 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
   });
 
   function handleSubmit(data: WorkspaceCreateFormValues) {
-    createMutation.mutate({ data });
+    createMutation.mutate({ data: createFormValuesToPayload(data) });
   }
 
   return (
@@ -50,6 +51,8 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
         controlProps={{ className: "mt-2" }}
         minLength={0}
       />
+
+      <WorkspaceNoteField />
 
       <AgentMultiSelectField />
 

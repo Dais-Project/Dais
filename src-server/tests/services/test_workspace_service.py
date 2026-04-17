@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.agent.notes.manager import NoteManager
 from src.schemas import workspace as workspace_schemas
 from src.services.exceptions import ServiceErrorCode
 from src.services.workspace import WorkspaceNotFoundError, WorkspaceService
@@ -36,8 +39,10 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
+                notes=[],
                 usable_agent_ids=[agent.id],
                 usable_tool_ids=[tool.id],
+                usable_skill_ids=[],
             )
         )
 
@@ -61,8 +66,10 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
+                notes=[],
                 usable_agent_ids=[initial_agent.id],
                 usable_tool_ids=[initial_tool.id],
+                usable_skill_ids=[],
             )
         )
 
@@ -75,8 +82,10 @@ class TestWorkspaceService:
                 name="Workspace B",
                 directory="/tmp/workspace-b",
                 instruction="Instruction B",
+                notes=[],
                 usable_agent_ids=[new_agent.id],
                 usable_tool_ids=[new_tool.id],
+                usable_skill_ids=[],
             ),
         )
 
@@ -101,10 +110,17 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
+                notes=[],
                 usable_agent_ids=[agent.id],
                 usable_tool_ids=[tool.id],
+                usable_skill_ids=[],
             )
         )
+
+        note_manager = NoteManager(workspace.id)
+        notes_dir = await note_manager.get_notes_dir()
+        note_path = Path(str(notes_dir)) / "note.md"
+        note_path.write_text("persisted", encoding="utf-8")
 
         await workspace_service.delete_workspace(workspace.id)
         await db_session.flush()
@@ -112,3 +128,4 @@ class TestWorkspaceService:
 
         with pytest.raises(WorkspaceNotFoundError, match=f"Workspace '{workspace.id}' not found"):
             await workspace_service.get_workspace_by_id(workspace.id)
+        assert not note_path.exists()

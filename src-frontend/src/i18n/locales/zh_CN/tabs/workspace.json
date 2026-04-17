@@ -13,6 +13,9 @@
       "save": "保存",
       "saving": "保存中..."
     },
+    "notes": {
+      "label": "工作区笔记"
+    },
     "usable_agents": {
       "cancel": "取消",
       "confirm": "确定",

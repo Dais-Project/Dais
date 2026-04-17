@@ -5,6 +5,7 @@ from dais_sdk.tool import PythonToolset, python_tool
 from dais_sdk.types import ToolDef
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..types import ToolMetadata
+from ...notes import NoteManager
 from ...types import ContextUsage
 
 if TYPE_CHECKING:
@@ -24,6 +25,7 @@ class BuiltInToolsetContext:
         self.workspace_id = workspace_id
         self.cwd = self.resolve_cwd(cwd)
         self.usage = usage
+        self.note_manager = NoteManager(workspace_id)
 
     @classmethod
     def default(cls):

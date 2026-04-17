@@ -70,7 +70,7 @@ export function ToolMultiSelectField() {
     control,
   });
 
-  const selectedToolIds = value ?? [];
+  const selectedToolIds = value;
 
   return (
     <div>

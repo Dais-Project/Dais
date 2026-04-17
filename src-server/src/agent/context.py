@@ -97,8 +97,7 @@ class AgentContext:
         usage.max_tokens = model.context_size
         messages = task.messages
 
-        builtin_toolset_manager = BuiltinToolsetManager(workspace.id, workspace.directory, ContextUsage.default())
-        await builtin_toolset_manager.initialize()
+        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory, ContextUsage.default())
         mcp_toolset_manager = use_mcp_toolset_manager()
         return cls(task.id,
                    usage=usage,
@@ -195,6 +194,7 @@ class AgentContext:
         return None
 
     async def persist(self) -> task_models.Task:
+        await self._builtin_toolset_manager.cleanup()
         async with db_context() as db_session:
             return await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
                 title=None, agent_id=None,

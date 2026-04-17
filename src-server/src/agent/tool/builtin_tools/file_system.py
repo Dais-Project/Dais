@@ -4,6 +4,7 @@ import os
 import xml.etree.ElementTree as ET
 from typing import Annotated, Literal, TypedDict, override
 from pathlib import Path as StdPath
+from string import Template
 from anyio import Path as AnyioPath
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
@@ -13,6 +14,7 @@ from src.services.markdown_cache import MarkdownCacheService
 from src.binaries import RIPGREP_PATH
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
+from ...skills import SkillMaterializer
 
 
 # Since `is_binary` from binaryornot sometimes misdetects some files as binary,
@@ -26,11 +28,23 @@ def is_binary(path: StdPath) -> bool:
         bytes = f.read()
         return is_binary_string(bytes)
 
+class PathExpander:
+    def __init__(self, path_envs: dict[str, str]):
+        self._path_envs = path_envs
+
+    def substitute(self, path: str) -> str:
+        template = Template(path)
+        return template.safe_substitute(self._path_envs)
+
 class FileSystemToolset(BuiltInToolset):
     def __init__(self,
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
+        self._path_expander = PathExpander({
+            **SkillMaterializer.get_skill_dir_env(),
+            **ctx.note_manager.notes_dir_env,
+        })
         self._markdown_converter = MarkdownConverter()
 
     @property
@@ -38,7 +52,7 @@ class FileSystemToolset(BuiltInToolset):
     def name(self) -> str: return "FileSystem"
 
     def _resolve_path(self, file_path: str) -> AnyioPath:
-        expanded_path = os.path.expandvars(file_path)
+        expanded_path = self._path_expander.substitute(file_path)
         expanded_path = os.path.expanduser(expanded_path)
         return AnyioPath(self._ctx.cwd / expanded_path)
 

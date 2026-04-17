@@ -1,6 +1,5 @@
 import asyncio
 import inspect
-import os
 import shutil
 from anyio import Path
 from loguru import logger
@@ -18,11 +17,6 @@ class SkillMaterializer:
     @staticmethod
     def get_skill_dir_env() -> dict[str, str]:
         return {SkillMaterializer.SKILLS_DIR_ENVNAME: str(DATA_DIR / ".skills")}
-
-    @staticmethod
-    def inject_skill_dir_env():
-        skill_dir_env = SkillMaterializer.get_skill_dir_env()
-        os.environ.update(skill_dir_env)
 
     @staticmethod
     async def get_skills_dir() -> Path:
