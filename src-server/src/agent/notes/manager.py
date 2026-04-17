@@ -78,7 +78,7 @@ class NoteManager:
             finally:
                 self._watch_task = None
 
-    async def _handle_file_changes(self, changes: set[FileChange]):
+    async def _handle_file_changes(self, changes: list[FileChange]):
         from src.services.workspace import WorkspaceService
         from src.db.models import workspace as workspace_models
 
@@ -140,12 +140,13 @@ class NoteManager:
                 debounce=500,
                 recursive=True,
             ):
-                md_changes = {
-                    (change_type, AnyioPath(path))
-                    for change_type, path in changes
-                    if path.lower().endswith(".md")
-                }
-                await self._handle_file_changes(md_changes)
+                markdown_changes: list[Any] = []
+                for change_type, path in changes:
+                    path = AnyioPath(path)
+                    if await path.is_symlink() or await path.is_dir(): continue
+                    if path.suffix.lower() != ".md": continue
+                    markdown_changes.append((change_type, path))
+                await self._handle_file_changes(markdown_changes)
         except asyncio.CancelledError:
             self._logger.debug(f"Notes watch cancelled for workspace {self._workspace_id}")
         except Exception:

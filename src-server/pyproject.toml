@@ -22,7 +22,7 @@ dependencies = [
     "sqlalchemy[asyncio]==2.0.46",
     "uvicorn==0.40.0",
     "trafilatura==2.0.0",
-    "magika==1.0.2",
+    "magika>=0.6.2",
     "watchfiles==1.1.1",
 ]
 

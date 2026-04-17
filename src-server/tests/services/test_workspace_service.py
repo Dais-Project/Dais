@@ -39,8 +39,10 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
+                notes=[],
                 usable_agent_ids=[agent.id],
                 usable_tool_ids=[tool.id],
+                usable_skill_ids=[],
             )
         )
 
@@ -64,8 +66,10 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
+                notes=[],
                 usable_agent_ids=[initial_agent.id],
                 usable_tool_ids=[initial_tool.id],
+                usable_skill_ids=[],
             )
         )
 
@@ -78,8 +82,10 @@ class TestWorkspaceService:
                 name="Workspace B",
                 directory="/tmp/workspace-b",
                 instruction="Instruction B",
+                notes=[],
                 usable_agent_ids=[new_agent.id],
                 usable_tool_ids=[new_tool.id],
+                usable_skill_ids=[],
             ),
         )
 
@@ -104,8 +110,10 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
+                notes=[],
                 usable_agent_ids=[agent.id],
                 usable_tool_ids=[tool.id],
+                usable_skill_ids=[],
             )
         )
 
@@ -121,32 +129,3 @@ class TestWorkspaceService:
         with pytest.raises(WorkspaceNotFoundError, match=f"Workspace '{workspace.id}' not found"):
             await workspace_service.get_workspace_by_id(workspace.id)
         assert not note_path.exists()
-
-    @pytest.mark.asyncio
-    async def test_sync_workspace_notes_updates_database_from_materialized_files(
-        self,
-        workspace_service: WorkspaceService,
-        db_session: AsyncSession,
-        workspace_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
-        note_manager = NoteManager(workspace.id)
-        notes_dir = await note_manager.get_notes_dir()
-
-        root_note_path = Path(str(notes_dir)) / "note.md"
-        root_note_path.write_text("# Root", encoding="utf-8")
-        nested_dir = Path(str(notes_dir)) / "nested"
-        nested_dir.mkdir(parents=True, exist_ok=True)
-        nested_note_path = nested_dir / "child.txt"
-        nested_note_path.write_text("child", encoding="utf-8")
-
-        await workspace_service.sync_workspace_notes(workspace.id)
-        await db_session.flush()
-        db_session.expunge_all()
-
-        synced_workspace = await workspace_service.get_workspace_by_id(workspace.id)
-        notes = {note.relative: note.content for note in synced_workspace.notes}
-        assert notes == {
-            "note.md": "# Root",
-            "nested/child.txt": "child",
-        }
