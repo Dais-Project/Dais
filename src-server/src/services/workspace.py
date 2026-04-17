@@ -115,35 +115,3 @@ class WorkspaceService(ServiceBase):
         await self._db_session.delete(workspace)
         await self._db_session.flush()
         await NoteManager(workspace.id).clear_materialized()
-
-    async def sync_workspace_notes(self, workspace_id: int) -> None:
-        workspace = await self._db_session.get(
-            workspace_models.Workspace,
-            workspace_id,
-            options=[selectinload(workspace_models.Workspace.notes)],
-        )
-        if workspace is None:
-            raise WorkspaceNotFoundError(workspace_id)
-
-        note_manager = NoteManager(workspace_id)
-        notes_dir = await note_manager.get_notes_dir()
-        notes: list[workspace_models.WorkspaceNote] = []
-
-        async def collect_notes(current_dir: Path) -> None:
-            nonlocal notes
-            async for child in current_dir.iterdir():
-                if await child.is_dir():
-                    await collect_notes(child)
-                    continue
-                if child.suffix.lower() != ".md":
-                    continue
-                relative = str(child.relative_to(notes_dir)).replace("\\", "/")
-                content = await child.read_text("utf-8")
-                notes.append(workspace_models.WorkspaceNote(
-                    relative=relative,
-                    content=content,
-                ))
-
-        await collect_notes(notes_dir)
-        workspace.notes = notes
-        await self._db_session.flush()

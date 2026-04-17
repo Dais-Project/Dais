@@ -384,6 +384,7 @@ dependencies = [
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "trafilatura" },
     { name = "uvicorn" },
+    { name = "watchfiles" },
 ]
 
 [package.dev-dependencies]
@@ -392,7 +393,6 @@ dev = [
     { name = "psutil" },
     { name = "pyinstaller" },
     { name = "pyright" },
-    { name = "watchfiles" },
 ]
 test = [
     { name = "pytest" },
@@ -426,6 +426,7 @@ requires-dist = [
     { name = "sqlalchemy", extras = ["asyncio"], specifier = "==2.0.46" },
     { name = "trafilatura", specifier = ">=2.0.0" },
     { name = "uvicorn", specifier = "==0.40.0" },
+    { name = "watchfiles", specifier = ">=1.1.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -434,7 +435,6 @@ dev = [
     { name = "psutil", specifier = ">=7.2.2" },
     { name = "pyinstaller", specifier = ">=6.17.0" },
     { name = "pyright", specifier = ">=1.1.408" },
-    { name = "watchfiles", specifier = ">=1.1.1" },
 ]
 test = [
     { name = "pytest", specifier = ">=9.0.0" },
