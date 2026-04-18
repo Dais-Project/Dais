@@ -126,5 +126,17 @@
       "parse_error": "Failed to parse write file arguments",
       "title": "Dais wants to write a file:"
     }
+  },
+  "assistant_message": {
+    "context_menu": {
+      "copy": "Copy",
+      "save_to_file": "Save to file"
+    },
+    "toast": {
+      "copied": "Copied to clipboard",
+      "copy_failed": "Failed to copy",
+      "file_saved": "File saved successfully",
+      "save_failed": "Failed to save file"
+    }
   }
 }

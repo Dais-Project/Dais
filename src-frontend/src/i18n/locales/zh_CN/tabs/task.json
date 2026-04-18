@@ -126,5 +126,17 @@
       "parse_error": "文件写入参数解析失败",
       "title": "Dais 想要写入文件："
     }
+  },
+  "assistant_message": {
+    "context_menu": {
+      "copy": "复制",
+      "save_to_file": "保存到文件"
+    },
+    "toast": {
+      "copied": "已复制到剪贴板",
+      "copy_failed": "复制失败",
+      "file_saved": "文件保存成功",
+      "save_failed": "文件保存失败"
+    }
   }
 }

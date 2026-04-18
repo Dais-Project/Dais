@@ -12,6 +12,8 @@
     "autostart:allow-enable",
     "autostart:allow-disable",
     "autostart:allow-is-enabled",
+    "fs:allow-write",
+    "fs:allow-write-text-file",
     "opener:default",
     "dialog:allow-open",
     "dialog:default",
