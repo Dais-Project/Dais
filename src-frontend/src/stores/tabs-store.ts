@@ -92,10 +92,10 @@ export const useTabsStore = create<TabsStore>()(
         if (typeof pattern === "function") {
           set((state: TabsState) => {
             const removedTabs = state.tabs.filter(pattern);
-            state.tabs = state.tabs.filter((t) => !pattern(t));
             removedTabs.forEach((tab) => {
               delete state.indicators[tab.id];
             });
+            state.tabs = state.tabs.filter((t) => !pattern(t));
             if (!state.tabs.find((t) => t.id === state.activeTabId)) {
               state.activeTabId = state.tabs.at(-1)?.id ?? null;
             }

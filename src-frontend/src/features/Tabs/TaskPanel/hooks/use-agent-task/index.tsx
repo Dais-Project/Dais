@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
+import { useLatest } from "ahooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
@@ -123,6 +124,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
   const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
 
+  const latestMessage = useLatest(messages);
+
   const setData = useCallback(
     (updater: ImmerUpdater<UiMessage[]>) => {
       setMessages(
@@ -237,7 +240,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const onClose = () => {
     messageLifecycle.handleClose();
-    const lastMessage = messages.at(-1);
+    const lastMessage = latestMessage.current.at(-1);
     const isLastMessageNonEmptyAssistantMessage = (
       lastMessage !== undefined &&
       lastMessage?.role === "assistant" &&

@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { usePrevious } from "ahooks";
+import { useEffect, useMemo, useRef } from "react";
 import { type TabIndicator, useTabsStore } from "@/stores/tabs-store";
 import { type TaskFlags, type TaskState, useAgentTaskState } from "../hooks/use-agent-task";
 
@@ -24,22 +23,20 @@ type TaskTabIndicatorProps = {
 
 export function TaskTabIndicator({ tabId, isActive }: TaskTabIndicatorProps) {
   const { state, flags } = useAgentTaskState();
-  const isPrevActive = usePrevious(isActive);
-  const currentIndicator = useTabsStore((store) => store.indicators[tabId] ?? null);
   const setIndicator = useTabsStore((store) => store.setIndicator);
+  const resolvedIndicator = useMemo(() => resolveTaskIndicator(state, flags), [state, flags]);
+  const prevResolvedRef = useRef<TabIndicator>(resolvedIndicator);
 
   useEffect(() => {
-    const indicator = resolveTaskIndicator(state, flags);
-    setIndicator(tabId, indicator);
-  }, [state, flags, tabId, setIndicator]);
-
-  useEffect(() => {
-    if (isPrevActive === false && isActive === true) {
-      if (currentIndicator && currentIndicator !== "in-progress") {
-        setIndicator(tabId, null);
+    if (isActive) {
+      setIndicator(tabId, null);
+    } else {
+      if (resolvedIndicator !== prevResolvedRef.current) {
+        setIndicator(tabId, resolvedIndicator);
       }
     }
-  }, [isPrevActive, isActive, tabId, currentIndicator, setIndicator]);
+    prevResolvedRef.current = resolvedIndicator;
+  }, [isActive, resolvedIndicator, tabId, setIndicator]);
 
   return null;
 }
