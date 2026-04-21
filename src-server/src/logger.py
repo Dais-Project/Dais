@@ -46,6 +46,7 @@ def setup_logging(log_level: int):
         "openai",
         "pdfminer",
         "python_multipart",
+        "watchfiles",
     )
     for lib_name in NOISY_LIBS:
         logging.getLogger(lib_name).setLevel(logging.WARNING)

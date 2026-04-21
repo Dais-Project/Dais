@@ -6,14 +6,17 @@ from typing import Annotated, Literal, TypedDict, override
 from pathlib import Path as StdPath
 from string import Template
 from anyio import Path as AnyioPath
+from loguru import logger
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
 from src.db import db_context
 from src.db.models import toolset as toolset_models
 from src.services.markdown_cache import MarkdownCacheService
 from src.binaries import RIPGREP_PATH
+from src.settings import use_app_setting_manager
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
+from ...prompts import create_one_turn_llm, SemanticFileAnalysis, SemanticFileAnalysisInput
 from ...skills import SkillMaterializer
 
 
@@ -37,6 +40,8 @@ class PathExpander:
         return template.safe_substitute(self._path_envs)
 
 class FileSystemToolset(BuiltInToolset):
+    _logger = logger.bind(name="FileSystemToolset")
+
     def __init__(self,
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
@@ -62,6 +67,14 @@ class FileSystemToolset(BuiltInToolset):
                           "The path of the file to read (relative to the current working directory)."],
                         offset: Annotated[int, "The line number to start reading from (1-based)."] = 1,
                         max_lines: Annotated[int, "The maximum number of lines to read."] = 2000,
+                        semantic: Annotated[str | None,
+                            """
+                            When provided, this parameter will be used as prompt to pass to another model to semantically analyse the ENTIRE file content (offset and max_lines are ignored).
+                            PREFER this over normal reading when:
+                            - The file is likely to be long (e.g. PDF, Word documents, reports)
+                            - The goal is to understand, summarize, or extract information from the file
+                            NOTE: When the analysis failed, it will fallback to normal reading mode and returns raw file content instead — check the `mode` attribute to know which mode was used.
+                            """] = None,
                         ) -> str:
         """
         Read the contents of a file at the specified path.
@@ -70,17 +83,23 @@ class FileSystemToolset(BuiltInToolset):
 
         Returns:
             A XML string with the file content and metadata as attributes:
-            - start_line: The line number of the first line returned (1-based).
-            - end_line: The line number of the last line returned (1-based).
-            - total_lines: The total number of lines in the file.
+            - start_line: The line number of the first line returned (1-based), only exist for "normal" mode
+            - end_line: The line number of the last line returned (1-based), only exist for "normal" mode
+            - total_lines: The total number of lines in the file
+            - mode: The actual mode used, can be one of "normal" and "semantic"
 
-            Example:
-                <file_content start_line="1" end_line="50" total_lines="312">
+            Normal mode example:
+                <file_content start_line="1" end_line="50" total_lines="312" mode="normal">
                 def foo():
                     ...
                 </file_content>
 
-        To read the next chunk, pass end_line + 1 as the offset in the next call.
+            Semantic mode example (read_file(path="report.pdf", semantic="Summarize the key findings")):
+                <file_content total_lines="312" mode="semantic">
+                The report identifies three main findings: ...
+                </file_content>
+
+        To read the next chunk in normal mode, pass end_line + 1 as the offset in the next call.
         """
         async def convert_to_markdown_with_cache(path: AnyioPath) -> str:
             async with db_context() as db_session:
@@ -91,6 +110,23 @@ class FileSystemToolset(BuiltInToolset):
                 converted = await self._markdown_converter.convert(path)
                 await markdown_cache_service.set(path, converted)
                 return converted
+
+        def format_result(content: str,
+                          total_lines: int,
+                          mode: Literal["normal", "semantic"],
+                          start_line: int | None = None,
+                          end_line: int | None = None) -> str:
+            attributes = {
+                "total_lines": str(total_lines),
+                "mode": mode
+            }
+            if start_line is not None:
+                attributes["start_line"] = str(start_line)
+            if end_line is not None:
+                attributes["end_line"] = str(end_line)
+            root = ET.Element("file_content", attrib=attributes)
+            root.text = content
+            return ET.tostring(root, encoding="unicode")
 
         abs_path = self._resolve_path(path)
 
@@ -105,14 +141,31 @@ class FileSystemToolset(BuiltInToolset):
         else:
             lines = (await abs_path.read_text("utf-8")).splitlines()
 
+        if semantic is not None:
+            settings = use_app_setting_manager().settings
+            if settings.flash_model is None:
+                # tells to the agent that the flash model is not configured so that the agent will not retry semantic reading.
+                raise ValueError("Semantic analysis is not available: analyzer model is not configured.")
+            try:
+                llm = await create_one_turn_llm(settings.flash_model)
+                analyzer = SemanticFileAnalysis(llm)
+                analyze_task = analyzer(SemanticFileAnalysisInput(
+                    path=path,
+                    content="\n".join(lines),
+                    semantic=semantic,
+                ))
+                result = await asyncio.wait_for(analyze_task, 60)
+                return format_result(result, total_lines=len(lines), mode="semantic")
+            except Exception:
+                self._logger.exception(f"Failed to semantically read file '{path}'")
+
         result_lines = lines[(offset - 1):(offset + max_lines - 1)]
-        root = ET.Element("file_content", attrib={
-            "start_line": str(offset),
-            "end_line": str(offset + len(result_lines) - 1),
-            "total_lines": str(len(lines)),
-        })
-        root.text = "\n".join(result_lines)
-        return ET.tostring(root, encoding="unicode")
+        return format_result(
+            "\n".join(result_lines),
+            start_line=offset,
+            end_line=offset + len(result_lines) - 1,
+            total_lines=len(lines),
+            mode="normal")
 
     @built_in_tool(validate=True)
     async def write_file(self,

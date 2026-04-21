@@ -2,6 +2,7 @@ from dais_sdk import LLM
 from ....db import db_context
 from ....services.llm_model import LlmModelService
 
+from .file_analyze import SemanticFileAnalysis, SemanticFileAnalysisInput
 from .title_summarization import TitleSummarization
 from .tool_call_safety_audit import ToolCallSafetyAudit, ToolCallSafetyAuditInput, ToolCallSafetyAuditOutput
 
@@ -16,6 +17,7 @@ async def create_one_turn_llm(model_id: int) -> LLM:
 
 __all__ = [
     "create_one_turn_llm",
+    "SemanticFileAnalysis", "SemanticFileAnalysisInput",
     "TitleSummarization",
     "ToolCallSafetyAudit",
     "ToolCallSafetyAuditInput",
