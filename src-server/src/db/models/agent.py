@@ -3,12 +3,10 @@ from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession
 from . import Base, relationship
-from .relationships import workspace_agent_association_table, agent_tool_association_table
+from .relationships import agent_tool_association_table
 
 if TYPE_CHECKING:
     from .provider import LlmModel
-    from .workspace import Workspace
-    from .task import Task
     from .toolset import Tool
 
 class Agent(Base):
@@ -20,19 +18,9 @@ class Agent(Base):
     instruction: Mapped[str]
 
     model_id: Mapped[int | None] = mapped_column(ForeignKey("llm_models.id", ondelete="SET NULL"))
-    model: Mapped[LlmModel | None] = relationship(back_populates="agents",
-                                                  foreign_keys=[model_id],
-                                                  viewonly=True)
+    model: Mapped[LlmModel | None] = relationship(foreign_keys=[model_id], viewonly=True) # readonly relationship
 
-    tasks: Mapped[list[Task]] = relationship(back_populates="agent",
-                                             viewonly=True)
-
-    workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_agent_association_table,
-                                                       back_populates="usable_agents",
-                                                       viewonly=True)
-
-    usable_tools: Mapped[list[Tool]] = relationship(secondary=agent_tool_association_table,
-                                                    back_populates="_agents")
+    usable_tools: Mapped[list[Tool]] = relationship(secondary=agent_tool_association_table)
 
 async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType

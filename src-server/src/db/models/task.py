@@ -52,13 +52,9 @@ class Task(Base):
     last_run_at: Mapped[int] = mapped_column(default=lambda: int(time.time()))
 
     agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id", ondelete="SET NULL"))
-    agent: Mapped[Agent | None] = relationship(back_populates="tasks",
-                                               foreign_keys=[agent_id],
-                                               viewonly=True)
+    agent: Mapped[Agent | None] = relationship(foreign_keys=[agent_id], viewonly=True) # readonly relationship
 
     _workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
     @hybrid_property
     def workspace_id(self) -> int: return self._workspace_id
-    workspace: Mapped[Workspace] = relationship(back_populates="_tasks",
-                                                foreign_keys=[_workspace_id],
-                                                viewonly=True)
+    workspace: Mapped[Workspace] = relationship(back_populates="_tasks", foreign_keys=[_workspace_id])

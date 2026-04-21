@@ -1,13 +1,8 @@
 import hashlib
-from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from . import Base, relationship
-from .relationships import workspace_skill_association_table
-
-if TYPE_CHECKING:
-    from .workspace import Workspace
 
 
 class SkillResource(Base):
@@ -16,9 +11,6 @@ class SkillResource(Base):
     relative: Mapped[str]
     content: Mapped[str]
     _skill_id: Mapped[int] = mapped_column(ForeignKey("skills.id"))
-    skill: Mapped[Skill] = relationship(back_populates="resources",
-                                        foreign_keys=[_skill_id],
-                                        viewonly=True)
 
 class Skill(Base):
     __tablename__ = "skills"
@@ -29,12 +21,7 @@ class Skill(Base):
     is_enabled: Mapped[bool] = mapped_column(default=True)
 
     content: Mapped[str]
-    resources: Mapped[list[SkillResource]] = relationship(back_populates="skill",
-                                                          cascade="all, delete-orphan")
-
-    _workspaces: Mapped[list[Workspace]] = relationship(secondary=workspace_skill_association_table,
-                                                        back_populates="usable_skills",
-                                                        viewonly=True)
+    resources: Mapped[list[SkillResource]] = relationship(foreign_keys=[SkillResource._skill_id], cascade="all, delete-orphan")
 
     @staticmethod
     def compute_resources_hash(resources: list[SkillResource]) -> str:

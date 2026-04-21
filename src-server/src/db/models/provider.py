@@ -8,9 +8,6 @@ from dais_sdk.providers import LlmProviders
 from . import Base, relationship
 from .utils import DataClassJSON
 
-if TYPE_CHECKING:
-    from .agent import Agent
-
 
 @dataclasses.dataclass
 class LlmModelCapability:
@@ -28,11 +25,7 @@ class LlmModel(Base):
     _provider_id: Mapped[int] = mapped_column(ForeignKey("providers.id"))
     @hybrid_property
     def provider_id(self) -> int: return self._provider_id
-    provider: Mapped[Provider] = relationship(back_populates="models",
-                                              foreign_keys=[_provider_id],
-                                              viewonly=True)
-    agents: Mapped[list[Agent]] = relationship(back_populates="model",
-                                               viewonly=True)
+    provider: Mapped[Provider] = relationship(back_populates="models", foreign_keys=[_provider_id])
 
 class Provider(Base):
     __tablename__ = "providers"
@@ -41,8 +34,7 @@ class Provider(Base):
     type: Mapped[LlmProviders]
     base_url: Mapped[str]
     api_key: Mapped[str]
-    models: Mapped[list[LlmModel]] = relationship(back_populates="provider",
-                                                  cascade="all, delete-orphan")
+    models: Mapped[list[LlmModel]] = relationship(back_populates="provider", cascade="all, delete-orphan")
 
 async def init(db_session: AsyncSession):
     default_provider = Provider(

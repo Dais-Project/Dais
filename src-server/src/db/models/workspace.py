@@ -30,19 +30,15 @@ class Workspace(Base):
     directory: Mapped[str]
     instruction: Mapped[str]
 
-    notes: Mapped[list[WorkspaceNote]] = relationship(cascade="all, delete-orphan")
+    notes: Mapped[list[WorkspaceNote]] = relationship(foreign_keys=[WorkspaceNote._workspace_id], cascade="all, delete-orphan")
 
-    _tasks: Mapped[list[Task]] = relationship(back_populates="workspace",
-                                              cascade="all, delete-orphan")
+    _tasks: Mapped[list[Task]] = relationship(back_populates="workspace", cascade="all, delete-orphan")
     @hybrid_property
     def tasks(self) -> list[Task]: return self._tasks
 
-    usable_agents: Mapped[list[Agent]] = relationship(secondary=workspace_agent_association_table,
-                                                      back_populates="workspaces")
-    usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table,
-                                                    back_populates="_workspaces")
-    usable_skills: Mapped[list[Skill]] = relationship(secondary=workspace_skill_association_table,
-                                                      back_populates="_workspaces")
+    usable_agents: Mapped[list[Agent]] = relationship(secondary=workspace_agent_association_table)
+    usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table)
+    usable_skills: Mapped[list[Skill]] = relationship(secondary=workspace_skill_association_table)
 
 async def init(db_session: AsyncSession):
     from .agent import Agent
