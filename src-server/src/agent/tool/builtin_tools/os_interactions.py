@@ -9,6 +9,7 @@ from src.agent.skills import SkillMaterializer
 from src.db.models import toolset as toolset_models
 from src.binaries import UV_PATH, NODE_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ...notes import NoteManager
 
 
 class OsInteractionsToolset(BuiltInToolset):
@@ -20,7 +21,7 @@ class OsInteractionsToolset(BuiltInToolset):
             extra_paths=[str(NODE_PATH.parent), str(UV_PATH.parent)],
             extra_env={
                 **SkillMaterializer.get_skill_dir_env(),
-                **ctx.note_manager.notes_dir_env,
+                **NoteManager.get_notes_dir_env(ctx.workspace_id),
             }
         )
 

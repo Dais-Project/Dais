@@ -72,15 +72,56 @@ class TestGetNotesDir:
         assert result.parent.name == ".notes"
 
 
+class TestGetNotesIndex:
+    """Tests for get_notes_index method."""
+
+    @pytest.mark.asyncio
+    async def test_returns_notes_index_content(self, tmp_path: Path, monkeypatch):
+        """Test that get_notes_index returns NOTES.md content when it exists."""
+        monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
+        manager = NoteManager(workspace_id=7)
+
+        notes_dir = await manager.get_notes_dir()
+        notes_index = notes_dir / "NOTES.md"
+        await notes_index.write_text("# Workspace notes\n\n- item", "utf-8")
+
+        result = await manager.get_notes_index()
+
+        assert result == "# Workspace notes\n\n- item"
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_notes_index_not_exists(self, tmp_path: Path, monkeypatch):
+        """Test that get_notes_index returns None when NOTES.md does not exist."""
+        monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
+        manager = NoteManager(workspace_id=8)
+
+        result = await manager.get_notes_index()
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_reading_notes_index_fails(self, tmp_path: Path, monkeypatch):
+        """Test that get_notes_index returns None when NOTES.md cannot be read."""
+        monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
+        manager = NoteManager(workspace_id=9)
+
+        notes_dir = await manager.get_notes_dir()
+        notes_index = notes_dir / "NOTES.md"
+        await notes_index.write_text("# Workspace notes", "utf-8")
+
+        with patch.object(AnyioPath, "read_text", AsyncMock(side_effect=OSError("read failed"))):
+            result = await manager.get_notes_index()
+
+        assert result is None
+
+
 class TestNotesDirEnv:
     """Tests for notes_dir_env property."""
 
     def test_returns_env_dict_with_correct_path(self, tmp_path: Path, monkeypatch):
         """Test that notes_dir_env returns correct environment variable dict."""
         monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
-        manager = NoteManager(workspace_id=5)
-
-        env = manager.notes_dir_env
+        env = NoteManager.get_notes_dir_env(workspace_id=5)
 
         expected_path = str(tmp_path / ".notes" / "5")
         assert env == {NoteManager.NOTES_DIR_ENVNAME: expected_path}
@@ -295,7 +336,7 @@ class TestHandleFileChanges:
                 )
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
 
-                changes = {(ChangeType.added, AnyioPath(test_file))}
+                changes = [(ChangeType.added, AnyioPath(test_file))]
                 await manager._handle_file_changes(changes)
 
         # Verify workspace.notes was updated
@@ -338,7 +379,7 @@ class TestHandleFileChanges:
                 )
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
 
-                changes = {(ChangeType.modified, AnyioPath(test_file))}
+                changes = [(ChangeType.modified, AnyioPath(test_file))]
                 await manager._handle_file_changes(changes)
 
         # Verify note was updated
@@ -378,7 +419,7 @@ class TestHandleFileChanges:
                 )
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
 
-                changes = {(ChangeType.deleted, AnyioPath(test_file))}
+                changes = [(ChangeType.deleted, AnyioPath(test_file))]
                 await manager._handle_file_changes(changes)
 
         # Verify note was removed
@@ -415,7 +456,7 @@ class TestHandleFileChanges:
 
                 # _watch_files filters non-md files, but _handle_file_changes
                 # should handle any file type passed to it
-                changes = {(ChangeType.added, AnyioPath(test_file))}
+                changes = [(ChangeType.added, AnyioPath(test_file))]
                 await manager._handle_file_changes(changes)
 
         # Verify note was still added (handler doesn't filter)
@@ -428,7 +469,7 @@ class TestHandleFileChanges:
         manager = NoteManager(workspace_id=1)
 
         # Should not raise
-        await manager._handle_file_changes(set())
+        await manager._handle_file_changes([])
 
     @pytest.mark.asyncio
     async def test_handles_read_error_gracefully(self, tmp_path: Path, monkeypatch):
@@ -458,7 +499,7 @@ class TestHandleFileChanges:
                 )
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
 
-                changes = {(ChangeType.added, AnyioPath(nonexistent_file))}
+                changes = [(ChangeType.added, AnyioPath(nonexistent_file))]
                 # Should not raise even though file doesn't exist
                 await manager._handle_file_changes(changes)
 

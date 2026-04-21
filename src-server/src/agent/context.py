@@ -3,10 +3,12 @@ import re
 import time
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from typing import Self, cast
+from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
+from src.agent.notes import NoteManager
 from src.db import db_context
 from src.db.models import task as task_models
 from src.schemas import (
@@ -23,7 +25,13 @@ from src.services.provider import ProviderService
 from src.services.task import TaskService
 from src.settings import use_app_setting_manager
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
-from .prompts import BASE_INSTRUCTION, NO_AVAILABLE_SKILLS, NO_WORKSPACE_INSTRUCTION, NO_AGENT_INSTRUCTION
+from .prompts import (
+    BASE_INSTRUCTION,
+    FAILED_TO_LOAD_NOTES_INDEX,
+    NO_AVAILABLE_SKILLS,
+    NO_WORKSPACE_INSTRUCTION,
+    NO_AGENT_INSTRUCTION,
+)
 from .types import ContextUsage
 
 class BuiltInToolAliases:
@@ -52,18 +60,24 @@ class BuiltInToolAliases:
             return aliases.get(key, match.group(0))
         return re.sub(r'\$\{(\w+)\}', replacer, text)
 
+@dataclass(frozen=True)
+class ToolRuntimeContext:
+    usage: ContextUsage
+    note_manager: NoteManager
 
 class AgentContext:
+    _logger = logger.bind(name="AgentContext")
+
     def __init__(self,
                  task_id: int,
                  *,
-                 usage: task_models.TaskUsage,
                  messages: list[Message],
                  workspace: workspace_schemas.WorkspaceRead,
                  agent: agent_schemas.AgentRead,
                  provider: provider_schemas.ProviderRead,
                  model: provider_schemas.LlmModelRead,
                  skills: list[skill_schemas.SkillBrief],
+                 tool_context: ToolRuntimeContext,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
         self.task_id = task_id
@@ -72,10 +86,9 @@ class AgentContext:
         self._skills = skills
         self._provider = provider
         self._model = model
-
         self._messages = messages
-        self._usage = ContextUsage(**asdict(usage))
 
+        self._tool_context = tool_context
         self._builtin_toolset_manager = builtin_toolset_manager
         self._mcp_toolset_manager = mcp_toolset_manager
         self._builtin_tool_aliases = BuiltInToolAliases(builtin_toolset_manager)
@@ -95,18 +108,24 @@ class AgentContext:
 
         usage = task.usage
         usage.max_tokens = model.context_size
+        usage = ContextUsage(**asdict(usage))
         messages = task.messages
 
-        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory, ContextUsage.default())
+        note_manager = NoteManager(task.workspace_id)
+        await note_manager.materialize()
+        await note_manager.start_watching()
+
+        tool_context = ToolRuntimeContext(usage=usage, note_manager=note_manager)
+        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory, tool_context)
         mcp_toolset_manager = use_mcp_toolset_manager()
         return cls(task.id,
-                   usage=usage,
                    messages=messages,
                    workspace=workspace_schemas.WorkspaceRead.model_validate(workspace),
                    agent=agent_schemas.AgentRead.model_validate(agent),
                    provider=provider_schemas.ProviderRead.model_validate(provider),
                    model=provider_schemas.LlmModelRead.model_validate(model),
                    skills=[skill_schemas.SkillBrief.model_validate(skill) for skill in skills],
+                   tool_context=tool_context,
                    builtin_toolset_manager=builtin_toolset_manager,
                    mcp_toolset_manager=mcp_toolset_manager)
 
@@ -135,23 +154,7 @@ class AgentContext:
 
     @property
     def usage(self) -> ContextUsage:
-        return self._usage
-
-    @property
-    def system_instruction(self) -> str:
-        settings = use_app_setting_manager().settings
-        available_skills = AgentContext._format_skills(self._skills)
-        resolved_instructions = self._resolve_instructions()
-        return resolved_instructions.base.format(
-            os_platform=platform.system(),
-            user_language=settings.reply_language,
-            available_skills=available_skills,
-            workspace_name=self._workspace.name,
-            workspace_directory=self._workspace.directory,
-            workspace_instruction=resolved_instructions.workspace,
-            agent_role=self._agent.name,
-            agent_instruction=resolved_instructions.agent,
-        ).strip()
+        return self._tool_context.usage
 
     @property
     def toolsets(self) -> list[Toolset]:
@@ -186,6 +189,25 @@ class AgentContext:
             return workspace_usable_tool_ids
         return workspace_usable_tool_ids & agent_usable_tool_ids
 
+    async def compose_system_instruction(self) -> str:
+        settings = use_app_setting_manager().settings
+        available_skills = AgentContext._format_skills(self._skills)
+        resolved_instructions = self._resolve_instructions()
+        notes_index = await self._tool_context.note_manager.get_notes_index()
+        resolved_notes_index = notes_index if notes_index is not None else FAILED_TO_LOAD_NOTES_INDEX
+
+        return resolved_instructions.base.format(
+            os_platform=platform.system(),
+            user_language=settings.reply_language,
+            available_skills=available_skills,
+            workspace_notes_index=resolved_notes_index,
+            workspace_name=self._workspace.name,
+            workspace_directory=self._workspace.directory,
+            workspace_instruction=resolved_instructions.workspace,
+            agent_role=self._agent.name,
+            agent_instruction=resolved_instructions.agent,
+        ).strip()
+
     def find_tool(self, tool_name: str) -> ToolDef | None:
         for toolset in self.toolsets:
             for tool in toolset.get_tools():
@@ -194,11 +216,16 @@ class AgentContext:
         return None
 
     async def persist(self) -> task_models.Task:
-        await self._builtin_toolset_manager.cleanup()
+        try:
+            await self._tool_context.note_manager.clear_materialized()
+            await self._tool_context.note_manager.stop_watching()
+        except:
+            self._logger.exception("Failed to execute NoteManager cleanup.")
+
         async with db_context() as db_session:
             return await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
                 title=None, agent_id=None,
                 messages=self._messages,
-                usage=self._usage,
+                usage=self._tool_context.usage,
                 last_run_at=int(time.time())
             ))

@@ -1,4 +1,4 @@
-from typing import Sequence, override
+from typing import TYPE_CHECKING, Callable, Sequence, override
 from dais_sdk.tool import Toolset
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import db_context
@@ -6,18 +6,28 @@ from src.db.models import toolset as toolset_models
 from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 from ..builtin_tools import BUILT_IN_TOOLSETS
-from ...types import ContextUsage
+
+if TYPE_CHECKING:
+    from ...context import ToolRuntimeContext
 
 
 class BuiltinToolsetManager(ToolsetManager):
-    def __init__(self, workspace_id: int, cwd: str, usage: ContextUsage):
-        self._ctx = BuiltInToolsetContext(workspace_id, cwd, usage)
+    def __init__(self, workspace_id: int, cwd: str, runtime_getter: Callable[[], ToolRuntimeContext]):
+        self._ctx = BuiltInToolsetContext(workspace_id, cwd, runtime_getter)
         self._toolset_map: dict[str, toolset_models.Toolset] | None = None
         self._toolsets: list[BuiltInToolset] | None = None
 
     @classmethod
     def default(cls):
-        return cls(1, "~", ContextUsage.default())
+        """Create a manager for static built-in tool metadata export only.
+
+        The returned manager is intended for metadata-only operations, such as exporting
+        built-in tool definitions before a real agent runtime context exists. Any access
+        to runtime-backed context fields from this instance is considered invalid.
+        """
+        def runtime_getter():
+            raise ValueError("ToolRuntimeContext is unavailable in BuiltinToolsetManager.default()")
+        return cls(1, "~", runtime_getter)
 
     @staticmethod
     async def sync_toolsets(db_session: AsyncSession):
@@ -48,14 +58,9 @@ class BuiltinToolsetManager(ToolsetManager):
         for toolset_t in BUILT_IN_TOOLSETS:
             toolset_ent = self._toolset_map[toolset_t.internal_key()]
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
-        await self._ctx.note_manager.materialize()
-        await self._ctx.note_manager.start_watching()
-
-    async def cleanup(self):
-        await self._ctx.note_manager.stop_watching()
 
     @classmethod
-    async def create(cls, workspace_id: int, cwd: str, usage: ContextUsage) -> BuiltinToolsetManager:
-        manager = cls(workspace_id, cwd, usage)
+    async def create(cls, workspace_id: int, cwd: str, tool_runtime_context: ToolRuntimeContext) -> BuiltinToolsetManager:
+        manager = cls(workspace_id, cwd, lambda: tool_runtime_context)
         await manager.initialize()
         return manager

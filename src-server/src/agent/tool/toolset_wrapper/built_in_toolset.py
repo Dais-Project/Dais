@@ -1,6 +1,6 @@
 from dataclasses import replace
 from pathlib import Path
-from typing import cast, override, TYPE_CHECKING, TypedDict
+from typing import Callable, Self, cast, override, TYPE_CHECKING, TypedDict
 from dais_sdk.tool import PythonToolset, python_tool
 from dais_sdk.types import ToolDef
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from ...notes import NoteManager
 from ...types import ContextUsage
 
 if TYPE_CHECKING:
+    from ...context import ToolRuntimeContext
     from ....db.models import toolset as toolset_models
 
 
@@ -21,31 +22,28 @@ class BuiltInToolDefaults(TypedDict, total=False):
     needs_user_interaction: bool
 
 class BuiltInToolsetContext:
-    def __init__(self, workspace_id: int, cwd: str | Path, usage: ContextUsage):
+    def __init__(self, workspace_id: int, cwd: str | Path, runtime_getter: Callable[[], ToolRuntimeContext]):
         self.workspace_id = workspace_id
-        self.cwd = self.resolve_cwd(cwd)
-        self.usage = usage
-        self.note_manager = NoteManager(workspace_id)
+        self.cwd = Path(cwd).expanduser().resolve()
+        self._runtime_getter = runtime_getter
+
+    @property
+    def usage(self) -> ContextUsage: return self._runtime_getter().usage
+
+    @property
+    def note_manager(self) -> NoteManager: return self._runtime_getter().note_manager
 
     @classmethod
-    def default(cls):
-        return cls(1, Path.cwd(), ContextUsage.default())
+    def default(cls) -> Self:
+        """Create a context for static tool metadata export without runtime state.
 
-    @staticmethod
-    def resolve_cwd(cwd: str | Path) -> Path:
+        The returned context is only intended for code paths that inspect built-in tool
+        definitions, such as tool metadata synchronization. Runtime-only properties like
+        usage and note_manager are intentionally unavailable on this instance.
         """
-        Resolve the current working directory.
-        If the input is a string, it will be resolved relative to the current working directory.
-        If the input is a Path object, it will be resolved as is.
-        Returns:
-            The absolute path of the current working directory.
-        """
-        if isinstance(cwd, str):
-            if cwd == "~":
-                cwd = Path.home()
-            else:
-                cwd = Path(cwd)
-        return cwd.resolve()
+        def runtime_getter():
+            raise ValueError("ToolRuntimeContext is unavailable in BuiltInToolsetContext.default()")
+        return cls(1, Path.cwd(), runtime_getter)
 
 class BuiltInToolset(PythonToolset):
     def __init__(self,

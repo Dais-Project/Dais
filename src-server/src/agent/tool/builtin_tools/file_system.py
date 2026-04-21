@@ -16,8 +16,9 @@ from src.binaries import RIPGREP_PATH
 from src.settings import use_app_setting_manager
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
-from ...prompts import create_one_turn_llm, SemanticFileAnalysis, SemanticFileAnalysisInput
+from ...notes import NoteManager
 from ...skills import SkillMaterializer
+from ...prompts import create_one_turn_llm, SemanticFileAnalysis, SemanticFileAnalysisInput
 
 
 # Since `is_binary` from binaryornot sometimes misdetects some files as binary,
@@ -48,7 +49,7 @@ class FileSystemToolset(BuiltInToolset):
         super().__init__(ctx, toolset_ent)
         self._path_expander = PathExpander({
             **SkillMaterializer.get_skill_dir_env(),
-            **ctx.note_manager.notes_dir_env,
+            **NoteManager.get_notes_dir_env(ctx.workspace_id),
         })
         self._markdown_converter = MarkdownConverter()
 

@@ -97,9 +97,9 @@ class LlmRequestManager:
                                                      api_key=self._ctx.provider.api_key)
         return LLM(self._ctx.model.name, provider, TaskResourceRetriever(self._ctx.task_id))
 
-    def _create_request_param(self) -> LlmRequestParams:
+    async def _create_request_param(self) -> LlmRequestParams:
         params = LlmRequestParams(
-            instructions=self._ctx.system_instruction,
+            instructions=await self._ctx.compose_system_instruction(),
             messages=self._ctx.messages)
         usable_tool_ids = self._ctx.usable_tool_ids
         if usable_tool_ids is None:
@@ -129,7 +129,7 @@ class LlmRequestManager:
         Create LLM API call, put message chunks into chunk_queue and return the first tool call message
         """
         assistant_message_id = str(uuid.uuid4())
-        request_params = self._create_request_param()
+        request_params = await self._create_request_param()
         llm = self._llm_factory()
         try:
             self._current_stream = llm.stream_text(request_params)

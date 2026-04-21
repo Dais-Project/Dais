@@ -32,9 +32,19 @@ class NoteManager:
         await notes_dir.mkdir(parents=True, exist_ok=True)
         return notes_dir
 
-    @property
-    def notes_dir_env(self) -> dict[str, str]:
-        return {NoteManager.NOTES_DIR_ENVNAME: str(DATA_DIR / ".notes" / str(self._workspace_id))}
+    async def get_notes_index(self) -> str | None:
+        notes_dir = await self.get_notes_dir()
+        index_file = notes_dir / "NOTES.md"
+        if not await index_file.exists(): return None
+        try:
+            return await index_file.read_text(encoding="utf-8")
+        except:
+            self._logger.exception(f"Failed to read root NOTES.md for workspace {self._workspace_id}.")
+            return None
+
+    @staticmethod
+    def get_notes_dir_env(workspace_id: int) -> dict[str, str]:
+        return {NoteManager.NOTES_DIR_ENVNAME: str(DATA_DIR / ".notes" / str(workspace_id))}
 
     async def materialize(self) -> AnyioPath:
         from src.services.workspace import WorkspaceService

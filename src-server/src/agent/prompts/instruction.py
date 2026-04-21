@@ -183,7 +183,7 @@ Before any of the following actions, check the root `NOTES.md` first to identify
 
 Follow a three-step drill-down; stop as soon as sufficient context is found:
 
-1. Read root `NOTES.md` → identify relevant categories
+1. Refer to the root `NOTES.md` in Appendix B → identify relevant categories
 2. Read the relevant category `NOTES.md` → identify relevant entries
 3. Read individual entry files only when the summary is insufficient
 
@@ -201,6 +201,15 @@ In both cases, update the affected index files accordingly.
 ## Appendix A: Available Skills
 
 {available_skills}
+
+## Appendix B: Workspace Notes Index
+
+The following is the pre-loaded content of `$DAIS_NOTES_DIR/NOTES.md` for the current workspace.
+Use it as the starting point for note retrieval per Section 8.5.
+
+<workspace_notes_index>
+{workspace_notes_index}
+</workspace_notes_index>
 
 [END OF BASE SYSTEM INSTRUCTIONS]
 
