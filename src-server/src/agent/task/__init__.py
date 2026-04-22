@@ -7,7 +7,6 @@ from dais_sdk.types import (
     Message, ToolMessage, UserMessage, AssistantMessage,
     ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
-    ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError,
 )
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
@@ -18,7 +17,7 @@ from ..exception_handlers import (
     handle_tool_argument_decode_error,
     handle_tool_execution_error
 )
-from ..prompts import USER_IGNORED_TOOL_CALL_RESULT
+from ..prompts import USER_DENIED_TOOL_CALL_RESULT, USER_IGNORED_TOOL_CALL_RESULT
 from ..types import (
     AgentGenerator, UserApprovalStatus, is_agent_tool_metadata,
     ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskInterruptedEvent, TaskDoneEvent, ToolExecutedEvent, ErrorEvent
@@ -105,6 +104,8 @@ class AgentTask:
         assert is_agent_tool_metadata(metadata)
         if not self._tool_call_reviewer.apply_user_approval(call_id, metadata, approved):
             return None
+        if "user_approval" in metadata and metadata["user_approval"] == UserApprovalStatus.DENIED:
+            target_message.result = USER_DENIED_TOOL_CALL_RESULT
         return MessageReplaceEvent(message=target_message.model_copy())
 
     async def execute_approved_tool_calls(self) -> AsyncGenerator[ToolExecutedEvent | MessageReplaceEvent, None]:
