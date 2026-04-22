@@ -1,20 +1,23 @@
 import { useController, useFormContext } from "react-hook-form";
 import { produce } from "immer";
+import { useTranslation } from "react-i18next";
 import { CodeEditor } from "@/components/custom/editor/CodeEditor";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { useResolvedTheme } from "@/hooks/use-resolve-theme";
 import { useSettingsStore } from "@/stores/settings-store";
-import type { WorkspaceCreateFormValues, WorkspaceEditFormValues } from "../form-types";
+import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
+import type { WorkspaceNotesEditFormValues } from "../form-types";
 
 export function WorkspaceNoteField() {
-  const { control } = useFormContext<WorkspaceCreateFormValues | WorkspaceEditFormValues>();
+  const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
+  const { control } = useFormContext<WorkspaceNotesEditFormValues>();
   const { field, fieldState } = useController({ name: "notes", control });
   const { theme } = useSettingsStore((state) => state.current);
   const resolvedTheme = useResolvedTheme(theme);
 
   return (
     <FieldItem
-      label="Notes"
+      label={t("form.notes.label")}
       fieldState={fieldState}
       orientation="vertical"
       align="start"

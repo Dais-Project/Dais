@@ -5,38 +5,27 @@ import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import type { WorkspaceRead } from "@/api/generated/schemas";
 import { invalidateWorkspaceQueries, useUpdateWorkspace } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import {
-  DirectoryField,
-  NameField,
-  RichTextField,
-} from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { AgentMultiSelectField } from "./fields/AgentMultiSelectField";
-import { SkillMultiSelectField } from "./fields/SkillMultiSelectField";
-import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
+import { WorkspaceNoteField } from "./fields/WorkspaceNoteField";
 import {
-  editFormValuesToPayload,
-  type WorkspaceEditFormValues,
-  workspaceToEditFormValues,
+  type WorkspaceNotesEditFormValues,
+  workspaceToNotesEditFormValues,
+  notesEditFormValuesToPayload,
 } from "./form-types";
 
-type WorkspaceEditFormProps = {
+type WorkspaceNotesEditFormProps = {
   workspace: WorkspaceRead;
-  onConfirm?: () => void;
 };
 
-export function WorkspaceEditForm({
-  workspace,
-  onConfirm,
-}: WorkspaceEditFormProps) {
+export function WorkspaceNotesEditForm({ workspace }: WorkspaceNotesEditFormProps) {
   const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const syncCurrentWorkspace = useWorkspaceStore((state) => state.syncCurrent);
 
   const formValues = useMemo(
-    () => workspaceToEditFormValues(workspace),
-    [workspace]
+    () => workspaceToNotesEditFormValues(workspace),
+    [workspace.notes]
   );
 
   const updateMutation = useUpdateWorkspace({
@@ -46,7 +35,6 @@ export function WorkspaceEditForm({
         toast.success(t("toast.update.success_title"), {
           description: t("toast.update.success_description_with_name", { name: updatedWorkspace.name }),
         });
-        onConfirm?.();
 
         if (updatedWorkspace.id === currentWorkspace?.id) {
           await syncCurrentWorkspace();
@@ -55,37 +43,18 @@ export function WorkspaceEditForm({
     },
   });
 
-  const handleSubmit = (data: WorkspaceEditFormValues) => {
-    const payload = editFormValuesToPayload(data);
+  const handleSubmit = (data: WorkspaceNotesEditFormValues) => {
+    const payload = notesEditFormValuesToPayload(data);
     updateMutation.mutate({ workspaceId: workspace.id, data: payload });
   };
 
   return (
-    <FormShell<WorkspaceEditFormValues>
+    <FormShell<WorkspaceNotesEditFormValues>
       values={formValues}
       onSubmit={handleSubmit}
       className="h-full"
     >
-      <NameField
-        fieldName="name"
-        fieldProps={{ label: t("form.name.label") }}
-        controlProps={{ placeholder: t("form.name.placeholder") }}
-      />
-
-      <DirectoryField fieldName="directory" />
-
-      <RichTextField
-        fieldName="instruction"
-        fieldProps={{ label: t("form.instruction.label"), className: "mt-2" }}
-        controlProps={{ className: "mt-2" }}
-        minLength={0}
-      />
-
-      <AgentMultiSelectField />
-
-      <ToolMultiSelectField />
-
-      <SkillMultiSelectField />
+      <WorkspaceNoteField />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>

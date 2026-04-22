@@ -201,13 +201,15 @@
     "menu": {
       "delete": "删除",
       "edit": "编辑工作区",
+      "edit_notes": "编辑工作区笔记",
       "create_task": "在此工作区中创建任务",
       "open_in_file_manager": "在文件管理器中打开",
       "select": "设为当前工作区"
     },
     "tab": {
       "create_title": "创建工作区",
-      "edit_title_with_name": "编辑：{{name}}"
+      "edit_title_with_name": "编辑：{{name}}",
+      "edit_notes_title_with_name": "笔记：{{name}}"
     },
     "toast": {
       "delete_success_description": "已成功删除工作区。",

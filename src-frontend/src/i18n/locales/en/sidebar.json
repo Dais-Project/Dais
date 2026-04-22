@@ -201,13 +201,15 @@
     "menu": {
       "delete": "Delete",
       "edit": "Edit workspace",
+      "edit_notes": "Edit workspace notes",
       "create_task": "Create task in workspace",
       "open_in_file_manager": "Open in file manager",
       "select": "Set as current"
     },
     "tab": {
       "create_title": "Create workspace",
-      "edit_title_with_name": "Edit: {{name}}"
+      "edit_title_with_name": "Edit: {{name}}",
+      "edit_notes_title_with_name": "Notes: {{name}}"
     },
     "toast": {
       "delete_success_description": "Workspace deleted successfully.",

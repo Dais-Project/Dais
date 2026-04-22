@@ -19,7 +19,8 @@ export type TaskTabMetadata = { workspace_id: number } & (
 
 export type WorkspaceTabMetadata =
   | { mode: "create" }
-  | { mode: "edit"; id: number };
+  | { mode: "edit"; id: number }
+  | { mode: "edit-notes"; id: number };
 
 export type AgentTabMetadata =
   | { mode: "create" }

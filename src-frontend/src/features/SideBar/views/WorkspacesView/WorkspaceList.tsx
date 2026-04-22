@@ -1,4 +1,4 @@
-import { CircleIcon, FolderIcon, FolderOpenIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { CircleIcon, FolderIcon, FolderOpenIcon, NotebookPenIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
@@ -42,6 +42,15 @@ function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab
   };
 }
 
+function createWorkspaceNotesEditTab(workspaceId: number, workspaceName: string): Tab {
+  return {
+    type: "workspace",
+    title: i18n.t("workspaces.tab.edit_notes_title_with_name", { ns: SIDEBAR_NAMESPACE, name: workspaceName }),
+    icon: "notebook-pen",
+    metadata: { mode: "edit-notes", id: workspaceId },
+  };
+}
+
 function openTaskCreateTab(workspaceId: number) {
   const addTab = useTabsStore.getState().add;
   addTab({
@@ -72,6 +81,23 @@ function openWorkspaceEditTab({ workspaceId, workspaceName }: OpenWorkspaceEditT
     setActiveTab(existingTab.id);
   } else {
     const newTab = createWorkspaceEditTab(workspaceId, workspaceName);
+    addTab(newTab);
+  }
+}
+
+function openWorkspaceNotesEditTab({ workspaceId, workspaceName }: OpenWorkspaceEditTabParams) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find(
+    (tab) =>
+      tab.type === "workspace" &&
+      tab.metadata.mode === "edit-notes" &&
+      tab.metadata.id === workspaceId
+  );
+
+  if (existingTab) {
+    setActiveTab(existingTab.id);
+  } else {
+    const newTab = createWorkspaceNotesEditTab(workspaceId, workspaceName);
     addTab(newTab);
   }
 }
@@ -118,6 +144,14 @@ function WorkspaceItem({
     });
   };
 
+  const handleEditNotes = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openWorkspaceNotesEditTab({
+      workspaceId: workspace.id,
+      workspaceName: workspace.name,
+    });
+  };
+
   const handleOpenInFileManager = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isTauri) {
@@ -152,6 +186,10 @@ function WorkspaceItem({
           <PencilIcon />
           <span>{t("workspaces.menu.edit")}</span>
         </ActionableItemMenuItem>
+        <ActionableItemMenuItem onClick={handleEditNotes}>
+          <NotebookPenIcon />
+          <span>{t("workspaces.menu.edit_notes")}</span>
+        </ActionableItemMenuItem>
         {isTauri && (
           <ActionableItemMenuItem onClick={handleOpenInFileManager}>
             <FolderOpenIcon />
@@ -182,7 +220,7 @@ export function WorkspaceList() {
     mutation: {
       async onSuccess(_, variables) {
         removeTabs((tab) => (tab.type === "workspace" &&
-          tab.metadata.mode === "edit" &&
+          (tab.metadata.mode === "edit" || tab.metadata.mode === "edit-notes") &&
           tab.metadata.id === variables.workspaceId));
         await invalidateWorkspaceQueries(variables.workspaceId);
 

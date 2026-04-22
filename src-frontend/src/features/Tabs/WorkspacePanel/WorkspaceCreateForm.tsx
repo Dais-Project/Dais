@@ -31,9 +31,9 @@ export function WorkspaceCreateForm({ onConfirm }: WorkspaceCreateFormProps) {
     },
   });
 
-  function handleSubmit(data: WorkspaceCreateFormValues) {
+  const handleSubmit = (data: WorkspaceCreateFormValues) => {
     createMutation.mutate({ data: createFormValuesToPayload(data) });
-  }
+  };
 
   return (
     <FormShell<WorkspaceCreateFormValues> values={DEFAULT_WORKSPACE} onSubmit={handleSubmit} className="h-full">
