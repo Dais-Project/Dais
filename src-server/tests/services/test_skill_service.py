@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import skill as skill_models
@@ -162,7 +163,7 @@ class TestSkillService:
         assert exc_info.value.error_code == ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS
 
     @pytest.mark.asyncio
-    async def test_delete_skill_removes_entity(
+    async def test_delete_skill_removes_entity_and_resource_children(
         self,
         skill_service: SkillService,
         db_session: AsyncSession,
@@ -173,9 +174,15 @@ class TestSkillService:
                 description="",
                 is_enabled=True,
                 content="Skill content",
-                resources=[],
+                resources=[
+                    skill_schemas.SkillResourceBase(
+                        relative="README.md",
+                        content="resource-content",
+                    )
+                ],
             )
         )
+        resource_id = created.resources[0].id
 
         await skill_service.delete_skill(created.id)
         await db_session.flush()
@@ -183,6 +190,11 @@ class TestSkillService:
 
         with pytest.raises(SkillNotFoundError, match=f"Skill '{created.id}' not found"):
             await skill_service.get_skill_by_id(created.id)
+
+        resource_in_db = await db_session.scalar(
+            select(skill_models.SkillResource).where(skill_models.SkillResource.id == resource_id)
+        )
+        assert resource_in_db is None
 
     @pytest.mark.asyncio
     async def test_get_all_skills_orders_by_id_and_loads_resources(

@@ -1,9 +1,13 @@
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agent.notes.manager import NoteManager
+from src.db.models.markdown_cache import MarkdownCache
+from src.db.models.task import Task
+from src.db.models.workspace import WorkspaceNote
 from src.schemas import workspace as workspace_schemas
 from src.services.exceptions import ServiceErrorCode
 from src.services.workspace import WorkspaceNotFoundError, WorkspaceService
@@ -96,12 +100,13 @@ class TestWorkspaceService:
         assert {t.id for t in updated.usable_tools} == {new_tool.id}
 
     @pytest.mark.asyncio
-    async def test_delete_workspace_removes_entity(
+    async def test_delete_workspace_removes_entity_and_cascade_children(
         self,
         workspace_service: WorkspaceService,
         db_session: AsyncSession,
         agent_factory,
         tool_factory,
+        task_factory,
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
@@ -110,12 +115,27 @@ class TestWorkspaceService:
                 name="Workspace A",
                 directory="/tmp/workspace-a",
                 instruction="Instruction A",
-                notes=[],
+                notes=[
+                    workspace_schemas.WorkspaceNoteBase(
+                        relative="note.md",
+                        content="persisted-note",
+                    )
+                ],
                 usable_agent_ids=[agent.id],
                 usable_tool_ids=[tool.id],
                 usable_skill_ids=[],
             )
         )
+        note_id = workspace.notes[0].id
+        task = await task_factory(workspace=workspace, title="Task A", agent=agent)
+        cache = MarkdownCache(
+            hash="cache-hash",
+            content="cached markdown",
+            source_path="note.md",
+            workspace_id=workspace.id,
+        )
+        db_session.add(cache)
+        await db_session.flush()
 
         note_manager = NoteManager(workspace.id)
         notes_dir = await note_manager.get_notes_dir()
@@ -129,3 +149,15 @@ class TestWorkspaceService:
         with pytest.raises(WorkspaceNotFoundError, match=f"Workspace '{workspace.id}' not found"):
             await workspace_service.get_workspace_by_id(workspace.id)
         assert not note_path.exists()
+
+        note_in_db = await db_session.scalar(
+            select(WorkspaceNote).where(WorkspaceNote.id == note_id)
+        )
+        task_in_db = await db_session.scalar(select(Task).where(Task.id == task.id))
+        cache_in_db = await db_session.scalar(
+            select(MarkdownCache).where(MarkdownCache.id == cache.id)
+        )
+
+        assert note_in_db is None
+        assert task_in_db is None
+        assert cache_in_db is None

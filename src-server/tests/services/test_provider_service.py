@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dais_sdk.providers import LlmProviders
@@ -109,13 +110,20 @@ class TestProviderService:
         assert {model.name for model in updated.models} == {"gpt-1b", "gpt-2"}
 
     @pytest.mark.asyncio
-    async def test_delete_provider_removes_entity(
+    async def test_delete_provider_removes_entity_and_model_children(
         self,
         provider_service: ProviderService,
         db_session: AsyncSession,
         provider_factory,
+        llm_model_factory,
     ):
         provider = await provider_factory(name="Provider A")
+        model = await llm_model_factory(
+            provider=provider,
+            name="gpt-1",
+            context_size=4096,
+            capability=provider_models.LlmModelCapability(tool_use=True),
+        )
 
         await provider_service.delete_provider(provider.id)
         await db_session.flush()
@@ -123,3 +131,8 @@ class TestProviderService:
 
         with pytest.raises(ProviderNotFoundError, match=f"Provider '{provider.id}' not found"):
             await provider_service.get_provider_by_id(provider.id)
+
+        model_in_db = await db_session.scalar(
+            select(provider_models.LlmModel).where(provider_models.LlmModel.id == model.id)
+        )
+        assert model_in_db is None

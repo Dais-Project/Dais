@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 from typing import NamedTuple
 
 import pytest_asyncio
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -37,6 +38,11 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def _enable_sqlite_foreign_keys(dbapi_conn, _):
+        dbapi_conn.execute("PRAGMA foreign_keys=ON")
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     try:
