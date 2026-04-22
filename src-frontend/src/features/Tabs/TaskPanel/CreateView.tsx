@@ -62,10 +62,10 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
       message: toSdkMessage(userMessage),
       agent_id: agentId,
     });
-    appendMessageMutation.mutate({
+    await appendMessageMutation.mutateAsync({
       taskId: taskRead.id,
       data: { body, uploaded_files: message.files.map((file) => file.raw) },
-    })
+    });
   };
 
   return (

@@ -208,7 +208,7 @@ class FileSystemToolset(BuiltInToolset):
                         new_content: Annotated[str,
                             "The new snippet that will replace old_content."],
                         expected_replacements: Annotated[int,
-                            "Number of replacements expected. Defaults to 1 if not specified. Use when you want to replace multiple occurrences of the same text."] = 1
+                            "Number of replacements expected. Use when you want to replace multiple occurrences of the same text."] = 1
                         ) -> str:
         """
         Edit a file by replacing a specific snippet with new content.
@@ -216,7 +216,7 @@ class FileSystemToolset(BuiltInToolset):
 
         Use this when you need to edit an existing file with existing content you have read before.
         If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
-        The tool will raise an error if the actual count differs (too few or too many) from `expected_replacements`.
+        The tool will raise an error if the actual count is fewer than `expected_replacements`.
 
         Returns:
             The unified diff of the applied change.
