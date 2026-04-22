@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dais_sdk.types import UserMessage
@@ -270,3 +271,8 @@ class TestTaskService:
         assert not resource_dir.exists()
         with pytest.raises(TaskNotFoundError, match=f"Task '{task.id}' not found"):
             await task_service.get_task_by_id(task.id)
+
+        resource_in_db = await db_session.scalar(
+            select(task_models.TaskResource).where(task_models.TaskResource.id == resource.id)
+        )
+        assert resource_in_db is None
