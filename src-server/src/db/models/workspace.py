@@ -28,13 +28,9 @@ class Workspace(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     directory: Mapped[str]
+
     instruction: Mapped[str]
-
     notes: Mapped[list[WorkspaceNote]] = relationship(foreign_keys=[WorkspaceNote._workspace_id], cascade="all, delete-orphan")
-
-    _tasks: Mapped[list[Task]] = relationship(back_populates="workspace", cascade="all, delete-orphan")
-    @hybrid_property
-    def tasks(self) -> list[Task]: return self._tasks
 
     usable_agents: Mapped[list[Agent]] = relationship(secondary=workspace_agent_association_table)
     usable_tools: Mapped[list[Tool]] = relationship(secondary=workspace_tool_association_table)

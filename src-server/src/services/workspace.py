@@ -1,4 +1,3 @@
-from anyio import Path
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from src.agent.notes.manager import NoteManager
@@ -16,7 +15,6 @@ from .utils import build_load_options, Relations
 class WorkspaceNotFoundError(NotFoundError):
     def __init__(self, workspace_id: int) -> None:
         super().__init__(ServiceErrorCode.WORKSPACE_NOT_FOUND, "Workspace", workspace_id)
-
 
 class WorkspaceService(ServiceBase):
     @staticmethod
