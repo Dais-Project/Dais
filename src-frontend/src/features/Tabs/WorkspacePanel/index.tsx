@@ -30,7 +30,12 @@ function WorkspaceEditPanel({
 }
 
 function WorkspaceNotesEditPanel({ workspaceId }: { workspaceId: number }) {
-  const { data: workspace } = useGetWorkspaceSuspense(workspaceId);
+  const { data: workspace } = useGetWorkspaceSuspense(workspaceId, {
+    query: {
+      staleTime: 0,
+      gcTime: 0,
+    }
+  });
 
   return <WorkspaceNotesEditForm workspace={workspace} />;
 }
