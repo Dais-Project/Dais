@@ -29,15 +29,23 @@ function WorkspaceEditPanel({
   return <WorkspaceEditForm workspace={workspace} onConfirm={handleComplete} />;
 }
 
-function WorkspaceNotesEditPanel({ workspaceId }: { workspaceId: number }) {
+function WorkspaceNotesEditPanel({
+  tabId,
+  workspaceId,
+}: {
+  tabId: string;
+  workspaceId: number;
+}) {
+  const removeTab = useTabsStore((state) => state.remove);
   const { data: workspace } = useGetWorkspaceSuspense(workspaceId, {
     query: {
       staleTime: 0,
       gcTime: 0,
     }
   });
+  const handleComplete = () => removeTab(tabId);
 
-  return <WorkspaceNotesEditForm workspace={workspace} />;
+  return <WorkspaceNotesEditForm workspace={workspace} onConfirm={handleComplete} />;
 }
 
 export function WorkspacePanel({
@@ -61,7 +69,7 @@ export function WorkspacePanel({
     case "edit-notes":
       return (
         <TabPanelFrame>
-          <WorkspaceNotesEditPanel workspaceId={metadata.id} />
+          <WorkspaceNotesEditPanel tabId={id} workspaceId={metadata.id} />
         </TabPanelFrame>
       );
   }

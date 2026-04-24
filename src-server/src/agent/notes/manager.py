@@ -14,17 +14,51 @@ type FileChange = tuple[ChangeType, AnyioPath]
 class NoteManager:
     NOTES_DIR_ENVNAME = "DAIS_NOTES_DIR"
     _logger = logger.bind(name="NoteManager")
+    _workspace_ref_counts: dict[int, int] = {}
+    _workspace_ref_lock: asyncio.Lock | None = None
 
     def __init__(self, workspace_id: int):
         self._workspace_id = workspace_id
         self._stop_watching_event = None
         self._watch_task = None
 
+    @classmethod
+    def _get_lock(cls) -> asyncio.Lock:
+        if cls._workspace_ref_lock is None:
+            cls._workspace_ref_lock = asyncio.Lock()
+        return cls._workspace_ref_lock
+
+    @classmethod
+    async def _increment_workspace_ref(cls, workspace_id: int) -> int:
+        async with cls._get_lock():
+            current = cls._workspace_ref_counts.get(workspace_id, 0)
+            ref_count = current + 1
+            cls._workspace_ref_counts[workspace_id] = ref_count
+        return ref_count
+
+    @classmethod
+    async def _decrement_workspace_ref(cls, workspace_id: int, *, force: bool = False) -> int:
+        async with cls._get_lock():
+            if force:
+                cls._workspace_ref_counts.pop(workspace_id, None)
+                return 0
+            current = cls._workspace_ref_counts.get(workspace_id, 0)
+            if current <= 1:
+                cls._workspace_ref_counts.pop(workspace_id, None)
+                return 0
+            ref_count = current - 1
+            cls._workspace_ref_counts[workspace_id] = ref_count
+        return ref_count
+
     @staticmethod
     async def get_notes_root_dir() -> AnyioPath:
         notes_root_dir = AnyioPath(DATA_DIR, ".notes")
         await notes_root_dir.mkdir(parents=True, exist_ok=True)
         return notes_root_dir
+
+    @staticmethod
+    def get_notes_dir_env(workspace_id: int) -> dict[str, str]:
+        return {NoteManager.NOTES_DIR_ENVNAME: str(DATA_DIR / ".notes" / str(workspace_id))}
 
     async def get_notes_dir(self) -> AnyioPath:
         notes_root_dir = await self.get_notes_root_dir()
@@ -42,11 +76,13 @@ class NoteManager:
             self._logger.exception(f"Failed to read root NOTES.md for workspace {self._workspace_id}.")
             return None
 
-    @staticmethod
-    def get_notes_dir_env(workspace_id: int) -> dict[str, str]:
-        return {NoteManager.NOTES_DIR_ENVNAME: str(DATA_DIR / ".notes" / str(workspace_id))}
-
     async def materialize(self) -> AnyioPath:
+        """Materialize workspace notes into `$DAIS_NOTES_DIR` for the current task context.
+
+        Calling this method increments the workspace-level materialization reference count.
+        The caller must later call `clear_materialized()` exactly once to release this
+        reference; otherwise temporary notes state may be retained unexpectedly.
+        """
         from src.services.workspace import WorkspaceService
 
         async with db_context() as db_session:
@@ -58,11 +94,24 @@ class NoteManager:
             note_path = notes_dir / note.relative
             await note_path.parent.mkdir(parents=True, exist_ok=True)
             await note_path.write_text(note.content, "utf-8")
+
+        await self._increment_workspace_ref(self._workspace_id)
         return notes_dir
 
-    async def clear_materialized(self):
+    async def clear_materialized(self, *, force: bool = False):
+        """Release one materialization reference and clean notes when eligible.
+
+        This method is the required counterpart of `materialize()`: after each successful
+        `materialize()` call, the caller must invoke `clear_materialized()` once.
+        When `force=True`, cleanup ignores reference counts (used by workspace deletion).
+        """
         notes_root_dir = await self.get_notes_root_dir()
         notes_dir = notes_root_dir / str(self._workspace_id)
+
+        ref_count = await self._decrement_workspace_ref(self._workspace_id, force=force)
+        should_delete = ref_count == 0
+
+        if not should_delete: return
         if not await notes_dir.exists(): return
         await asyncio.to_thread(shutil.rmtree, notes_dir)
 

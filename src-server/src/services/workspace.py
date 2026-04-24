@@ -112,4 +112,4 @@ class WorkspaceService(ServiceBase):
         workspace = await self.get_workspace_by_id(id)
         await self._db_session.delete(workspace)
         await self._db_session.flush()
-        await NoteManager(workspace.id).clear_materialized()
+        await NoteManager(workspace.id).clear_materialized(force=True)
