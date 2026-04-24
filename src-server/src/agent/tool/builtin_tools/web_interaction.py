@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 from magika import ContentTypeLabel
 from typing import Annotated, Any, Literal, override
 from pydantic import BaseModel, Discriminator, Field, field_validator
+from trafilatura.settings import use_config
 from src.db.models import toolset as toolset_models
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
@@ -56,6 +57,7 @@ class WebInteractionToolset(BuiltInToolset):
         super().__init__(ctx, toolset_ent)
         self._magika = get_magika()
         self._markdown_converter = MarkdownConverter()
+        self._trafilatura_config = use_config()
 
     @property
     @override
@@ -70,7 +72,11 @@ class WebInteractionToolset(BuiltInToolset):
                 return result
             return f"[Binary Data: {content_type.output.label}]"
         elif content_type.output.label == ContentTypeLabel.HTML and not raw:
-            extracted = await asyncio.to_thread(trafilatura.extract, res.text, output_format="markdown")
+            extracted = await asyncio.to_thread(
+                trafilatura.extract,
+                res.text,
+                output_format="markdown",
+                config=self._trafilatura_config)
             if extracted is not None: return extracted
             return f"<!-- trafilatura failed to extract content -->\n\n{res.text}"
         else: return res.text
