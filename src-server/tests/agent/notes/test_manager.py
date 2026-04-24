@@ -12,6 +12,12 @@ from src.agent.notes.manager import NoteManager
 from src.db.models import workspace as workspace_models
 
 
+@pytest.fixture(autouse=True)
+def reset_note_manager_ref_counts():
+    NoteManager._workspace_ref_counts.clear()
+    NoteManager._workspace_ref_lock = None
+
+
 @pytest.fixture
 def note_manager():
     """Return a NoteManager instance for workspace_id=1."""
@@ -195,18 +201,86 @@ class TestClearMaterialized:
     async def test_removes_notes_directory(self, tmp_path: Path, monkeypatch):
         """Test that clear_materialized removes the workspace notes directory."""
         monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
-        manager = NoteManager(workspace_id=3)
 
-        # Create the directory first
-        notes_dir = await manager.get_notes_dir()
-        test_file = notes_dir / "test.md"
-        await test_file.write_text("content", "utf-8")
+        workspace = MagicMock()
+        workspace.id = 3
+        workspace.notes = [workspace_models.WorkspaceNote(relative="test.md", content="content")]
 
-        assert await notes_dir.exists()
+        mock_service = AsyncMock()
+        mock_service.get_workspace_by_id.return_value = workspace
 
-        await manager.clear_materialized()
+        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+            with patch("src.agent.notes.manager.db_context") as mock_db_context:
+                mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
+                mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
 
-        assert not await notes_dir.exists()
+                manager = NoteManager(workspace_id=3)
+                notes_dir = await manager.materialize()
+
+                assert await notes_dir.exists()
+
+                await manager.clear_materialized()
+
+                assert not await notes_dir.exists()
+
+    @pytest.mark.asyncio
+    async def test_keeps_directory_when_workspace_has_other_active_task(self, tmp_path: Path, monkeypatch):
+        """Test that clear_materialized keeps notes when another task in same workspace is active."""
+        monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
+
+        workspace = MagicMock()
+        workspace.id = 1
+        workspace.notes = [workspace_models.WorkspaceNote(relative="README.md", content="# Hello")]
+
+        mock_service = AsyncMock()
+        mock_service.get_workspace_by_id.return_value = workspace
+
+        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+            with patch("src.agent.notes.manager.db_context") as mock_db_context:
+                mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
+                mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
+
+                manager_a = NoteManager(workspace_id=1)
+                manager_b = NoteManager(workspace_id=1)
+
+                notes_dir = await manager_a.materialize()
+                await manager_b.materialize()
+
+                assert await notes_dir.exists()
+
+                await manager_a.clear_materialized()
+                assert await notes_dir.exists()
+
+                await manager_b.clear_materialized()
+                assert not await notes_dir.exists()
+
+    @pytest.mark.asyncio
+    async def test_force_clear_always_removes_directory(self, tmp_path: Path, monkeypatch):
+        """Test that force clear removes notes directory regardless of ref count."""
+        monkeypatch.setattr("src.agent.notes.manager.DATA_DIR", tmp_path)
+
+        workspace = MagicMock()
+        workspace.id = 1
+        workspace.notes = [workspace_models.WorkspaceNote(relative="README.md", content="# Hello")]
+
+        mock_service = AsyncMock()
+        mock_service.get_workspace_by_id.return_value = workspace
+
+        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+            with patch("src.agent.notes.manager.db_context") as mock_db_context:
+                mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
+                mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
+
+                manager_a = NoteManager(workspace_id=1)
+                manager_b = NoteManager(workspace_id=1)
+
+                notes_dir = await manager_a.materialize()
+                await manager_b.materialize()
+
+                assert await notes_dir.exists()
+
+                await manager_a.clear_materialized(force=True)
+                assert not await notes_dir.exists()
 
     @pytest.mark.asyncio
     async def test_handles_nonexistent_directory(self, tmp_path: Path, monkeypatch):
