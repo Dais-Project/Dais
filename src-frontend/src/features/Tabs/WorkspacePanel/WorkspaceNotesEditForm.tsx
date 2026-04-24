@@ -16,9 +16,10 @@ import {
 
 type WorkspaceNotesEditFormProps = {
   workspace: WorkspaceRead;
+  onConfirm?: () => void;
 };
 
-export function WorkspaceNotesEditForm({ workspace }: WorkspaceNotesEditFormProps) {
+export function WorkspaceNotesEditForm({ workspace, onConfirm }: WorkspaceNotesEditFormProps) {
   const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const syncCurrentWorkspace = useWorkspaceStore((state) => state.syncCurrent);
@@ -35,6 +36,7 @@ export function WorkspaceNotesEditForm({ workspace }: WorkspaceNotesEditFormProp
         toast.success(t("toast.update.success_title"), {
           description: t("toast.update.success_description_with_name", { name: updatedWorkspace.name }),
         });
+        onConfirm?.();
 
         if (updatedWorkspace.id === currentWorkspace?.id) {
           await syncCurrentWorkspace();
