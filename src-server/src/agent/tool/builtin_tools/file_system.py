@@ -566,6 +566,7 @@ class FileSystemToolset(BuiltInToolset):
             55-    parser = argparse.ArgumentParser()
             56-    parser.add_argument("--args")
         """
+        resolved_path = str(self._resolve_path(path))
         args = [
             "-n", # show line numbers
             "-C", "2", # 2 lines of context
@@ -573,7 +574,7 @@ class FileSystemToolset(BuiltInToolset):
             "--path-separator", "/",
             "--smart-case",
             regex,
-            path,
+            resolved_path,
         ]
         if file_pattern:
             args += ["--glob", file_pattern]
