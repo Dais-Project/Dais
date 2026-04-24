@@ -9,7 +9,10 @@ from src.agent.task import AgentTask, MessageNotFoundError
 from src.agent.types import MessageReplaceEvent, TaskResourceMetadata
 from src.db import db_context
 from src.services.task import TaskService
-from src.schemas import task as task_schemas
+from src.schemas.tasks import (
+    task as task_schemas,
+    runtime as task_runtime_schemas,
+)
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -37,11 +40,11 @@ async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
     async with db_context() as db_session:
         task = await TaskService(db_session).get_task_by_id(task_id)
         task.agent_id = agent_id
-    task_read = task_schemas.TaskRead.model_validate(task)
+    task_read = task_runtime_schemas.TaskRuntimeContext.model_validate(task)
     ctx = await AgentContext.create(task_read)
     return AgentTask(ctx)
 
-def parse_append_message_body(body: str = Form(...)) -> TaskAppendMessageBody:
+def parse_append_message_body(body: str = Form(default=...)) -> TaskAppendMessageBody:
     return TaskAppendMessageBody.model_validate_json(body)
 
 task_control_router = APIRouter(tags=["task"])

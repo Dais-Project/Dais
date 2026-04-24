@@ -16,7 +16,10 @@ from src.schemas import (
     workspace as workspace_schemas,
     provider as provider_schemas,
     skill as skill_schemas,
+)
+from src.schemas.tasks import (
     task as task_schemas,
+    runtime as task_runtime_schemas,
 )
 from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
@@ -33,6 +36,7 @@ from .prompts import (
     NO_AGENT_INSTRUCTION,
 )
 from .types import ContextUsage
+
 
 class BuiltInToolAliases:
     def __init__(self, builtin_toolset_manager: BuiltinToolsetManager):
@@ -94,7 +98,7 @@ class AgentContext:
         self._builtin_tool_aliases = BuiltInToolAliases(builtin_toolset_manager)
 
     @classmethod
-    async def create(cls, task: task_schemas.TaskRead) -> Self:
+    async def create(cls, task: task_runtime_schemas.TaskRuntimeContext) -> Self:
         assert task.agent_id is not None
 
         async with db_context() as db_session:

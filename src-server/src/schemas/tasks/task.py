@@ -1,7 +1,6 @@
-from typing import Literal
 from dais_sdk.types import Message
 from src.db.models.task import TaskUsage
-from . import DTOBase
+from .. import DTOBase
 
 
 class TaskBase(DTOBase):
@@ -35,12 +34,3 @@ class TaskUpdate(DTOBase):
     last_run_at: int
     agent_id: int | None
     messages: list[Message] | None
-
-# --- --- --- --- --- ---
-
-ContextFileItemType = Literal["folder", "file"]
-
-class ContextFileItem(DTOBase):
-    path: str
-    name: str
-    type: ContextFileItemType

@@ -12,7 +12,7 @@ from src.agent.types import (
 from loguru import logger
 from src.db import db_context
 from src.services.task import TaskService
-from src.schemas import task as task_schemas
+from src.schemas.tasks import runtime as task_runtime_schemas
 
 
 _logger = logger.bind(name="TaskStreamRoute")
@@ -27,7 +27,7 @@ async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
     async with db_context() as db_session:
         task = await TaskService(db_session).get_task_by_id(task_id)
         task.agent_id = agent_id
-    task_read = task_schemas.TaskRead.model_validate(task)
+    task_read = task_runtime_schemas.TaskRuntimeContext.model_validate(task)
     ctx = await AgentContext.create(task_read)
     return AgentTask(ctx)
 

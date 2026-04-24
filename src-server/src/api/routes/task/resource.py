@@ -1,5 +1,5 @@
 from loguru import logger
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, status
 from starlette.responses import FileResponse
 from src.db import DbSessionDep
 from src.services.task import TaskService

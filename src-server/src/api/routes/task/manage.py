@@ -9,7 +9,7 @@ from src.db import DbSessionDep
 from src.db.models import agent as agent_models
 from src.db.models import task as task_models
 from src.services.task import TaskService
-from src.schemas import task as task_schemas
+from src.schemas.tasks import task as task_schemas
 from ...exceptions import ApiError, ApiErrorCode
 
 

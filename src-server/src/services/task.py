@@ -6,7 +6,7 @@ from sqlalchemy import select
 from loguru import logger
 from src.common import DATA_DIR
 from src.db.models import task as task_models
-from src.schemas import task as task_schemas
+from src.schemas.tasks import task as task_schemas
 from src.utils import get_unique_filename
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
