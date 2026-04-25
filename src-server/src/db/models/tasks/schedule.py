@@ -48,6 +48,7 @@ class Schedule(Base):
     __tablename__ = "schedules"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
+    is_enabled: Mapped[bool]
 
     config: Mapped[ScheduleConfig] = mapped_column(PydanticJSON(schedule_config_adapter))
 

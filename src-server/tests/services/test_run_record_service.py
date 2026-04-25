@@ -33,6 +33,7 @@ class TestRunRecordService:
 
         schedule = task_models.Schedule(
             name="Every minute",
+            is_enabled=True,
             config=PollingConfig(type="polling", interval_sec=60),
             agent_id=None,
             _workspace_id=workspace.id,
@@ -62,12 +63,14 @@ class TestRunRecordService:
 
         schedule_a = task_models.Schedule(
             name="Schedule A",
+            is_enabled=True,
             config=PollingConfig(type="polling", interval_sec=30),
             agent_id=None,
             _workspace_id=workspace.id,
         )
         schedule_b = task_models.Schedule(
             name="Schedule B",
+            is_enabled=True,
             config=PollingConfig(type="polling", interval_sec=60),
             agent_id=None,
             _workspace_id=workspace.id,

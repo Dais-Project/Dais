@@ -37,6 +37,7 @@ class TestScheduleService:
         schedule = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="Morning sync",
+                is_enabled=True,
                 config=CronConfig(type="cron", expression="0 9 * * 1"),
                 agent_id=agent.id,
                 workspace_id=workspace.id,
@@ -60,6 +61,7 @@ class TestScheduleService:
         first = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="First",
+                is_enabled=True,
                 config=PollingConfig(type="polling", interval_sec=60),
                 agent_id=None,
                 workspace_id=workspace.id,
@@ -68,6 +70,7 @@ class TestScheduleService:
         second = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="Second",
+                is_enabled=True,
                 config=DelayedConfig(type="delayed", run_at=123456),
                 agent_id=None,
                 workspace_id=workspace.id,
@@ -91,6 +94,7 @@ class TestScheduleService:
         created = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="Original",
+                is_enabled=True,
                 config=PollingConfig(type="polling", interval_sec=30),
                 agent_id=None,
                 workspace_id=workspace.id,
@@ -101,6 +105,7 @@ class TestScheduleService:
             created.id,
             schedule_schemas.ScheduleUpdate(
                 name="Updated",
+                is_enabled=None,
                 config=CronConfig(type="cron", expression="*/10 * * * *"),
                 agent_id=None,
             ),
@@ -122,6 +127,7 @@ class TestScheduleService:
         schedule = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="To delete",
+                is_enabled=True,
                 config=DelayedConfig(type="delayed", run_at=999999),
                 agent_id=None,
                 workspace_id=workspace.id,

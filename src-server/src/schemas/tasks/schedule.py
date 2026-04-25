@@ -6,6 +6,7 @@ from .. import DTOBase
 
 class ScheduleBase(DTOBase):
     name: str
+    is_enabled: bool
     config: ScheduleConfig
 
 class ScheduleBrief(ScheduleBase):
@@ -24,6 +25,7 @@ class ScheduleCreate(ScheduleBase):
 
 class ScheduleUpdate(DTOBase):
     name: str | None
+    is_enabled: bool | None
     config: ScheduleConfig | None
     agent_id: int | None
 

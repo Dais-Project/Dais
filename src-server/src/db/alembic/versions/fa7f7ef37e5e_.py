@@ -26,6 +26,7 @@ def upgrade() -> None:
     op.create_table('schedules',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('is_enabled', sa.Boolean(), nullable=False),
     sa.Column('config', PydanticJSON(None), nullable=False),
     sa.Column('agent_id', sa.Integer(), nullable=True),
     sa.Column('_workspace_id', sa.Integer(), nullable=False),
