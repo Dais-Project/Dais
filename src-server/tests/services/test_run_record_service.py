@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.models import tasks as task_models
 from src.db.models.tasks.schedule import PollingConfig
 from src.services.exceptions import ServiceErrorCode
-from src.services.run_record import RunRecordNotFoundError, RunRecordService
+from src.services.schedule import RunRecordNotFoundError, RunRecordService
 
 
 @pytest.fixture
