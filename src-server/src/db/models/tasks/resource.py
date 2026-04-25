@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Literal, Protocol
 from sqlalchemy import Index, and_
 from sqlalchemy.orm import Mapped, declared_attr, foreign, mapped_column
 from .. import Base, relationship
@@ -14,7 +14,7 @@ class TaskResource(Base):
     filename: Mapped[str]
     checksum: Mapped[str]
 
-    owner_type: Mapped[str]
+    owner_type: Mapped[Literal["tasks", "run_records"]]
     owner_id: Mapped[int]
 
 

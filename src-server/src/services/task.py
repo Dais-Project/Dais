@@ -96,7 +96,8 @@ class TaskService(ServiceBase):
     async def load_task_resource(self, id: int, resource_id: int) -> Path | None:
         stmt = select(task_models.TaskResource).where(
             task_models.TaskResource.id == resource_id,
-            task_models.TaskResource._task_id == id,
+            task_models.TaskResource.owner_type == "tasks",
+            task_models.TaskResource.owner_id == id,
         )
         resource = await self._db_session.scalar(stmt)
         if resource is None: return None
@@ -109,7 +110,8 @@ class TaskService(ServiceBase):
         checksum = (await asyncio.to_thread(hashlib.sha256, file_bytes)).hexdigest()
         stmt = select(task_models.TaskResource).where(
             task_models.TaskResource.checksum == checksum,
-            task_models.TaskResource._task_id == id,
+            task_models.TaskResource.owner_type == "tasks",
+            task_models.TaskResource.owner_id == id,
         )
         existing_resource = await self._db_session.scalar(stmt)
         if existing_resource is not None: return existing_resource
@@ -121,7 +123,8 @@ class TaskService(ServiceBase):
 
         try:
             new_resource = task_models.TaskResource(
-                _task_id=id,
+                owner_type="tasks",
+                owner_id=id,
                 filename=unique_name,
                 checksum=checksum,
             )
