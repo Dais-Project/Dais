@@ -1,7 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type SideBarView = "tasks" | "workspaces" | "agents" | "toolsets" | "skills" | "plugins" | "settings";
+export type SideBarView =
+  | "tasks"
+  | "schedules"
+  | "workspaces"
+  | "agents"
+  | "toolsets"
+  | "skills"
+  | "plugins"
+  | "settings";
 
 const DEFAULT_VIEW: SideBarView = "tasks";
 

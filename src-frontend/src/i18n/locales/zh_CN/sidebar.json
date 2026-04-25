@@ -134,6 +134,47 @@
       "providers": "模型服务"
     }
   },
+  "schedules": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除计划任务 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "empty": {
+      "description": "您还没有创建任何计划任务。",
+      "no_workspace": {
+        "description": "请先选择一个工作区以查看计划任务。",
+        "title": "未选择工作区"
+      },
+      "title": "暂无计划任务"
+    },
+    "header": {
+      "create_tooltip": "创建计划任务",
+      "title": "计划任务"
+    },
+    "list": {
+      "next_run_unknown": "下次触发时间未知"
+    },
+    "menu": {
+      "delete": "删除",
+      "disable": "禁用",
+      "enable": "启用",
+      "run_now": "立即执行",
+      "view_records": "查看运行记录"
+    },
+    "records": {
+      "empty": "暂无运行记录",
+      "record_summary": "消息：{{messages}} · Token：{{tokens}}"
+    },
+    "toast": {
+      "delete_success_description": "已成功删除计划任务。",
+      "delete_success_title": "删除成功",
+      "disable_success_description": "计划任务已禁用。",
+      "disable_success_title": "禁用成功",
+      "enable_success_description": "计划任务已启用。",
+      "enable_success_title": "启用成功",
+      "run_now_success_description": "计划任务已触发执行。",
+      "run_now_success_title": "已触发"
+    }
+  },
   "tasks": {
     "dialog": {
       "delete_description_with_name": "确定要删除任务 \"{{name}}\" 吗？此操作无法撤销。"

@@ -134,6 +134,47 @@
       "providers": "Model providers"
     }
   },
+  "schedules": {
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete schedule \"{{name}}\"? This action cannot be undone."
+    },
+    "empty": {
+      "description": "You haven't created any schedules yet.",
+      "no_workspace": {
+        "description": "Please select a workspace first to view schedules.",
+        "title": "No workspace selected"
+      },
+      "title": "No schedules"
+    },
+    "header": {
+      "create_tooltip": "Create new schedule",
+      "title": "Schedules"
+    },
+    "list": {
+      "next_run_unknown": "Next run time is unknown"
+    },
+    "menu": {
+      "delete": "Delete",
+      "disable": "Disable",
+      "enable": "Enable",
+      "run_now": "Run now",
+      "view_records": "View records"
+    },
+    "records": {
+      "empty": "No run records",
+      "record_summary": "Messages: {{messages}} · Tokens: {{tokens}}"
+    },
+    "toast": {
+      "delete_success_description": "Schedule deleted successfully.",
+      "delete_success_title": "Delete success",
+      "disable_success_description": "Schedule disabled successfully.",
+      "disable_success_title": "Disable success",
+      "enable_success_description": "Schedule enabled successfully.",
+      "enable_success_title": "Enable success",
+      "run_now_success_description": "Schedule run has been triggered.",
+      "run_now_success_title": "Triggered"
+    }
+  },
   "tasks": {
     "dialog": {
       "delete_description_with_name": "Are you sure you want to delete task \"{{name}}\"? This action cannot be undone."
