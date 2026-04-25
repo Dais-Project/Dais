@@ -10,6 +10,7 @@ import enTabsSkill from "./locales/en/tabs/skill.json";
 import enTabsTask from "./locales/en/tabs/task.json";
 import enTabsToolset from "./locales/en/tabs/toolset.json";
 import enTabsWorkspace from "./locales/en/tabs/workspace.json";
+import enTabsSchedule from "./locales/en/tabs/schedule.json";
 import enError from "./locales/en/error.json";
 import enComponentsUi from "./locales/en/components/ui.json";
 import enComponentsAiElements from "./locales/en/components/ai-elements.json";
@@ -25,6 +26,7 @@ import zhCnTabsSkill from "./locales/zh_CN/tabs/skill.json";
 import zhCnTabsTask from "./locales/zh_CN/tabs/task.json";
 import zhCnTabsToolset from "./locales/zh_CN/tabs/toolset.json";
 import zhCnTabsWorkspace from "./locales/zh_CN/tabs/workspace.json";
+import zhCnTabsSchedule from "./locales/zh_CN/tabs/schedule.json";
 import zhCnError from "./locales/zh_CN/error.json";
 import zhCnComponentsUi from "./locales/zh_CN/components/ui.json";
 import zhCnComponentsAiElements from "./locales/zh_CN/components/ai-elements.json";
@@ -40,6 +42,7 @@ export const TABS_PROVIDER_NAMESPACE = "tabs/provider";
 export const TABS_SKILL_NAMESPACE = "tabs/skill";
 export const TABS_TOOLSET_NAMESPACE = "tabs/toolset";
 export const TABS_WORKSPACE_NAMESPACE = "tabs/workspace";
+export const TABS_SCHEDULE_NAMESPACE = "tabs/schedule";
 export const TABS_TASK_NAMESPACE = "tabs/task";
 export const COMPONENTS_AI_ELEMENTS_NAMESPACE = "components/ai-elements";
 export const COMPONENTS_CUSTOM_NAMESPACE = "components/custom";
@@ -61,6 +64,7 @@ export const resources: Resource = {
     [TABS_SKILL_NAMESPACE]: enTabsSkill,
     [TABS_TOOLSET_NAMESPACE]: enTabsToolset,
     [TABS_WORKSPACE_NAMESPACE]: enTabsWorkspace,
+    [TABS_SCHEDULE_NAMESPACE]: enTabsSchedule,
     [TABS_TASK_NAMESPACE]: enTabsTask,
     [COMPONENTS_UI_NAMESPACE]: enComponentsUi,
     [COMPONENTS_AI_ELEMENTS_NAMESPACE]: enComponentsAiElements,
@@ -78,6 +82,7 @@ export const resources: Resource = {
     [TABS_SKILL_NAMESPACE]: zhCnTabsSkill,
     [TABS_TOOLSET_NAMESPACE]: zhCnTabsToolset,
     [TABS_WORKSPACE_NAMESPACE]: zhCnTabsWorkspace,
+    [TABS_SCHEDULE_NAMESPACE]: zhCnTabsSchedule,
     [TABS_TASK_NAMESPACE]: zhCnTabsTask,
     [COMPONENTS_UI_NAMESPACE]: zhCnComponentsUi,
     [COMPONENTS_AI_ELEMENTS_NAMESPACE]: zhCnComponentsAiElements,

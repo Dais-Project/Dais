@@ -150,12 +150,17 @@
       "create_tooltip": "Create new schedule",
       "title": "Schedules"
     },
+    "tab": {
+      "create_title": "Create schedule",
+      "edit_title_with_name": "Edit: {{name}}"
+    },
     "list": {
       "next_run_unknown": "Next run time is unknown"
     },
     "menu": {
       "delete": "Delete",
       "disable": "Disable",
+      "edit": "Edit schedule",
       "enable": "Enable",
       "run_now": "Run now",
       "view_records": "View records"

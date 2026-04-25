@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { ClockIcon, EyeIcon, PlayIcon, PowerIcon, TrashIcon } from "lucide-react";
-import { useState } from "react";
+import { ClockIcon, PencilIcon, PlayIcon, PowerIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,7 +14,6 @@ import {
   useDeleteSchedule,
   useGetSchedulesSuspenseInfinite,
 } from "@/api/schedule";
-import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
@@ -29,13 +27,44 @@ import {
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
+import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useTabsStore } from "@/stores/tabs-store";
+import type { Tab } from "@/types/tab";
 
 type ScheduleListProps = {
   workspaceId: number;
 };
+
+function createScheduleEditTab(scheduleId: number, scheduleName: string): Tab {
+  return {
+    type: "schedule",
+    title: i18n.t("schedules.tab.edit_title_with_name", {
+      ns: SIDEBAR_NAMESPACE,
+      name: scheduleName,
+    }),
+    metadata: { mode: "edit", id: scheduleId },
+  };
+}
+
+function openScheduleEditTab(scheduleId: number, scheduleName: string) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find(
+    (tab) =>
+      tab.type === "schedule" &&
+      tab.metadata.mode === "edit" &&
+      tab.metadata.id === scheduleId,
+  );
+
+  if (existingTab) {
+    setActiveTab(existingTab.id);
+    return;
+  }
+
+  addTab(createScheduleEditTab(scheduleId, scheduleName));
+}
 
 function formatConfigSummary(schedule: ScheduleBrief) {
   switch (schedule.config.type) {
@@ -55,6 +84,7 @@ type ScheduleItemProps = {
   index: number;
   ref: React.Ref<HTMLDivElement>;
   onDelete: (schedule: ScheduleBrief) => void;
+  onEdit: (schedule: ScheduleBrief) => void;
   onRunNow: (schedule: ScheduleBrief) => void;
   onToggleEnable: (schedule: ScheduleBrief) => void;
 };
@@ -64,12 +94,12 @@ function ScheduleItem({
   index,
   ref,
   onDelete,
+  onEdit,
   onRunNow,
   onToggleEnable,
 }: ScheduleItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
-  const [isRecordsOpen, setIsRecordsOpen] = useState(false);
 
   const nextRunDescription =
     schedule.config.type === "delayed"
@@ -86,7 +116,6 @@ function ScheduleItem({
           ref={ref}
           data-index={index}
           className="cursor-pointer"
-          onClick={() => setIsRecordsOpen((prev) => !prev)}
         >
           <ActionableItemIcon seed={schedule.name}>
             <ClockIcon />
@@ -98,9 +127,9 @@ function ScheduleItem({
         </ActionableItemTrigger>
 
         <ActionableItemMenu>
-          <ActionableItemMenuItem onClick={() => setIsRecordsOpen((prev) => !prev)}>
-            <EyeIcon />
-            <span>{t("schedules.menu.view_records")}</span>
+          <ActionableItemMenuItem onClick={() => onEdit(schedule)}>
+            <PencilIcon />
+            <span>{t("schedules.menu.edit")}</span>
           </ActionableItemMenuItem>
           <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
             <PlayIcon />
@@ -127,6 +156,7 @@ function ScheduleItem({
 export function ScheduleList({ workspaceId }: ScheduleListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
+  const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetSchedulesSuspenseInfinite(
     { workspace_id: workspaceId },
@@ -142,6 +172,11 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
         });
         queryClient.removeQueries({ queryKey: getGetScheduleQueryKey(variables.scheduleId) });
         queryClient.removeQueries({ queryKey: getGetScheduleRecordsInfiniteQueryKey(variables.scheduleId) });
+        removeTabs((tab) => (
+          tab.type === "schedule" &&
+          tab.metadata.mode === "edit" &&
+          tab.metadata.id === variables.scheduleId
+        ));
         toast.success(t("schedules.toast.delete_success_title"), {
           description: t("schedules.toast.delete_success_description"),
         });
@@ -161,6 +196,10 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
     toast.success(t("schedules.toast.run_now_success_title"), {
       description: t("schedules.toast.run_now_success_description"),
     });
+  };
+
+  const handleEdit = (schedule: ScheduleBrief) => {
+    openScheduleEditTab(schedule.id, schedule.name);
   };
 
   const handleToggleEnable = async (schedule: ScheduleBrief) => {
@@ -206,6 +245,7 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
             ref={ref}
             index={index}
             onDelete={asyncConfirm.trigger}
+            onEdit={handleEdit}
             onRunNow={handleRunNow}
             onToggleEnable={handleToggleEnable}
           />

@@ -1,0 +1,56 @@
+{
+  "form": {
+    "agent_id": {
+      "label": "Agent ID",
+      "placeholder": "Leave empty to not bind agent"
+    },
+    "config": {
+      "expression": {
+        "label": "Cron expression",
+        "placeholder": "*/5 * * * *",
+        "required": "Please enter cron expression"
+      },
+      "interval_sec": {
+        "label": "Polling interval (sec)",
+        "placeholder": "60",
+        "required": "Please enter polling interval",
+        "min": "Polling interval must be greater than 0"
+      },
+      "run_at": {
+        "label": "Run at",
+        "required": "Please select run time"
+      }
+    },
+    "is_enabled": {
+      "label": "Enabled"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter schedule name"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "type": {
+      "label": "Type",
+      "option": {
+        "cron": "Cron",
+        "polling": "Polling",
+        "delayed": "Delayed"
+      }
+    }
+  },
+  "toast": {
+    "create": {
+      "success_description_with_name": "Schedule {{name}} created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "success_description_with_name": "Schedule {{name}} updated successfully.",
+      "success_title": "Update success"
+    }
+  }
+}

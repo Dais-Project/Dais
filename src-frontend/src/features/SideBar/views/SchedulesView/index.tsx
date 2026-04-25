@@ -7,11 +7,27 @@ import {
   EmptyDescription,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { ScheduleList } from "./ScheduleList";
+
+function openScheduleCreateTab() {
+  const currentWorkspace = useWorkspaceStore.getState().current;
+  if (!currentWorkspace) {
+    return;
+  }
+
+  const addTab = useTabsStore.getState().add;
+  addTab({
+    type: "schedule",
+    title: i18n.t("schedules.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
+    metadata: { mode: "create" },
+  });
+}
 
 function CurrentWorkspaceSchedules({
   workspaceId,
@@ -52,7 +68,8 @@ export function SchedulesView() {
         <SideBarHeaderAction
           Icon={PlusIcon}
           tooltip={t("schedules.header.create_tooltip")}
-          disabled
+          onClick={openScheduleCreateTab}
+          disabled={!currentWorkspace}
         />
       </SideBarHeader>
 

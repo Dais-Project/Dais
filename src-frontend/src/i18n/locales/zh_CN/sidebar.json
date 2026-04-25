@@ -150,12 +150,17 @@
       "create_tooltip": "创建计划任务",
       "title": "计划任务"
     },
+    "tab": {
+      "create_title": "创建计划任务",
+      "edit_title_with_name": "编辑：{{name}}"
+    },
     "list": {
       "next_run_unknown": "下次触发时间未知"
     },
     "menu": {
       "delete": "删除",
       "disable": "禁用",
+      "edit": "编辑计划任务",
       "enable": "启用",
       "run_now": "立即执行",
       "view_records": "查看运行记录"
