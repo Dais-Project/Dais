@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.api.exceptions import ApiError, ApiErrorCode
-from src.api.routes.task.context_file import (
+from src.api.routes.tasks.context_file import (
     ContextFileInternalError,
     _list_directory,
     _search_file,
@@ -152,8 +152,8 @@ class TestSearchFile:
             assert actual_query == query
             return score_map.get(value, 0)
 
-        monkeypatch.setattr("src.api.routes.task.context_file._scan_cached", fake_scan_cached)
-        monkeypatch.setattr("src.api.routes.task.context_file.fuzz.WRatio", fake_wratio)
+        monkeypatch.setattr("src.api.routes.tasks.context_file._scan_cached", fake_scan_cached)
+        monkeypatch.setattr("src.api.routes.tasks.context_file.fuzz.WRatio", fake_wratio)
 
         items = _search_file(query, temp_workspace.resolve(), match_limit=match_limit)
 

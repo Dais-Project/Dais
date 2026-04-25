@@ -444,7 +444,7 @@ test = [
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-mock", specifier = ">=3.15.0" },
 ]
-types = [{ name = "types-binaryornot", specifier = "==0.4.0.20250507" }]
+types = [{ name = "types-binaryornot", specifier = "==0.4.0.20260408" }]
 
 [[package]]
 name = "dais-shell"
@@ -1843,11 +1843,11 @@ wheels = [
 
 [[package]]
 name = "types-binaryornot"
-version = "0.4.0.20250507"
+version = "0.4.0.20260408"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/47/73/014c63349ed9471f114231acd1c290e24e24e8fc77af5b9af826bb1d2f88/types_binaryornot-0.4.0.20250507.tar.gz", hash = "sha256:fb97acda5aa08ec3d5eb69f3abe07b7a79a9235087e73e52bf6601de933e370b", size = 7017, upload-time = "2025-05-07T03:04:26.591Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/6e/a7b0437c9d11c8169319fe6e2fbaa5f80af03e72b2f71de5d3bba0774833/types_binaryornot-0.4.0.20260408.tar.gz", hash = "sha256:867c5707588a4a47655d22f254343ff150d7044c19d4721c52466943651b9bbd", size = 7141, upload-time = "2026-04-08T04:26:56.701Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/1c/c294a8e3168c118267f5c23ccf9b7604997c5c205b7264bc177494ac0a7f/types_binaryornot-0.4.0.20250507-py3-none-any.whl", hash = "sha256:2e6c406969dc86f7a49c4fe2b62d73f02e0426497d4ae505f6b9cdec9c240b3c", size = 7908, upload-time = "2025-05-07T03:04:25.252Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/9f/55270b8df4b2b4246ceb5b8bd398dbe302a80023ff2e3aa7734d84312e5e/types_binaryornot-0.4.0.20260408-py3-none-any.whl", hash = "sha256:4ecd69e201474b0dff37b2af5388df1b217b55f5f5863d9160e8c9539a5ea6c6", size = 7994, upload-time = "2026-04-08T04:26:55.813Z" },
 ]
 
 [[package]]

@@ -1,10 +1,11 @@
 from .sse import sse_router
-from .task import (
+from .tasks import (
     context_file_router,
     task_control_router,
     task_manage_router,
     task_resource_router,
     task_stream_router,
+    schedules_router,
 )
 from .workspace import workspaces_router
 from .agent import agents_router

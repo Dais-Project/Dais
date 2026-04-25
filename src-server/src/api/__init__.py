@@ -12,14 +12,15 @@ from .routes import (
     llm_models_router,
     agents_router,
     toolset_router,
+    skills_router,
     settings_router,
     task_control_router,
     task_manage_router,
     task_resource_router,
     task_stream_router,
     context_file_router,
+    schedules_router,
     health_router,
-    skills_router,
 )
 from .exception_handlers import (
     ErrorResponseSchema,
@@ -75,6 +76,7 @@ app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_resource_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 app.include_router(context_file_router, prefix="/api/tasks")
+app.include_router(schedules_router, prefix="/api/schedules")
 
 app.include_router(health_router, prefix="/api/health")
 

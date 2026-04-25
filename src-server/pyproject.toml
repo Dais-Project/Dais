@@ -40,7 +40,7 @@ test = [
     "pytest-mock>=3.15.0",
     "pytest-alembic>=0.12.1",
 ]
-types = ["types-binaryornot==0.4.0.20250507"]
+types = ["types-binaryornot==0.4.0.20260408"]
 
 [tool.pyright]
 include = ["src"]
