@@ -11,25 +11,18 @@ export type ScheduleType = "cron" | "polling" | "delayed";
 
 export type ScheduleCreateFormValues = {
   name: string;
+  task: string;
+  agent_id: string;
+  is_enabled: boolean;
+  
+  // config fields
   type: ScheduleType;
   expression: string;
   interval_sec: number;
   run_at: string;
-  agent_id: string;
-  is_enabled: boolean;
 };
 
 export type ScheduleEditFormValues = ScheduleCreateFormValues;
-
-export const DEFAULT_SCHEDULE_CREATE_FORM_VALUES: ScheduleCreateFormValues = {
-  name: "",
-  type: "cron",
-  expression: "",
-  interval_sec: 60,
-  run_at: "",
-  agent_id: "",
-  is_enabled: true,
-};
 
 function toDatetimeLocal(timestampSec: number): string {
   const date = new Date(timestampSec * 1000);
@@ -68,6 +61,7 @@ export function scheduleToEditFormValues(schedule: ScheduleRead): ScheduleEditFo
 
   return {
     name: schedule.name,
+    task: schedule.task,
     is_enabled: schedule.is_enabled,
     agent_id: schedule.agent_id === null ? "" : String(schedule.agent_id),
     ...configValues,
@@ -110,6 +104,7 @@ export function createFormValuesToPayload(
 ): ScheduleCreate {
   return {
     name: values.name,
+    task: values.task,
     is_enabled: values.is_enabled,
     config: valuesToConfig(values),
     agent_id: valuesToAgentId(values.agent_id),
@@ -120,6 +115,7 @@ export function createFormValuesToPayload(
 export function editFormValuesToPayload(values: ScheduleEditFormValues): ScheduleUpdate {
   return {
     name: values.name,
+    task: values.task,
     is_enabled: values.is_enabled,
     config: valuesToConfig(values),
     agent_id: valuesToAgentId(values.agent_id),

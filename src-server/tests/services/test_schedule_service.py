@@ -37,6 +37,7 @@ class TestScheduleService:
         schedule = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="Morning sync",
+                task="Send daily summary",
                 is_enabled=True,
                 config=CronConfig(type="cron", expression="0 9 * * 1"),
                 agent_id=agent.id,
@@ -48,6 +49,7 @@ class TestScheduleService:
         assert schedule.workspace_id == workspace.id
         assert schedule.agent_id == agent.id
         assert schedule.config.type == "cron"
+        assert schedule.task == "Send daily summary"
         assert schedule.config.expression == "0 9 * * 1"
 
     @pytest.mark.asyncio
@@ -61,6 +63,7 @@ class TestScheduleService:
         first = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="First",
+                task="First task",
                 is_enabled=True,
                 config=PollingConfig(type="polling", interval_sec=60),
                 agent_id=None,
@@ -70,6 +73,7 @@ class TestScheduleService:
         second = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="Second",
+                task="Second task",
                 is_enabled=True,
                 config=DelayedConfig(type="delayed", run_at=123456),
                 agent_id=None,
@@ -94,6 +98,7 @@ class TestScheduleService:
         created = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="Original",
+                task="Original task",
                 is_enabled=True,
                 config=PollingConfig(type="polling", interval_sec=30),
                 agent_id=None,
@@ -105,6 +110,7 @@ class TestScheduleService:
             created.id,
             schedule_schemas.ScheduleUpdate(
                 name="Updated",
+                task="Updated task",
                 is_enabled=None,
                 config=CronConfig(type="cron", expression="*/10 * * * *"),
                 agent_id=None,
@@ -113,6 +119,7 @@ class TestScheduleService:
 
         assert updated.id == created.id
         assert updated.name == "Updated"
+        assert updated.task == "Updated task"
         assert updated.config.type == "cron"
         assert updated.config.expression == "*/10 * * * *"
 
@@ -127,6 +134,7 @@ class TestScheduleService:
         schedule = await schedule_service.create_schedule(
             schedule_schemas.ScheduleCreate(
                 name="To delete",
+                task="Task to delete",
                 is_enabled=True,
                 config=DelayedConfig(type="delayed", run_at=999999),
                 agent_id=None,

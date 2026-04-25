@@ -18,6 +18,7 @@ import {
   scheduleToEditFormValues,
   type ScheduleEditFormValues,
 } from "./form-types";
+import { TaskField } from "./fields/TaskField";
 
 function DynamicConfigFields({ disabled }: { disabled: boolean }) {
   const { t } = useTranslation(TABS_SCHEDULE_NAMESPACE);
@@ -141,6 +142,8 @@ export function ScheduleEditForm({ schedule, onConfirm }: ScheduleEditFormProps)
         fieldProps={{ label: t("form.name.label") }}
         controlProps={{ placeholder: t("form.name.placeholder"), disabled: updateMutation.isPending }}
       />
+
+      <TaskField disabled={updateMutation.isPending} />
 
       <SelectField
         fieldName="type"

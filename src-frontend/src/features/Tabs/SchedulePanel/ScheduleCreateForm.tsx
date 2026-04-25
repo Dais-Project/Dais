@@ -12,11 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectItem } from "@/components/custom/form/fields/SelectField";
 import { TABS_SCHEDULE_NAMESPACE } from "@/i18n/resources";
+import { DEFAULT_SCHEDULE_CREATE_FORM_VALUES } from "@/constants/schedule";
 import {
   createFormValuesToPayload,
-  DEFAULT_SCHEDULE_CREATE_FORM_VALUES,
   type ScheduleCreateFormValues,
 } from "./form-types";
+import { TaskField } from "./fields/TaskField";
 
 function DynamicConfigFields({ disabled }: { disabled: boolean }) {
   const { t } = useTranslation(TABS_SCHEDULE_NAMESPACE);
@@ -138,6 +139,8 @@ export function ScheduleCreateForm({ workspaceId, onConfirm }: ScheduleCreateFor
         fieldProps={{ label: t("form.name.label") }}
         controlProps={{ placeholder: t("form.name.placeholder"), disabled: createMutation.isPending }}
       />
+
+      <TaskField disabled={createMutation.isPending} />
 
       <SelectField
         fieldName="type"

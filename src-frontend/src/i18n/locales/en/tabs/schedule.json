@@ -28,6 +28,11 @@
       "label": "Name",
       "placeholder": "Enter schedule name"
     },
+    "task": {
+      "label": "Task",
+      "placeholder": "Enter task content",
+      "required": "Please enter task content"
+    },
     "submit": {
       "create": "Create",
       "creating": "Creating...",
