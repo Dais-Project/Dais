@@ -38,6 +38,7 @@ test = [
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=7.0.0",
     "pytest-mock>=3.15.0",
+    "pytest-alembic>=0.12.1",
 ]
 types = ["types-binaryornot==0.4.0.20250507"]
 
