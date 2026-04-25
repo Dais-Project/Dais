@@ -221,8 +221,8 @@ class AgentContext:
 
     async def persist(self) -> task_models.Task:
         try:
-            await self._tool_context.note_manager.clear_materialized()
             await self._tool_context.note_manager.stop_watching()
+            await self._tool_context.note_manager.clear_materialized()
         except:
             self._logger.exception("Failed to execute NoteManager cleanup.")
 
