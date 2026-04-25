@@ -10,7 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from db.models.provider import LlmModelCapability
-from db.models.task import TaskUsage
+from db.models.tasks.shared import TaskUsage
 from db.models.utils import DataClassJSON
 from db.models.utils import PydanticJSON
 

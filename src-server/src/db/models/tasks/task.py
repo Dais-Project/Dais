@@ -1,49 +1,20 @@
 import time
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 from dais_sdk.types import Message
-from pydantic import TypeAdapter
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
-from . import Base, relationship
-from .utils import DataClassJSON, PydanticJSON
+from .shared import messages_adapter, TaskUsage
+from .resource import HasResources
+from .. import Base, relationship
+from ..utils import DataClassJSON, PydanticJSON
 
 if TYPE_CHECKING:
-    from .agent import Agent
-    from .workspace import Workspace
+    from ..agent import Agent
+    from ..workspace import Workspace
 
 
-message_adapter = TypeAdapter(Message)
-messages_adapter = TypeAdapter(list[Message])
-
-@dataclass
-class TaskUsage:
-    input_tokens: int
-    output_tokens: int
-    total_tokens: int
-    max_tokens: int
-    accumulated_input_tokens: int = 0
-    accumulated_output_tokens: int = 0
-
-    @classmethod
-    def default(cls) -> Self:
-        return cls(
-            input_tokens=0,
-            output_tokens=0,
-            total_tokens=0,
-            max_tokens=0,
-        )
-
-class TaskResource(Base):
-    __tablename__ = "task_resources"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    filename: Mapped[str]
-    checksum: Mapped[str]
-
-    _task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id", ondelete="CASCADE"))
-
-class Task(Base):
+class Task(HasResources, Base):
     __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str]
