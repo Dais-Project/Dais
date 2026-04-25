@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
 from . import Base, relationship
 from .relationships import (
@@ -12,7 +11,6 @@ from .relationships import (
 
 if TYPE_CHECKING:
     from .agent import Agent
-    from .task import Task
     from .toolset import Tool
     from .skill import Skill
 

@@ -5,7 +5,7 @@ from anyio import Path
 from sqlalchemy import select
 from loguru import logger
 from src.common import DATA_DIR
-from src.db.models import task as task_models
+from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
 from src.utils import get_unique_filename
 from .service_base import ServiceBase
@@ -65,7 +65,7 @@ class TaskService(ServiceBase):
         new_task = await self.get_task_by_id(new_task.id)
         return new_task
 
-    async def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:        
+    async def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:
         task = await self.get_task_by_id(id)
 
         if data.messages is not None:

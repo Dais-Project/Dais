@@ -10,7 +10,7 @@ from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
 from src.agent.notes import NoteManager
 from src.db import db_context
-from src.db.models import task as task_models
+from src.db.models import tasks as task_models
 from src.schemas import (
     agent as agent_schemas,
     workspace as workspace_schemas,

@@ -8,10 +8,11 @@ from dais_sdk.types import (
     ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
+from src.db.models import tasks as task_models
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
-from ..context import AgentContext, task_models
+from ..context import AgentContext
 from ..exception_handlers import (
     handle_tool_does_not_exist_error,
     handle_tool_argument_decode_error,

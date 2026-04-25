@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from dais_sdk.types import UserMessage
 
-from src.db.models import task as task_models
+from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
 from src.services.exceptions import ServiceErrorCode
 from src.services.task import TaskNotFoundError, TaskService

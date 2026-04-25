@@ -16,12 +16,14 @@ from dais_sdk.providers import LlmProviders
 from dais_sdk.types import Message
 
 from src.db.models import Base
-from src.db.models import agent as agent_models
-from src.db.models import provider as provider_models
-from src.db.models import skill as skill_models
-from src.db.models import task as task_models
-from src.db.models import toolset as toolset_models
-from src.db.models import workspace as workspace_models
+from src.db.models import (
+    agent as agent_models,
+    provider as provider_models,
+    skill as skill_models,
+    tasks as task_models,
+    toolset as toolset_models,
+    workspace as workspace_models,
+)
 from src.schemas import skill as skill_schemas
 
 
