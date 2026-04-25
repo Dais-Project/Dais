@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
 import { useLatest } from "ahooks";
-import { useQueryClient } from "@tanstack/react-query";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
@@ -17,19 +16,19 @@ import {
   ToolRequirePermissionEvent,
   ToolRequireUserResponseEvent,
   UsageChunkEvent,
+  type TaskRuntimeContext,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
   type ToolReviewBody,
 } from "@/api/generated/schemas";
 import {
   continueTask,
-  getGetTaskQueryKey,
   type TaskSseCallbacks,
   useAppendTaskMessage,
   useEditTaskMessage,
-  useGetTaskSuspense,
   useToolAnswer,
   useToolReviews,
+  useGetTaskRuntimeContextSuspense,
 } from "@/api/task";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
@@ -99,7 +98,6 @@ type AgentTaskProviderProps = {
 
 export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const queryClient = useQueryClient();
   const setActiveTab = useTabsStore((state) => state.setActive);
   const backToCurrentTab = () => setActiveTab((tab) => (
     tab.type === "task" &&
@@ -107,7 +105,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     tab.metadata.id === taskId
   ));
 
-  const { data } = useGetTaskSuspense(taskId, {
+  const { data } = useGetTaskRuntimeContextSuspense(taskId, {
     query: {
       staleTime: 0,
       gcTime: 0,
@@ -123,6 +121,13 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
   const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
+
+  const applyRuntimeContext = useCallback((runtimeContext: TaskRuntimeContext) => {
+    setAgentId(runtimeContext.agent_id);
+    setUsage(runtimeContext.usage);
+    setMessages(toUiMessage(runtimeContext.messages));
+    setTodos(findLatestTodoList(runtimeContext.messages) ?? null);
+  }, []);
 
   const latestMessage = useLatest(messages);
 
@@ -275,10 +280,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     [setData, startStream]
   );
 
-  const handleTaskCancel = useCallback(() => {
-    cancel();
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  }, [cancel]);
+  const handleTaskCancel = useCallback(() => cancel(), [cancel]);
 
   /* Agent Task Controls */
 
@@ -304,8 +306,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const appendMessageMutation = useAppendTaskMessage({
     mutation: {
-      onSuccess(taskRead) {
-        setMessages(toUiMessage(taskRead.messages));
+      onSuccess(runtimeContext) {
+        applyRuntimeContext(runtimeContext);
         handleTaskContinue();
       }
     }
@@ -313,8 +315,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const editMessageMutation = useEditTaskMessage({
     mutation: {
-      onSuccess(taskRead) {
-        setMessages(toUiMessage(taskRead.messages));
+      onSuccess(runtimeContext) {
+        applyRuntimeContext(runtimeContext);
         handleTaskContinue();
       },
     },

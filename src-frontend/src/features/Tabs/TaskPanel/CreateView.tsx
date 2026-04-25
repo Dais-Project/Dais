@@ -31,13 +31,13 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
   });
   const appendMessageMutation = useAppendTaskMessage({
     mutation: {
-      async onSuccess(taskRead) {
+      async onSuccess(runtimeContext) {
         updateTabMetadata(tabId, {
           isDraft: false,
-          id: taskRead.id,
-          workspace_id: taskRead.workspace_id,
+          id: runtimeContext.id,
+          workspace_id: runtimeContext.workspace_id,
         });
-        summarizeTaskTitleMutation.mutate({ taskId: taskRead.id });
+        summarizeTaskTitleMutation.mutate({ taskId: runtimeContext.id });
       }
     }
   });

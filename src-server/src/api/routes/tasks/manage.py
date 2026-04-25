@@ -9,7 +9,10 @@ from src.db import DbSessionDep
 from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
 from src.services.task import TaskService
-from src.schemas.tasks import task as task_schemas
+from src.schemas.tasks import (
+    task as task_schemas,
+    runtime as task_runtime_schemas,
+)
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -48,6 +51,10 @@ async def get_recent_tasks(db_session: DbSessionDep):
 
 @task_manage_router.get("/{task_id}", response_model=task_schemas.TaskRead)
 async def get_task(task_id: int, db_session: DbSessionDep):
+    return await TaskService(db_session).get_task_by_id(task_id)
+
+@task_manage_router.get("/{task_id}/runtime", response_model=task_runtime_schemas.TaskRuntimeContext)
+async def get_task_runtime_context(task_id: int, db_session: DbSessionDep):
     return await TaskService(db_session).get_task_by_id(task_id)
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)

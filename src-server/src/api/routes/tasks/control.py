@@ -50,7 +50,7 @@ def parse_append_message_body(body: str = Form(default=...)) -> TaskAppendMessag
 task_control_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskControlRoute")
 
-@task_control_router.post("/{task_id}/messages", response_model=task_schemas.TaskRead)
+@task_control_router.post("/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)
 async def append_task_message(
     task_id: int,
     body: TaskAppendMessageBody = Depends(parse_append_message_body),
@@ -82,7 +82,7 @@ async def append_task_message(
     task.append_message(user_message)
     return await asyncio.shield(task.persist())
 
-@task_control_router.patch("/{task_id}/messages", response_model=task_schemas.TaskRead)
+@task_control_router.patch("/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)
 async def edit_task_message(task_id: int, body: TaskMessageEditBody):    
     task = await create_agent_task(task_id, body.agent_id)
     try:
