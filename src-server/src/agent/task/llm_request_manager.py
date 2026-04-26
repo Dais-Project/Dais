@@ -33,8 +33,9 @@ from ..utils import get_magika, normalize_content_type
 class TaskResourceRetriever(ContentBlockResolver):
     _logger = logger.bind(name="TaskResourceRetriever")
 
-    def __init__(self, task_id: int):
+    def __init__(self, task_id: int, task_type: task_runtime_schemas.TaskType):
         self._task_id = task_id
+        self._task_type = task_type
         self._magika = get_magika()
         self._markdown_converter = MarkdownConverter()
         super().__init__()
@@ -55,7 +56,7 @@ class TaskResourceRetriever(ContentBlockResolver):
 
     async def _resolve_resource(self, metadata: TaskResourceMetadata) -> ContentBlock | None:
         async with db_context() as db_session:
-            resource_path = await TaskResourceService(db_session, task_runtime_schemas.TaskType.TASK).load_task_resource(self._task_id, metadata["resource_id"])
+            resource_path = await TaskResourceService(db_session, self._task_type).load_task_resource(self._task_id, metadata["resource_id"])
             if resource_path is None: return None
 
             normalized_resource_type = normalize_content_type(metadata["mimetype"])
@@ -96,7 +97,9 @@ class LlmRequestManager:
         provider = LLM.create_provider(self._ctx.provider.type,
                                                      self._ctx.provider.base_url,
                                                      api_key=self._ctx.provider.api_key)
-        return LLM(self._ctx.model.name, provider, TaskResourceRetriever(self._ctx.task_id))
+        model_name = self._ctx.model.name
+        resource_retriever = TaskResourceRetriever(self._ctx.task_id, self._ctx.task_type)
+        return LLM(model_name, provider, resource_retriever)
 
     async def _create_request_param(self) -> LlmRequestParams:
         params = LlmRequestParams(

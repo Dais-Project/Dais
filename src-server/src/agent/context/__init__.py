@@ -1,10 +1,17 @@
+from .aliases import BuiltInToolAliases
+from .models import ToolRuntimeContext, AgentContextResource, AgentContextPersistence
+
+__all__ = [
+    "AgentContext",
+    "ToolRuntimeContext",
+]
+
 import platform
-import re
 import time
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from dataclasses import asdict, dataclass
-from typing import Protocol, Self, cast
+from dataclasses import asdict
+from typing import Self
 from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
@@ -27,77 +34,32 @@ from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
 from src.services.tasks import TaskService
 from src.settings import use_app_setting_manager
-from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
-from .prompts import (
+from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
+from ..prompts import (
     BASE_INSTRUCTION,
     FAILED_TO_LOAD_NOTES_INDEX,
     NO_AVAILABLE_SKILLS,
     NO_WORKSPACE_INSTRUCTION,
     NO_AGENT_INSTRUCTION,
 )
-from .types import ContextUsage
+from ..types import ContextUsage
 
-
-class BuiltInToolAliases:
-    def __init__(self, builtin_toolset_manager: BuiltinToolsetManager):
-        self._toolset_manager = builtin_toolset_manager
-        self._map = self._init_map()
-
-    def _init_map(self) -> dict[str, str]:
-        result = {}
-        for toolset in self._toolset_manager.toolsets:
-            toolset = cast(BuiltInToolset, toolset)
-            namespaced_tool_names = [tool.name for tool in toolset.get_tools(namespaced_tool_name=True)]
-            non_namespaced_tool_names = [tool.name for tool in toolset.get_tools(namespaced_tool_name=False)]
-            for namespaced_tool_name, non_namespaced_tool_name in zip(namespaced_tool_names, non_namespaced_tool_names):
-                result[non_namespaced_tool_name] = namespaced_tool_name
-        return result
-
-    @property
-    def map(self) -> dict[str, str]:
-        return self._map
-
-    def substitute(self, text: str) -> str:
-        aliases = self._map
-        def replacer(match: re.Match[str]):
-            key = match.group(1)
-            return aliases.get(key, match.group(0))
-        return re.sub(r'\$\{(\w+)\}', replacer, text)
-
-@dataclass(frozen=True)
-class ToolRuntimeContext:
-    usage: ContextUsage
-    note_manager: NoteManager
-
-class AgentContextPersistence(Protocol):
-    async def persist(
-        self,
-        runtime_id: int,
-        messages: list[Message],
-        usage: task_models.TaskUsage,
-    ) -> None: ...
 
 class AgentContext:
     _logger = logger.bind(name="AgentContext")
 
     def __init__(self,
                  task_id: int,
+                 task_type: task_runtime_schemas.TaskType,
                  *,
                  messages: list[Message],
-                 workspace: workspace_schemas.WorkspaceRead,
-                 agent: agent_schemas.AgentRead,
-                 provider: provider_schemas.ProviderRead,
-                 model: provider_schemas.LlmModelRead,
-                 skills: list[skill_schemas.SkillBrief],
+                 resource: AgentContextResource,
                  tool_context: ToolRuntimeContext,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
         self.task_id = task_id
-        self._workspace = workspace
-        self._agent = agent
-        self._skills = skills
-        self._provider = provider
-        self._model = model
+        self.task_type = task_type
+        self._resource = resource
         self._messages = messages
 
         self._tool_context = tool_context
@@ -131,12 +93,15 @@ class AgentContext:
         builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory, tool_context)
         mcp_toolset_manager = use_mcp_toolset_manager()
         return cls(task.id,
+                   task.type,
                    messages=messages,
-                   workspace=workspace_schemas.WorkspaceRead.model_validate(workspace),
-                   agent=agent_schemas.AgentRead.model_validate(agent),
-                   provider=provider_schemas.ProviderRead.model_validate(provider),
-                   model=provider_schemas.LlmModelRead.model_validate(model),
-                   skills=[skill_schemas.SkillBrief.model_validate(skill) for skill in skills],
+                   resource=AgentContextResource(
+                       workspace=workspace_schemas.WorkspaceRead.model_validate(workspace),
+                       agent=agent_schemas.AgentRead.model_validate(agent),
+                       provider=provider_schemas.ProviderRead.model_validate(provider),
+                       model=provider_schemas.LlmModelRead.model_validate(model),
+                       skills=[skill_schemas.SkillBrief.model_validate(skill) for skill in skills],
+                   ),
                    tool_context=tool_context,
                    builtin_toolset_manager=builtin_toolset_manager,
                    mcp_toolset_manager=mcp_toolset_manager)
@@ -155,8 +120,8 @@ class AgentContext:
 
     ResolvedInstructions = namedtuple("ResolvedInstructions", ["base", "workspace", "agent"])
     def _resolve_instructions(self) -> ResolvedInstructions:
-        workspace_instruction = self._workspace.instruction or NO_WORKSPACE_INSTRUCTION
-        agent_instruction = self._agent.instruction or NO_AGENT_INSTRUCTION
+        workspace_instruction = self._resource.workspace.instruction or NO_WORKSPACE_INSTRUCTION
+        agent_instruction = self._resource.agent.instruction or NO_AGENT_INSTRUCTION
 
         builtin_tool_aliases = self._builtin_tool_aliases
         resolved_base_instruction = builtin_tool_aliases.substitute(BASE_INSTRUCTION)
@@ -175,11 +140,11 @@ class AgentContext:
 
     @property
     def provider(self) -> provider_schemas.ProviderRead:
-        return self._provider
+        return self._resource.provider
 
     @property
     def model(self) -> provider_schemas.LlmModelRead:
-        return self._model
+        return self._resource.model
 
     @property
     def messages(self) -> list[Message]: return self._messages
@@ -188,8 +153,8 @@ class AgentContext:
 
     @property
     def usable_tool_ids(self) -> set[int] | None:
-        workspace_usable_tool_ids = {tool.id for tool in self._workspace.usable_tools}
-        agent_usable_tool_ids = {tool.id for tool in self._agent.usable_tools}
+        workspace_usable_tool_ids = {tool.id for tool in self._resource.workspace.usable_tools}
+        agent_usable_tool_ids = {tool.id for tool in self._resource.agent.usable_tools}
 
         if len(workspace_usable_tool_ids) == 0 and len(agent_usable_tool_ids) == 0:
             # both workspace and agent have no usable tools configured, return None meaning no need to filter
@@ -203,7 +168,7 @@ class AgentContext:
 
     async def compose_system_instruction(self) -> str:
         settings = use_app_setting_manager().settings
-        available_skills = AgentContext._format_skills(self._skills)
+        available_skills = AgentContext._format_skills(self._resource.skills)
         resolved_instructions = self._resolve_instructions()
         notes_index = await self._tool_context.note_manager.get_notes_index()
         resolved_notes_index = notes_index if notes_index is not None else FAILED_TO_LOAD_NOTES_INDEX
@@ -213,10 +178,10 @@ class AgentContext:
             user_language=settings.reply_language,
             available_skills=available_skills,
             workspace_notes_index=resolved_notes_index,
-            workspace_name=self._workspace.name,
-            workspace_directory=self._workspace.directory,
+            workspace_name=self._resource.workspace.name,
+            workspace_directory=self._resource.workspace.directory,
             workspace_instruction=resolved_instructions.workspace,
-            agent_role=self._agent.name,
+            agent_role=self._resource.agent.name,
             agent_instruction=resolved_instructions.agent,
         ).strip()
 
