@@ -25,7 +25,7 @@ from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
-from src.services.task import TaskService
+from src.services.tasks import TaskService
 from src.settings import use_app_setting_manager
 from .tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
 from .prompts import (

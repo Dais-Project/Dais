@@ -8,7 +8,7 @@ from src.settings import use_app_setting_manager
 from src.db import DbSessionDep
 from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
-from src.services.task import TaskService
+from src.services.tasks import TaskService
 from src.schemas.tasks import (
     task as task_schemas,
     runtime as task_runtime_schemas,

@@ -3,7 +3,7 @@ from dais_sdk.types import Message
 from src.db import db_context
 from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
-from src.services.task import TaskService
+from src.services.tasks import TaskService
 
 
 class TaskPersistence:

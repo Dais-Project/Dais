@@ -8,11 +8,8 @@ from src.agent.context import AgentContext
 from src.agent.task import AgentTask, MessageNotFoundError
 from src.agent.types import MessageReplaceEvent, TaskResourceMetadata
 from src.db import db_context
-from src.services.task import TaskService
-from src.schemas.tasks import (
-    task as task_schemas,
-    runtime as task_runtime_schemas,
-)
+from src.services.tasks import TaskService, TaskResourceService
+from src.schemas.tasks import runtime as task_runtime_schemas
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -57,13 +54,14 @@ async def append_task_message(
     uploaded_files: list[UploadFile] = File(default=[]),
 ):
     async def persist_attachments() -> list[TaskResourceMetadata]:
+        nonlocal uploaded_files
         metadatas = []
         async with db_context() as db_session:
             for file in uploaded_files:
                 if file.filename is None or file.content_type is None:
                     raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.TASK_RESOURCE_SHOULD_HAVE_FILENAME_AND_CONTENTTYPE)
                 file_bytes = await file.read()
-                resource = await TaskService(db_session).save_task_resource(task_id, file.filename, file_bytes)
+                resource = await TaskResourceService(db_session, "tasks").save_task_resource(task_id, file.filename, file_bytes)
                 metadatas.append(TaskResourceMetadata(
                     resource_id=resource.id,
                     filename=file.filename,

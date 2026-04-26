@@ -11,7 +11,7 @@ from src.agent.types import (
 )
 from loguru import logger
 from src.db import db_context
-from src.services.task import TaskService
+from src.services.tasks import TaskService
 from src.schemas.tasks import runtime as task_runtime_schemas
 
 
