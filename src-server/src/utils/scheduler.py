@@ -15,11 +15,11 @@ class Scheduler:
         self._scheduler = AsyncIOScheduler()
 
     @staticmethod
-    def _schedule_job_id(schedule_id: int | str) -> JobId:
+    def schedule_job_id(schedule_id: int | str) -> JobId:
         return f"schedule:{schedule_id}"
 
     def _append_job(self, id: int | str, job: JobCallable, trigger: BaseTrigger) -> JobId:
-        job_id = Scheduler._schedule_job_id(id)
+        job_id = Scheduler.schedule_job_id(id)
         self._scheduler.add_job(job,
                                 id=job_id,
                                 trigger=trigger,
@@ -34,8 +34,8 @@ class Scheduler:
         trigger = IntervalTrigger(seconds=interval_sec)
         return self._append_job(id, job, trigger)
 
-    def add_delayed_job(self, id: int | str, job: JobCallable, run_at: int) -> JobId:
-        run_date = datetime.fromtimestamp(run_at, tz=timezone.utc)
+    def add_delayed_job(self, id: int | str, job: JobCallable, scheduled_at: int) -> JobId:
+        run_date = datetime.fromtimestamp(scheduled_at, tz=timezone.utc)
         trigger = DateTrigger(run_date=run_date)
         return self._append_job(id, job, trigger)
 

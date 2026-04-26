@@ -4,7 +4,7 @@ import time
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from dataclasses import asdict, dataclass
-from typing import Self, cast
+from typing import Protocol, Self, cast
 from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
@@ -68,6 +68,14 @@ class BuiltInToolAliases:
 class ToolRuntimeContext:
     usage: ContextUsage
     note_manager: NoteManager
+
+class AgentContextPersistence(Protocol):
+    async def persist(
+        self,
+        runtime_id: int,
+        messages: list[Message],
+        usage: task_models.TaskUsage,
+    ) -> None: ...
 
 class AgentContext:
     _logger = logger.bind(name="AgentContext")

@@ -34,13 +34,23 @@ class ScheduleUpdate(DTOBase):
 # --- --- --- --- --- ---
 
 class RunRecordBase(DTOBase):
-    run_at: int
-    usage: task_models.TaskUsage
-    messages: list[Message]
     schedule_id: int
+
+class RunRecordCreate(RunRecordBase):
+    pass
 
 class RunRecordBrief(RunRecordBase):
     id: int
+    run_at: int
 
 class RunRecordRead(RunRecordBase):
     id: int
+    run_at: int
+    usage: task_models.TaskUsage
+    messages: list[Message]
+
+class RunRecordUpdate(DTOBase):
+    run_at: int | None
+    usage: task_models.TaskUsage | None
+    messages: list[Message] | None
+    schedule_id: int | None

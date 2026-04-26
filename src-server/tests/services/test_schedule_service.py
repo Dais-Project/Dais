@@ -75,7 +75,7 @@ class TestScheduleService:
                 name="Second",
                 task="Second task",
                 is_enabled=True,
-                config=DelayedConfig(type="delayed", run_at=123456),
+                config=DelayedConfig(type="delayed", scheduled_at=123456),
                 agent_id=None,
                 workspace_id=workspace.id,
             )
@@ -136,7 +136,7 @@ class TestScheduleService:
                 name="To delete",
                 task="Task to delete",
                 is_enabled=True,
-                config=DelayedConfig(type="delayed", run_at=999999),
+                config=DelayedConfig(type="delayed", scheduled_at=999999),
                 agent_id=None,
                 workspace_id=workspace.id,
             )

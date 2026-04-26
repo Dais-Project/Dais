@@ -3,3 +3,4 @@ from .get_unique_filename import get_unique_filename
 from .open_in_file_manager import open_in_file_manager
 from .to_base64_str import to_base64_str
 from .parent_watchdog import ParentWatchdog
+from .scheduler import Scheduler

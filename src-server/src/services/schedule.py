@@ -18,12 +18,25 @@ class ScheduleService(ServiceBase):
             task_models.Schedule.workspace,
         ]
 
+    def get_all_schedules_query(self):
+        return select(task_models.Schedule).order_by(task_models.Schedule.id.desc())
+
     def get_schedules_query(self, workspace_id: int):
         return (
             select(task_models.Schedule)
             .where(task_models.Schedule.workspace_id == workspace_id)
             .order_by(task_models.Schedule.id.desc())
         )
+
+    async def get_all_schedules(self) -> list[task_models.Schedule]:
+        stmt = self.get_all_schedules_query()
+        schedules = await self._db_session.scalars(stmt)
+        return list(schedules.all())
+
+    async def get_schedules(self, workspace_id: int) -> list[task_models.Schedule]:
+        stmt = self.get_schedules_query(workspace_id)
+        schedules = await self._db_session.scalars(stmt)
+        return list(schedules.all())
 
     async def get_schedule_by_id(self, id: int) -> task_models.Schedule:
         schedule = await self._db_session.get(
@@ -95,3 +108,31 @@ class RunRecordService(ServiceBase):
         if not run_record:
             raise RunRecordNotFoundError(id)
         return run_record
+
+    async def create_run_record(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
+        new_run_record = task_models.RunRecord(**data.model_dump())
+
+        self._db_session.add(new_run_record)
+        await self._db_session.flush()
+
+        new_run_record = await self.get_run_record_by_id(new_run_record.id)
+        return new_run_record
+
+    async def update_run_record(self, id: int, data: schedule_schemas.RunRecordUpdate) -> task_models.RunRecord:
+        run_record = await self.get_run_record_by_id(id)
+
+        if data.messages is not None:
+            run_record.messages = data.messages
+
+        self.apply_fields(run_record, data, exclude={"messages"})
+
+        await self._db_session.flush()
+        self._db_session.expunge(run_record)
+
+        updated_run_record = await self.get_run_record_by_id(run_record.id)
+        return updated_run_record
+
+    async def delete_run_record(self, id: int):
+        run_record = await self.get_run_record_by_id(id)
+        await self._db_session.delete(run_record)
+        await self._db_session.flush()

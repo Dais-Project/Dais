@@ -1,4 +1,7 @@
 from .context_file import ContextFileItem
 from .runtime import TaskRuntimeContext
-from .task import TaskBase, TaskBrief, TaskRead, TaskCreate, TaskUpdate
-from .schedule import ScheduleBase, ScheduleBrief, ScheduleRead, ScheduleCreate, ScheduleUpdate
+from .task import TaskBrief, TaskRead, TaskCreate, TaskUpdate
+from .schedule import (
+    ScheduleBrief, ScheduleRead, ScheduleCreate, ScheduleUpdate,
+    RunRecordBrief, RunRecordRead, RunRecordCreate, RunRecordUpdate,
+)

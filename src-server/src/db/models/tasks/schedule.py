@@ -25,7 +25,7 @@ class PollingConfig(BaseModel):
 
 class DelayedConfig(BaseModel):
     type: Literal["delayed"]
-    run_at: int
+    scheduled_at: int
 
 ScheduleConfig = Annotated[
     CronConfig | PollingConfig | DelayedConfig,
