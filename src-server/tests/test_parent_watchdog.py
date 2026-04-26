@@ -1,6 +1,6 @@
 import pytest
 
-from src.parent_watchdog import ParentWatchdog
+from src.utils import ParentWatchdog
 
 
 @pytest.mark.tool
@@ -10,7 +10,7 @@ class TestParentWatchdog:
         fake_stdin = mocker.MagicMock()
         fake_stdin.isatty.return_value = True
 
-        mocker.patch("src.parent_watchdog.sys.stdin", fake_stdin)
+        mocker.patch("src.utils.parent_watchdog.sys.stdin", fake_stdin)
 
         watchdog = ParentWatchdog(callback)
         watchdog.run()
@@ -23,7 +23,7 @@ class TestParentWatchdog:
         fake_stdin.isatty.return_value = False
         fake_stdin.buffer.read.side_effect = [b"a", b""]
 
-        mocker.patch("src.parent_watchdog.sys.stdin", fake_stdin)
+        mocker.patch("src.utils.parent_watchdog.sys.stdin", fake_stdin)
 
         watchdog = ParentWatchdog(callback)
         watchdog.run()
