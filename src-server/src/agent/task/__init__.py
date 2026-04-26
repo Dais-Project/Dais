@@ -8,7 +8,7 @@ from dais_sdk.types import (
     ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
-from src.db.models import tasks as task_models
+from src.schemas.tasks import runtime as task_runtime_schemas
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
@@ -198,7 +198,7 @@ class AgentTask:
             if not _exited_by_generator_close:
                 yield TaskDoneEvent()
 
-    async def persist(self) -> task_models.Task:
+    async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()
 
     async def stop(self):

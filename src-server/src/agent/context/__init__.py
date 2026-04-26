@@ -7,7 +7,6 @@ __all__ = [
 ]
 
 import platform
-import time
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from dataclasses import asdict
@@ -17,23 +16,19 @@ from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
 from src.agent.notes import NoteManager
 from src.db import db_context
-from src.db.models import tasks as task_models
 from src.schemas import (
     agent as agent_schemas,
     workspace as workspace_schemas,
     provider as provider_schemas,
     skill as skill_schemas,
 )
-from src.schemas.tasks import (
-    task as task_schemas,
-    runtime as task_runtime_schemas,
-)
+from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
-from src.services.tasks import TaskService
 from src.settings import use_app_setting_manager
+from .persistence import create_agent_context_persistence
 from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
 from ..prompts import (
     BASE_INSTRUCTION,
@@ -55,6 +50,7 @@ class AgentContext:
                  messages: list[Message],
                  resource: AgentContextResource,
                  tool_context: ToolRuntimeContext,
+                 persistence: AgentContextPersistence,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
         self.task_id = task_id
@@ -63,6 +59,7 @@ class AgentContext:
         self._messages = messages
 
         self._tool_context = tool_context
+        self._persistence = persistence
         self._builtin_toolset_manager = builtin_toolset_manager
         self._mcp_toolset_manager = mcp_toolset_manager
         self._builtin_tool_aliases = BuiltInToolAliases(builtin_toolset_manager)
@@ -92,6 +89,8 @@ class AgentContext:
         tool_context = ToolRuntimeContext(usage=usage, note_manager=note_manager)
         builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory, tool_context)
         mcp_toolset_manager = use_mcp_toolset_manager()
+
+        persistence = create_agent_context_persistence(task)
         return cls(task.id,
                    task.type,
                    messages=messages,
@@ -103,6 +102,7 @@ class AgentContext:
                        skills=[skill_schemas.SkillBrief.model_validate(skill) for skill in skills],
                    ),
                    tool_context=tool_context,
+                   persistence=persistence,
                    builtin_toolset_manager=builtin_toolset_manager,
                    mcp_toolset_manager=mcp_toolset_manager)
 
@@ -192,17 +192,15 @@ class AgentContext:
                     return tool
         return None
 
-    async def persist(self) -> task_models.Task:
+    async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         try:
             await self._tool_context.note_manager.stop_watching()
             await self._tool_context.note_manager.clear_materialized()
         except:
             self._logger.exception("Failed to execute NoteManager cleanup.")
 
-        async with db_context() as db_session:
-            return await TaskService(db_session).update_task(self.task_id, task_schemas.TaskUpdate(
-                title=None, agent_id=None,
-                messages=self._messages,
-                usage=self._tool_context.usage,
-                last_run_at=int(time.time())
-            ))
+        return await self._persistence.persist(
+            self.task_id,
+            self._messages,
+            self._tool_context.usage,
+        )

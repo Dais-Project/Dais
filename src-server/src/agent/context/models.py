@@ -9,6 +9,7 @@ from src.schemas import (
     skill as skill_schemas,
     workspace as workspace_schemas,
 )
+from src.schemas.tasks import runtime as task_runtime_schemas
 from src.agent.types import ContextUsage
 
 
@@ -26,9 +27,9 @@ class AgentContextResource:
     skills: list[skill_schemas.SkillBrief]
 
 class AgentContextPersistence(Protocol):
-    async def persist(
-        self,
-        runtime_id: int,
-        messages: list[Message],
-        usage: task_models.TaskUsage,
-    ) -> None: ...
+    async def persist(self,
+                      runtime_id: int,
+                      messages: list[Message],
+                      usage: task_models.TaskUsage
+                      ) -> task_runtime_schemas.TaskRuntimeContext: ...
+
