@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServiceStatusCode(str, Enum):
+class ServiceStatusCode(StrEnum):
     NOT_FOUND = "NOT_FOUND"
     CONFLICT = "CONFLICT"
     BAD_REQUEST = "BAD_REQUEST"
@@ -17,7 +17,7 @@ class ServiceStatusCode(str, Enum):
             ServiceStatusCode.UNAVAILABLE: status.HTTP_503_SERVICE_UNAVAILABLE,
         }).get(code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class ServiceErrorCode(str, Enum):
+class ServiceErrorCode(StrEnum):
     AGENT_NOT_FOUND = "AGENT_NOT_FOUND"
 
     WORKSPACE_NOT_FOUND = "WORKSPACE_NOT_FOUND"

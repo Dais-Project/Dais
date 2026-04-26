@@ -5,7 +5,7 @@ import anyio
 import httpx
 import mcp
 from dataclasses import replace
-from enum import Enum
+from enum import StrEnum
 from typing import cast, override
 from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset
@@ -27,13 +27,13 @@ class McpToolsetNotConnectedError(Exception):
     def __init__(self, toolset_name: str):
         super().__init__(f"MCP toolset '{toolset_name}' not connected")
 
-class McpToolsetStatus(str, Enum):
+class McpToolsetStatus(StrEnum):
     CONNECTING = "connecting"
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"
     ERROR = "error"
 
-class McpConnectErrorCode(str, Enum):
+class McpConnectErrorCode(StrEnum):
     CONNECTION_TIMEOUT = "MCP_CONNECTION_TIMEOUT"
 
     # remote

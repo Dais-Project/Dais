@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Mapping, TypeGuard, TypedDict
 
-class UserApprovalStatus(str, Enum):
+class UserApprovalStatus(StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
     DENIED = "denied"

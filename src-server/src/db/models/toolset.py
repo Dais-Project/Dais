@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -11,7 +11,7 @@ from .utils import PydanticJSON
 
 mcp_params_adapter = TypeAdapter(LocalServerParams | RemoteServerParams)
 
-class ToolsetType(str, Enum):
+class ToolsetType(StrEnum):
     BUILT_IN = "built_in"
     MCP_LOCAL = "mcp_local"
     MCP_REMOTE = "mcp_remote"
