@@ -1,3 +1,4 @@
+import asyncio
 from src.db import db_context
 from src.db.models.tasks.schedule import CronConfig, PollingConfig, DelayedConfig
 from src.schemas.tasks import runtime as task_runtime_schemas
@@ -30,6 +31,11 @@ class ScheduleJob:
         runtime_context = self._create_runtime_context(schedule_schemas.RunRecordRead.model_validate(created_record))
         ctx = await AgentContext.create(runtime_context)
         task = AgentTask(ctx)
+        try:
+            stop_reason = await task.run_until_done()
+            # TODO: notify user
+        finally:
+            await asyncio.shield(task.persist())
 
 class ScheduleRunner:
     def __init__(self) -> None:

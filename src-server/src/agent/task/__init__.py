@@ -1,4 +1,5 @@
 import asyncio
+from enum import StrEnum, auto
 from typing import Callable
 from collections.abc import AsyncGenerator
 from loguru import logger
@@ -26,6 +27,12 @@ from ..types import (
 
 
 class MessageNotFoundError(Exception): ...
+
+class TaskStopReason(StrEnum):
+    ERROR = auto()
+    INTERRUPTED = auto()
+    PENDING_APPROVE = auto()
+    COMPLETED = auto()
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -197,6 +204,18 @@ class AgentTask:
         finally:
             if not _exited_by_generator_close:
                 yield TaskDoneEvent()
+
+    async def run_until_done(self) -> TaskStopReason:
+        async for event in self.run():
+            if isinstance(event, ErrorEvent):
+                return TaskStopReason.ERROR
+            if isinstance(event, TaskInterruptedEvent):
+                return TaskStopReason.INTERRUPTED
+
+        if self.has_pending_tool_calls():
+            return TaskStopReason.PENDING_APPROVE
+
+        return TaskStopReason.COMPLETED
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()
