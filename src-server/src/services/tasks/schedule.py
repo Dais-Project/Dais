@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from src.db.models import tasks as task_models
 from src.schemas.tasks import schedule as schedule_schemas
+from src.schemas.tasks import runtime as task_runtime_schemas
 from .resource import TaskResourceService
 from ..service_base import ServiceBase
 from ..exceptions import NotFoundError, ServiceErrorCode
@@ -135,6 +136,6 @@ class RunRecordService(ServiceBase):
 
     async def delete_run_record(self, id: int):
         run_record = await self.get_run_record_by_id(id)
-        await TaskResourceService(self._db_session, "run_records").delete_task_resources(id)
+        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.SCHEDULE).delete_task_resources(id)
         await self._db_session.delete(run_record)
         await self._db_session.flush()

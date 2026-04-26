@@ -1,13 +1,13 @@
 import asyncio
 import hashlib
 import shutil
-from typing import Literal
 from anyio import Path
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.common import DATA_DIR
 from src.db.models import tasks as task_models
+from src.schemas.tasks import runtime as task_runtime_schemas
 from src.utils import get_unique_filename
 from ..service_base import ServiceBase
 
@@ -15,12 +15,12 @@ from ..service_base import ServiceBase
 class TaskResourceService(ServiceBase):
     _logger = logger.bind(name="TaskResourceService")
 
-    def __init__(self, db_session: AsyncSession, owner_type: Literal["tasks", "run_records"] ):
+    def __init__(self, db_session: AsyncSession, task_type: task_runtime_schemas.TaskType):
         super().__init__(db_session)
-        self._owner_type = owner_type
+        self._task_type = task_type
 
     async def _get_resource_dir(self, task_id: int) -> Path:
-        path = DATA_DIR / ".task-resources" / self._owner_type / str(task_id)
+        path = DATA_DIR / ".task-resources" / self._task_type / str(task_id)
         path = Path(path)
         await path.mkdir(parents=True, exist_ok=True)
         return path
@@ -28,7 +28,7 @@ class TaskResourceService(ServiceBase):
     async def load_task_resource(self, task_id: int, resource_id: int) -> Path | None:
         stmt = select(task_models.TaskResource).where(
             task_models.TaskResource.id == resource_id,
-            task_models.TaskResource.owner_type == self._owner_type,
+            task_models.TaskResource.owner_type == self._task_type.to_resource_owner_type(),
             task_models.TaskResource.owner_id == task_id,
         )
         resource = await self._db_session.scalar(stmt)
@@ -41,16 +41,15 @@ class TaskResourceService(ServiceBase):
             return None
         return resource_path
 
-    async def save_task_resource(
-        self,
-        task_id: int,
-        filename: str,
-        file_bytes: bytes,
-    ) -> task_models.TaskResource:
+    async def save_task_resource(self,
+                                 task_id: int,
+                                 filename: str,
+                                 file_bytes: bytes
+                                 ) -> task_models.TaskResource:
         checksum = (await asyncio.to_thread(hashlib.sha256, file_bytes)).hexdigest()
         stmt = select(task_models.TaskResource).where(
             task_models.TaskResource.checksum == checksum,
-            task_models.TaskResource.owner_type == self._owner_type,
+            task_models.TaskResource.owner_type == self._task_type.to_resource_owner_type(),
             task_models.TaskResource.owner_id == task_id,
         )
         existing_resource = await self._db_session.scalar(stmt)
@@ -64,7 +63,7 @@ class TaskResourceService(ServiceBase):
 
         try:
             new_resource = task_models.TaskResource(
-                owner_type=self._owner_type,
+                owner_type=self._task_type.to_resource_owner_type(),
                 owner_id=task_id,
                 filename=unique_name,
                 checksum=checksum,

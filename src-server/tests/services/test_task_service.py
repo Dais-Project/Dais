@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dais_sdk.types import UserMessage
 
 from src.db.models import tasks as task_models
+from src.schemas.tasks import runtime as task_runtime_schemas
 from src.schemas.tasks import task as task_schemas
 from src.services.exceptions import ServiceErrorCode
 from src.services.tasks import TaskNotFoundError, TaskResourceService, TaskService
@@ -19,7 +20,7 @@ def task_service(db_session: AsyncSession) -> TaskService:
 
 @pytest.fixture
 def task_resource_service(db_session: AsyncSession) -> TaskResourceService:
-    return TaskResourceService(db_session, "tasks")
+    return TaskResourceService(db_session, task_runtime_schemas.TaskType.TASK)
 
 
 @pytest.fixture

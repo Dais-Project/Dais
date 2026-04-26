@@ -2,6 +2,7 @@ from loguru import logger
 from fastapi import APIRouter, status
 from starlette.responses import FileResponse
 from src.db import DbSessionDep
+from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.tasks import TaskResourceService
 from ...exceptions import ApiError, ApiErrorCode
 
@@ -13,7 +14,7 @@ _logger = logger.bind(name="TaskResourceRoute")
 async def get_task_resource_file(task_id: int,
                                  resource_id: int,
                                  db_session: DbSessionDep) -> FileResponse:
-    resource_path = await TaskResourceService(db_session, "tasks").load_task_resource(task_id, resource_id)
+    resource_path = await TaskResourceService(db_session, task_runtime_schemas.TaskType.TASK).load_task_resource(task_id, resource_id)
     if resource_path is None:
         raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TASK_RESOURCE_NOT_FOUND)
     return FileResponse(resource_path)

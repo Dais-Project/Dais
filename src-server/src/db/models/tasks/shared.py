@@ -1,10 +1,15 @@
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Self
 from dais_sdk.types import Message
 from pydantic import TypeAdapter
 
 
 messages_adapter = TypeAdapter(list[Message])
+
+class TaskResourceOwnerType(StrEnum):
+    TASK = "tasks"
+    RUN_RECORD = "run_records"
 
 @dataclass
 class TaskUsage:

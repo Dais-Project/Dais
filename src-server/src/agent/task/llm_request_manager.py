@@ -16,7 +16,8 @@ from dais_sdk.types import (
     ToolCallChunkEvent as SdkToolCallChunkEvent,
 )
 from src.db import db_context
-from src.services.tasks import TaskService, TaskResourceService
+from src.services.tasks import TaskResourceService
+from src.schemas.tasks import runtime as task_runtime_schemas
 from src.utils import MarkdownConverter, to_base64_str
 from ..context import AgentContext
 from ..types import (
@@ -54,7 +55,7 @@ class TaskResourceRetriever(ContentBlockResolver):
 
     async def _resolve_resource(self, metadata: TaskResourceMetadata) -> ContentBlock | None:
         async with db_context() as db_session:
-            resource_path = await TaskResourceService(db_session, "tasks").load_task_resource(self._task_id, metadata["resource_id"])
+            resource_path = await TaskResourceService(db_session, task_runtime_schemas.TaskType.TASK).load_task_resource(self._task_id, metadata["resource_id"])
             if resource_path is None: return None
 
             normalized_resource_type = normalize_content_type(metadata["mimetype"])

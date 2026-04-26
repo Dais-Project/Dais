@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
+from src.schemas.tasks import runtime as task_runtime_schemas
 from ..service_base import ServiceBase
 from ..exceptions import NotFoundError, ServiceErrorCode
 from ..utils import build_load_options, Relations
@@ -73,6 +74,6 @@ class TaskService(ServiceBase):
 
     async def delete_task(self, id: int) -> None:
         task = await self.get_task_by_id(id)
-        await TaskResourceService(self._db_session, "tasks").delete_task_resources(id)
+        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.TASK).delete_task_resources(id)
         await self._db_session.delete(task)
         await self._db_session.flush()

@@ -2,7 +2,6 @@ import asyncio
 from fastapi import APIRouter, Request
 from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel
-from src.agent.context import AgentContext
 from src.agent.task import AgentTask
 from src.agent.types import (
     AgentGenerator,
@@ -10,8 +9,7 @@ from src.agent.types import (
     TaskDoneEvent, TaskInterruptedEvent, ErrorEvent
 )
 from loguru import logger
-from src.db import db_context
-from src.services.tasks import TaskService
+from ._runtime import create_agent_task
 from src.schemas.tasks import runtime as task_runtime_schemas
 
 
@@ -22,14 +20,6 @@ class TaskStreamBody(BaseModel):
     agent_id: int
 
 class ContinueTaskBody(TaskStreamBody): ...
-
-async def create_agent_task(task_id: int, agent_id: int) -> AgentTask:
-    async with db_context() as db_session:
-        task = await TaskService(db_session).get_task_by_id(task_id)
-        task.agent_id = agent_id
-    task_read = task_runtime_schemas.TaskRuntimeContext.model_validate(task)
-    ctx = await AgentContext.create(task_read)
-    return AgentTask(ctx)
 
 async def stream_connector(task: AgentTask, request: Request) -> AgentGenerator:
     pending_terminal_event = None
@@ -70,15 +60,20 @@ async def stream_connector(task: AgentTask, request: Request) -> AgentGenerator:
 task_stream_router = APIRouter(tags=["task", "stream"])
 
 @task_stream_router.post(
-    "/{task_id}/continue",
+    "/{task_type}/{task_id}/continue",
     responses={ 200: {"model": AgentEvent} },
     response_class=EventSourceResponse,
 )
-async def continue_task(task_id: int, body: ContinueTaskBody, request: Request):
+async def continue_task(
+    task_type: task_runtime_schemas.TaskType,
+    task_id: int,
+    body: ContinueTaskBody,
+    request: Request,
+):
     """
     Directly continue a existing task
     """
-    task = await create_agent_task(task_id, body.agent_id)
+    task = await create_agent_task(task_type, task_id, body.agent_id)
 
     # ensure all approved tool calls are executed before continuing
     has_executed = False
