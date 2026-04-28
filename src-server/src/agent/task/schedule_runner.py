@@ -50,6 +50,12 @@ class ScheduleRunner:
                 continue
             await self.append(schedule.id)
 
+    async def trigger(self, id: int):
+        async with db_context() as db_session:
+            schedule = await ScheduleService(db_session).get_schedule_by_id(id)
+        job = ScheduleJob(schedule_schemas.ScheduleRead.model_validate(schedule))
+        await job()
+
     async def append(self, id: int):
         async with db_context() as db_session:
             schedule = await ScheduleService(db_session).get_schedule_by_id(id)
@@ -65,3 +71,8 @@ class ScheduleRunner:
 
     async def remove(self, id: int):
         self._scheduler.remove_job(id=self._scheduler.schedule_job_id(id))
+
+__instance = ScheduleRunner()
+def use_schedule_runner() -> ScheduleRunner:
+    global __instance
+    return __instance

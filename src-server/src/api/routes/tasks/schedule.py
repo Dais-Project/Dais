@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, BackgroundTasks, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
+from src.agent.task.schedule_runner import use_schedule_runner
 from src.db import DbSessionDep
 from src.schemas.tasks import schedule as schedule_schemas
 from src.services.schedule import ScheduleService, RunRecordService
@@ -21,6 +22,15 @@ async def create_schedule(body: schedule_schemas.ScheduleCreate, db_session: DbS
 async def get_schedule(schedule_id: int, db_session: DbSessionDep):
     return await ScheduleService(db_session).get_schedule_by_id(schedule_id)
 
+@schedule_manage_router.get("/{schedule_id}/records", response_model=Page[schedule_schemas.RunRecordBrief])
+async def get_schedule_records(schedule_id: int, db_session: DbSessionDep):
+    query = RunRecordService(db_session).get_run_records_query(schedule_id)
+    return await apaginate(db_session, query)
+
+@schedule_manage_router.get("/records/{run_record_id}", response_model=schedule_schemas.RunRecordRead)
+async def get_run_record(run_record_id: int, db_session: DbSessionDep):
+    return await RunRecordService(db_session).get_run_record_by_id(id=run_record_id)
+
 @schedule_manage_router.patch("/{schedule_id}", response_model=schedule_schemas.ScheduleRead)
 async def update_schedule(schedule_id: int, body: schedule_schemas.ScheduleUpdate, db_session: DbSessionDep):
     return await ScheduleService(db_session).update_schedule(schedule_id, body)
@@ -29,11 +39,8 @@ async def update_schedule(schedule_id: int, body: schedule_schemas.ScheduleUpdat
 async def delete_schedule(schedule_id: int, db_session: DbSessionDep):
     await ScheduleService(db_session).delete_schedule(schedule_id)
 
-@schedule_manage_router.get("/{schedule_id}/records", response_model=Page[schedule_schemas.RunRecordBrief])
-async def get_schedule_records(schedule_id: int, db_session: DbSessionDep):
-    query = RunRecordService(db_session).get_run_records_query(schedule_id)
-    return await apaginate(db_session, query)
+# --- --- --- --- --- ---
 
-@schedule_manage_router.get("/records/{run_record_id}", response_model=schedule_schemas.RunRecordRead)
-async def get_run_record(run_record_id: int, db_session: DbSessionDep):
-    return await RunRecordService(db_session).get_run_record_by_id(run_record_id)
+@schedule_manage_router.post("/{schedule_id}/trigger", status_code=status.HTTP_202_ACCEPTED)
+async def trigger_schedule(schedule_id: int, background_tasks: BackgroundTasks):
+    background_tasks.add_task(use_schedule_runner().trigger, schedule_id)

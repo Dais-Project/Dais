@@ -1,13 +1,11 @@
 import { formatDistanceToNow } from "date-fns";
-import { ClockIcon, HistoryIcon, PencilIcon, PlayIcon, PowerIcon, TrashIcon } from "lucide-react";
+import { ClockIcon, HistoryIcon, PencilIcon, PlayIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ScheduleBrief } from "@/api/generated/schemas";
 import {
-  disableSchedule,
-  enableSchedule,
   invalidateScheduleQueries,
-  triggerScheduleRunNow,
+  triggerSchedule,
   useDeleteSchedule,
   useGetSchedulesSuspenseInfinite,
 } from "@/api/tasks/schedule";
@@ -112,7 +110,6 @@ type ScheduleItemProps = {
   onEdit: (schedule: ScheduleBrief) => void;
   onViewRecords: (schedule: ScheduleBrief) => void;
   onRunNow: (schedule: ScheduleBrief) => void;
-  onToggleEnable: (schedule: ScheduleBrief) => void;
 };
 
 function ScheduleItem({
@@ -123,7 +120,6 @@ function ScheduleItem({
   onEdit,
   onViewRecords,
   onRunNow,
-  onToggleEnable,
 }: ScheduleItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
@@ -134,7 +130,7 @@ function ScheduleItem({
         addSuffix: true,
         locale: DATEFNS_LOCALE_MAP[language],
       })
-      : t("schedules.list.next_run_unknown");
+      : null;
 
   return (
     <>
@@ -154,6 +150,10 @@ function ScheduleItem({
         </ActionableItemTrigger>
 
         <ActionableItemMenu>
+          <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
+            <PlayIcon />
+            <span>{t("schedules.menu.run_now")}</span>
+          </ActionableItemMenuItem>
           <ActionableItemMenuItem onClick={() => onEdit(schedule)}>
             <PencilIcon />
             <span>{t("schedules.menu.edit")}</span>
@@ -161,18 +161,6 @@ function ScheduleItem({
           <ActionableItemMenuItem onClick={() => onViewRecords(schedule)}>
             <HistoryIcon />
             <span>{t("schedules.menu.view_records")}</span>
-          </ActionableItemMenuItem>
-          <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
-            <PlayIcon />
-            <span>{t("schedules.menu.run_now")}</span>
-          </ActionableItemMenuItem>
-          <ActionableItemMenuItem onClick={() => onToggleEnable(schedule)}>
-            <PowerIcon />
-            <span>
-              {schedule.is_enabled
-                ? t("schedules.menu.disable")
-                : t("schedules.menu.enable")}
-            </span>
           </ActionableItemMenuItem>
           <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(schedule)}>
             <TrashIcon />
@@ -219,7 +207,7 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
   });
 
   const handleRunNow = async (schedule: ScheduleBrief) => {
-    await triggerScheduleRunNow(schedule.id);
+    await triggerSchedule(schedule.id);
     await invalidateScheduleQueries({ workspaceId, scheduleId: schedule.id });
     toast.success(t("schedules.toast.run_now_success_title"), {
       description: t("schedules.toast.run_now_success_description"),
@@ -232,22 +220,6 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
 
   const handleViewRecords = (schedule: ScheduleBrief) => {
     openScheduleRecordsTab(schedule.id, schedule.name);
-  };
-
-  const handleToggleEnable = async (schedule: ScheduleBrief) => {
-    if (schedule.is_enabled) {
-      await disableSchedule(schedule.id);
-      toast.success(t("schedules.toast.disable_success_title"), {
-        description: t("schedules.toast.disable_success_description"),
-      });
-    } else {
-      await enableSchedule(schedule.id);
-      toast.success(t("schedules.toast.enable_success_title"), {
-        description: t("schedules.toast.enable_success_description"),
-      });
-    }
-
-    await invalidateScheduleQueries({ workspaceId, scheduleId: schedule.id });
   };
 
   if (query.data.pages.length === 0) {
@@ -280,7 +252,6 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
             onEdit={handleEdit}
             onViewRecords={handleViewRecords}
             onRunNow={handleRunNow}
-            onToggleEnable={handleToggleEnable}
           />
         )}
       />

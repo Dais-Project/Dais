@@ -1,10 +1,12 @@
 export {
+  triggerSchedule,
   useCreateSchedule,
   useDeleteSchedule,
   useGetRunRecordSuspense,
   useGetScheduleRecordsSuspenseInfinite,
   useGetScheduleSuspense,
   useGetSchedulesSuspenseInfinite,
+  useTriggerSchedule,
   useUpdateSchedule,
 } from "../generated/endpoints/schedule/schedule";
 
@@ -15,18 +17,6 @@ import {
   getGetScheduleRecordsInfiniteQueryKey,
   getGetSchedulesInfiniteQueryKey,
 } from "../generated/endpoints/schedule/schedule";
-
-export async function triggerScheduleRunNow(_scheduleId: number) {
-  // TODO: 后端实现 run-now 接口后补充调用逻辑
-}
-
-export async function enableSchedule(_scheduleId: number) {
-  // TODO: 后端实现 enable 接口后补充调用逻辑
-}
-
-export async function disableSchedule(_scheduleId: number) {
-  // TODO: 后端实现 disable 接口后补充调用逻辑
-}
 
 type InvalidateScheduleQueriesOptions = {
   workspaceId?: number;
