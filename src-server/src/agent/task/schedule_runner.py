@@ -49,6 +49,7 @@ class ScheduleRunner:
             if not schedule.is_enabled:
                 continue
             await self.append(schedule.id)
+        self._scheduler.start()
 
     async def trigger(self, id: int):
         async with db_context() as db_session:
@@ -71,6 +72,9 @@ class ScheduleRunner:
 
     async def remove(self, id: int):
         self._scheduler.remove_job(id=self._scheduler.schedule_job_id(id))
+
+    def shutdown(self):
+        self._scheduler.shutdown()
 
 __instance = ScheduleRunner()
 def use_schedule_runner() -> ScheduleRunner:
