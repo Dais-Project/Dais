@@ -152,7 +152,8 @@
     },
     "tab": {
       "create_title": "Create schedule",
-      "edit_title_with_name": "Edit: {{name}}"
+      "edit_title_with_name": "Edit: {{name}}",
+      "records_title_with_name": "Run records: {{name}}"
     },
     "list": {
       "next_run_unknown": "Next run time is unknown"

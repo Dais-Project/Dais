@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { ClockIcon, PencilIcon, PlayIcon, PowerIcon, TrashIcon } from "lucide-react";
+import { ClockIcon, HistoryIcon, PencilIcon, PlayIcon, PowerIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ScheduleBrief } from "@/api/generated/schemas";
@@ -46,6 +46,17 @@ function createScheduleEditTab(scheduleId: number, scheduleName: string): Tab {
   };
 }
 
+function createScheduleRecordsTab(scheduleId: number, scheduleName: string): Tab {
+  return {
+    type: "schedule",
+    title: i18n.t("schedules.tab.records_title_with_name", {
+      ns: SIDEBAR_NAMESPACE,
+      name: scheduleName,
+    }),
+    metadata: { mode: "records", id: scheduleId },
+  };
+}
+
 function openScheduleEditTab(scheduleId: number, scheduleName: string) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find(
@@ -61,6 +72,23 @@ function openScheduleEditTab(scheduleId: number, scheduleName: string) {
   }
 
   addTab(createScheduleEditTab(scheduleId, scheduleName));
+}
+
+function openScheduleRecordsTab(scheduleId: number, scheduleName: string) {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find(
+    (tab) =>
+      tab.type === "schedule" &&
+      tab.metadata.mode === "records" &&
+      tab.metadata.id === scheduleId,
+  );
+
+  if (existingTab) {
+    setActiveTab(existingTab.id);
+    return;
+  }
+
+  addTab(createScheduleRecordsTab(scheduleId, scheduleName));
 }
 
 function formatConfigSummary(schedule: ScheduleBrief) {
@@ -82,6 +110,7 @@ type ScheduleItemProps = {
   ref: React.Ref<HTMLDivElement>;
   onDelete: (schedule: ScheduleBrief) => void;
   onEdit: (schedule: ScheduleBrief) => void;
+  onViewRecords: (schedule: ScheduleBrief) => void;
   onRunNow: (schedule: ScheduleBrief) => void;
   onToggleEnable: (schedule: ScheduleBrief) => void;
 };
@@ -92,6 +121,7 @@ function ScheduleItem({
   ref,
   onDelete,
   onEdit,
+  onViewRecords,
   onRunNow,
   onToggleEnable,
 }: ScheduleItemProps) {
@@ -127,6 +157,10 @@ function ScheduleItem({
           <ActionableItemMenuItem onClick={() => onEdit(schedule)}>
             <PencilIcon />
             <span>{t("schedules.menu.edit")}</span>
+          </ActionableItemMenuItem>
+          <ActionableItemMenuItem onClick={() => onViewRecords(schedule)}>
+            <HistoryIcon />
+            <span>{t("schedules.menu.view_records")}</span>
           </ActionableItemMenuItem>
           <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
             <PlayIcon />
@@ -168,7 +202,7 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
         });
         removeTabs((tab) => (
           tab.type === "schedule" &&
-          tab.metadata.mode === "edit" &&
+          tab.metadata.mode !== "create" &&
           tab.metadata.id === variables.scheduleId
         ));
         toast.success(t("schedules.toast.delete_success_title"), {
@@ -194,6 +228,10 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
 
   const handleEdit = (schedule: ScheduleBrief) => {
     openScheduleEditTab(schedule.id, schedule.name);
+  };
+
+  const handleViewRecords = (schedule: ScheduleBrief) => {
+    openScheduleRecordsTab(schedule.id, schedule.name);
   };
 
   const handleToggleEnable = async (schedule: ScheduleBrief) => {
@@ -240,6 +278,7 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
             index={index}
             onDelete={asyncConfirm.trigger}
             onEdit={handleEdit}
+            onViewRecords={handleViewRecords}
             onRunNow={handleRunNow}
             onToggleEnable={handleToggleEnable}
           />

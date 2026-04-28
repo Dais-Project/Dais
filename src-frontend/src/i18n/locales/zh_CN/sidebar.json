@@ -152,7 +152,8 @@
     },
     "tab": {
       "create_title": "创建计划任务",
-      "edit_title_with_name": "编辑：{{name}}"
+      "edit_title_with_name": "编辑：{{name}}",
+      "records_title_with_name": "运行记录：{{name}}"
     },
     "list": {
       "next_run_unknown": "下次触发时间未知"

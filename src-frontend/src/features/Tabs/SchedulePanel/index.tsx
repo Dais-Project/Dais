@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { useGetScheduleSuspense } from "@/api/tasks/schedule";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useGetScheduleSuspense } from "@/api/tasks/schedule";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { ScheduleTabMetadata } from "@/types/tab";
@@ -8,6 +8,7 @@ import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../components/TabPanelFrame";
 import { ScheduleCreateForm } from "./ScheduleCreateForm";
 import { ScheduleEditForm } from "./ScheduleEditForm";
+import { ScheduleRecordsPanel } from "./ScheduleRecordsPanel";
 
 function ScheduleCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);
@@ -52,17 +53,24 @@ export function SchedulePanel({
   id,
   metadata,
 }: TabPanelProps<ScheduleTabMetadata>) {
-  if (metadata.mode === "create") {
-    return (
-      <ScrollArea className="h-full px-8">
-        <ScheduleCreatePanel tabId={id} />
-      </ScrollArea>
-    );
+  switch (metadata.mode) {
+    case "create":
+      return (
+        <ScrollArea className="h-full px-8">
+          <ScheduleCreatePanel tabId={id} />
+        </ScrollArea>
+      );
+    case "edit":
+      return (
+        <TabPanelFrame>
+          <ScheduleEditPanel tabId={id} scheduleId={metadata.id} />
+        </TabPanelFrame>
+      );
+    case "records":
+      return (
+        <TabPanelFrame>
+          <ScheduleRecordsPanel scheduleId={metadata.id} />
+        </TabPanelFrame>
+      );
   }
-
-  return (
-    <TabPanelFrame>
-      <ScheduleEditPanel tabId={id} scheduleId={metadata.id} />
-    </TabPanelFrame>
-  );
 }

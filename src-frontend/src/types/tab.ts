@@ -40,7 +40,8 @@ export type SkillTabMetadata =
 
 export type ScheduleTabMetadata =
   | { mode: "create" }
-  | { mode: "edit"; id: number };
+  | { mode: "edit"; id: number }
+  | { mode: "records"; id: number };
 
 export type Tab =
   | SpecificTab<"task", TaskTabMetadata>
