@@ -20,7 +20,7 @@ from .routes import (
     task_stream_router,
     task_runtime_router,
     context_file_router,
-    schedules_router,
+    schedule_manage_router,
     health_router,
 )
 from .exception_handlers import (
@@ -73,12 +73,13 @@ app.include_router(toolset_router, prefix="/api/toolsets")
 app.include_router(skills_router, prefix="/api/skills")
 app.include_router(settings_router, prefix="/api/settings")
 app.include_router(task_control_router, prefix="/api/tasks")
-app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_resource_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 app.include_router(task_runtime_router, prefix="/api/tasks/runtime")
 app.include_router(context_file_router, prefix="/api/tasks")
-app.include_router(schedules_router, prefix="/api/schedules")
+
+app.include_router(task_manage_router, prefix="/api/tasks")
+app.include_router(schedule_manage_router, prefix="/api/schedules")
 
 app.include_router(health_router, prefix="/api/health")
 

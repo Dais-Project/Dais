@@ -2,13 +2,10 @@ import { formatDistanceToNow } from "date-fns";
 import { ClockIcon, PencilIcon, PlayIcon, PowerIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import type { ScheduleBrief } from "@/api/generated/schemas";
 import {
   disableSchedule,
   enableSchedule,
-  getGetScheduleQueryKey,
-  getGetScheduleRecordsInfiniteQueryKey,
   invalidateScheduleQueries,
   triggerScheduleRunNow,
   useDeleteSchedule,
@@ -155,7 +152,6 @@ function ScheduleItem({
 
 export function ScheduleList({ workspaceId }: ScheduleListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const queryClient = useQueryClient();
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetSchedulesSuspenseInfinite(
@@ -170,8 +166,6 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
           workspaceId,
           scheduleId: variables.scheduleId,
         });
-        queryClient.removeQueries({ queryKey: getGetScheduleQueryKey(variables.scheduleId) });
-        queryClient.removeQueries({ queryKey: getGetScheduleRecordsInfiniteQueryKey(variables.scheduleId) });
         removeTabs((tab) => (
           tab.type === "schedule" &&
           tab.metadata.mode === "edit" &&

@@ -8,6 +8,8 @@ export {
   useGetRecentTasksSuspenseInfinite,
   useCreateTask,
   useSummarizeTaskTitle,
+
+  getGetTaskResourceFileUrl,
 } from "../generated/endpoints/task/task";
 
 import queryClient from "@/query-client";

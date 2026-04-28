@@ -76,6 +76,7 @@ export type AgentTaskState = {
   usage: TaskUsage;
   messages: UiMessage[];
   taskId: number;
+  taskType: TaskType,
   agentId: number | null;
 };
 
@@ -378,9 +379,10 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
       usage,
       messages,
       taskId,
+      taskType,
       agentId,
     }),
-    [state, flags, todos, usage, messages, taskId, agentId]
+    [state, flags, todos, usage, messages, taskId, taskType, agentId]
   );
 
   const actionValue = useMemo(
