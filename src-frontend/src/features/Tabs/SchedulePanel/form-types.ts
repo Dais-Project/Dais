@@ -7,117 +7,106 @@ import type {
   ScheduleUpdate,
 } from "@/api/generated/schemas";
 
-export type ScheduleType = "cron" | "polling" | "delayed";
-
-export type ScheduleCreateFormValues = {
-  name: string;
-  task: string;
-  agent_id: string;
-  is_enabled: boolean;
-  
-  // config fields
-  type: ScheduleType;
-  expression: string;
-  interval_sec: number;
-  run_at: string;
+export type ScheduleConfigFormValues = {
+  type: "cron" | "polling" | "delayed";
+  expression?: string;
+  interval_sec?: number;
+  scheduled_at?: number;
 };
 
-export type ScheduleEditFormValues = ScheduleCreateFormValues;
+export type ScheduleBaseFormValues = {
+  name: string;
+  task: string;
+  agent_id: number | null;
+  config: ScheduleConfigFormValues;
+};
 
-function toDatetimeLocal(timestampSec: number): string {
-  const date = new Date(timestampSec * 1000);
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
+export type ScheduleCreateFormValues = ScheduleBaseFormValues;
 
-function configToFormValues(config: CronConfig | PollingConfig | DelayedConfig) {
-  switch (config.type) {
-    case "cron":
-      return {
-        type: "cron" as const,
-        expression: config.expression,
-        interval_sec: 60,
-        run_at: "",
-      };
-    case "polling":
-      return {
-        type: "polling" as const,
-        expression: "",
-        interval_sec: config.interval_sec,
-        run_at: "",
-      };
-    case "delayed":
-      return {
-        type: "delayed" as const,
-        expression: "",
-        interval_sec: 60,
-        run_at: toDatetimeLocal(config.run_at),
-      };
-  }
-}
+export type ScheduleEditFormValues = ScheduleBaseFormValues & {
+  is_enabled: boolean;
+};
 
-export function scheduleToEditFormValues(schedule: ScheduleRead): ScheduleEditFormValues {
-  const configValues = configToFormValues(schedule.config);
-
+export function scheduleToEditFormValues(
+  schedule: ScheduleRead
+): ScheduleEditFormValues {
   return {
     name: schedule.name,
     task: schedule.task,
     is_enabled: schedule.is_enabled,
-    agent_id: schedule.agent_id === null ? "" : String(schedule.agent_id),
-    ...configValues,
-  };
-}
-
-function valuesToConfig(
-  values: Pick<ScheduleCreateFormValues, "type" | "expression" | "interval_sec" | "run_at">,
-): CronConfig | PollingConfig | DelayedConfig {
-  switch (values.type) {
-    case "cron":
-      return {
-        type: "cron",
-        expression: values.expression,
-      };
-    case "polling":
-      return {
-        type: "polling",
-        interval_sec: values.interval_sec,
-      };
-    case "delayed":
-      return {
-        type: "delayed",
-        run_at: Math.floor(new Date(values.run_at).getTime() / 1000),
-      };
-  }
-}
-
-function valuesToAgentId(agentId: string): number | null {
-  const trimmedValue = agentId.trim();
-  if (trimmedValue.length === 0) {
-    return null;
-  }
-  return Number(trimmedValue);
+    agent_id: schedule.agent_id,
+    config: scheduleConfigToFormValues(schedule.config),
+  } satisfies ScheduleEditFormValues;
 }
 
 export function createFormValuesToPayload(
   values: ScheduleCreateFormValues,
-  workspaceId: number,
+  workspaceId: number
 ): ScheduleCreate {
   return {
     name: values.name,
     task: values.task,
-    is_enabled: values.is_enabled,
-    config: valuesToConfig(values),
-    agent_id: valuesToAgentId(values.agent_id),
+    is_enabled: true,
+    agent_id: values.agent_id,
     workspace_id: workspaceId,
-  };
+    config: transformFormToApiConfig(values.config),
+  } satisfies ScheduleCreate;
 }
 
-export function editFormValuesToPayload(values: ScheduleEditFormValues): ScheduleUpdate {
+export function editFormValuesToPayload(
+  values: ScheduleEditFormValues
+): ScheduleUpdate {
   return {
     name: values.name,
     task: values.task,
     is_enabled: values.is_enabled,
-    config: valuesToConfig(values),
-    agent_id: valuesToAgentId(values.agent_id),
-  };
+    agent_id: values.agent_id,
+    config: transformFormToApiConfig(values.config),
+  } satisfies ScheduleUpdate;
+}
+
+function scheduleConfigToFormValues(
+  config: CronConfig | PollingConfig | DelayedConfig
+): ScheduleConfigFormValues {
+  if (config.type === "cron") {
+    return {
+      type: config.type,
+      expression: config.expression,
+    } satisfies ScheduleConfigFormValues;
+  }
+
+  if (config.type === "polling") {
+    return {
+      type: config.type,
+      interval_sec: config.interval_sec,
+    } satisfies ScheduleConfigFormValues;
+  }
+
+  return {
+    type: config.type,
+    scheduled_at: config.scheduled_at,
+  } satisfies ScheduleConfigFormValues;
+}
+
+function transformFormToApiConfig(
+  config: ScheduleConfigFormValues
+): CronConfig | PollingConfig | DelayedConfig {
+  if (config.type === "cron") {
+    return {
+      type: config.type,
+      expression: config.expression || "",
+    } satisfies CronConfig;
+  }
+
+  if (config.type === "polling") {
+    return {
+      type: config.type,
+      interval_sec: config.interval_sec ?? 0,
+    } satisfies PollingConfig;
+  }
+
+  return {
+    type: config.type,
+    scheduled_at: config.scheduled_at ?? 0,
+  } satisfies DelayedConfig;
 }

@@ -13,7 +13,7 @@ import {
   triggerScheduleRunNow,
   useDeleteSchedule,
   useGetSchedulesSuspenseInfinite,
-} from "@/api/schedule";
+} from "@/api/tasks/schedule";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
@@ -73,7 +73,7 @@ function formatConfigSummary(schedule: ScheduleBrief) {
     case "polling":
       return `Polling: ${schedule.config.interval_sec}s`;
     case "delayed":
-      return `Delayed: ${new Date(schedule.config.run_at * 1000).toLocaleString()}`;
+      return `Delayed: ${new Date(schedule.config.scheduled_at * 1000).toLocaleString()}`;
     default:
       return "";
   }
@@ -103,7 +103,7 @@ function ScheduleItem({
 
   const nextRunDescription =
     schedule.config.type === "delayed"
-      ? formatDistanceToNow(new Date(schedule.config.run_at * 1000), {
+      ? formatDistanceToNow(new Date(schedule.config.scheduled_at * 1000), {
         addSuffix: true,
         locale: DATEFNS_LOCALE_MAP[language],
       })

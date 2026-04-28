@@ -3,10 +3,9 @@ import type { ScheduleCreateFormValues } from "@/features/Tabs/SchedulePanel/for
 export const DEFAULT_SCHEDULE_CREATE_FORM_VALUES: ScheduleCreateFormValues = {
   name: "",
   task: "",
-  type: "cron",
-  expression: "",
-  interval_sec: 60,
-  run_at: "",
-  agent_id: "",
-  is_enabled: true,
+  agent_id: null,
+  config: {
+    type: "cron",
+    expression: "",
+  },
 };

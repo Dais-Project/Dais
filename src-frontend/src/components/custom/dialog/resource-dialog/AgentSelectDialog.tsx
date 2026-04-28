@@ -1,7 +1,6 @@
 import { ChevronsUpDownIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { FallbackProps } from "react-error-boundary";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   SelectDialog,
@@ -15,30 +14,6 @@ import {
 } from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
 import { useGetWorkspaceSuspense } from "@/api/workspace";
-
-class NoCurrentWorkspaceError extends Error {
-  constructor() {
-    super("No current workspace");
-    this.name = "NoCurrentWorkspaceError";
-  }
-}
-
-export function AgentSelectErrorFallback({ error }: FallbackProps) {
-  const { t } = useTranslation(TABS_TASK_NAMESPACE);
-
-  if (error instanceof NoCurrentWorkspaceError) {
-    return (
-      <Button variant="outline" className="justify-between" disabled>
-        {t("prompt.agent.no_workspace")}
-      </Button>
-    );
-  }
-  return (
-    <Button variant="outline" className="justify-between" disabled>
-      {t("prompt.agent.workspace_load_failed")}
-    </Button>
-  );
-}
 
 type AgentSelectDialogProps = {
   agentId: number | null;

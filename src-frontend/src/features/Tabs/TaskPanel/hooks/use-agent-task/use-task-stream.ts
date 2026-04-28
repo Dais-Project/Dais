@@ -1,6 +1,6 @@
 import { Dispatch, type RefObject, SetStateAction, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { TaskSseCallbacks } from "@/api/task";
+import type { TaskSseCallbacks } from "@/api/tasks";
 import type { TaskState } from ".";
 import { useUnmount } from "ahooks";
 

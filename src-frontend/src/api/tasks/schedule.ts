@@ -10,7 +10,7 @@ export {
   useGetScheduleSuspense,
   useGetSchedulesSuspenseInfinite,
   useUpdateSchedule,
-} from "./generated/endpoints/schedule/schedule";
+} from "../generated/endpoints/schedule/schedule";
 
 import queryClient from "@/query-client";
 import {
@@ -18,7 +18,7 @@ import {
   getGetScheduleQueryKey,
   getGetScheduleRecordsInfiniteQueryKey,
   getGetSchedulesInfiniteQueryKey,
-} from "./generated/endpoints/schedule/schedule";
+} from "../generated/endpoints/schedule/schedule";
 
 export async function triggerScheduleRunNow(_scheduleId: number) {
   // TODO: 后端实现 run-now 接口后补充调用逻辑

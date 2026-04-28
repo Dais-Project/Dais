@@ -6,7 +6,7 @@ import {
   useAppendTaskMessage,
   useCreateTask,
   useSummarizeTaskTitle,
-} from "@/api/task";
+} from "@/api/tasks";
 import { useTabsStore } from "@/stores/tabs-store";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { toSdkMessage, uiUserMessageFactory } from "@/types/message";

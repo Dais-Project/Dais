@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { IMAGE_MIMETYPE, EPUB_MIMETYPE, PDF_MIMETYPE, PLAINTEXT_MIMETYPE, DOCX_MIMETYPE, XLSX_MIMETYPE, PPTX_MIMETYPE } from "@/constants/mimetypes";
-import { AgentSelectDialog, AgentSelectErrorFallback } from "./AgentSelectDialog";
+import { AgentSelectDialog } from "@/components/custom/dialog/resource-dialog/AgentSelectDialog";
 import { ContextUsage } from "./ContextUsage";
 import { TaskProgress } from "./TaskProgress";
 import { AttachmentsDisplay } from "./AttachmentsDisplay";
@@ -72,7 +72,11 @@ function PromptInputAgentState({
 }: PromptInputAgentStateProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   return (
-    <ErrorBoundary fallbackRender={(props) => <AgentSelectErrorFallback {...props} />}>
+    <ErrorBoundary fallbackRender={(_) => (
+      <Button variant="outline" className="justify-between" disabled>
+        {t("prompt.agent.workspace_load_failed")}
+      </Button>
+    )}>
       <Suspense
         fallback={
           <Button variant="outline" disabled>

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useGetScheduleSuspense } from "@/api/schedule";
+import { useGetScheduleSuspense } from "@/api/tasks/schedule";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";

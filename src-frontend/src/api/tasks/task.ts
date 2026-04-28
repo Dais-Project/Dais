@@ -6,7 +6,6 @@ export {
   useGetTaskSuspense,
   useGetTasksSuspenseInfinite,
   useGetRecentTasksSuspenseInfinite,
-  useGetTaskRuntimeContextSuspense,
   useCreateTask,
   useSummarizeTaskTitle,
 } from "../generated/endpoints/task/task";
@@ -16,7 +15,6 @@ import {
   getGetTaskQueryKey,
   getGetTasksInfiniteQueryKey,
   getGetRecentTasksInfiniteQueryKey,
-  getGetTaskRuntimeContextQueryKey,
 } from "../generated/endpoints/task/task";
 
 type InvalidateTaskQueriesOptions = {
@@ -33,7 +31,6 @@ export async function invalidateTaskQueries({
   }
   if (taskId !== undefined) {
     await queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId), refetchType: "all" });
-    await queryClient.invalidateQueries({ queryKey: getGetTaskRuntimeContextQueryKey(taskId), refetchType: "all" });
   }
   await queryClient.invalidateQueries({ queryKey: getGetRecentTasksInfiniteQueryKey() });
 }

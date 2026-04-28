@@ -1,7 +1,7 @@
 import { InfiniteData } from "@tanstack/react-query";
 import { produce } from "immer";
 import type { PageTaskBrief } from "@/api/generated/schemas";
-import { getGetTasksInfiniteQueryKey } from "@/api/task";
+import { getGetTasksInfiniteQueryKey } from "@/api/tasks";
 import queryClient from "@/query-client";
 import { useTabsStore } from "@/stores/tabs-store";
 
