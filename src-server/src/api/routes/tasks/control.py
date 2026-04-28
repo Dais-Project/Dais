@@ -4,12 +4,12 @@ from dais_sdk.types import ContentBlockMetadata, UserMessage
 from loguru import logger
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from pydantic import BaseModel
-from src.agent.task import AgentTask, MessageNotFoundError
+from src.agent.task import MessageNotFoundError
 from src.agent.types import MessageReplaceEvent, TaskResourceMetadata
 from src.db import db_context
 from src.services.tasks import TaskResourceService
 from src.schemas.tasks import runtime as task_runtime_schemas
-from ._runtime import create_agent_task
+from .runtime import create_agent_task
 from ...exceptions import ApiError, ApiErrorCode
 
 

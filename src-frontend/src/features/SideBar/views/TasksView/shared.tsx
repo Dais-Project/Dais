@@ -19,7 +19,12 @@ import { resolveIconName } from "@/lib/resolve-iconname";
 
 export function openTaskTab(workspaceId: number, task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
-  const existingTab = tabs.find((t) => t.type === "task" && !t.metadata.isDraft && t.metadata.id === task.id);
+  const existingTab = tabs.find((t) => (
+    t.type === "task" &&
+    t.metadata.type === "task" &&
+    !t.metadata.isDraft &&
+    t.metadata.id === task.id
+  ));
 
   if (existingTab) {
     setActiveTab(existingTab.id);
@@ -30,6 +35,7 @@ export function openTaskTab(workspaceId: number, task: TaskBrief) {
     title: task.title,
     type: "task",
     metadata: {
+      type: "task",
       isDraft: false,
       id: task.id,
       workspace_id: workspaceId,
@@ -41,6 +47,7 @@ export function removeTaskTab(taskId: number) {
   const removeTabs = useTabsStore.getState().remove;
   removeTabs((tab) => (
     tab.type === "task" &&
+    tab.metadata.type === "task" &&
     !tab.metadata.isDraft &&
     tab.metadata.id === taskId
   ));

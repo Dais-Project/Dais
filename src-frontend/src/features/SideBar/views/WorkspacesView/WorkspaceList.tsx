@@ -57,6 +57,7 @@ function openTaskCreateTab(workspaceId: number) {
     title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
     type: "task",
     metadata: {
+      type: "task",
       isDraft: true,
       workspace_id: workspaceId,
     },

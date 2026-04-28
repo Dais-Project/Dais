@@ -9,7 +9,7 @@ from src.agent.types import (
     TaskDoneEvent, TaskInterruptedEvent, ErrorEvent
 )
 from loguru import logger
-from ._runtime import create_agent_task
+from .runtime import create_agent_task
 from src.schemas.tasks import runtime as task_runtime_schemas
 
 

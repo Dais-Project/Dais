@@ -18,6 +18,7 @@ from .routes import (
     task_manage_router,
     task_resource_router,
     task_stream_router,
+    task_runtime_router,
     context_file_router,
     schedules_router,
     health_router,
@@ -75,6 +76,7 @@ app.include_router(task_control_router, prefix="/api/tasks")
 app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(task_resource_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
+app.include_router(task_runtime_router, prefix="/api/tasks/runtime")
 app.include_router(context_file_router, prefix="/api/tasks")
 app.include_router(schedules_router, prefix="/api/schedules")
 

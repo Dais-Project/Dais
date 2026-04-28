@@ -53,10 +53,6 @@ async def get_recent_tasks(db_session: DbSessionDep):
 async def get_task(task_id: int, db_session: DbSessionDep):
     return await TaskService(db_session).get_task_by_id(task_id)
 
-@task_manage_router.get("/{task_id}/runtime", response_model=task_runtime_schemas.TaskRuntimeContext)
-async def get_task_runtime_context(task_id: int, db_session: DbSessionDep):
-    return await TaskService(db_session).get_task_by_id(task_id)
-
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
 async def create_task(body: task_schemas.TaskCreate, db_session: DbSessionDep):
     new_task = await TaskService(db_session).create_task(body)

@@ -1,14 +1,14 @@
 import { useMount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContinueTask } from "./components/ContinueTask";
-import { ErrorRetry } from "./components/ErrorRetry";
-import { PromptInput, PromptInputProvider } from "./components/PromptInput";
-import { TaskConversationContent, TaskConversationProvider, TaskConversationScrollToBottom } from "./components/TaskConversation";
-import { useAgentTaskAction, useAgentTaskState } from "./hooks/use-agent-task";
-import { CollapsibleStoreProvider } from "./hooks/use-collapsible-store";
+import { ContinueTask } from "../components/ContinueTask";
+import { ErrorRetry } from "../components/ErrorRetry";
+import { PromptInput, PromptInputProvider } from "../components/PromptInput";
+import { TaskConversationContent, TaskConversationProvider, TaskConversationScrollToBottom } from "../components/TaskConversation";
+import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
+import { CollapsibleStoreProvider } from "../hooks/use-collapsible-store";
 
-export function SessionViewSkeleton() {
+export function TaskSessionViewSkeleton() {
   return (
     <div className="h-full space-y-4 p-4 pt-0">
       <div className="mx-auto flex size-full max-w-3xl flex-col space-y-4">
@@ -34,15 +34,15 @@ export function SessionViewSkeleton() {
   );
 }
 
-type SessionViewProps = {
+type TaskSessionViewProps = {
   workspaceId: number;
   shouldStartStream: boolean;
 };
 
-export function SessionView({
+export function TaskSessionView({
   workspaceId,
   shouldStartStream,
-}: SessionViewProps) {
+}: TaskSessionViewProps) {
   const { state } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
 

@@ -26,7 +26,7 @@ export function updateTaskTitle(workspaceId: number, task_id: number, title: str
   const updateTabs = useTabsStore.getState().update;
   updateTabs((draft) => {
     for (const tab of draft) {
-      if (tab.type === "task" && "id" in tab.metadata && tab.metadata.id === task_id) {
+      if (tab.type === "task" && tab.metadata.type === "task" && "id" in tab.metadata && tab.metadata.id === task_id) {
         tab.title = title;
         return;
       }

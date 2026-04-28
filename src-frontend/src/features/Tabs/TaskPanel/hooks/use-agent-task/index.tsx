@@ -6,16 +6,17 @@ import { useLatest } from "ahooks";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
-  ErrorEvent,
-  MessageEndEvent,
-  MessageReplaceEvent,
-  MessageStartEvent,
-  TextChunkEvent,
-  ToolCallChunkEvent,
-  ToolCallEndEvent,
-  ToolRequirePermissionEvent,
-  ToolRequireUserResponseEvent,
-  UsageChunkEvent,
+  type ErrorEvent,
+  type MessageEndEvent,
+  type MessageReplaceEvent,
+  type MessageStartEvent,
+  type TaskType,
+  type TextChunkEvent,
+  type ToolCallChunkEvent,
+  type ToolCallEndEvent,
+  type ToolRequirePermissionEvent,
+  type ToolRequireUserResponseEvent,
+  type UsageChunkEvent,
   type TaskRuntimeContext,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
@@ -93,19 +94,21 @@ const AgentTaskActionContext = createContext<AgentTaskActions | null>(null);
 
 type AgentTaskProviderProps = {
   taskId: number;
+  taskType: TaskType,
   children: React.ReactNode;
 };
 
-export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
+export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const setActiveTab = useTabsStore((state) => state.setActive);
   const backToCurrentTab = () => setActiveTab((tab) => (
     tab.type === "task" &&
-    !tab.metadata.isDraft &&
+    tab.metadata.type === taskType &&
+    "id" in tab.metadata &&
     tab.metadata.id === taskId
   ));
 
-  const { data } = useGetTaskRuntimeContextSuspense(taskId, {
+  const { data } = useGetTaskRuntimeContextSuspense(taskType, taskId, {
     query: {
       staleTime: 0,
       gcTime: 0,
@@ -327,7 +330,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       toast.error("任务失败", { description: "请先选择一个 Agent。" });
       return;
     }
-    answerToolMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, answer } });
+    answerToolMutation.mutate({ taskId, taskType, data: { call_id: toolCallId, agent_id: agentId, answer } });
   }, [answerToolMutation, taskId]);
 
   const reviewTool = useCallback(
@@ -336,7 +339,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
         toast.error("任务失败", { description: "请先选择一个 Agent。" });
         return;
       }
-      toolReviewMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
+      toolReviewMutation.mutate({ taskId, taskType, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
     }, [toolReviewMutation, taskId, agentId]
   );
 
@@ -350,7 +353,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       message: toSdkMessage(userMessage),
       agent_id: agentId,
     });
-    appendMessageMutation.mutate({ taskId, data: { body, uploaded_files: attachments } });
+    appendMessageMutation.mutate({ taskId, taskType, data: { body, uploaded_files: attachments } });
   }, [appendMessageMutation, taskId, agentId]);
 
   const editMessage = useCallback((messageId: string, content: string) => {
@@ -359,7 +362,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       return;
     }
     editMessageMutation.mutate({
-      taskId, data: {
+      taskId, taskType, data: {
         message_id: messageId,
         agent_id: agentId,
         content

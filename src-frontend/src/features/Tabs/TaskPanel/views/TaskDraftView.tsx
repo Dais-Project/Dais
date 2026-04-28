@@ -10,15 +10,14 @@ import {
 import { useTabsStore } from "@/stores/tabs-store";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { toSdkMessage, uiUserMessageFactory } from "@/types/message";
-import { DEFAULT_TAB_TITLE } from ".";
-import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "./components/PromptInput";
+import { PromptInputDraft, PromptInputProvider, type PromptInputMessage } from "../components/PromptInput";
 
-type CreateViewProps = {
+type TaskDraftViewProps = {
   tabId: string;
   workspaceId: number;
 };
 
-export function CreateView({ tabId, workspaceId }: CreateViewProps) {
+export function TaskDraftView({ tabId, workspaceId }: TaskDraftViewProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const updateTabMetadata = useTabsStore((state) => state.updateMetadata);
 
@@ -33,6 +32,7 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
     mutation: {
       async onSuccess(runtimeContext) {
         updateTabMetadata(tabId, {
+          type: "task",
           isDraft: false,
           id: runtimeContext.id,
           workspace_id: runtimeContext.workspace_id,
@@ -52,7 +52,7 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
   const handleSubmit = async (message: PromptInputMessage, agentId: number) => {
     const taskRead = await createTaskMutation.mutateAsync({
       data: {
-        title: DEFAULT_TAB_TITLE,
+        title: t("tab.default_title"),
         agent_id: agentId,
         workspace_id: workspaceId,
       },
@@ -64,6 +64,7 @@ export function CreateView({ tabId, workspaceId }: CreateViewProps) {
     });
     await appendMessageMutation.mutateAsync({
       taskId: taskRead.id,
+      taskType: "task",
       data: { body, uploaded_files: message.files.map((file) => file.raw) },
     });
   };
