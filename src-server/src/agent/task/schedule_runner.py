@@ -1,79 +1,134 @@
 import asyncio
+import time
+from loguru import logger
 from src.db import db_context
 from src.db.models.tasks.schedule import CronConfig, PollingConfig, DelayedConfig
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.schemas.tasks import schedule as schedule_schemas
-from src.services.schedule import ScheduleService, RunRecordService
+from src.services.schedule import RunRecordService, ScheduleService
 from src.utils import Scheduler
 from . import AgentTask
 from ..context import AgentContext
 
 
-class ScheduleJob:
-    def __init__(self, schedule: schedule_schemas.ScheduleRead):
-        self._schedule = schedule
+_logger = logger.bind(name="ScheduleRunner")
 
-    def _create_runtime_context(self, record: schedule_schemas.RunRecordRead) -> task_runtime_schemas.TaskRuntimeContext:
-        return task_runtime_schemas.TaskRuntimeContext(
+class ScheduleJob:
+    def __init__(self, schedule: schedule_schemas.ScheduleRead, record: schedule_schemas.RunRecordRead):
+        self.id = record.id
+        self.schedule_name = schedule.name
+        self.created_at = int(time.time())
+        self._runtime_context = task_runtime_schemas.TaskRuntimeContext(
             id=record.id,
             type=task_runtime_schemas.TaskType.SCHEDULE,
             usage=record.usage,
-            agent_id=self._schedule.agent_id,
-            workspace_id=self._schedule.workspace_id,
+            agent_id=schedule.agent_id,
+            workspace_id=schedule.workspace_id,
             messages=record.messages
         )
 
-    async def __call__(self):
-        async with db_context() as db_session:
-            create = schedule_schemas.RunRecordCreate(schedule_id=self._schedule.id)
-            created_record = await RunRecordService(db_session).create_run_record(create)
+    def snapshot(self) -> schedule_schemas.ScheduleRunningJob:
+        return schedule_schemas.ScheduleRunningJob(
+            id=self.id,
+            name=self.schedule_name,
+            created_at=self.created_at,
+        )
 
-        runtime_context = self._create_runtime_context(schedule_schemas.RunRecordRead.model_validate(created_record))
-        ctx = await AgentContext.create(runtime_context)
+    async def run(self):
+        ctx = await AgentContext.create(self._runtime_context)
         task = AgentTask(ctx)
         try:
-            stop_reason = await task.run_until_done()
+            await task.run_until_done()
             # TODO: notify user
+        except asyncio.CancelledError:
+            await task.stop()
+            raise
         finally:
             await asyncio.shield(task.persist())
 
+class ScheduleJobPool:
+    def __init__(self):
+        self._pool: dict[int, tuple[ScheduleJob, asyncio.Task]] = {}
+        self._lock = asyncio.Lock()
+
+    async def add(self, job: ScheduleJob):
+        async with self._lock:
+            task = asyncio.create_task(job.run())
+            self._pool[job.id] = (job, task)
+            task.add_done_callback(lambda _: self._pool.pop(job.id, None))
+
+    async def list_snapshots(self) -> list[schedule_schemas.ScheduleRunningJob]:
+        async with self._lock:
+            return [job.snapshot() for job, _ in self._pool.values()]
+
+    async def cancel(self, job_id: int):
+        async with self._lock:
+            item = self._pool.pop(job_id, None)
+
+        if item is None:
+            _logger.warning(f"Schedule job {job_id} not found")
+            return
+
+        _, task = item
+
+        if not task.done(): task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+    async def shutdown(self):
+        async with self._lock:
+            tasks = [task for _, task in self._pool.values()]
+            self._pool.clear()
+
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
 class ScheduleRunner:
-    def __init__(self) -> None:
+    def __init__(self):
         self._scheduler = Scheduler()
+        self._task_pool = ScheduleJobPool()
 
     async def load_schedules(self):
         async with db_context() as db_session:
             schedules = await ScheduleService(db_session).get_all_schedules()
 
         for schedule in schedules:
-            if not schedule.is_enabled:
-                continue
-            await self.append(schedule.id)
+            if schedule.is_enabled:
+                await self.append(schedule_schemas.ScheduleRead.model_validate(schedule))
         self._scheduler.start()
 
-    async def trigger(self, id: int):
+    async def trigger(self, schedule_id: int):
         async with db_context() as db_session:
-            schedule = await ScheduleService(db_session).get_schedule_by_id(id)
-        job = ScheduleJob(schedule_schemas.ScheduleRead.model_validate(schedule))
-        await job()
+            schedule = await ScheduleService(db_session).get_schedule_by_id(schedule_id)
+            record = await RunRecordService(db_session).create_run_record(schedule_schemas.RunRecordCreate(schedule_id=schedule_id))
+        schedule = schedule_schemas.ScheduleRead.model_validate(schedule)
+        record = schedule_schemas.RunRecordRead.model_validate(record)
+        job = ScheduleJob(schedule, record)
+        await self._task_pool.add(job)
 
-    async def append(self, id: int):
-        async with db_context() as db_session:
-            schedule = await ScheduleService(db_session).get_schedule_by_id(id)
-
-        job = ScheduleJob(schedule_schemas.ScheduleRead.model_validate(schedule))
+    async def append(self, schedule: schedule_schemas.ScheduleRead):
         match schedule.config:
             case CronConfig(expression=expression):
-                self._scheduler.add_cron_job(schedule.id, job, expression=expression)
+                self._scheduler.add_cron_job(schedule.id, self.trigger, expression=expression, schedule_id=schedule.id)
             case PollingConfig(interval_sec=interval_sec):
-                self._scheduler.add_polling_job(schedule.id, job, interval_sec=interval_sec)
+                self._scheduler.add_polling_job(schedule.id, self.trigger, interval_sec=interval_sec, schedule_id=schedule.id)
             case DelayedConfig(scheduled_at=scheduled_at):
-                self._scheduler.add_delayed_job(schedule.id, job, scheduled_at=scheduled_at)
+                self._scheduler.add_delayed_job(schedule.id, self.trigger, scheduled_at=scheduled_at, schedule_id=schedule.id)
 
-    async def remove(self, id: int):
-        self._scheduler.remove_job(id=self._scheduler.schedule_job_id(id))
+    async def list_job_snapshots(self) -> list[schedule_schemas.ScheduleRunningJob]:
+        return await self._task_pool.list_snapshots()
 
-    def shutdown(self):
+    def remove(self, schedule_id: int):
+        self._scheduler.remove_job(self._scheduler.create_job_id(schedule_id), raise_when_missing=False)
+
+    async def cancel_job(self, job_id: int):
+        await self._task_pool.cancel(job_id)
+
+    async def shutdown(self):
+        await self._task_pool.shutdown()
         self._scheduler.shutdown()
 
 __instance = ScheduleRunner()

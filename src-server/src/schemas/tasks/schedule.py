@@ -54,3 +54,10 @@ class RunRecordUpdate(DTOBase):
     usage: task_models.TaskUsage | None
     messages: list[Message] | None
     schedule_id: int | None
+
+# --- --- --- --- --- ---
+
+class ScheduleRunningJob(DTOBase):
+    id: int
+    name: str
+    created_at: int

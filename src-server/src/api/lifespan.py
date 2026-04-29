@@ -80,7 +80,7 @@ class LifespanManager:
             await self._shutdown()
 
     async def _shutdown(self):
-        self.schedule_runner.shutdown()
+        await self.schedule_runner.shutdown()
         await self.background_task_manager.shutdown()
 
         await self.mcp_toolset_manager.disconnect_mcp_servers()
