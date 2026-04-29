@@ -9,6 +9,10 @@
         "required": "目录路径为必填项"
       }
     },
+    "datetime": {
+      "label": "日期和时间",
+      "placeholder": "选择日期"
+    },
     "enabled": {
       "label": "启用"
     },
