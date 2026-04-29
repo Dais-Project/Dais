@@ -1,7 +1,30 @@
 {
+  "interval_picker": {
+    "preset_label": "预设时间间隔",
+    "custom_label": "自定义时间间隔",
+    "format": {
+      "minutes": "{{count}} 分钟",
+      "hours": "{{count}} 小时",
+      "days": "{{count}} 天"
+    },
+    "presets": {
+      "1_minute": "1 分钟",
+      "5_minutes": "5 分钟",
+      "10_minutes": "10 分钟",
+      "30_minutes": "30 分钟",
+      "1_hour": "1 小时",
+      "4_hours": "4 小时",
+      "1_day": "1 天"
+    },
+    "units": {
+      "minutes": "分钟",
+      "hours": "小时",
+      "days": "天"
+    }
+  },
   "chip_input": {
-    "max_hint": "已达上限 {{max}}",
-    "placeholder": "输入参数后按 Enter 或空格添加，Backspace 删除最后一项",
+    "max_hint": "已达到上限 {{max}}",
+    "placeholder": "输入内容后按 Enter 或空格添加，按 Backspace 删除最后一项",
     "remove_aria": "删除参数 {{label}}"
   }
 }

@@ -12,6 +12,9 @@
     "enabled": {
       "label": "Enabled"
     },
+    "interval": {
+      "label": "Interval"
+    },
     "name": {
       "label": "Name",
       "placeholder": "Enter name",

@@ -1,4 +1,27 @@
 {
+  "interval_picker": {
+    "preset_label": "Preset interval",
+    "custom_label": "Custom interval",
+    "format": {
+      "minutes": "{{count}} minute",
+      "hours": "{{count}} hour",
+      "days": "{{count}} day"
+    },
+    "presets": {
+      "1_minute": "1 minute",
+      "5_minutes": "5 minutes",
+      "10_minutes": "10 minutes",
+      "30_minutes": "30 minutes",
+      "1_hour": "1 hour",
+      "4_hours": "4 hours",
+      "1_day": "1 day"
+    },
+    "units": {
+      "minutes": "Minutes",
+      "hours": "Hours",
+      "days": "Days"
+    }
+  },
   "chip_input": {
     "max_hint": "Reached the limit {{max}}",
     "placeholder": "Type a value and press Enter or Space to add. Backspace removes the last item",
