@@ -11,7 +11,10 @@
     },
     "datetime": {
       "label": "日期和时间",
-      "placeholder": "选择日期"
+      "placeholder": "选择日期",
+      "validation": {
+        "required": "请选择日期和时间"
+      }
     },
     "enabled": {
       "label": "启用"

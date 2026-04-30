@@ -4,7 +4,6 @@ import type { ChangeEvent } from "react";
 import { useId, useMemo, useState } from "react";
 import { useController, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,10 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FORM_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
-
 import type { FieldProps } from ".";
 
-type DateTimeFieldControlProps = {
+type DateTimeFieldProps = FieldProps<{
   disabled?: boolean;
   required?: boolean;
   className?: string;
@@ -25,9 +23,7 @@ type DateTimeFieldControlProps = {
   placeholder?: string;
   timeStep?: number;
   timestampUnit?: "seconds" | "milliseconds";
-};
-
-type DateTimeFieldProps = FieldProps<DateTimeFieldControlProps>;
+}>;
 
 function padTimeSegment(value: number): string {
   return value.toString().padStart(2, "0");
@@ -118,19 +114,9 @@ export function DateTimeField({
   controlProps,
 }: DateTimeFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
-  const { control, getFieldState, formState } = useFormContext<Record<string, number | null>>();
-  const { field } = useController({
-    name: fieldName,
-    control,
-  });
-  const [open, setOpen] = useState(false);
-  const baseId = useId();
-  const dateFieldId = `${baseId}-date`;
-  const timeFieldId = `${baseId}-time`;
-  const { label = t("fields.datetime.label"), contentClassName, ...restFieldProps } = fieldProps ?? {};
   const {
+    required = false,
     disabled = false,
-    required,
     className,
     buttonClassName,
     timeInputClassName,
@@ -138,6 +124,19 @@ export function DateTimeField({
     timeStep = 1,
     timestampUnit = "seconds",
   } = controlProps ?? {};
+  const { control, getFieldState, formState } = useFormContext<Record<string, number | null>>();
+  const { field } = useController({
+    name: fieldName,
+    control,
+    rules: {
+      required: required ? t("fields.datetime.validation.required") : false,
+    },
+  });
+  const [open, setOpen] = useState(false);
+  const baseId = useId();
+  const dateFieldId = `${baseId}-date`;
+  const timeFieldId = `${baseId}-time`;
+  const { label = t("fields.datetime.label"), contentClassName, ...restFieldProps } = fieldProps ?? {};
 
   const selectedDate = useMemo(() => {
     return getDateFromTimestamp(field.value, timestampUnit);

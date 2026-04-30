@@ -11,7 +11,10 @@
     },
     "datetime": {
       "label": "Date and time",
-      "placeholder": "Select date"
+      "placeholder": "Select date",
+      "validation": {
+        "required": "Please select date and time"
+      }
     },
     "enabled": {
       "label": "Enabled"

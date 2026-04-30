@@ -9,14 +9,10 @@ import { Input } from "@/components/ui/input";
 import type { FieldProps } from ".";
 import { cn } from "@/lib/utils";
 
-type DirectoryFieldProps = FieldProps<
-  typeof Input,
-  { required?: boolean }
->;
+type DirectoryFieldProps = FieldProps<typeof Input & { required?: boolean }>;
 
 export function DirectoryField({
   fieldName = "directory",
-  required = true,
   fieldProps,
   controlProps,
 }: DirectoryFieldProps) {
@@ -24,6 +20,7 @@ export function DirectoryField({
   const { register, getFieldState, formState, setValue } = useFormContext();
   const {
     className: controlClassName,
+    required = true,
     placeholder = t("fields.directory.placeholder"),
     ...restControlProps
   } = controlProps ?? {};

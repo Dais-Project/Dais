@@ -32,6 +32,7 @@ export function IntervalPickerField({
         value={field.value}
         onChange={field.onChange}
         className={controlProps?.className}
+        disabled={controlProps?.disabled}
       />
     </FieldItem>
   );

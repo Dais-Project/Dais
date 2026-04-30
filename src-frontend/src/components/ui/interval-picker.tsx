@@ -22,33 +22,37 @@ type UnitOption = {
   options: number[];
 };
 
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 60 * 60;
+const SECONDS_PER_DAY = 24 * 60 * 60;
+
 const PRESET_OPTIONS: IntervalOption[] = [
-  { labelKey: "interval_picker.presets.1_minute", value: 1 },
-  { labelKey: "interval_picker.presets.5_minutes", value: 5 },
-  { labelKey: "interval_picker.presets.10_minutes", value: 10 },
-  { labelKey: "interval_picker.presets.30_minutes", value: 30 },
-  { labelKey: "interval_picker.presets.1_hour", value: 60 },
-  { labelKey: "interval_picker.presets.4_hours", value: 240 },
-  { labelKey: "interval_picker.presets.1_day", value: 1440 },
+  { labelKey: "interval_picker.presets.1_minute", value: SECONDS_PER_MINUTE },
+  { labelKey: "interval_picker.presets.5_minutes", value: 5 * SECONDS_PER_MINUTE },
+  { labelKey: "interval_picker.presets.10_minutes", value: 10 * SECONDS_PER_MINUTE },
+  { labelKey: "interval_picker.presets.30_minutes", value: 30 * SECONDS_PER_MINUTE },
+  { labelKey: "interval_picker.presets.1_hour", value: SECONDS_PER_HOUR },
+  { labelKey: "interval_picker.presets.4_hours", value: 4 * SECONDS_PER_HOUR },
+  { labelKey: "interval_picker.presets.1_day", value: SECONDS_PER_DAY },
 ];
 
 const UNIT_OPTIONS: UnitOption[] = [
   {
     labelKey: "interval_picker.units.minutes",
     value: "minutes",
-    multiplier: 1,
+    multiplier: SECONDS_PER_MINUTE,
     options: [1, 2, 3, 5, 10, 15, 20, 30, 45],
   },
   {
     labelKey: "interval_picker.units.hours",
     value: "hours",
-    multiplier: 60,
+    multiplier: SECONDS_PER_HOUR,
     options: [1, 2, 3, 4, 6, 8, 12],
   },
   {
     labelKey: "interval_picker.units.days",
     value: "days",
-    multiplier: 1440,
+    multiplier: SECONDS_PER_DAY,
     options: [1, 2, 3, 5, 7, 14, 30],
   },
 ];
@@ -59,18 +63,19 @@ interface IntervalPickerProps {
   value?: number;
   onChange?: (value: number) => void;
   className?: string;
+  disabled?: boolean;
 }
 
-function formatInterval(minutes: number, t: (key: string, options?: Record<string, number>) => string): string {
-  if (minutes % 1440 === 0 && minutes >= 1440) {
-    return t("interval_picker.format.days", { count: minutes / 1440 });
+function formatInterval(seconds: number, t: (key: string, options?: Record<string, number>) => string): string {
+  if (seconds % SECONDS_PER_DAY === 0 && seconds >= SECONDS_PER_DAY) {
+    return t("interval_picker.format.days", { count: seconds / SECONDS_PER_DAY });
   }
 
-  if (minutes % 60 === 0 && minutes >= 60) {
-    return t("interval_picker.format.hours", { count: minutes / 60 });
+  if (seconds % SECONDS_PER_HOUR === 0 && seconds >= SECONDS_PER_HOUR) {
+    return t("interval_picker.format.hours", { count: seconds / SECONDS_PER_HOUR });
   }
 
-  return t("interval_picker.format.minutes", { count: minutes });
+  return t("interval_picker.format.minutes", { count: seconds / SECONDS_PER_MINUTE });
 }
 
 function getUnitForValue(value: number): TimeUnit {
@@ -85,7 +90,12 @@ function isPresetValue(value: number): boolean {
   return PRESET_OPTIONS.some((option) => option.value === value);
 }
 
-export function IntervalPicker({ value = 5, onChange, className }: IntervalPickerProps) {
+export function IntervalPicker({
+  value = 5 * SECONDS_PER_MINUTE,
+  onChange,
+  className,
+  disabled = false,
+}: IntervalPickerProps) {
   const { t } = useTranslation(COMPONENTS_UI_NAMESPACE);
   const [open, setOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<TimeUnit>(getUnitForValue(value));
@@ -151,6 +161,7 @@ export function IntervalPicker({ value = 5, onChange, className }: IntervalPicke
           variant="outline"
           className={cn("w-72 justify-between", className)}
           type="button"
+          disabled={disabled}
         >
           <span className="flex items-center gap-2">
             <ClockIcon className="size-4 text-muted-foreground" />
