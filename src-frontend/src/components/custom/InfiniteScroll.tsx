@@ -65,7 +65,6 @@ export function InfiniteVirtualScroll<T, P>({
   query,
   itemHeight,
   overscan = 3,
-  gap,
   paddingStart,
   paddingEnd,
   className,
@@ -105,7 +104,6 @@ export function InfiniteVirtualScroll<T, P>({
     getScrollElement: () => scrollRef.current,
     estimateSize: () => itemHeight,
     onChange: handleScroll,
-    gap,
     paddingStart,
     paddingEnd,
   });

@@ -34,7 +34,18 @@ export function TaskPanel({ id, isActive, metadata }: TabPanelProps<TaskTabMetad
         </AsyncBoundary>
       );
     case "schedule":
-      // TODO: implement this
-      return null;
+      return (
+        <AsyncBoundary skeleton={<TaskSessionViewSkeleton />}>
+          <AgentTaskProvider taskId={metadata.id} taskType={metadata.type}>
+            <TaskTabIndicator tabId={id} isActive={isActive} />
+            <Activity mode={activityVisible(isActive)}>
+              <TaskSessionView
+                workspaceId={metadata.workspace_id}
+                shouldStartStream={false}
+              />
+            </Activity>
+          </AgentTaskProvider>
+        </AsyncBoundary>
+      );
   }
 }

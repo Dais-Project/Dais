@@ -1,3 +1,4 @@
+from dais_sdk.types import UserMessage
 from sqlalchemy import select
 from src.db.models import tasks as task_models
 from src.schemas.tasks import schedule as schedule_schemas
@@ -110,7 +111,10 @@ class RunRecordService(ServiceBase):
         return run_record
 
     async def create_run_record(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
-        new_run_record = task_models.RunRecord(**data.model_dump())
+        new_run_record = task_models.RunRecord(
+            messages=[UserMessage(content=data.initial_message)],
+            schedule_id=data.schedule_id,
+        )
 
         self._db_session.add(new_run_record)
         await self._db_session.flush()

@@ -52,15 +52,11 @@ function openScheduleRecordTab(schedule: ScheduleRead, record: RunRecordBrief) {
 type ScheduleRecordItemProps = {
   record: RunRecordBrief;
   schedule: ScheduleRead;
-  index: number;
-  itemRef: React.Ref<HTMLDivElement>;
 };
 
 function ScheduleRecordItem({
   record,
   schedule,
-  index,
-  itemRef,
 }: ScheduleRecordItemProps) {
   const { t } = useTranslation(TABS_SCHEDULE_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
@@ -68,10 +64,8 @@ function ScheduleRecordItem({
   return (
     <ActionableItem>
       <ActionableItemTrigger
-        ref={itemRef}
         className="cursor-pointer border rounded"
         onClick={() => openScheduleRecordTab(schedule, record)}
-        data-index={index}
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
@@ -138,16 +132,14 @@ function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
         selectItems={(page) => page.items}
         getItemKey={(record) => record.id}
         itemHeight={65}
-        gap={4}
         paddingEnd={2}
         itemRender={({ item, index, key, ref }) => (
-          <ScheduleRecordItem
-            key={key}
-            record={item}
-            schedule={schedule}
-            index={index}
-            itemRef={ref}
-          />
+          <div ref={ref} key={key} className="pb-2" data-index={index}>
+            <ScheduleRecordItem
+              record={item}
+              schedule={schedule}
+            />
+          </div>
         )}
       />
     </div>

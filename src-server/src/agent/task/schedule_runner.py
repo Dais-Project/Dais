@@ -103,7 +103,10 @@ class ScheduleRunner:
     async def trigger(self, schedule_id: int):
         async with db_context() as db_session:
             schedule = await ScheduleService(db_session).get_schedule_by_id(schedule_id)
-            record = await RunRecordService(db_session).create_run_record(schedule_schemas.RunRecordCreate(schedule_id=schedule_id))
+            record = await RunRecordService(db_session).create_run_record(
+                schedule_schemas.RunRecordCreate(
+                    schedule_id=schedule.id,
+                    initial_message=schedule.task))
         schedule = schedule_schemas.ScheduleRead.model_validate(schedule)
         record = schedule_schemas.RunRecordRead.model_validate(record)
         job = ScheduleJob(schedule, record)

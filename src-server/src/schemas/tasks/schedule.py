@@ -37,7 +37,7 @@ class RunRecordBase(DTOBase):
     schedule_id: int
 
 class RunRecordCreate(RunRecordBase):
-    pass
+    initial_message: str
 
 class RunRecordBrief(RunRecordBase):
     id: int
