@@ -168,10 +168,10 @@ export function DateTimeField({
       {...restFieldProps}
       label={label}
       fieldState={getFieldState(fieldName, formState)}
-      contentClassName={cn("max-w-none justify-start", contentClassName)}
+      contentClassName={cn("max-w-none", contentClassName)}
     >
-      <FieldGroup className={cn("flex-row gap-3", className)}>
-        <Field className="min-w-0 flex-1">
+      <FieldGroup className={cn("flex-row gap-3 justify-end", className)}>
+        <Field className="w-fit">
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -185,7 +185,7 @@ export function DateTimeField({
                 <ChevronDownIcon className="size-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+            <PopoverContent className="w-auto overflow-hidden p-0" align="end">
               <Calendar
                 mode="single"
                 selected={selectedDate ?? undefined}
@@ -196,7 +196,7 @@ export function DateTimeField({
             </PopoverContent>
           </Popover>
         </Field>
-        <Field className="w-32 shrink-0">
+        <Field className="w-auto shrink-0">
           <Input
             id={timeFieldId}
             type="time"

@@ -6,6 +6,7 @@ import { IntervalPicker } from "@/components/ui/interval-picker";
 import { FORM_NAMESPACE } from "@/i18n/resources";
 
 import type { FieldProps } from ".";
+import { cn } from "@/lib/utils";
 
 type IntervalPickerFieldProps = FieldProps<typeof IntervalPicker>;
 
@@ -31,7 +32,7 @@ export function IntervalPickerField({
       <IntervalPicker
         value={field.value}
         onChange={field.onChange}
-        className={controlProps?.className}
+        className={cn(controlProps?.className, "w-fit")}
         disabled={controlProps?.disabled}
       />
     </FieldItem>

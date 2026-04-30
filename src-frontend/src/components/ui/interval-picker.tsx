@@ -159,7 +159,7 @@ export function IntervalPicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("w-72 justify-between", className)}
+          className={cn("justify-between", className)}
           type="button"
           disabled={disabled}
         >
@@ -175,9 +175,43 @@ export function IntervalPicker({
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-2">
-        <div className="space-y-3">
-          <div className="space-y-2">
+      <PopoverContent align="end" className="w-lg p-2">
+        <div className="flex gap-3">
+          <div className="w-40 shrink-0 space-y-2 border-r pr-3">
+            <div className="px-1 text-muted-foreground text-xs">
+              {t("interval_picker.custom_label")}
+            </div>
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              className="grid w-full grid-cols-3"
+              value={selectedUnit}
+              onValueChange={handleUnitChange}
+            >
+              {UNIT_OPTIONS.map((unitOption) => (
+                <ToggleGroupItem key={unitOption.value} value={unitOption.value} className="w-full">
+                  {t(unitOption.labelKey)}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              spacing={1}
+              className="grid w-full grid-cols-3"
+              value={isPresetValue(value) ? "" : selectedCustomValue}
+              onValueChange={handleCustomValueChange}
+            >
+              {currentUnitConfig.options.map((option) => (
+                <ToggleGroupItem key={option} value={option.toString()} className="w-full">
+                  {option}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+
+          <div className="min-w-0 flex-1 space-y-2">
             <div className="px-1 text-muted-foreground text-xs">
               {t("interval_picker.preset_label")}
             </div>
@@ -199,41 +233,6 @@ export function IntervalPicker({
                 );
               })}
             </div>
-          </div>
-
-          <div className="border-t" />
-
-          <div className="space-y-2">
-            <div className="px-1 text-muted-foreground text-xs">
-              {t("interval_picker.custom_label")}
-            </div>
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              className="grid w-full grid-cols-3"
-              value={selectedUnit}
-              onValueChange={handleUnitChange}
-            >
-              {UNIT_OPTIONS.map((unitOption) => (
-                <ToggleGroupItem key={unitOption.value} value={unitOption.value} className="w-full">
-                  {t(unitOption.labelKey)}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              className="grid w-full grid-cols-4"
-              value={isPresetValue(value) ? "" : selectedCustomValue}
-              onValueChange={handleCustomValueChange}
-            >
-              {currentUnitConfig.options.map((option) => (
-                <ToggleGroupItem key={option} value={option.toString()} className="w-full">
-                  {option}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
           </div>
         </div>
       </PopoverContent>
