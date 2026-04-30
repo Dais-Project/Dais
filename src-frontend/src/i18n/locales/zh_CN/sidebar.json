@@ -166,10 +166,6 @@
       "run_now": "立即执行",
       "view_records": "查看运行记录"
     },
-    "records": {
-      "empty": "暂无运行记录",
-      "record_summary": "消息：{{messages}} · Token：{{tokens}}"
-    },
     "toast": {
       "delete_success_description": "已成功删除计划任务。",
       "delete_success_title": "删除成功",

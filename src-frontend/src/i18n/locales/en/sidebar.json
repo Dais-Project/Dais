@@ -166,10 +166,6 @@
       "run_now": "Run now",
       "view_records": "View records"
     },
-    "records": {
-      "empty": "No run records",
-      "record_summary": "Messages: {{messages}} · Tokens: {{tokens}}"
-    },
     "toast": {
       "delete_success_description": "Schedule deleted successfully.",
       "delete_success_title": "Delete success",

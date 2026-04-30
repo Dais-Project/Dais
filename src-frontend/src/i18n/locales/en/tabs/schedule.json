@@ -48,6 +48,11 @@
       }
     }
   },
+  "records": {
+    "empty": "No run records",
+    "title_with_name": "Run records: {{name}}",
+    "view_detail": "View record details"
+  },
   "toast": {
     "create": {
       "success_description_with_name": "Schedule {{name}} created successfully.",

@@ -47,9 +47,12 @@ type InfiniteVirtualScrollProps<TItem, TPage> = {
   query: UseSuspenseInfiniteQueryResult<InfiniteData<TPage>>;
   selectItems: (page: TPage) => TItem[];
   getItemKey: (item: TItem) => string | number;
-  itemHeight: number,
-  overscan?: number,
-  className?: string,
+  itemHeight: number;
+  overscan?: number;
+  gap?: number;
+  paddingStart?: number;
+  paddingEnd?: number;
+  className?: string;
   itemRender: (props: {
     item: TItem,
     index: number,
@@ -62,6 +65,9 @@ export function InfiniteVirtualScroll<T, P>({
   query,
   itemHeight,
   overscan = 3,
+  gap,
+  paddingStart,
+  paddingEnd,
   className,
   selectItems,
   getItemKey,
@@ -99,6 +105,9 @@ export function InfiniteVirtualScroll<T, P>({
     getScrollElement: () => scrollRef.current,
     estimateSize: () => itemHeight,
     onChange: handleScroll,
+    gap,
+    paddingStart,
+    paddingEnd,
   });
   const vItems = virtualizer.getVirtualItems();
 
