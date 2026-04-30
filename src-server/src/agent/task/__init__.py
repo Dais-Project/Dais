@@ -1,5 +1,4 @@
 import asyncio
-from enum import StrEnum, auto
 from typing import Callable
 from collections.abc import AsyncGenerator
 from loguru import logger
@@ -21,18 +20,12 @@ from ..exception_handlers import (
 )
 from ..prompts import USER_DENIED_TOOL_CALL_RESULT, USER_IGNORED_TOOL_CALL_RESULT
 from ..types import (
-    AgentGenerator, UserApprovalStatus, is_agent_tool_metadata,
+    AgentGenerator, UserApprovalStatus, StopReason, is_agent_tool_metadata,
     ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskInterruptedEvent, TaskDoneEvent, ToolExecutedEvent, ErrorEvent
 )
 
 
 class MessageNotFoundError(Exception): ...
-
-class TaskStopReason(StrEnum):
-    ERROR = auto()
-    INTERRUPTED = auto()
-    PENDING_APPROVE = auto()
-    COMPLETED = auto()
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -205,17 +198,17 @@ class AgentTask:
             if not _exited_by_generator_close:
                 yield TaskDoneEvent()
 
-    async def run_until_done(self) -> TaskStopReason:
+    async def run_until_done(self) -> StopReason:
         async for event in self.run():
             if isinstance(event, ErrorEvent):
-                return TaskStopReason.ERROR
+                return StopReason.ERROR
             if isinstance(event, TaskInterruptedEvent):
-                return TaskStopReason.INTERRUPTED
+                return StopReason.INTERRUPTED
 
         if self.has_pending_tool_calls():
-            return TaskStopReason.PENDING_APPROVE
+            return StopReason.PENDING_APPROVE
 
-        return TaskStopReason.COMPLETED
+        return StopReason.COMPLETED
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()

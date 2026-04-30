@@ -53,6 +53,24 @@
     "title_with_name": "运行记录：{{name}}",
     "view_detail": "查看运行记录详情"
   },
+  "notification": {
+    "completed": {
+      "title": "计划任务已完成",
+      "body_with_name": "计划任务 {{name}} 已成功执行完成。"
+    },
+    "error": {
+      "title": "计划任务执行失败",
+      "body_with_name": "计划任务 {{name}} 在执行过程中失败。"
+    },
+    "interrupted": {
+      "title": "计划任务已中断",
+      "body_with_name": "计划任务 {{name}} 在完成前被中断。"
+    },
+    "pending_approve": {
+      "title": "计划任务等待审批",
+      "body_with_name": "计划任务 {{name}} 正在等待你的审批以继续。"
+    }
+  },
   "toast": {
     "create": {
       "success_description_with_name": "已成功创建计划任务 {{name}}。",

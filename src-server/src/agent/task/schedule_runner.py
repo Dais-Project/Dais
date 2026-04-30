@@ -1,5 +1,6 @@
 import asyncio
 import time
+from typing import Callable, Coroutine
 from loguru import logger
 from src.db import db_context
 from src.db.models.tasks.schedule import CronConfig, PollingConfig, DelayedConfig
@@ -8,16 +9,25 @@ from src.schemas.tasks import schedule as schedule_schemas
 from src.services.schedule import RunRecordService, ScheduleService
 from src.utils import Scheduler
 from . import AgentTask
+from ..types import ScheduleRunCompletedEvent
 from ..context import AgentContext
 
 
 _logger = logger.bind(name="ScheduleRunner")
 
+type JobCompletedCallback = Callable[[ScheduleRunCompletedEvent], Coroutine]
+
 class ScheduleJob:
-    def __init__(self, schedule: schedule_schemas.ScheduleRead, record: schedule_schemas.RunRecordRead):
+    def __init__(
+        self,
+        schedule: schedule_schemas.ScheduleRead,
+        record: schedule_schemas.RunRecordRead,
+        on_job_completed: JobCompletedCallback,
+    ):
         self.id = record.id
-        self.schedule_name = schedule.name
         self.created_at = int(time.time())
+        self._schedule = schedule
+        self._on_job_completed = on_job_completed
         self._runtime_context = task_runtime_schemas.TaskRuntimeContext(
             id=record.id,
             type=task_runtime_schemas.TaskType.SCHEDULE,
@@ -30,7 +40,7 @@ class ScheduleJob:
     def snapshot(self) -> schedule_schemas.ScheduleRunningJob:
         return schedule_schemas.ScheduleRunningJob(
             id=self.id,
-            name=self.schedule_name,
+            name=self._schedule.name,
             created_at=self.created_at,
         )
 
@@ -38,8 +48,15 @@ class ScheduleJob:
         ctx = await AgentContext.create(self._runtime_context)
         task = AgentTask(ctx)
         try:
-            await task.run_until_done()
-            # TODO: notify user
+            stop_reason = await task.run_until_done()
+            await self._on_job_completed(ScheduleRunCompletedEvent(
+                event_id="SCHEDULE_RUN_COMPLETED",
+                schedule_id=self._schedule.id,
+                schedule_name=self._schedule.name,
+                workspace_id=self._schedule.workspace_id,
+                run_record_id=self.id,
+                status=stop_reason,
+            ))
         except asyncio.CancelledError:
             await task.stop()
             raise
@@ -87,9 +104,10 @@ class ScheduleJobPool:
             await asyncio.gather(*tasks, return_exceptions=True)
 
 class ScheduleRunner:
-    def __init__(self):
+    def __init__(self, on_job_completed: JobCompletedCallback):
         self._scheduler = Scheduler()
         self._task_pool = ScheduleJobPool()
+        self._on_job_completed = on_job_completed
 
     async def load_schedules(self):
         async with db_context() as db_session:
@@ -109,7 +127,7 @@ class ScheduleRunner:
                     initial_message=schedule.task))
         schedule = schedule_schemas.ScheduleRead.model_validate(schedule)
         record = schedule_schemas.RunRecordRead.model_validate(record)
-        job = ScheduleJob(schedule, record)
+        job = ScheduleJob(schedule, record, self._on_job_completed)
         await self._task_pool.add(job)
 
     async def append(self, schedule: schedule_schemas.ScheduleRead):
@@ -134,7 +152,15 @@ class ScheduleRunner:
         await self._task_pool.shutdown()
         self._scheduler.shutdown()
 
-__instance = ScheduleRunner()
+__instance = None
+
+def init_schedule_runner(on_job_completed: JobCompletedCallback) -> ScheduleRunner:
+    global __instance
+    __instance = ScheduleRunner(on_job_completed)
+    return __instance
+
 def use_schedule_runner() -> ScheduleRunner:
     global __instance
+    if __instance is None:
+        raise ValueError()
     return __instance

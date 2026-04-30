@@ -1,5 +1,6 @@
 import type { DispatcherEventData } from "@/api/generated/schemas";
 import { createSseStream } from "./sse";
+import { API_BASE } from "@/api";
 
 type DispatcherEvent = DispatcherEventData["event_id"];
 
@@ -65,7 +66,7 @@ class _SseDispatcher {
           return;
         }
 
-        this.emit(data.event_id, data);
+        this.emit(data.event_id!, data);
       },
     });
   }
@@ -77,4 +78,5 @@ class _SseDispatcher {
   }
 }
 
+export const SSE_ENDPOINT = new URL("/api/events", API_BASE);
 export default new _SseDispatcher();

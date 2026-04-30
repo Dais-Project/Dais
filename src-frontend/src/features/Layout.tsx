@@ -11,6 +11,7 @@ import { SideBar } from "./SideBar";
 import { Tabs } from "./Tabs";
 import { TaskSessionViewSkeleton } from "./Tabs/TaskPanel/views/TaskSessionView";
 import { SideBarListSkeleton } from "./SideBar/components/SideBarListSkeleton";
+import { useScheduleNotificationListener } from "./sse-listeners/schedule-notification-listener";
 
 function SideBarSkeleton() {
   return (
@@ -59,6 +60,8 @@ export function LayoutSkeleton() {
 
 export function Layout() {
   use(BackendReadyPromise);
+
+  useScheduleNotificationListener();
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "panels",

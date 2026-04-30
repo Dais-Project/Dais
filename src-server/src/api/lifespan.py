@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Coroutine, TypedDict
 from fastapi import FastAPI
 from src.agent.skills import SkillMaterializer
-from src.agent.task.schedule_runner import use_schedule_runner
+from src.agent.task.schedule_runner import init_schedule_runner
 from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
 from src.services.markdown_cache import MarkdownCacheService
@@ -41,7 +41,7 @@ class BackgroundTaskManager:
 class LifespanManager:
     def __init__(self):
         self.sse_dispatcher = SseDispatcher()
-        self.schedule_runner = use_schedule_runner()
+        self.schedule_runner = init_schedule_runner(self.sse_dispatcher.send)
         self.app_setting_manager = use_app_setting_manager()
         self.mcp_toolset_manager = use_mcp_toolset_manager()
         self.background_task_manager = BackgroundTaskManager()
