@@ -185,13 +185,15 @@ export function DateTimeField({
                 <ChevronDownIcon className="size-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto overflow-hidden p-0" align="end">
+            <PopoverContent className="w-auto overflow-hidden p-0" side="left" align="start">
               <Calendar
                 mode="single"
                 selected={selectedDate ?? undefined}
                 captionLayout="dropdown"
                 defaultMonth={selectedDate ?? undefined}
                 onSelect={handleDateSelect}
+                startMonth={new Date(1970, 0)}
+                endMonth={new Date(2100, 11)}
               />
             </PopoverContent>
           </Popover>
