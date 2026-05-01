@@ -4,10 +4,17 @@
             "label": "Content"
         },
         "description": {
-            "label": "Description"
+            "label": "Description",
+            "placeholder": "When should the agent use this skill"
+        },
+        "is_enabled": {
+            "label": "Enabled"
         },
         "name": {
             "label": "Name"
+        },
+        "resources": {
+            "label": "Resources"
         },
         "submit": {
             "create": "Create",

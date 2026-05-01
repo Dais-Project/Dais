@@ -5,7 +5,7 @@ import { TABS_SKILL_NAMESPACE } from "@/i18n/resources";
 import type { SkillRead } from "@/api/generated/schemas";
 import { invalidateSkillQueries, useUpdateSkill } from "@/api/skill";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
-import { NameField, RichTextField } from "@/components/custom/form/fields";
+import { CheckboxField, NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { SkillDescriptionField } from "./fields/SkillDescriptionField";
 import { SkillResourceField } from "./fields/SkillResourceField";
@@ -39,6 +39,12 @@ export function SkillEditForm({ skill, onConfirm }: SkillEditFormProps) {
   return (
     <FormShell<SkillEditFormValues> values={formValues} onSubmit={handleSubmit}>
       <NameField fieldName="name" fieldProps={{ label: t("form.name.label") }} />
+
+      <CheckboxField
+        fieldName="is_enabled"
+        fieldProps={{ label: t("form.is_enabled.label") }}
+        controlProps={{ disabled: updateMutation.isPending }}
+      />
 
       <SkillDescriptionField />
 

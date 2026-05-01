@@ -4,10 +4,17 @@
             "label": "内容"
         },
         "description": {
-            "label": "描述"
+            "label": "描述",
+            "placeholder": "Agent 应该何时使用此 skill"
+        },
+        "is_enabled": {
+            "label": "启用"
         },
         "name": {
             "label": "名称"
+        },
+        "resources": {
+            "label": "资源"
         },
         "submit": {
             "create": "创建",
