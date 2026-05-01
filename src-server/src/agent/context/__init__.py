@@ -168,7 +168,8 @@ class AgentContext:
 
     async def compose_system_instruction(self) -> str:
         settings = use_app_setting_manager().settings
-        available_skills = AgentContext._format_skills(self._resource.skills)
+        available_skills = AgentContext._format_skills([
+            skill for skill in self._resource.skills if skill.is_enabled])
         resolved_instructions = self._resolve_instructions()
         notes_index = await self._tool_context.note_manager.get_notes_index()
         resolved_notes_index = notes_index if notes_index is not None else FAILED_TO_LOAD_NOTES_INDEX
