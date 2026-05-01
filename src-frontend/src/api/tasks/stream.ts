@@ -12,6 +12,7 @@ import type {
   ErrorEvent,
   UsageChunkEvent,
   ToolRequirePermissionEvent,
+  TaskType,
 } from "@/api/generated/schemas";
 import { createSseStream } from "@/lib/sse";
 import { API_BASE } from "..";
@@ -114,6 +115,6 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
   return abortController;
 }
 
-export function continueTask(taskId: number, body: ContinueTaskBody, callbacks: TaskSseCallbacks): AbortController {
-  return createTaskSseStream(new URL(`${taskId}/continue`, TASK_STREAM_BASE_URL), body, callbacks);
+export function continueTask(taskType: TaskType, taskId: number, body: ContinueTaskBody, callbacks: TaskSseCallbacks): AbortController {
+  return createTaskSseStream(new URL(`${taskType}/${taskId}/continue`, TASK_STREAM_BASE_URL), body, callbacks);
 }

@@ -158,6 +158,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
   const { state, startStream, cancel } = useTaskStream({
+    taskType,
     taskId,
     agentId,
     sseCallbacksRef,
