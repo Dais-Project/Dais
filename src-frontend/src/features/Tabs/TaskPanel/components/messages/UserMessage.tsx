@@ -1,5 +1,5 @@
 import { PencilIcon } from "lucide-react";
-import { Activity, useEffect, useState } from "react";
+import { Activity, useEffect, useMemo, useState } from "react";
 import { Message, MessageActions, MessageContent } from "@/components/ai-elements/message";
 import { Markdown } from "@/components/custom/Markdown";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { TaskResourceMetadata } from "@/api/generated/schemas";
 import { attachmentCategoryIcons, resolveMimetypeCategory } from "@/components/ai-elements/attachments";
 import { useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
 import { activityVisible } from "@/lib/activity-visible";
+import { escapeXml } from "@/lib/escape-xml";
 import { getGetTaskResourceFileUrl } from "@/api/tasks";
 
 type UserMessageMode = "view" | "edit";
@@ -36,12 +37,11 @@ function formatUserMessage(text: string) {
   }
 
   return segments
-    .map(seg =>
-      seg.code
-        ? seg.content
-        : seg.content.replace(/(?<!\n)\n(?!\n)/g, '  \n')
-    )
-    .join('');
+    .map((seg) => {
+      if (seg.code) return seg.content;
+      return escapeXml(seg.content).replace(/(?<!\n)\n(?!\n)/g, "  \n")
+    })
+    .join("");
 }
 
 function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
@@ -79,6 +79,19 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
   const [draft, setDraft] = useState(text);
   const [editedText, setEditedText] = useState<string | null>(null);
   const viewText = editedText ?? text;
+
+  const formattedText = useMemo(() => formatUserMessage(viewText), [viewText]);
+
+  const handleEditMessage = async () => {
+    if (messageId === null) return;
+    try {
+      await editMessage(messageId, draft);
+      setEditedText(draft);
+      setMode("view");
+    } catch (e) {
+      console.error(`Failed to edit message ${messageId}`, e)
+    }
+  };
 
   useEffect(() => {
     if (mode === "view") {
@@ -123,13 +136,8 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
                   type="button"
                   variant="default"
                   size="sm"
-                  onClick={() => {
-                    if (messageId) {
-                      editMessage(messageId, draft);
-                    }
-                    setEditedText(draft);
-                    setMode("view");
-                  }}
+                  disabled={messageId === null}
+                  onClick={handleEditMessage}
                 >
                   Save
                 </Button>
@@ -137,7 +145,7 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
             </div>
           ) : (
             <Markdown mode={!isStreaming ? "static" : "streaming"} parseIncompleteMarkdown={isStreaming}>
-              {formatUserMessage(viewText)}
+              {formattedText}
             </Markdown>
           )}
         </MessageContent>

@@ -82,10 +82,10 @@ export type AgentTaskState = {
 
 export type AgentTaskActions = {
   setAgentId: (agentId: number) => void;
-  answerTool: (toolCallId: string, answer: string) => void;
-  reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => void;
-  appendMessage: (text: string, attachments: File[]) => void;
-  editMessage: (messageId: string, content: string) => void;
+  answerTool: (toolCallId: string, answer: string) => Promise<void>;
+  reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => Promise<void>;
+  appendMessage: (text: string, attachments: File[]) => Promise<void>;
+  editMessage: (messageId: string, content: string) => Promise<void>;
   continue: () => void;
   cancel: () => void;
 };
@@ -327,25 +327,31 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
     },
   });
 
-  const answerTool = useCallback((toolCallId: string, answer: string) => {
+  const answerTool = useCallback(async (toolCallId: string, answer: string) => {
     if (agentId === null) {
       toast.error("任务失败", { description: "请先选择一个 Agent。" });
       return;
     }
-    answerToolMutation.mutate({ taskId, taskType, data: { call_id: toolCallId, agent_id: agentId, answer } });
+    await answerToolMutation.mutateAsync({
+      taskId, taskType,
+      data: { call_id: toolCallId, agent_id: agentId, answer }
+    });
   }, [answerToolMutation, taskId]);
 
   const reviewTool = useCallback(
-    (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
+    async (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
       if (agentId === null) {
         toast.error("任务失败", { description: "请先选择一个 Agent。" });
         return;
       }
-      toolReviewMutation.mutate({ taskId, taskType, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
+      await toolReviewMutation.mutateAsync({
+        taskId, taskType,
+        data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove }
+      });
     }, [toolReviewMutation, taskId, agentId]
   );
 
-  const appendMessage = useCallback((text: string, attachments: File[]) => {
+  const appendMessage = useCallback(async (text: string, attachments: File[]) => {
     if (agentId === null) {
       toast.error("任务失败", { description: "请先选择一个 Agent。" });
       return;
@@ -355,15 +361,19 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
       message: toSdkMessage(userMessage),
       agent_id: agentId,
     });
-    appendMessageMutation.mutate({ taskId, taskType, data: { body, uploaded_files: attachments } });
+    await appendMessageMutation.mutateAsync({
+      taskId, taskType, data: {
+        body, uploaded_files: attachments
+      }
+    });
   }, [appendMessageMutation, taskId, agentId]);
 
-  const editMessage = useCallback((messageId: string, content: string) => {
+  const editMessage = useCallback(async (messageId: string, content: string) => {
     if (agentId === null) {
       toast.error("任务失败", { description: "请先选择一个 Agent。" });
       return;
     }
-    editMessageMutation.mutate({
+    await editMessageMutation.mutateAsync({
       taskId, taskType, data: {
         message_id: messageId,
         agent_id: agentId,
