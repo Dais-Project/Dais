@@ -7,10 +7,17 @@
       "builder": {
         "title": "Schedule builder",
         "toggle": "Toggle schedule builder",
-        "unsupported": "This cron expression is not supported by the builder yet. Editing the builder will replace it.",
-        "week_hint": "Standard cron supports weekly schedules every week only.",
         "repeat_every": "Repeat every",
         "weekdays": "Execute every week on",
+        "weekday": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        },
         "execution_minute": "Execution minute",
         "execution_time": "Execution time",
         "unit": {

@@ -11,7 +11,10 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FORM_NAMESPACE } from "@/i18n/resources";
+import { DAY_PICKER_LOCALES_MAP } from "@/i18n/locale-maps/day-picker";
+import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { cn } from "@/lib/utils";
+import { useSettingsStore } from "@/stores/settings-store";
 import type { FieldProps } from ".";
 
 type DateTimeFieldProps = FieldProps<{
@@ -114,6 +117,7 @@ export function DateTimeField({
   controlProps,
 }: DateTimeFieldProps) {
   const { t } = useTranslation(FORM_NAMESPACE);
+  const language = useSettingsStore((state) => state.current.language);
   const {
     required = false,
     disabled = false,
@@ -181,7 +185,7 @@ export function DateTimeField({
                 disabled={disabled}
                 className={cn("w-full justify-between font-normal", buttonClassName)}
               >
-                {selectedDate ? format(selectedDate, "PPP") : placeholder}
+                {selectedDate ? format(selectedDate, "PPP", { locale: DATEFNS_LOCALE_MAP[language] }) : placeholder}
                 <ChevronDownIcon className="size-4" />
               </Button>
             </PopoverTrigger>
@@ -194,6 +198,11 @@ export function DateTimeField({
                 onSelect={handleDateSelect}
                 startMonth={new Date(1970, 0)}
                 endMonth={new Date(2100, 11)}
+                locale={DAY_PICKER_LOCALES_MAP[language]}
+                formatters={{
+                  formatMonthDropdown: (date) =>
+                    format(date, "LLLL", { locale: DATEFNS_LOCALE_MAP[language] }),
+                }}
               />
             </PopoverContent>
           </Popover>

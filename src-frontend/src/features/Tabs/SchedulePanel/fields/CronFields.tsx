@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
 import { FieldItem } from "@/components/custom/item/FieldItem";
+import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,16 +45,15 @@ type CronFieldsProps = {
 
 const WEEKDAYS: ReadonlyArray<{
   key: WeekdayKey;
-  label: string;
   cronValue: string;
 }> = [
-    { key: "mon", label: "Mon", cronValue: "1" },
-    { key: "tue", label: "Tue", cronValue: "2" },
-    { key: "wed", label: "Wed", cronValue: "3" },
-    { key: "thu", label: "Thu", cronValue: "4" },
-    { key: "fri", label: "Fri", cronValue: "5" },
-    { key: "sat", label: "Sat", cronValue: "6" },
-    { key: "sun", label: "Sun", cronValue: "0" },
+    { key: "mon", cronValue: "1" },
+    { key: "tue", cronValue: "2" },
+    { key: "wed", cronValue: "3" },
+    { key: "thu", cronValue: "4" },
+    { key: "fri", cronValue: "5" },
+    { key: "sat", cronValue: "6" },
+    { key: "sun", cronValue: "0" },
   ];
 
 const DEFAULT_PARSED_EXPRESSION: ParsedCronExpression = {
@@ -251,7 +251,6 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
   const [executionMinute, setExecutionMinute] = useState(
     DEFAULT_PARSED_EXPRESSION.executionMinute
   );
-  const [isBuilderCompatible, setIsBuilderCompatible] = useState(true);
   const isSyncingFromBuilderRef = useRef(false);
   const emptyFieldState = useMemo(
     () => ({
@@ -273,11 +272,9 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
     const parsed = parseCronExpression(expression);
 
     if (parsed === null) {
-      setIsBuilderCompatible(false);
       return;
     }
 
-    setIsBuilderCompatible(true);
     setIntervalUnit(parsed.intervalUnit);
     setIntervalValue(parsed.intervalValue);
     setSelectedWeekdays(parsed.selectedWeekdays);
@@ -303,7 +300,6 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
     );
 
     setIntervalValue(nextValue);
-    setIsBuilderCompatible(true);
     syncBuilderValue({
       intervalUnit,
       intervalValue: nextValue,
@@ -322,7 +318,6 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
 
     setIntervalUnit(value);
     setIntervalValue(nextValue);
-    setIsBuilderCompatible(true);
     syncBuilderValue({
       intervalUnit: value,
       intervalValue: nextValue,
@@ -340,7 +335,6 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
       );
 
     setSelectedWeekdays(nextSelectedWeekdays);
-    setIsBuilderCompatible(true);
     syncBuilderValue({
       intervalUnit,
       intervalValue,
@@ -354,7 +348,6 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
     const nextValue = clampMinute(Number.parseInt(value, 10) || 0);
 
     setExecutionMinute(nextValue);
-    setIsBuilderCompatible(true);
     syncBuilderValue({
       intervalUnit,
       intervalValue,
@@ -366,7 +359,6 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
 
   function handleExecutionTimeChange(value: string) {
     setExecutionTime(value);
-    setIsBuilderCompatible(true);
     syncBuilderValue({
       intervalUnit,
       intervalValue,
@@ -429,28 +421,27 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
         <FieldItem
           label={t("form.config.builder.weekdays")}
           fieldState={emptyFieldState}
-          description={!isBuilderCompatible ? t("form.config.builder.unsupported") : t("form.config.builder.week_hint")}
         >
           <div className="flex flex-wrap gap-1">
             {WEEKDAYS.map((day) => {
               const isSelected = selectedWeekdays.includes(day.key);
 
               return (
-                <button
+                <Button
                   key={day.key}
                   type="button"
+                  variant={isSelected ? "default" : "secondary"}
+                  size="sm"
                   onClick={() => toggleWeekday(day.key)}
                   className={cn(
-                    "h-7 w-9 rounded text-xs font-medium transition-colors",
-                    isSelected
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    "w-9 px-0 text-xs",
+                    { "text-muted-foreground hover:bg-muted/80": !isSelected }
                   )}
                   aria-pressed={isSelected}
                   disabled={disabled}
                 >
-                  {day.label}
-                </button>
+                  {t(`form.config.builder.weekday.${day.key}`)}
+                </Button>
               );
             })}
           </div>
