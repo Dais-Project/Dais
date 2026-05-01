@@ -5,6 +5,21 @@
       "placeholder": "留空则不绑定 Agent"
     },
     "config": {
+      "builder": {
+        "title": "计划构建器",
+        "toggle": "切换计划构建器",
+        "unsupported": "当前 Cron 表达式暂不受构建器支持，编辑构建器后将替换该表达式。",
+        "week_hint": "标准 Cron 仅支持按每周进行周度调度。",
+        "repeat_every": "重复间隔",
+        "weekdays": "每周执行于",
+        "execution_minute": "执行分钟",
+        "execution_time": "执行时间",
+        "unit": {
+          "hour": "小时",
+          "day": "天",
+          "week": "周"
+        }
+      },
       "expression": {
         "label": "Cron 表达式",
         "placeholder": "*/5 * * * *",
@@ -40,11 +55,11 @@
       "saving": "保存中..."
     },
     "type": {
-      "label": "类型",
+      "label": "计划类型",
       "option": {
-        "cron": "Cron",
-        "polling": "轮询",
-        "delayed": "延迟"
+        "cron": "定期执行",
+        "polling": "循环执行",
+        "delayed": "延时执行"
       }
     }
   },
@@ -63,12 +78,12 @@
       "body_with_name": "计划任务 {{name}} 在执行过程中失败。"
     },
     "interrupted": {
-      "title": "计划任务已中断",
+      "title": "计划任务被中断",
       "body_with_name": "计划任务 {{name}} 在完成前被中断。"
     },
     "pending_approve": {
-      "title": "计划任务等待审批",
-      "body_with_name": "计划任务 {{name}} 正在等待你的审批以继续。"
+      "title": "计划任务等待批准",
+      "body_with_name": "计划任务 {{name}} 正在等待你的批准以继续。"
     }
   },
   "toast": {
