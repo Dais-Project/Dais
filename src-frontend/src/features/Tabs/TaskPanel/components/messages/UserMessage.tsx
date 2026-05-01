@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { API_BASE } from "@/api";
 import { TaskResourceMetadata } from "@/api/generated/schemas";
 import { attachmentCategoryIcons, resolveMimetypeCategory } from "@/components/ai-elements/attachments";
 import { useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
 import { activityVisible } from "@/lib/activity-visible";
+import { getGetTaskResourceFileUrl } from "@/api/tasks";
 
 type UserMessageMode = "view" | "edit";
 
@@ -45,9 +45,9 @@ function formatUserMessage(text: string) {
 }
 
 function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
-  const { taskId } = useAgentTaskState();
+  const { taskId, taskType } = useAgentTaskState();
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = new URL(`/api/tasks/${taskId}/resources/${data.resource_id}`, API_BASE);
+  const resourceUrl = getGetTaskResourceFileUrl(taskType, taskId, data.resource_id);
   const content = (() => {
     switch (resourceType) {
       case "image":

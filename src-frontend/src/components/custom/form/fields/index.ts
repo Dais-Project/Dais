@@ -12,7 +12,9 @@ export type FieldProps<ComponentOrProps, Extra = {}> = {
 } & Extra;
 
 export { CheckboxField } from "./CheckboxField";
+export { DateTimeField } from "./DateTimeField";
 export { DirectoryField } from "./DirectoryField";
+export { IntervalPickerField } from "./IntervalPickerField";
 export { NameField } from "./NameField";
 export { RichTextField } from "./RichTextField";
 export { SelectField } from "./SelectField";

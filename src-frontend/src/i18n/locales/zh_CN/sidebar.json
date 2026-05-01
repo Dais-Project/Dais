@@ -1,4 +1,4 @@
-{
+﻿{
   "agents": {
     "dialog": {
       "delete_description_with_name": "确定要删除 Agent \"{{name}}\" 吗？此操作无法撤销。"
@@ -132,6 +132,59 @@
       "general": "通用",
       "helper_model": "助手模型",
       "providers": "模型服务"
+    }
+  },
+  "schedules": {
+    "dialog": {
+      "delete_description_with_name": "确定要删除计划任务 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "empty": {
+      "description": "您还没有创建任何计划任务。",
+      "no_workspace": {
+        "description": "请先选择一个工作区以查看计划任务。",
+        "title": "未选择工作区"
+      },
+      "title": "暂无计划任务"
+    },
+    "header": {
+      "create_tooltip": "创建计划任务",
+      "title": "计划任务"
+    },
+    "running": {
+      "description_with_created_at": "开始于 {{time}}",
+      "empty": {
+        "description": "当前没有正在运行的计划任务。",
+        "title": "没有运行中的任务"
+      },
+      "open": "打开",
+      "title": "运行中"
+    },
+    "tab": {
+      "create_title": "创建计划任务",
+      "edit_title_with_name": "编辑：{{name}}",
+      "records_title_with_name": "运行记录：{{name}}"
+    },
+    "list": {
+      "delayed_description_with_datetime": "将在 {{datetime}} 执行",
+      "polling_description_with_duration": "每隔 {{duration}} 执行一次"
+    },
+    "menu": {
+      "delete": "删除",
+      "disable": "禁用",
+      "edit": "编辑计划任务",
+      "enable": "启用",
+      "run_now": "立即执行",
+      "view_records": "查看运行记录"
+    },
+    "toast": {
+      "delete_success_description": "已成功删除计划任务。",
+      "delete_success_title": "删除成功",
+      "disable_success_description": "计划任务已禁用。",
+      "disable_success_title": "禁用成功",
+      "enable_success_description": "计划任务已启用。",
+      "enable_success_title": "启用成功",
+      "run_now_success_description": "计划任务已触发执行。",
+      "run_now_success_title": "已触发"
     }
   },
   "tasks": {

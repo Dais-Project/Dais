@@ -11,7 +11,7 @@ relationship = partial(_relationship, lazy="raise")
 from .provider import Provider, LlmModel
 from .agent import Agent
 from .workspace import Workspace, WorkspaceNote
-from .task import Task, TaskResource
+from .tasks import Task, TaskResource, Schedule, RunRecord
 from .toolset import Toolset, Tool
 from .skill import Skill
 from .markdown_cache import MarkdownCache
@@ -21,7 +21,7 @@ __all__ = [
     "Provider", "LlmModel",
     "Agent",
     "Workspace", "WorkspaceNote",
-    "Task", "TaskResource",
+    "Task", "TaskResource", "Schedule", "RunRecord",
     "Toolset", "Tool",
     "Skill",
     "MarkdownCache",

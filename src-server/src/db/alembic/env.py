@@ -2,6 +2,7 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from sqlalchemy.engine import Connection, Engine
 
 from alembic import context
 from src import IS_DEV
@@ -113,6 +114,34 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    external_connectable = config.attributes.get("connection", None)
+
+    if external_connectable is not None:
+        if isinstance(external_connectable, Engine):
+            with external_connectable.connect() as external_connection:
+                context.configure(
+                    connection=external_connection,
+                    target_metadata=target_metadata,
+                    render_as_batch=(external_connection.dialect.name == "sqlite"),
+                    render_item=render_item,
+                )
+
+                with context.begin_transaction():
+                    context.run_migrations()
+            return
+
+        if isinstance(external_connectable, Connection):
+            context.configure(
+                connection=external_connectable,
+                target_metadata=target_metadata,
+                render_as_batch=(external_connectable.dialect.name == "sqlite"),
+                render_item=render_item,
+            )
+
+            with context.begin_transaction():
+                context.run_migrations()
+            return
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

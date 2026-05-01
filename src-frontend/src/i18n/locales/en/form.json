@@ -9,8 +9,18 @@
         "required": "Directory path is required"
       }
     },
+    "datetime": {
+      "label": "Date and time",
+      "placeholder": "Select date",
+      "validation": {
+        "required": "Please select date and time"
+      }
+    },
     "enabled": {
       "label": "Enabled"
+    },
+    "interval": {
+      "label": "Interval"
     },
     "name": {
       "label": "Name",

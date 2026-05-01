@@ -4,6 +4,7 @@ import { applyTheme } from "@/lib/apply-theme";
 import { useSettingsStore } from "@/stores/settings-store";
 import { i18n, resolveLanguage } from "./i18n";
 import { Layout, LayoutSkeleton } from "./features/Layout";
+import sseDispatcher, { SSE_ENDPOINT } from "./lib/sse-dispatcher";
 
 function App() {
   const { current: { theme, language } } = useSettingsStore();
@@ -17,6 +18,12 @@ function App() {
 
     i18n.changeLanguage(nextLanguage);
   }, [language]);
+
+  useEffect(() => {
+    sseDispatcher.connect(SSE_ENDPOINT);
+    return () => sseDispatcher.disconnect();
+  }, []);
+
 
   return (
     <TooltipProvider>

@@ -3,34 +3,34 @@ import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
 import { useLatest } from "ahooks";
-import { useQueryClient } from "@tanstack/react-query";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
-  ErrorEvent,
-  MessageEndEvent,
-  MessageReplaceEvent,
-  MessageStartEvent,
-  TextChunkEvent,
-  ToolCallChunkEvent,
-  ToolCallEndEvent,
-  ToolRequirePermissionEvent,
-  ToolRequireUserResponseEvent,
-  UsageChunkEvent,
+  type ErrorEvent,
+  type MessageEndEvent,
+  type MessageReplaceEvent,
+  type MessageStartEvent,
+  type TaskType,
+  type TextChunkEvent,
+  type ToolCallChunkEvent,
+  type ToolCallEndEvent,
+  type ToolRequirePermissionEvent,
+  type ToolRequireUserResponseEvent,
+  type UsageChunkEvent,
+  type TaskRuntimeContext,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
   type ToolReviewBody,
 } from "@/api/generated/schemas";
 import {
   continueTask,
-  getGetTaskQueryKey,
   type TaskSseCallbacks,
   useAppendTaskMessage,
   useEditTaskMessage,
-  useGetTaskSuspense,
   useToolAnswer,
   useToolReviews,
-} from "@/api/task";
+  useGetTaskRuntimeContextSuspense,
+} from "@/api/tasks";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import { toSdkMessage, uiUserMessageFactory, type SdkMessage } from "@/types/message";
@@ -76,6 +76,7 @@ export type AgentTaskState = {
   usage: TaskUsage;
   messages: UiMessage[];
   taskId: number;
+  taskType: TaskType,
   agentId: number | null;
 };
 
@@ -94,20 +95,21 @@ const AgentTaskActionContext = createContext<AgentTaskActions | null>(null);
 
 type AgentTaskProviderProps = {
   taskId: number;
+  taskType: TaskType,
   children: React.ReactNode;
 };
 
-export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) {
+export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const queryClient = useQueryClient();
   const setActiveTab = useTabsStore((state) => state.setActive);
   const backToCurrentTab = () => setActiveTab((tab) => (
     tab.type === "task" &&
-    !tab.metadata.isDraft &&
+    tab.metadata.type === taskType &&
+    "id" in tab.metadata &&
     tab.metadata.id === taskId
   ));
 
-  const { data } = useGetTaskSuspense(taskId, {
+  const { data } = useGetTaskRuntimeContextSuspense(taskType, taskId, {
     query: {
       staleTime: 0,
       gcTime: 0,
@@ -123,6 +125,13 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
   const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
+
+  const applyRuntimeContext = useCallback((runtimeContext: TaskRuntimeContext) => {
+    setAgentId(runtimeContext.agent_id);
+    setUsage(runtimeContext.usage);
+    setMessages(toUiMessage(runtimeContext.messages));
+    setTodos(findLatestTodoList(runtimeContext.messages) ?? null);
+  }, []);
 
   const latestMessage = useLatest(messages);
 
@@ -149,6 +158,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
   const { state, startStream, cancel } = useTaskStream({
+    taskType,
     taskId,
     agentId,
     sseCallbacksRef,
@@ -275,10 +285,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
     [setData, startStream]
   );
 
-  const handleTaskCancel = useCallback(() => {
-    cancel();
-    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(taskId) });
-  }, [cancel]);
+  const handleTaskCancel = useCallback(() => cancel(), [cancel]);
 
   /* Agent Task Controls */
 
@@ -304,8 +311,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const appendMessageMutation = useAppendTaskMessage({
     mutation: {
-      onSuccess(taskRead) {
-        setMessages(toUiMessage(taskRead.messages));
+      onSuccess(runtimeContext) {
+        applyRuntimeContext(runtimeContext);
         handleTaskContinue();
       }
     }
@@ -313,8 +320,8 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
 
   const editMessageMutation = useEditTaskMessage({
     mutation: {
-      onSuccess(taskRead) {
-        setMessages(toUiMessage(taskRead.messages));
+      onSuccess(runtimeContext) {
+        applyRuntimeContext(runtimeContext);
         handleTaskContinue();
       },
     },
@@ -325,7 +332,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       toast.error("任务失败", { description: "请先选择一个 Agent。" });
       return;
     }
-    answerToolMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, answer } });
+    answerToolMutation.mutate({ taskId, taskType, data: { call_id: toolCallId, agent_id: agentId, answer } });
   }, [answerToolMutation, taskId]);
 
   const reviewTool = useCallback(
@@ -334,7 +341,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
         toast.error("任务失败", { description: "请先选择一个 Agent。" });
         return;
       }
-      toolReviewMutation.mutate({ taskId, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
+      toolReviewMutation.mutate({ taskId, taskType, data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove } });
     }, [toolReviewMutation, taskId, agentId]
   );
 
@@ -348,7 +355,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       message: toSdkMessage(userMessage),
       agent_id: agentId,
     });
-    appendMessageMutation.mutate({ taskId, data: { body, uploaded_files: attachments } });
+    appendMessageMutation.mutate({ taskId, taskType, data: { body, uploaded_files: attachments } });
   }, [appendMessageMutation, taskId, agentId]);
 
   const editMessage = useCallback((messageId: string, content: string) => {
@@ -357,7 +364,7 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       return;
     }
     editMessageMutation.mutate({
-      taskId, data: {
+      taskId, taskType, data: {
         message_id: messageId,
         agent_id: agentId,
         content
@@ -373,9 +380,10 @@ export function AgentTaskProvider({ taskId, children }: AgentTaskProviderProps) 
       usage,
       messages,
       taskId,
+      taskType,
       agentId,
     }),
-    [state, flags, todos, usage, messages, taskId, agentId]
+    [state, flags, todos, usage, messages, taskId, taskType, agentId]
   );
 
   const actionValue = useMemo(

@@ -5,6 +5,7 @@ import { Activity, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentPanel } from "../AgentPanel";
 import { ProviderPanel } from "../ProviderPanel";
+import { SchedulePanel } from "../SchedulePanel";
 import { SkillPanel } from "../SkillPanel";
 import { TaskPanel } from "../TaskPanel";
 import { ToolsetPanel } from "../ToolsetPanel";
@@ -48,6 +49,12 @@ function TabPanelDispatcher({
       return (
         <Activity mode={activityVisible(isActive)}>
           <SkillPanel isActive={isActive} {...tab} />
+        </Activity>
+      );
+    case "schedule":
+      return (
+        <Activity mode={activityVisible(isActive)}>
+          <SchedulePanel isActive={isActive} {...tab} />
         </Activity>
       );
     default:

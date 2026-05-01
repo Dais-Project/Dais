@@ -9,7 +9,7 @@ import {
   useDeleteTask,
   useGetRecentTasksSuspenseInfinite,
   useSummarizeTaskTitle,
-} from "@/api/task";
+} from "@/api/tasks";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";

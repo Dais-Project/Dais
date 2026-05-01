@@ -7,7 +7,7 @@ from dais_sdk.types import (
     ToolCallChunkEvent as SdkToolCallChunkEvent
 )
 from pydantic import BaseModel, Discriminator
-from src.db.models.task import TaskUsage
+from src.db.models import tasks as task_models
 
 
 class MessageStartEvent(BaseModel):
@@ -49,7 +49,7 @@ class UsageChunkEvent(BaseModel):
     event_id: Literal["USAGE_CHUNK"] = "USAGE_CHUNK"
 
     @classmethod
-    def from_task_usage(cls, usage: TaskUsage) -> Self:
+    def from_task_usage(cls, usage: task_models.TaskUsage) -> Self:
         return cls(
             input_tokens=usage.input_tokens,
             output_tokens=usage.output_tokens,

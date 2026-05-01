@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agent.notes.manager import NoteManager
 from src.db.models.markdown_cache import MarkdownCache
-from src.db.models.task import Task
-from src.db.models.workspace import WorkspaceNote
+from src.db.models import tasks as task_models
+from src.db.models import workspace as workspace_models
 from src.schemas import workspace as workspace_schemas
 from src.services.exceptions import ServiceErrorCode
 from src.services.workspace import WorkspaceNotFoundError, WorkspaceService
@@ -151,9 +151,9 @@ class TestWorkspaceService:
         assert not note_path.exists()
 
         note_in_db = await db_session.scalar(
-            select(WorkspaceNote).where(WorkspaceNote.id == note_id)
+            select(workspace_models.WorkspaceNote).where(workspace_models.WorkspaceNote.id == note_id)
         )
-        task_in_db = await db_session.scalar(select(Task).where(Task.id == task.id))
+        task_in_db = await db_session.scalar(select(task_models.Task).where(task_models.Task.id == task.id))
         cache_in_db = await db_session.scalar(
             select(MarkdownCache).where(MarkdownCache.id == cache.id)
         )

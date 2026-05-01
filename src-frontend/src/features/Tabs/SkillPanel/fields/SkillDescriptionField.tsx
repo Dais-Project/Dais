@@ -20,6 +20,7 @@ export function SkillDescriptionField() {
       <Textarea
         {...register("description")}
         minRows={2}
+        // TODO: i18n
         placeholder="Agent 应该何时使用此 skill"
         className="w-full min-w-0 max-h-36 resize-none"
       />

@@ -1,15 +1,16 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import TypedDict
 from pathlib import Path
+from typing import Coroutine, TypedDict
 from fastapi import FastAPI
-from src.settings import use_app_setting_manager
 from src.agent.skills import SkillMaterializer
-from src.agent.tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
+from src.agent.task.schedule_runner import init_schedule_runner
+from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
-from src.services.workspace import WorkspaceService
 from src.services.markdown_cache import MarkdownCacheService
+from src.services.workspace import WorkspaceService
+from src.settings import use_app_setting_manager
 from .sse_dispatcher import SseDispatcher
 
 
@@ -17,15 +18,40 @@ class AppState(TypedDict):
     sse_dispatcher: SseDispatcher
     mcp_toolset_manager: McpToolsetManager
 
+
+class BackgroundTaskManager:
+    def __init__(self):
+        self._tasks: list[asyncio.Task] = []
+
+    def add_task(self, coroutine: Coroutine) -> asyncio.Task:
+        task = asyncio.create_task(coroutine)
+        self._tasks.append(task)
+        return task
+
+    async def shutdown(self) -> None:
+        for task in self._tasks:
+            if not task.done():
+                task.cancel()
+
+        if self._tasks:
+            await asyncio.gather(*self._tasks, return_exceptions=True)
+
+        self._tasks.clear()
+
 class LifespanManager:
     def __init__(self):
         self.sse_dispatcher = SseDispatcher()
+        self.schedule_runner = init_schedule_runner(self.sse_dispatcher.send)
         self.app_setting_manager = use_app_setting_manager()
         self.mcp_toolset_manager = use_mcp_toolset_manager()
-        self._background_tasks: list[asyncio.Task] = []
+        self.background_task_manager = BackgroundTaskManager()
 
     async def _init_resources(self):
-        asyncio.create_task(SkillMaterializer.materialize_skills())
+        self.background_task_manager.add_task(SkillMaterializer.materialize_skills())
+        self.background_task_manager.add_task(self.schedule_runner.load_schedules())
+        self.background_task_manager.add_task(self.mcp_toolset_manager.connect_mcp_servers())
+        self.background_task_manager.add_task(self._clear_unused_cache())
+
         await self.app_setting_manager.initialize()
 
         async with db_context() as db_session:
@@ -45,11 +71,6 @@ class LifespanManager:
         # --- Startup ---
         await self._init_resources()
 
-        self._background_tasks.append(
-            asyncio.create_task(self.mcp_toolset_manager.connect_mcp_servers()))
-        self._background_tasks.append(
-            asyncio.create_task(self._clear_unused_cache()))
-
         try:
             yield AppState(
                 sse_dispatcher=self.sse_dispatcher,
@@ -59,12 +80,8 @@ class LifespanManager:
             await self._shutdown()
 
     async def _shutdown(self):
-        for task in self._background_tasks:
-            if not task.done():
-                task.cancel()
-
-        if self._background_tasks:
-            await asyncio.gather(*self._background_tasks, return_exceptions=True)
+        await self.schedule_runner.shutdown()
+        await self.background_task_manager.shutdown()
 
         await self.mcp_toolset_manager.disconnect_mcp_servers()
         await self.app_setting_manager.persist()

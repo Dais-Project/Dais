@@ -1,8 +1,8 @@
-from enum import Enum
+from enum import StrEnum
 from src.agent.tool.toolset_wrapper.mcp_toolset import McpConnectErrorCode
 
 
-class ApiErrorCode(str, Enum):
+class ApiErrorCode(StrEnum):
     TOOL_CALL_NOT_FOUND = "TOOL_CALL_NOT_FOUND"
     CANNOT_CREATE_BUILTIN_TOOLSET = "CANNOT_CREATE_BUILTIN_TOOLSET"
 

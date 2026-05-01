@@ -7,7 +7,7 @@ from . import IS_DEV
 from .api import app
 from .db import migrate_db
 from .logger import get_log_level, setup_logging
-from .parent_watchdog import ParentWatchdog
+from .utils import ParentWatchdog
 
 
 def prevent_port_occupancy(port: int):

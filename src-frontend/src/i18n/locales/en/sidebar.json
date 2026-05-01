@@ -134,6 +134,59 @@
       "providers": "Model providers"
     }
   },
+  "schedules": {
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete schedule \"{{name}}\"? This action cannot be undone."
+    },
+    "empty": {
+      "description": "You haven't created any schedules yet.",
+      "no_workspace": {
+        "description": "Please select a workspace first to view schedules.",
+        "title": "No workspace selected"
+      },
+      "title": "No schedules"
+    },
+    "header": {
+      "create_tooltip": "Create new schedule",
+      "title": "Schedules"
+    },
+    "running": {
+      "description_with_created_at": "Started {{time}}",
+      "empty": {
+        "description": "There are no running schedule tasks right now.",
+        "title": "No running tasks"
+      },
+      "open": "Open",
+      "title": "Running"
+    },
+    "tab": {
+      "create_title": "Create schedule",
+      "edit_title_with_name": "Edit: {{name}}",
+      "records_title_with_name": "Run records: {{name}}"
+    },
+    "list": {
+      "delayed_description_with_datetime": "Run at {{datetime}}",
+      "polling_description_with_duration": "Run every {{duration}}"
+    },
+    "menu": {
+      "delete": "Delete",
+      "disable": "Disable",
+      "edit": "Edit schedule",
+      "enable": "Enable",
+      "run_now": "Run now",
+      "view_records": "View records"
+    },
+    "toast": {
+      "delete_success_description": "Schedule deleted successfully.",
+      "delete_success_title": "Delete success",
+      "disable_success_description": "Schedule disabled successfully.",
+      "disable_success_title": "Disable success",
+      "enable_success_description": "Schedule enabled successfully.",
+      "enable_success_title": "Enable success",
+      "run_now_success_description": "Schedule run has been triggered.",
+      "run_now_success_title": "Triggered"
+    }
+  },
   "tasks": {
     "dialog": {
       "delete_description_with_name": "Are you sure you want to delete task \"{{name}}\"? This action cannot be undone."

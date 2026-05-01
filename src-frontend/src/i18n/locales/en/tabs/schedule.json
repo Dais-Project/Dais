@@ -1,0 +1,105 @@
+{
+  "form": {
+    "agent_id": {
+      "label": "Agent"
+    },
+    "config": {
+      "builder": {
+        "title": "Schedule builder",
+        "toggle": "Toggle schedule builder",
+        "repeat_every": "Repeat every",
+        "weekdays": "Execute every week on",
+        "weekday": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        },
+        "execution_minute": "Execution minute",
+        "execution_time": "Execution time",
+        "unit": {
+          "hour": "Hour",
+          "day": "Day",
+          "week": "Week"
+        }
+      },
+      "expression": {
+        "label": "Cron expression",
+        "placeholder": "*/5 * * * *",
+        "required": "Please enter cron expression"
+      },
+      "interval_sec": {
+        "label": "Polling interval (sec)",
+        "placeholder": "60",
+        "required": "Please enter polling interval",
+        "min": "Polling interval must be greater than 0"
+      },
+      "run_at": {
+        "label": "Run at",
+        "required": "Please select run time"
+      }
+    },
+    "is_enabled": {
+      "label": "Enabled"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Enter schedule name"
+    },
+    "task": {
+      "label": "Task",
+      "placeholder": "Enter task content",
+      "required": "Please enter task content"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "type": {
+      "label": "Type",
+      "option": {
+        "cron": "Scheduled",
+        "polling": "Recurring",
+        "delayed": "Delayed"
+      }
+    }
+  },
+  "records": {
+    "empty": "No run records",
+    "title_with_name": "Run records: {{name}}",
+    "view_detail": "View record details"
+  },
+  "notification": {
+    "completed": {
+      "title": "Schedule completed",
+      "body_with_name": "Schedule {{name}} completed successfully."
+    },
+    "error": {
+      "title": "Schedule failed",
+      "body_with_name": "Schedule {{name}} failed during execution."
+    },
+    "interrupted": {
+      "title": "Schedule interrupted",
+      "body_with_name": "Schedule {{name}} was interrupted before completion."
+    },
+    "pending_approve": {
+      "title": "Schedule waiting for approval",
+      "body_with_name": "Schedule {{name}} is waiting for your approval to continue."
+    }
+  },
+  "toast": {
+    "create": {
+      "success_description_with_name": "Schedule {{name}} created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "success_description_with_name": "Schedule {{name}} updated successfully.",
+      "success_title": "Update success"
+    }
+  }
+}

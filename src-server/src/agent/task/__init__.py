@@ -8,10 +8,11 @@ from dais_sdk.types import (
     ToolDef,
     ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
 )
+from src.schemas.tasks import runtime as task_runtime_schemas
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatcher
 from .llm_request_manager import LlmRequestManager
-from ..context import AgentContext, task_models
+from ..context import AgentContext
 from ..exception_handlers import (
     handle_tool_does_not_exist_error,
     handle_tool_argument_decode_error,
@@ -19,7 +20,7 @@ from ..exception_handlers import (
 )
 from ..prompts import USER_DENIED_TOOL_CALL_RESULT, USER_IGNORED_TOOL_CALL_RESULT
 from ..types import (
-    AgentGenerator, UserApprovalStatus, is_agent_tool_metadata,
+    AgentGenerator, UserApprovalStatus, StopReason, is_agent_tool_metadata,
     ToolCallEndEvent, MessageEndEvent, MessageReplaceEvent, TaskInterruptedEvent, TaskDoneEvent, ToolExecutedEvent, ErrorEvent
 )
 
@@ -197,7 +198,19 @@ class AgentTask:
             if not _exited_by_generator_close:
                 yield TaskDoneEvent()
 
-    async def persist(self) -> task_models.Task:
+    async def run_until_done(self) -> StopReason:
+        async for event in self.run():
+            if isinstance(event, ErrorEvent):
+                return StopReason.ERROR
+            if isinstance(event, TaskInterruptedEvent):
+                return StopReason.INTERRUPTED
+
+        if self.has_pending_tool_calls():
+            return StopReason.PENDING_APPROVE
+
+        return StopReason.COMPLETED
+
+    async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()
 
     async def stop(self):

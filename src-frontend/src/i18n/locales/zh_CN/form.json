@@ -9,8 +9,18 @@
         "required": "目录路径为必填项"
       }
     },
+    "datetime": {
+      "label": "日期和时间",
+      "placeholder": "选择日期",
+      "validation": {
+        "required": "请选择日期和时间"
+      }
+    },
     "enabled": {
       "label": "启用"
+    },
+    "interval": {
+      "label": "时间间隔"
     },
     "name": {
       "label": "名称",
@@ -33,7 +43,7 @@
       "label": "内容",
       "validation": {
         "max_length_with_label": "{{label}}不能超过 {{maxLength}} 个字符",
-        "min_length_with_label": "{{label}}不能少于 {{minLength}} 个字符",
+        "min_length_with_label": "{{label}}至少需要 {{minLength}} 个字符",
         "required_with_label": "请输入{{label}}"
       }
     },

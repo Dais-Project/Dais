@@ -1,3 +1,4 @@
+import { TaskType } from "@/api/generated/schemas";
 import type { dynamicIconImports } from "lucide-react/dynamic";
 
 export type TabBase = {
@@ -10,12 +11,11 @@ type SpecificTab<Name extends string, Metadata> = TabBase & {
   metadata: Metadata;
 };
 
-export type TaskTabMetadata = { workspace_id: number } & (
-  | { isDraft: true }
-  | {
-      id: number;
-      isDraft: false;
-    });
+export type TaskTabMetadata = { workspace_id: number, type: TaskType } & (
+  | { type: "task", isDraft: true }
+  | { type: "task", isDraft: false, id: number }
+  | { type: "schedule", id: number } // schedule run record
+);
 
 export type WorkspaceTabMetadata =
   | { mode: "create" }
@@ -38,10 +38,16 @@ export type SkillTabMetadata =
   | { mode: "create" }
   | { mode: "edit"; id: number };
 
+export type ScheduleTabMetadata =
+  | { mode: "create" }
+  | { mode: "edit"; id: number }
+  | { mode: "records"; id: number };
+
 export type Tab =
   | SpecificTab<"task", TaskTabMetadata>
   | SpecificTab<"workspace", WorkspaceTabMetadata>
   | SpecificTab<"agent", AgentTabMetadata>
   | SpecificTab<"provider", ProviderTabMetadata>
   | SpecificTab<"toolset", ToolsetTabMetadata>
-  | SpecificTab<"skill", SkillTabMetadata>;
+  | SpecificTab<"skill", SkillTabMetadata>
+  | SpecificTab<"schedule", ScheduleTabMetadata>;

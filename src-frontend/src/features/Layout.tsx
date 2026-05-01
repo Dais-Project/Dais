@@ -9,8 +9,9 @@ import { activityVisible } from "@/lib/activity-visible";
 import { ActivityBar } from "./ActivityBar";
 import { SideBar } from "./SideBar";
 import { Tabs } from "./Tabs";
-import { SessionViewSkeleton } from "./Tabs/TaskPanel/SessionView";
+import { TaskSessionViewSkeleton } from "./Tabs/TaskPanel/views/TaskSessionView";
 import { SideBarListSkeleton } from "./SideBar/components/SideBarListSkeleton";
+import { useScheduleNotificationListener } from "./sse-listeners/schedule-notification-listener";
 
 function SideBarSkeleton() {
   return (
@@ -34,7 +35,7 @@ function TabsSkeleton() {
         <Skeleton className="h-6 w-40 rounded-none" />
       </div>
       <div className="flex-1 p-4">
-        <SessionViewSkeleton />
+        <TaskSessionViewSkeleton />
       </div>
     </div>
   );
@@ -59,6 +60,8 @@ export function LayoutSkeleton() {
 
 export function Layout() {
   use(BackendReadyPromise);
+
+  useScheduleNotificationListener();
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "panels",

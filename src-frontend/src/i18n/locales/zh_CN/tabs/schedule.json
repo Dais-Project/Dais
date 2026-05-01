@@ -1,0 +1,105 @@
+{
+  "form": {
+    "agent_id": {
+      "label": "Agent"
+    },
+    "config": {
+      "builder": {
+        "title": "计划构建器",
+        "toggle": "切换计划构建器",
+        "repeat_every": "重复间隔",
+        "weekdays": "每周执行于",
+        "weekday": {
+          "mon": "周一",
+          "tue": "周二",
+          "wed": "周三",
+          "thu": "周四",
+          "fri": "周五",
+          "sat": "周六",
+          "sun": "周日"
+        },
+        "execution_minute": "执行分钟",
+        "execution_time": "执行时间",
+        "unit": {
+          "hour": "小时",
+          "day": "天",
+          "week": "周"
+        }
+      },
+      "expression": {
+        "label": "Cron 表达式",
+        "placeholder": "*/5 * * * *",
+        "required": "请输入 Cron 表达式"
+      },
+      "interval_sec": {
+        "label": "轮询间隔（秒）",
+        "placeholder": "60",
+        "required": "请输入轮询间隔",
+        "min": "轮询间隔必须大于 0"
+      },
+      "run_at": {
+        "label": "执行时间",
+        "required": "请选择执行时间"
+      }
+    },
+    "is_enabled": {
+      "label": "启用"
+    },
+    "name": {
+      "label": "名称",
+      "placeholder": "请输入计划任务名称"
+    },
+    "task": {
+      "label": "任务",
+      "placeholder": "请输入任务内容",
+      "required": "请输入任务内容"
+    },
+    "submit": {
+      "create": "创建",
+      "creating": "创建中...",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "type": {
+      "label": "计划类型",
+      "option": {
+        "cron": "定期执行",
+        "polling": "循环执行",
+        "delayed": "延时执行"
+      }
+    }
+  },
+  "records": {
+    "empty": "暂无运行记录",
+    "title_with_name": "运行记录：{{name}}",
+    "view_detail": "查看运行记录详情"
+  },
+  "notification": {
+    "completed": {
+      "title": "计划任务已完成",
+      "body_with_name": "计划任务 {{name}} 已成功执行完成。"
+    },
+    "error": {
+      "title": "计划任务执行失败",
+      "body_with_name": "计划任务 {{name}} 在执行过程中失败。"
+    },
+    "interrupted": {
+      "title": "计划任务被中断",
+      "body_with_name": "计划任务 {{name}} 在完成前被中断。"
+    },
+    "pending_approve": {
+      "title": "计划任务等待批准",
+      "body_with_name": "计划任务 {{name}} 正在等待你的批准以继续。"
+    }
+  },
+  "toast": {
+    "create": {
+      "success_description_with_name": "已成功创建计划任务 {{name}}。",
+      "success_title": "创建成功"
+    },
+    "update": {
+      "success_description_with_name": "已成功更新计划任务 {{name}}。",
+      "success_title": "更新成功"
+    }
+  }
+}

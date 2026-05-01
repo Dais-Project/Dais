@@ -3,7 +3,7 @@ import { AtSignIcon, FileIcon, FolderIcon } from "lucide-react";
 import { useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import { useListDirectorySuspense, listDirectory, useSearchFile } from "@/api/task";
+import { useListDirectorySuspense, listDirectory, useSearchFile } from "@/api/tasks";
 import { PromptInputButton } from "@/components/ai-elements/prompt-input";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { LazyFileTree } from "@/components/custom/LazyFileTree";

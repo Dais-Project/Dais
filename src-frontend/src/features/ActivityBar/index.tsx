@@ -1,14 +1,20 @@
-import { BotMessageSquareIcon, FoldersIcon, LayoutListIcon, ScrollTextIcon, SettingsIcon, ToolCaseIcon } from "lucide-react";
+import { BotMessageSquareIcon, CalendarClockIcon, FoldersIcon, LayoutListIcon, ScrollTextIcon, SettingsIcon, ToolCaseIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { type SideBarView, useSidebarStore } from "@/stores/sidebar-store";
 
+// TODO: i18n for views title
 const topViews: { id: SideBarView; title: string; icon: React.ReactNode }[] = [
   {
     id: "tasks",
     title: "Tasks",
     icon: <LayoutListIcon />,
+  },
+  {
+    id: "schedules",
+    title: "Schedules",
+    icon: <CalendarClockIcon />,
   },
   {
     id: "workspaces",

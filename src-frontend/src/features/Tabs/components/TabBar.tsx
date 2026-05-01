@@ -4,7 +4,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BotIcon, FolderCogIcon, type LucideIcon, PlugIcon, ScrollTextIcon, ToolCaseIcon, XIcon } from "lucide-react";
+import { BotIcon, CalendarPlusIcon, FolderCogIcon, type LucideIcon, PlugIcon, ScrollTextIcon, ToolCaseIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
@@ -14,6 +14,7 @@ import { Tab } from "@/types/tab";
 
 const TAB_ICON_MAP: Record<Tab["type"], LucideIcon> = {
   task: BotIcon,
+  schedule: CalendarPlusIcon,
   workspace: FolderCogIcon,
   agent: BotIcon,
   provider: PlugIcon,

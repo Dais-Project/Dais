@@ -1,7 +1,7 @@
 import { InfiniteData } from "@tanstack/react-query";
 import { produce } from "immer";
 import type { PageTaskBrief } from "@/api/generated/schemas";
-import { getGetTasksInfiniteQueryKey } from "@/api/task";
+import { getGetTasksInfiniteQueryKey } from "@/api/tasks";
 import queryClient from "@/query-client";
 import { useTabsStore } from "@/stores/tabs-store";
 
@@ -26,7 +26,7 @@ export function updateTaskTitle(workspaceId: number, task_id: number, title: str
   const updateTabs = useTabsStore.getState().update;
   updateTabs((draft) => {
     for (const tab of draft) {
-      if (tab.type === "task" && "id" in tab.metadata && tab.metadata.id === task_id) {
+      if (tab.type === "task" && tab.metadata.type === "task" && "id" in tab.metadata && tab.metadata.id === task_id) {
         tab.title = title;
         return;
       }

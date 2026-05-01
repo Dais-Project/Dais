@@ -1,10 +1,12 @@
 import { Dispatch, type RefObject, SetStateAction, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { TaskSseCallbacks } from "@/api/task";
+import type { TaskSseCallbacks } from "@/api/tasks";
 import type { TaskState } from ".";
 import { useUnmount } from "ahooks";
+import { TaskType } from "@/api/generated/schemas";
 
 type TaskStreamProps = {
+  taskType: TaskType;
   taskId: number;
   agentId: number | null;
   sseCallbacksRef: RefObject<TaskSseCallbacks>;
@@ -20,6 +22,7 @@ type TaskStreamResult = {
 };
 
 export type TaskStreamFn<Body extends { agent_id: number }> = (
+  taskType: TaskType,
   taskId: number,
   body: Body,
   callbacks: TaskSseCallbacks
@@ -54,7 +57,7 @@ function createOverrideCallbacks(
   });
 }
 
-export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {
+export function useTaskStream({ taskType, taskId, agentId, sseCallbacksRef }: TaskStreamProps): TaskStreamResult {
   const [state, setState] = useState<TaskState>("idle");
   const abortController = useRef<AbortController | null>(null);
 
@@ -77,6 +80,7 @@ export function useTaskStream({ taskId, agentId, sseCallbacksRef }: TaskStreamPr
         abortController.current?.abort();
       }
       abortController.current = streamApi(
+        taskType,
         taskId,
         {
           ...body,
