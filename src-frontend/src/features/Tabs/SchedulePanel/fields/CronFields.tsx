@@ -403,7 +403,7 @@ export function CronFields({ disabled, className }: CronFieldsProps) {
               className="w-24"
               value={intervalValue}
               onChange={(event) => handleIntervalValueChange(event.target.value)}
-              disabled={disabled}
+              disabled={disabled || intervalUnit === "week"}
             />
             <InputGroupAddon align="inline-end">
               <Select

@@ -1,8 +1,7 @@
 {
   "form": {
     "agent_id": {
-      "label": "Agent ID",
-      "placeholder": "留空则不绑定 Agent"
+      "label": "Agent"
     },
     "config": {
       "builder": {

@@ -1,8 +1,7 @@
 {
   "form": {
     "agent_id": {
-      "label": "Agent ID",
-      "placeholder": "Leave empty to not bind agent"
+      "label": "Agent"
     },
     "config": {
       "builder": {

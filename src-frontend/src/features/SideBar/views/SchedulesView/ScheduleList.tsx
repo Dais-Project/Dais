@@ -1,5 +1,14 @@
-import { formatDistanceToNow } from "date-fns";
-import { ClockIcon, HistoryIcon, PencilIcon, PlayIcon, TrashIcon } from "lucide-react";
+import cronstrue from "cronstrue/i18n";
+import { formatDuration } from "date-fns";
+import {
+  Clock7Icon,
+  HistoryIcon,
+  HourglassIcon,
+  PencilIcon,
+  PlayIcon,
+  RefreshCwIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ScheduleBrief } from "@/api/generated/schemas";
@@ -28,6 +37,8 @@ import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
+import { CRONSTRUE_LOCALE_MAP } from "@/i18n/locale-maps/cronstrue";
+import { INTL_LOCALE_MAP } from "@/i18n/locale-maps/intl";
 
 type ScheduleListProps = {
   workspaceId: number;
@@ -89,14 +100,37 @@ function openScheduleRecordsTab(scheduleId: number, scheduleName: string) {
   addTab(createScheduleRecordsTab(scheduleId, scheduleName));
 }
 
-function formatConfigSummary(schedule: ScheduleBrief) {
+function getScheduleIcon(schedule: ScheduleBrief) {
+  switch (schedule.config.type) {
+    case "cron": return Clock7Icon;
+    case "polling": return RefreshCwIcon;
+    case "delayed": return HourglassIcon;
+    default: return Clock7Icon;
+  }
+}
+
+function getConfigDescription(schedule: ScheduleBrief) {
+  const language = useSettingsStore.getState().current.language;
+
   switch (schedule.config.type) {
     case "cron":
-      return `Cron: ${schedule.config.expression}`;
-    case "polling":
-      return `Polling: ${schedule.config.interval_sec}s`;
+      return cronstrue.toString(schedule.config.expression, { locale: CRONSTRUE_LOCALE_MAP[language] });
+    case "polling": {
+      const totalSeconds = schedule.config.interval_sec;
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return i18n.t("schedules.list.polling_description_with_duration", {
+        ns: SIDEBAR_NAMESPACE,
+        duration: formatDuration({ days, hours, minutes, seconds }, { locale: DATEFNS_LOCALE_MAP[language] }),
+      });
+    }
     case "delayed":
-      return `Delayed: ${new Date(schedule.config.scheduled_at * 1000).toLocaleString()}`;
+      return i18n.t("schedules.list.delayed_description_with_datetime", {
+        ns: SIDEBAR_NAMESPACE,
+        datetime: new Date(schedule.config.scheduled_at * 1000).toLocaleString(INTL_LOCALE_MAP[language]),
+      });
     default:
       return "";
   }
@@ -122,53 +156,46 @@ function ScheduleItem({
   onRunNow,
 }: ScheduleItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const { language } = useSettingsStore((state) => state.current);
-
-  const nextRunDescription =
-    schedule.config.type === "delayed"
-      ? formatDistanceToNow(new Date(schedule.config.scheduled_at * 1000), {
-        addSuffix: true,
-        locale: DATEFNS_LOCALE_MAP[language],
-      })
-      : null;
+  const ScheduleIcon = getScheduleIcon(schedule);
 
   return (
-    <>
-      <ActionableItem>
-        <ActionableItemTrigger
-          ref={ref}
-          data-index={index}
-          className="cursor-pointer"
+    <ActionableItem>
+      <ActionableItemTrigger
+        ref={ref}
+        data-index={index}
+        className="cursor-pointer"
+      >
+        <ActionableItemIcon
+          seed={schedule.is_enabled ? schedule.name : undefined}
+          className={schedule.is_enabled ? undefined : "border-muted-foreground/20 bg-muted text-muted-foreground/50"}
         >
-          <ActionableItemIcon seed={schedule.name}>
-            <ClockIcon />
-          </ActionableItemIcon>
-          <ActionableItemInfo
-            title={schedule.name}
-            description={`${formatConfigSummary(schedule)} · ${nextRunDescription}`}
-          />
-        </ActionableItemTrigger>
+          <ScheduleIcon />
+        </ActionableItemIcon>
+        <ActionableItemInfo
+          title={schedule.name}
+          description={getConfigDescription(schedule)}
+        />
+      </ActionableItemTrigger>
 
-        <ActionableItemMenu>
-          <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
-            <PlayIcon />
-            <span>{t("schedules.menu.run_now")}</span>
-          </ActionableItemMenuItem>
-          <ActionableItemMenuItem onClick={() => onEdit(schedule)}>
-            <PencilIcon />
-            <span>{t("schedules.menu.edit")}</span>
-          </ActionableItemMenuItem>
-          <ActionableItemMenuItem onClick={() => onViewRecords(schedule)}>
-            <HistoryIcon />
-            <span>{t("schedules.menu.view_records")}</span>
-          </ActionableItemMenuItem>
-          <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(schedule)}>
-            <TrashIcon />
-            <span>{t("schedules.menu.delete")}</span>
-          </ActionableItemMenuItem>
-        </ActionableItemMenu>
-      </ActionableItem>
-    </>
+      <ActionableItemMenu>
+        <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
+          <PlayIcon />
+          <span>{t("schedules.menu.run_now")}</span>
+        </ActionableItemMenuItem>
+        <ActionableItemMenuItem onClick={() => onEdit(schedule)}>
+          <PencilIcon />
+          <span>{t("schedules.menu.edit")}</span>
+        </ActionableItemMenuItem>
+        <ActionableItemMenuItem onClick={() => onViewRecords(schedule)}>
+          <HistoryIcon />
+          <span>{t("schedules.menu.view_records")}</span>
+        </ActionableItemMenuItem>
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(schedule)}>
+          <TrashIcon />
+          <span>{t("schedules.menu.delete")}</span>
+        </ActionableItemMenuItem>
+      </ActionableItemMenu>
+    </ActionableItem>
   );
 }
 

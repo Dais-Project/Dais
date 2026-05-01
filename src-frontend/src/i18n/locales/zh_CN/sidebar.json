@@ -1,4 +1,4 @@
-{
+﻿{
   "agents": {
     "dialog": {
       "delete_description_with_name": "确定要删除 Agent \"{{name}}\" 吗？此操作无法撤销。"
@@ -156,7 +156,8 @@
       "records_title_with_name": "运行记录：{{name}}"
     },
     "list": {
-      "next_run_unknown": "下次触发时间未知"
+      "delayed_description_with_datetime": "将在 {{datetime}} 执行",
+      "polling_description_with_duration": "每隔 {{duration}} 执行一次"
     },
     "menu": {
       "delete": "删除",
