@@ -45,6 +45,7 @@ import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useNotificationBuffer } from "./use-notification-buffer";
 import { useTaskFlags } from "./use-task-flags";
+import { sounds } from "@/components/audios";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -201,9 +202,11 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
     switch (message.name) {
       case BuiltInTools.ExecutionControl__finish_task:
         setFlag({ isSuccess: true });
-        if (!isForeground()) {
+        if (isForeground()) {
+          sounds.finished.play();
+        } else {
           sendNotification(t("notification.task_done"), {
-            onClick: backToCurrentTab,
+            onClick: backToCurrentTab
           });
         }
         break;
@@ -218,7 +221,9 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const onToolRequireUserResponse = (_: ToolRequireUserResponseEvent) => {
     setFlag({ requiresUserAction: true });
-    if (!isForeground()) {
+    if (isForeground()) {
+      sounds.notify.play();
+    } else {
       sendNotification(t("notification.require_response"), {
         onClick: backToCurrentTab,
       });
@@ -237,7 +242,9 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   };
 
   const onError = (eventData: ErrorEvent) => {
-    if (!isForeground()) {
+    if (isForeground()) {
+      sounds.notify.play();
+    } else {
       sendNotification(t("notification.task_failed.title"), {
         body: t("notification.task_failed.description"),
         onClick: backToCurrentTab,
@@ -260,9 +267,13 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
     if (isLastMessageNonEmptyAssistantMessage) {
       setFlag({ requiresUserAction: true });
     }
-    if (isLastMessageNonEmptyAssistantMessage && !isForeground()) {
-      const notificationContent = t("notification.responded", { response: lastMessage.content });
-      sendNotification(notificationContent, { onClick: backToCurrentTab });
+    if (isLastMessageNonEmptyAssistantMessage) {
+      if (isForeground()) {
+        sounds.notify.play();
+      } else {
+        const notificationContent = t("notification.responded", { response: lastMessage.content });
+        sendNotification(notificationContent, { onClick: backToCurrentTab });
+      }
     };
   };
 
