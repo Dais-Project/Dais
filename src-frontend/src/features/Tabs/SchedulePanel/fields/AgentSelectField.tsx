@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Controller, useFormContext } from "react-hook-form";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { FieldItem } from "@/components/custom/item/FieldItem";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TABS_SCHEDULE_NAMESPACE } from "@/i18n/resources";
 import { AgentSelectDialog } from "@/components/custom/dialog/resource-dialog/AgentSelectDialog";
 import type { ScheduleCreateFormValues, ScheduleEditFormValues } from "../form-types";
@@ -9,6 +11,10 @@ type AgentSelectFieldProps = {
   disabled: boolean;
   workspaceId: number;
 };
+
+function AgentSelectFieldSkeleton() {
+  return <Skeleton className="h-9 w-full" />;
+}
 
 export function AgentSelectField({
   disabled,
@@ -27,11 +33,13 @@ export function AgentSelectField({
           fieldState={fieldState}
         >
           <div className={disabled ? "pointer-events-none opacity-50" : undefined}>
-            <AgentSelectDialog
-              agentId={field.value}
-              workspaceId={workspaceId}
-              onChange={field.onChange}
-            />
+            <AsyncBoundary skeleton={<AgentSelectFieldSkeleton />}>
+              <AgentSelectDialog
+                agentId={field.value}
+                workspaceId={workspaceId}
+                onChange={field.onChange}
+              />
+            </AsyncBoundary>
           </div>
         </FieldItem>
       )}

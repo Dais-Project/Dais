@@ -61,3 +61,4 @@ class ScheduleRunningJob(DTOBase):
     id: int
     name: str
     created_at: int
+    workspace_id: int

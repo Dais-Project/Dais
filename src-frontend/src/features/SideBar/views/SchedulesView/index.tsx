@@ -1,6 +1,4 @@
-import { useLocalStorageState } from "ahooks";
-import { Activity } from "react";
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
@@ -17,6 +15,7 @@ import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHead
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { RunningScheduleTaskList } from "./RunningScheduleTaskList";
 import { ScheduleList } from "./ScheduleList";
+import { SideBarSplitView, SideBarCollapsibleSection, SideBarPrimarySection } from "../../components/SideBarSplitView";
 
 function openScheduleCreateTab() {
   const currentWorkspace = useWorkspaceStore.getState().current;
@@ -61,11 +60,11 @@ function CurrentWorkspaceSchedules({
   );
 }
 
-function RunningScheduleTasks({ className, workspaceId }: { className?: string; workspaceId: number }) {
+function RunningScheduleTasks({ className }: { className?: string }) {
   return (
     <div className={className}>
       <AsyncBoundary skeleton={<SideBarListSkeleton />}>
-        <RunningScheduleTaskList workspaceId={workspaceId} />
+        <RunningScheduleTaskList />
       </AsyncBoundary>
     </div>
   );
@@ -73,14 +72,7 @@ function RunningScheduleTasks({ className, workspaceId }: { className?: string; 
 
 export function SchedulesView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const [isRunningCollapsed, setIsRunningCollapsed] = useLocalStorageState("is-running-schedule-tasks-collapsed", {
-    defaultValue: false,
-  });
   const currentWorkspace = useWorkspaceStore((state) => state.current);
-
-  const handleRunningToggle = () => {
-    setIsRunningCollapsed((prev) => !prev);
-  };
 
   return (
     <div className="flex h-full flex-col">
@@ -93,28 +85,17 @@ export function SchedulesView() {
         />
       </SideBarHeader>
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        <CurrentWorkspaceSchedules
-          className="flex-1 min-h-0"
-          workspaceId={currentWorkspace?.id}
-        />
-
-        <button
-          type="button"
-          onClick={handleRunningToggle}
-          className="flex cursor-pointer items-center gap-1 border-y px-1.5 py-1.5 text-sm font-medium outline-none"
+      <SideBarSplitView>
+        <SideBarPrimarySection>
+          <CurrentWorkspaceSchedules className="h-full" workspaceId={currentWorkspace?.id} />
+        </SideBarPrimarySection>
+        <SideBarCollapsibleSection
+          title={t("schedules.running.title")}
+          collapsedStateKey="is-running-schedule-tasks-collapsed"
         >
-          {isRunningCollapsed
-            ? <ChevronRightIcon className="size-4" />
-            : <ChevronDownIcon className="size-4" />}
-          {t("schedules.running.title")}
-        </button>
-        {currentWorkspace && (
-          <Activity mode={isRunningCollapsed ? "hidden" : "visible"}>
-            <RunningScheduleTasks className="min-h-0 flex-1" workspaceId={currentWorkspace.id} />
-          </Activity>
-        )}
-      </div>
+          <RunningScheduleTasks className="h-full" />
+        </SideBarCollapsibleSection>
+      </SideBarSplitView>
     </div>
   );
 }

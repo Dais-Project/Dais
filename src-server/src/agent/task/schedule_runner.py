@@ -42,6 +42,7 @@ class ScheduleJob:
             id=self.id,
             name=self._schedule.name,
             created_at=self.created_at,
+            workspace_id=self._schedule.workspace_id,
         )
 
     async def run(self):

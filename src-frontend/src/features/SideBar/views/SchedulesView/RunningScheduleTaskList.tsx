@@ -17,20 +17,7 @@ import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTabsStore } from "@/stores/tabs-store";
 
-type ScheduleRunningTaskTabTarget = ScheduleRunningJob & {
-  workspace_id: number;
-};
-
-type RunningScheduleTaskListProps = {
-  workspaceId: number;
-};
-
-type RunningScheduleTaskItemProps = {
-  task: ScheduleRunningJob;
-  workspaceId: number;
-};
-
-function openScheduleRunningTaskTab(task: ScheduleRunningTaskTabTarget) {
+function openScheduleRunningTaskTab(task: ScheduleRunningJob) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
   const existingTab = tabs.find((tab) => (
     tab.type === "task" &&
@@ -55,19 +42,15 @@ function openScheduleRunningTaskTab(task: ScheduleRunningTaskTabTarget) {
   });
 }
 
-function RunningScheduleTaskItem({ task, workspaceId }: RunningScheduleTaskItemProps) {
+function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
-  const tabTarget = {
-    ...task,
-    workspace_id: workspaceId,
-  } satisfies ScheduleRunningTaskTabTarget;
 
   return (
     <ActionableItem>
       <ActionableItemTrigger
         className="cursor-pointer"
-        onClick={() => openScheduleRunningTaskTab(tabTarget)}
+        onClick={() => openScheduleRunningTaskTab(task)}
       >
         <ActionableItemIcon seed={task.name}>
           <ActivityIcon />
@@ -84,7 +67,7 @@ function RunningScheduleTaskItem({ task, workspaceId }: RunningScheduleTaskItemP
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem onClick={() => openScheduleRunningTaskTab(tabTarget)}>
+        <ActionableItemMenuItem onClick={() => openScheduleRunningTaskTab(task)}>
           <ActivityIcon />
           <span>{t("schedules.running.open")}</span>
         </ActionableItemMenuItem>
@@ -93,7 +76,7 @@ function RunningScheduleTaskItem({ task, workspaceId }: RunningScheduleTaskItemP
   );
 }
 
-export function RunningScheduleTaskList({ workspaceId }: RunningScheduleTaskListProps) {
+export function RunningScheduleTaskList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const query = useGetScheduleRunningJobsSuspense();
 
@@ -111,11 +94,7 @@ export function RunningScheduleTaskList({ workspaceId }: RunningScheduleTaskList
   return (
     <div className="limit-width">
       {query.data.map((task) => (
-        <RunningScheduleTaskItem
-          key={task.id}
-          task={task}
-          workspaceId={workspaceId}
-        />
+        <RunningScheduleTaskItem task={task} key={task.id} />
       ))}
     </div>
   );
