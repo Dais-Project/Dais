@@ -15,7 +15,7 @@ async def _load_task_runtime_context(db_session: AsyncSession,
     task = await TaskService(db_session).get_task_by_id(task_id)
     if agent_id is not None:
         task.agent_id = agent_id
-    return task_runtime_schemas.TaskRuntimeContext.model_validate(task)
+    return task_runtime_schemas.TaskRuntimeContext.from_task(task)
 
 async def _load_schedule_runtime_context(db_session: AsyncSession,
                                          task_id: int,
@@ -24,14 +24,7 @@ async def _load_schedule_runtime_context(db_session: AsyncSession,
     record = await RunRecordService(db_session).get_run_record_by_id(task_id)
     if agent_id is not None:
         record.schedule.agent_id = agent_id
-    return task_runtime_schemas.TaskRuntimeContext(
-        id=record.id,
-        type=task_runtime_schemas.TaskType.SCHEDULE,
-        usage=record.usage,
-        agent_id=record.schedule.agent_id,
-        workspace_id=record.schedule.workspace_id,
-        messages=record.messages,
-    )
+    return task_runtime_schemas.TaskRuntimeContext.from_schedule_record(record)
 
 async def load_task_runtime_context(
     db_session: AsyncSession,

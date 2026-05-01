@@ -28,13 +28,9 @@ class TaskPersistence:
         )
         async with db_context() as db_session:
             task = await TaskService(db_session).update_task(runtime_id, update)
-        return task_runtime_schemas.TaskRuntimeContext.model_validate(task)
+        return task_runtime_schemas.TaskRuntimeContext.from_task(task)
 
 class SchedulePersistence:
-    def __init__(self, agent_id: int | None, workspace_id: int):
-        self._agent_id = agent_id
-        self._workspace_id = workspace_id
-
     async def persist(
         self,
         runtime_id: int,
@@ -49,14 +45,7 @@ class SchedulePersistence:
         )
         async with db_context() as db_session:
             record = await RunRecordService(db_session).update_run_record(runtime_id, update)
-        return task_runtime_schemas.TaskRuntimeContext(
-            id=record.id,
-            type=task_runtime_schemas.TaskType.SCHEDULE,
-            usage=record.usage,
-            agent_id=self._agent_id,
-            workspace_id=self._workspace_id,
-            messages=record.messages,
-        )
+        return task_runtime_schemas.TaskRuntimeContext.from_schedule_record(record)
 
 def create_agent_context_persistence(
     task: task_runtime_schemas.TaskRuntimeContext,
@@ -65,4 +54,4 @@ def create_agent_context_persistence(
         case task_runtime_schemas.TaskType.TASK:
             return TaskPersistence()
         case task_runtime_schemas.TaskType.SCHEDULE:
-            return SchedulePersistence(task.agent_id, task.workspace_id)
+            return SchedulePersistence()

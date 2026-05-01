@@ -9,7 +9,7 @@ from ..tool.types import is_tool_metadata
 from ..prompts import (
     create_one_turn_llm,
     USER_DENIED_TOOL_CALL_RESULT,
-    ToolCallSafetyAudit, ToolCallSafetyAuditInput,
+    ToolCallSafetyAudit, ToolCallSafetyAuditInput, ToolCallSafetyAuditOutput,
 )
 from ..context import AgentContext
 from ..types import (
@@ -34,6 +34,18 @@ class ToolCallReviewer:
 
     def __init__(self, ctx: AgentContext):
         self._ctx = ctx
+
+    async def _request(self, safety_audit: ToolCallSafetyAudit, input: ToolCallSafetyAuditInput) -> ToolCallSafetyAuditOutput:
+        if self._ctx.task_type == "task":
+            output = await asyncio.wait_for(safety_audit(input), 20)
+            return output
+        for i in range(3):
+            try:
+                output = await asyncio.wait_for(safety_audit(input), 60)
+                return output
+            except asyncio.TimeoutError:
+                if i == 2: raise
+        raise ValueError("Unreachable")
 
     async def audit_tool_calls(self,
                                dispatches: list[ToolCallDispatch]
@@ -72,7 +84,7 @@ class ToolCallReviewer:
                 context=context,
                 pending_tool_calls=messages
             )
-            output = await asyncio.wait_for(safety_audit(input), 15)
+            output = await self._request(safety_audit, input)
         except asyncio.TimeoutError:
             self._logger.warning("Tool call audit timeout")
             return None
