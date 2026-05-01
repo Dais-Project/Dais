@@ -162,7 +162,7 @@ class TestTaskService:
         resource_path = (
             task_resource_data_dir
             / ".task-resources"
-            / "tasks"
+            / "task"
             / str(task.id)
             / resource.filename
         )
@@ -205,7 +205,7 @@ class TestTaskService:
             file_bytes,
         )
         resource_dir = (
-            task_resource_data_dir / ".task-resources" / "tasks" / str(task.id)
+            task_resource_data_dir / ".task-resources" / "task" / str(task.id)
         )
         stored_files = sorted(path.name for path in resource_dir.iterdir())
 
@@ -242,7 +242,7 @@ class TestTaskService:
         assert resource_path == (
             task_resource_data_dir
             / ".task-resources"
-            / "tasks"
+            / "task"
             / str(task.id)
             / resource.filename
         )
@@ -273,7 +273,7 @@ class TestTaskService:
         resource_path = (
             task_resource_data_dir
             / ".task-resources"
-            / "tasks"
+            / "task"
             / str(task.id)
             / resource.filename
         )
@@ -320,7 +320,7 @@ class TestTaskService:
             "note.txt",
             b"resource-bytes",
         )
-        resource_dir = task_resource_data_dir / ".task-resources" / "tasks" / str(task.id)
+        resource_dir = task_resource_data_dir / ".task-resources" / "task" / str(task.id)
         resource_path = resource_dir / resource.filename
 
         await task_service.delete_task(task.id)
