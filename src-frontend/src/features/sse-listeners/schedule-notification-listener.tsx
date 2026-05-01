@@ -5,6 +5,7 @@ import { TABS_SCHEDULE_NAMESPACE } from "@/i18n/resources";
 import { sendNotification } from "@/lib/notification";
 import { useTabsStore } from "@/stores/tabs-store";
 import SseDispatcher from "@/lib/sse-dispatcher";
+import { invalidateScheduleRunningJobsQuery } from "@/api/tasks/schedule";
 
 function getNotificationTitle(status: StopReason) {
   switch (status) {
@@ -60,6 +61,7 @@ function openScheduleRecordTab(workspaceId: number, scheduleName: string, runRec
 export function useScheduleNotificationListener() {
   useEffect(() => (
     SseDispatcher.subscribe("SCHEDULE_RUN_COMPLETED", (data) => {
+      invalidateScheduleRunningJobsQuery();
       const title = getNotificationTitle(data.status);
       const body = getNotificationBody(data.status, data.schedule_name);
       const options = {

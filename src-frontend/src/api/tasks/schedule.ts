@@ -8,6 +8,7 @@ export {
   useGetSchedulesSuspenseInfinite,
   useTriggerSchedule,
   useUpdateSchedule,
+  useGetScheduleRunningJobsSuspense,
 } from "../generated/endpoints/schedule/schedule";
 
 import queryClient from "@/query-client";
@@ -16,6 +17,7 @@ import {
   getGetScheduleQueryKey,
   getGetScheduleRecordsInfiniteQueryKey,
   getGetSchedulesInfiniteQueryKey,
+  getGetScheduleRunningJobsQueryKey,
 } from "../generated/endpoints/schedule/schedule";
 
 type InvalidateScheduleQueriesOptions = {
@@ -39,4 +41,9 @@ export async function invalidateScheduleQueries({
   if (runRecordId !== undefined) {
     await queryClient.invalidateQueries({ queryKey: getGetRunRecordQueryKey(runRecordId), refetchType: "all" });
   }
+}
+
+export async function invalidateScheduleRunningJobsQuery() {
+  const queryKey = getGetScheduleRunningJobsQueryKey();
+  await queryClient.invalidateQueries({ queryKey, refetchType: "all" });
 }

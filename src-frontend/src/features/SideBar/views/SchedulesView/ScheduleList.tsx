@@ -14,9 +14,10 @@ import { toast } from "sonner";
 import type { ScheduleBrief } from "@/api/generated/schemas";
 import {
   invalidateScheduleQueries,
-  triggerSchedule,
+  invalidateScheduleRunningJobsQuery,
   useDeleteSchedule,
   useGetSchedulesSuspenseInfinite,
+  useTriggerSchedule,
 } from "@/api/tasks/schedule";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
@@ -143,7 +144,7 @@ type ScheduleItemProps = {
   onDelete: (schedule: ScheduleBrief) => void;
   onEdit: (schedule: ScheduleBrief) => void;
   onViewRecords: (schedule: ScheduleBrief) => void;
-  onRunNow: (schedule: ScheduleBrief) => void;
+  onTrigger: (schedule: ScheduleBrief) => void;
 };
 
 function ScheduleItem({
@@ -153,7 +154,7 @@ function ScheduleItem({
   onDelete,
   onEdit,
   onViewRecords,
-  onRunNow,
+  onTrigger,
 }: ScheduleItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const ScheduleIcon = getScheduleIcon(schedule);
@@ -178,7 +179,7 @@ function ScheduleItem({
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem onClick={() => onRunNow(schedule)}>
+        <ActionableItemMenuItem onClick={() => onTrigger(schedule)}>
           <PlayIcon />
           <span>{t("schedules.menu.run_now")}</span>
         </ActionableItemMenuItem>
@@ -208,6 +209,18 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
     { query: PAGINATED_QUERY_DEFAULT_OPTIONS }
   );
 
+  const triggerScheduleMutation = useTriggerSchedule({
+    mutation: {
+      async onSuccess(_, variables) {
+        await invalidateScheduleRunningJobsQuery();
+        await invalidateScheduleQueries({ workspaceId, scheduleId: variables.scheduleId });
+        toast.success(t("schedules.toast.run_now_success_title"), {
+          description: t("schedules.toast.run_now_success_description"),
+        });
+      }
+    }
+  });
+
   const deleteScheduleMutation = useDeleteSchedule({
     mutation: {
       async onSuccess(_, variables) {
@@ -233,12 +246,8 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
     },
   });
 
-  const handleRunNow = async (schedule: ScheduleBrief) => {
-    await triggerSchedule(schedule.id);
-    await invalidateScheduleQueries({ workspaceId, scheduleId: schedule.id });
-    toast.success(t("schedules.toast.run_now_success_title"), {
-      description: t("schedules.toast.run_now_success_description"),
-    });
+  const handleTrigger = async (schedule: ScheduleBrief) => {
+    triggerScheduleMutation.mutate({ scheduleId: schedule.id });
   };
 
   const handleEdit = (schedule: ScheduleBrief) => {
@@ -278,7 +287,7 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
             onDelete={asyncConfirm.trigger}
             onEdit={handleEdit}
             onViewRecords={handleViewRecords}
-            onRunNow={handleRunNow}
+            onTrigger={handleTrigger}
           />
         )}
       />

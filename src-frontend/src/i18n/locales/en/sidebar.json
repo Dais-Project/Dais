@@ -150,6 +150,15 @@
       "create_tooltip": "Create new schedule",
       "title": "Schedules"
     },
+    "running": {
+      "description_with_created_at": "Started {{time}}",
+      "empty": {
+        "description": "There are no running schedule tasks right now.",
+        "title": "No running tasks"
+      },
+      "open": "Open",
+      "title": "Running"
+    },
     "tab": {
       "create_title": "Create schedule",
       "edit_title_with_name": "Edit: {{name}}",

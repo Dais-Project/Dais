@@ -150,6 +150,15 @@
       "create_tooltip": "创建计划任务",
       "title": "计划任务"
     },
+    "running": {
+      "description_with_created_at": "开始于 {{time}}",
+      "empty": {
+        "description": "当前没有正在运行的计划任务。",
+        "title": "没有运行中的任务"
+      },
+      "open": "打开",
+      "title": "运行中"
+    },
     "tab": {
       "create_title": "创建计划任务",
       "edit_title_with_name": "编辑：{{name}}",
