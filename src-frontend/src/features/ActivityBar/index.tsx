@@ -1,52 +1,59 @@
 import { BotMessageSquareIcon, CalendarClockIcon, FoldersIcon, LayoutListIcon, ScrollTextIcon, SettingsIcon, ToolCaseIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 import { type SideBarView, useSidebarStore } from "@/stores/sidebar-store";
 
-// TODO: i18n for views title
-const topViews: { id: SideBarView; title: string; icon: React.ReactNode }[] = [
+type ActivityBarView = {
+  id: SideBarView;
+  titleKey: string;
+  icon: React.ReactNode;
+};
+
+const topViews: ActivityBarView[] = [
   {
     id: "tasks",
-    title: "Tasks",
+    titleKey: "activity_bar.tasks",
     icon: <LayoutListIcon />,
   },
   {
     id: "schedules",
-    title: "Schedules",
+    titleKey: "activity_bar.schedules",
     icon: <CalendarClockIcon />,
   },
   {
     id: "workspaces",
-    title: "Workspaces",
+    titleKey: "activity_bar.workspaces",
     icon: <FoldersIcon />,
   },
   {
     id: "agents",
-    title: "Agents",
+    titleKey: "activity_bar.agents",
     icon: <BotMessageSquareIcon />,
   },
   {
     id: "toolsets",
-    title: "ToolSets",
+    titleKey: "activity_bar.toolsets",
     icon: <ToolCaseIcon />,
   },
   {
     id: "skills",
-    title: "Skills",
+    titleKey: "activity_bar.skills",
     icon: <ScrollTextIcon />,
   },
   // {
   //   id: "plugins",
-  //   title: "Plugins",
+  //   titleKey: "activity_bar.plugins",
   //   icon: <BlocksIcon />,
   // },
 ];
 
-const bottomViews: { id: SideBarView; title: string; icon: React.ReactNode }[] = [
+const bottomViews: ActivityBarView[] = [
   {
     id: "settings",
-    title: "Settings",
+    titleKey: "activity_bar.settings",
     icon: <SettingsIcon />,
   },
 ];
@@ -76,29 +83,30 @@ function ActivityBarItem({ id, icon, ...props }: ActivityBarItemProps) {
 }
 
 export function ActivityBar() {
+  const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const isOpen = useSidebarStore((state) => state.isOpen);
   return (
     <div className={cn("flex flex-col justify-between bg-layout-activity-bar", isOpen && "border-r")}>
       <div className="flex flex-col items-center">
-        {topViews.map(({ id, title, icon }) => (
+        {topViews.map(({ id, titleKey, icon }) => (
           <Tooltip key={id}>
             <TooltipTrigger asChild>
               <ActivityBarItem id={id} icon={icon} />
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={5}>
-              {title}
+              {t(titleKey)}
             </TooltipContent>
           </Tooltip>
         ))}
       </div>
       <div className="flex flex-col items-center gap-2">
-        {bottomViews.map(({ id, title, icon }) => (
+        {bottomViews.map(({ id, titleKey, icon }) => (
           <Tooltip key={id}>
             <TooltipTrigger asChild>
               <ActivityBarItem id={id} icon={icon} />
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={5}>
-              {title}
+              {t(titleKey)}
             </TooltipContent>
           </Tooltip>
         ))}

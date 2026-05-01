@@ -26,6 +26,15 @@
   "plugins": {
     "placeholder": "插件视图"
   },
+  "activity_bar": {
+    "tasks": "任务",
+    "schedules": "计划任务",
+    "workspaces": "工作区",
+    "agents": "Agents",
+    "toolsets": "工具集",
+    "skills": "技能",
+    "settings": "设置"
+  },
   "skills": {
     "dialog": {
       "delete_description_with_name": "确定要删除技能 \"{{name}}\" 吗？此操作无法撤销。"

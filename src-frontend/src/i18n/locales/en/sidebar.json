@@ -26,6 +26,15 @@
   "plugins": {
     "placeholder": "Plugins view"
   },
+  "activity_bar": {
+    "tasks": "Tasks",
+    "schedules": "Schedules",
+    "workspaces": "Workspaces",
+    "agents": "Agents",
+    "toolsets": "Toolsets",
+    "skills": "Skills",
+    "settings": "Settings"
+  },
   "skills": {
     "dialog": {
       "delete_description_with_name": "Are you sure you want to delete skill \"{{name}}\"? This action cannot be undone."
