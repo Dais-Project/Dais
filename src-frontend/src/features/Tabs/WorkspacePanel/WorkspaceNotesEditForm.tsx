@@ -56,7 +56,7 @@ export function WorkspaceNotesEditForm({ workspace, onConfirm }: WorkspaceNotesE
       onSubmit={handleSubmit}
       className="h-full"
     >
-      <WorkspaceNoteField />
+      <WorkspaceNoteField labelClassName="hidden" />
 
       <FormShellFooter>
         <Button type="submit" disabled={updateMutation.isPending}>

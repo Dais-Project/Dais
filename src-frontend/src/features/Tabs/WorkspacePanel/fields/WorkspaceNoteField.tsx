@@ -8,7 +8,9 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import type { WorkspaceNotesEditFormValues } from "../form-types";
 
-export function WorkspaceNoteField() {
+type WorkspaceNoteFieldProps = Omit<React.ComponentProps<typeof FieldItem>, "label" | "fieldState" | "children">
+
+export function WorkspaceNoteField(props: WorkspaceNoteFieldProps) {
   const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
   const { control } = useFormContext<WorkspaceNotesEditFormValues>();
   const { field, fieldState } = useController({ name: "notes", control });
@@ -23,6 +25,7 @@ export function WorkspaceNoteField() {
       align="start"
       className="relative"
       labelClassName="absolute left-2 py-2 px-3 border rounded-md dark:bg-input/30"
+      {...props}
     >
       <CodeEditor
         value={field.value}
