@@ -160,6 +160,7 @@
       "title": "计划任务"
     },
     "running": {
+      "cancel": "取消",
       "description_with_created_at": "开始于 {{time}}",
       "empty": {
         "description": "当前没有正在运行的计划任务。",
@@ -186,6 +187,8 @@
       "view_records": "查看运行记录"
     },
     "toast": {
+      "cancel_run_success_description": "计划任务执行已取消。",
+      "cancel_run_success_title": "已取消",
       "delete_success_description": "已成功删除计划任务。",
       "delete_success_title": "删除成功",
       "disable_success_description": "计划任务已禁用。",

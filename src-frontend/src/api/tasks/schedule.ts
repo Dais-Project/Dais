@@ -1,5 +1,6 @@
 export {
   triggerSchedule,
+  useCancelScheduleExecution,
   useCreateSchedule,
   useDeleteSchedule,
   useGetRunRecordSuspense,

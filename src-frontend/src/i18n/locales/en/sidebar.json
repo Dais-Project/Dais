@@ -160,6 +160,7 @@
       "title": "Schedules"
     },
     "running": {
+      "cancel": "Cancel",
       "description_with_created_at": "Started {{time}}",
       "empty": {
         "description": "There are no running schedule tasks right now.",
@@ -186,6 +187,8 @@
       "view_records": "View records"
     },
     "toast": {
+      "cancel_run_success_description": "Schedule execution cancelled successfully.",
+      "cancel_run_success_title": "Cancelled",
       "delete_success_description": "Schedule deleted successfully.",
       "delete_success_title": "Delete success",
       "disable_success_description": "Schedule disabled successfully.",

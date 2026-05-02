@@ -26,6 +26,7 @@ class ScheduleJob:
     ):
         self.id = record.id
         self.created_at = int(time.time())
+        self.task: asyncio.Task | None = None
         self._schedule = schedule
         self._on_job_completed = on_job_completed
         self._runtime_context = task_runtime_schemas.TaskRuntimeContext(
@@ -64,42 +65,52 @@ class ScheduleJob:
         finally:
             await asyncio.shield(task.persist())
 
+    def cancel(self) -> asyncio.Task | None:
+        if self.task is None:
+            _logger.warning(f"Schedule job {self.id} not running")
+            return None
+        if not self.task.done():
+            self.task.cancel()
+        return self.task
+
 class ScheduleJobPool:
     def __init__(self):
-        self._pool: dict[int, tuple[ScheduleJob, asyncio.Task]] = {}
+        self._pool: dict[int, ScheduleJob] = {}
         self._lock = asyncio.Lock()
 
     async def add(self, job: ScheduleJob):
         async with self._lock:
             task = asyncio.create_task(job.run())
-            self._pool[job.id] = (job, task)
+            job.task = task
+            self._pool[job.id] = job
             task.add_done_callback(lambda _: self._pool.pop(job.id, None))
 
     async def list_snapshots(self) -> list[schedule_schemas.ScheduleRunningJob]:
         async with self._lock:
-            return [job.snapshot() for job, _ in self._pool.values()]
+            return [job.snapshot() for job in self._pool.values()]
 
     async def cancel(self, job_id: int):
         async with self._lock:
-            item = self._pool.pop(job_id, None)
+            job = self._pool.pop(job_id, None)
 
-        if item is None:
+        if job is None:
             _logger.warning(f"Schedule job {job_id} not found")
             return
 
-        _, task = item
-
-        if not task.done(): task.cancel()
-        await asyncio.gather(task, return_exceptions=True)
+        task = job.cancel()
+        if task is not None:
+            await asyncio.gather(task, return_exceptions=True)
 
     async def shutdown(self):
         async with self._lock:
-            tasks = [task for _, task in self._pool.values()]
+            jobs = list(self._pool.values())
             self._pool.clear()
 
-        for task in tasks:
-            if not task.done():
-                task.cancel()
+        tasks = []
+        for job in jobs:
+            cancelled_task = job.cancel()
+            if cancelled_task is not None:
+                tasks.append(cancelled_task)
 
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)

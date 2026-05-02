@@ -1,4 +1,4 @@
-import { MoreHorizontalIcon } from "lucide-react";
+import { type LucideIcon, MoreHorizontalIcon } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,12 +70,14 @@ export function ActionableItemIcon(props: ActionableItemIconProps) {
 type ActionableItemTriggerProps = {
   children: React.ReactNode;
   className?: string;
+  actions?: React.ReactNode;
   onClick?: () => void;
 } & React.ComponentProps<"div">;
 
 export function ActionableItemTrigger({
   children,
   className,
+  actions,
   onClick,
   ...props
 }: ActionableItemTriggerProps) {
@@ -99,7 +101,9 @@ export function ActionableItemTrigger({
         {children}
 
         <ItemActions className="shrink-0">
-          <ActionableItemMenuButton />
+          {actions !== undefined
+            ? actions
+            : <ActionableItemMenuButton />}
         </ItemActions>
       </Item>
     </ContextMenuTrigger>
@@ -133,6 +137,32 @@ export function ActionableItemInfo({
   );
 }
 
+type ActionableItemActionButtonProps = {
+  icon?: LucideIcon;
+  children?: React.ReactNode;
+} & Omit<React.ComponentProps<typeof Button>, "children">
+  & MustOneOf<{
+    icon: LucideIcon;
+    children: React.ReactNode;
+  }>;
+
+export function ActionableItemActionButton({
+  icon: Icon,
+  children,
+  className,
+  ...props
+}: ActionableItemActionButtonProps) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      {...props}
+    >
+      {Icon ? <Icon className="size-4" /> : children}
+    </Button>
+  );
+}
+
 export function ActionableItemMenuButton({
   className,
 }: {
@@ -146,14 +176,11 @@ export function ActionableItemMenuButton({
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <ActionableItemActionButton
+      icon={MoreHorizontalIcon}
       className={cn("opacity-30 group-hover:opacity-100", className)}
       onClick={context.onTriggerMenu}
-    >
-      <MoreHorizontalIcon className="size-4" />
-    </Button>
+    />
   );
 }
 
