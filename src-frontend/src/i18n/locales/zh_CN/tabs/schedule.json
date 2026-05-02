@@ -70,6 +70,7 @@
     }
   },
   "records": {
+    "delete": "删除",
     "empty": "暂无运行记录",
     "title_with_name": "运行记录：{{name}}",
     "view_detail": "查看运行记录详情"
@@ -96,6 +97,10 @@
     "create": {
       "success_description_with_name": "已成功创建计划任务 {{name}}。",
       "success_title": "创建成功"
+    },
+    "records": {
+      "delete_success_description": "已成功删除运行记录。",
+      "delete_success_title": "删除成功"
     },
     "update": {
       "success_description_with_name": "已成功更新计划任务 {{name}}。",

@@ -70,6 +70,7 @@
     }
   },
   "records": {
+    "delete": "Delete",
     "empty": "No run records",
     "title_with_name": "Run records: {{name}}",
     "view_detail": "View record details"
@@ -96,6 +97,10 @@
     "create": {
       "success_description_with_name": "Schedule {{name}} created successfully.",
       "success_title": "Create success"
+    },
+    "records": {
+      "delete_success_description": "Run record deleted successfully.",
+      "delete_success_title": "Delete success"
     },
     "update": {
       "success_description_with_name": "Schedule {{name}} updated successfully.",

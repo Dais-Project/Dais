@@ -34,10 +34,6 @@ async def create_schedule(body: schedule_schemas.ScheduleCreate, db_session: DbS
     await use_schedule_runner().append(schedule)
     return schedule
 
-@schedule_manage_router.get("/records/{run_record_id}", response_model=schedule_schemas.RunRecordRead)
-async def get_run_record(run_record_id: int, db_session: DbSessionDep):
-    return await RunRecordService(db_session).get_run_record_by_id(id=run_record_id)
-
 @schedule_manage_router.patch("/{schedule_id}", response_model=schedule_schemas.ScheduleRead)
 async def update_schedule(schedule_id: int, body: schedule_schemas.ScheduleUpdate, db_session: DbSessionDep):
     updated_schedule = await ScheduleService(db_session).update_schedule(schedule_id, body)
@@ -62,3 +58,15 @@ async def trigger_schedule(schedule_id: int):
 @schedule_manage_router.delete("/records/{job_id}/execution", status_code=status.HTTP_204_NO_CONTENT)
 async def cancel_schedule_execution(job_id: int):
     await use_schedule_runner().cancel_job(job_id)
+
+# --- --- --- --- --- ---
+
+# Schedule record endpoints
+
+@schedule_manage_router.get("/records/{run_record_id}", response_model=schedule_schemas.RunRecordRead)
+async def get_run_record(run_record_id: int, db_session: DbSessionDep):
+    return await RunRecordService(db_session).get_run_record_by_id(id=run_record_id)
+
+@schedule_manage_router.delete("/records/{run_record_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_run_record(run_record_id: int, db_session: DbSessionDep):
+    await RunRecordService(db_session).delete_run_record(run_record_id)

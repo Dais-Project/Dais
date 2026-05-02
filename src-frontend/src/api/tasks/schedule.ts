@@ -3,13 +3,15 @@ export {
   useCancelScheduleExecution,
   useCreateSchedule,
   useDeleteSchedule,
-  useGetRunRecordSuspense,
   useGetScheduleRecordsSuspenseInfinite,
   useGetScheduleSuspense,
   useGetSchedulesSuspenseInfinite,
   useTriggerSchedule,
   useUpdateSchedule,
   useGetScheduleRunningJobsSuspense,
+
+  useGetRunRecordSuspense,
+  useDeleteRunRecord,
 } from "../generated/endpoints/schedule/schedule";
 
 import queryClient from "@/query-client";

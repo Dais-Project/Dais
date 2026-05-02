@@ -1,21 +1,25 @@
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpRightIcon, HistoryIcon } from "lucide-react";
+import { ArrowUpRightIcon, HistoryIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import type { RunRecordBrief, ScheduleRead } from "@/api/generated/schemas";
 import {
+  invalidateScheduleQueries,
+  useDeleteRunRecord,
   useGetScheduleRecordsSuspenseInfinite,
   useGetScheduleSuspense,
 } from "@/api/tasks/schedule";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
   ActionableItem,
+  ActionableItemIcon,
+  ActionableItemInfo,
   ActionableItemMenu,
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { ItemDescription, ItemTitle } from "@/components/ui/item";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { INTL_LOCALE_MAP } from "@/i18n/locale-maps/intl";
@@ -52,11 +56,13 @@ function openScheduleRecordTab(schedule: ScheduleRead, record: RunRecordBrief) {
 type ScheduleRecordItemProps = {
   record: RunRecordBrief;
   schedule: ScheduleRead;
+  onDelete: (record: RunRecordBrief) => void;
 };
 
 function ScheduleRecordItem({
   record,
   schedule,
+  onDelete,
 }: ScheduleRecordItemProps) {
   const { t } = useTranslation(TABS_SCHEDULE_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
@@ -64,31 +70,31 @@ function ScheduleRecordItem({
   return (
     <ActionableItem>
       <ActionableItemTrigger
-        className="cursor-pointer border rounded"
+        className="cursor-pointer"
         onClick={() => openScheduleRecordTab(schedule, record)}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
-            <HistoryIcon className="size-4" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <ItemTitle className="truncate">
-              {formatDistanceToNow(new Date(record.run_at * 1000), {
-                addSuffix: true,
-                locale: DATEFNS_LOCALE_MAP[language],
-              })}
-            </ItemTitle>
-            <ItemDescription className="truncate whitespace-nowrap">
-              {new Date(record.run_at * 1000).toLocaleString(INTL_LOCALE_MAP[language])}
-            </ItemDescription>
-          </div>
-        </div>
+        <ActionableItemIcon>
+          <HistoryIcon />
+        </ActionableItemIcon>
+        <ActionableItemInfo
+          title={
+            formatDistanceToNow(new Date(record.run_at * 1000), {
+              addSuffix: true,
+              locale: DATEFNS_LOCALE_MAP[language],
+            })
+          }
+          description={new Date(record.run_at * 1000).toLocaleString(INTL_LOCALE_MAP[language])}
+        />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={() => openScheduleRecordTab(schedule, record)}>
           <ArrowUpRightIcon />
           <span>{t("records.view_detail")}</span>
+        </ActionableItemMenuItem>
+        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(record)}>
+          <TrashIcon />
+          <span>{t("records.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -97,6 +103,30 @@ function ScheduleRecordItem({
 
 function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
   const { t } = useTranslation(TABS_SCHEDULE_NAMESPACE);
+
+  const deleteRunRecordMutation = useDeleteRunRecord({
+    mutation: {
+      async onSuccess(_, variables) {
+        await invalidateScheduleQueries({
+          scheduleId: schedule.id,
+          runRecordId: variables.runRecordId,
+        });
+        useTabsStore.getState().remove((tab) => (
+          tab.type === "task" &&
+          tab.metadata.type === "schedule" &&
+          tab.metadata.id === variables.runRecordId
+        ));
+        toast.success(t("toast.records.delete_success_title"), {
+          description: t("toast.records.delete_success_description"),
+        });
+      },
+    },
+  });
+
+  const handleDelete = (record: RunRecordBrief) => {
+    deleteRunRecordMutation.mutate({ runRecordId: record.id });
+  };
+
   const query = useGetScheduleRecordsSuspenseInfinite(
     schedule.id,
     undefined,
@@ -138,6 +168,7 @@ function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
             <ScheduleRecordItem
               record={item}
               schedule={schedule}
+              onDelete={handleDelete}
             />
           </div>
         )}
