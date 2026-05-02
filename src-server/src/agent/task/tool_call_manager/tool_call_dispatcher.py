@@ -6,14 +6,14 @@ from loguru import logger
 from dais_sdk.tool import ToolCallExecutor
 from dais_sdk.types import ToolDef, ToolMessage, ToolDoesNotExistError
 from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
-from ..context import AgentContext
-from ..types import (
+from .exception_handlers import handle_tool_does_not_exist_error
+from ...context import AgentContext
+from ...types import (
     ToolEvent, ToolExecutedEvent, MessageReplaceEvent, ErrorEvent,
     ToolRequirePermissionEvent,
 )
-from ..exception_handlers import handle_tool_does_not_exist_error
-from ..tool import ExecutionControlToolset
-from ..types.metadata import UserApprovalStatus, is_agent_tool_metadata
+from ...tool import ExecutionControlToolset
+from ...types.metadata import UserApprovalStatus, is_agent_tool_metadata
 
 
 @dataclass
@@ -101,6 +101,7 @@ class ToolCallDispatcher:
                                                  | ErrorEvent, None]:
         dispatches: list[ToolCallDispatch] = []
         for message in tool_call_messages:
+            if message.is_complete: continue
             tool = self._ctx.find_tool(message.name)
             if tool is None:
                 message.error = handle_tool_does_not_exist_error(ToolDoesNotExistError(message.name))
@@ -134,7 +135,11 @@ class ToolCallDispatcher:
             yield executed_event
             yield replace_event
 
-    def dispatch(self, tool_call_messages: list[ToolMessage]) -> tuple[AsyncGenerator[ToolEvent | MessageReplaceEvent | ErrorEvent, None], ToolCallDispatchResult]:
+    def dispatch(self,
+                 tool_call_messages: list[ToolMessage]
+                 ) -> tuple[
+                    AsyncGenerator[ToolEvent | MessageReplaceEvent | ErrorEvent, None],
+                    ToolCallDispatchResult]:
         result = ToolCallDispatchResult(
             has_finished_task=False,
             has_blocked_tool_calls=False,

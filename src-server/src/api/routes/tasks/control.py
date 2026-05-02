@@ -63,7 +63,7 @@ async def append_task_message(
         return metadatas
 
     task = await create_agent_task(task_type, task_id, body.agent_id)
-    task.messages.discard_pending_tool_messages()
+    task.tool_calls.discard_pendings()
 
     user_message = body.message
     if len(uploaded_files) > 0:
@@ -97,7 +97,7 @@ async def tool_answer(
     """
     task = await create_agent_task(task_type, task_id, body.agent_id)
     try:
-        event = task.messages.apply_user_response_to_tool_message(body.call_id, body.answer)
+        event = task.tool_calls.apply_user_response(body.call_id, body.answer)
         return event
     except MessageNotFoundError:
         raise ApiError(status.HTTP_404_NOT_FOUND,
@@ -116,7 +116,7 @@ async def tool_reviews(
     """
     task = await create_agent_task(task_type, task_id, body.agent_id)
     try:
-        return await task.approve_tool_call(body.call_id, body.status == "approved")
+        return await task.tool_calls.approve(body.call_id, body.status == "approved")
     except MessageNotFoundError:
         raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND)
     finally:
