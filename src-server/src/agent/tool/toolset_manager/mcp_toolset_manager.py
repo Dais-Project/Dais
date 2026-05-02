@@ -67,6 +67,7 @@ class McpToolsetManager(ToolsetManager):
 
     async def connect_mcp_servers(self):
         if self._toolset_map is None:
+            self._logger.warning("Toolset manager not initialized")
             raise ValueError("Toolset manager not initialized")
 
         if self._state != McpToolsetManagerState.DISCONNECTED: return

@@ -49,7 +49,6 @@ class LifespanManager:
     async def _init_resources(self):
         self.background_task_manager.add_task(SkillMaterializer.materialize_skills())
         self.background_task_manager.add_task(self.schedule_runner.load_schedules())
-        self.background_task_manager.add_task(self.mcp_toolset_manager.connect_mcp_servers())
         self.background_task_manager.add_task(self._clear_unused_cache())
 
         await self.app_setting_manager.initialize()
@@ -57,6 +56,8 @@ class LifespanManager:
         async with db_context() as db_session:
             await BuiltinToolsetManager.sync_toolsets(db_session)
             await self.mcp_toolset_manager.initialize(db_session)
+
+        self.background_task_manager.add_task(self.mcp_toolset_manager.connect_mcp_servers())
 
     async def _clear_unused_cache(self):
         async with db_context() as db_session:
