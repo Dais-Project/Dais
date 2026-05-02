@@ -85,7 +85,7 @@ async def continue_task(
         if has_executed:
             await asyncio.shield(task.persist())
 
-    if task.has_pending_tool_calls():
+    if len(task.messages.collect_pending_tool_messages()) > 0:
         # prevent starting agent loop when there are still unresolved tool calls
         yield TaskDoneEvent()
         return

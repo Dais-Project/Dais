@@ -63,14 +63,14 @@ async def append_task_message(
         return metadatas
 
     task = await create_agent_task(task_type, task_id, body.agent_id)
-    task.discard_pending_tool_calls()
+    task.messages.discard_pending_tool_messages()
 
     user_message = body.message
     if len(uploaded_files) > 0:
         resource_metadatas = await asyncio.shield(persist_attachments())
         user_message.attachments = cast(list[ContentBlockMetadata], resource_metadatas)
 
-    task.append_message(user_message)
+    task.messages.append(user_message)
     return await asyncio.shield(task.persist())
 
 @task_control_router.patch("/{task_type}/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)
@@ -81,7 +81,7 @@ async def edit_task_message(
 ):    
     task = await create_agent_task(task_type, task_id, body.agent_id)
     try:
-        task.edit_message(body.message_id, body.content)
+        task.messages.edit(body.message_id, body.content)
     except MessageNotFoundError:
         raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TASK_MESSAGE_NOT_FOUND, f"Task message '{body.message_id}' not found")
     return await asyncio.shield(task.persist())
@@ -94,11 +94,10 @@ async def tool_answer(
 ):
     """
     This endpoint is used for the HumanInTheLoop tool calls.
-    The frontend should send the tool call id and the answer to this endpoint.
     """
     task = await create_agent_task(task_type, task_id, body.agent_id)
     try:
-        event = task.set_tool_call_result(body.call_id, body.answer)
+        event = task.messages.apply_user_response_to_tool_message(body.call_id, body.answer)
         return event
     except MessageNotFoundError:
         raise ApiError(status.HTTP_404_NOT_FOUND,
