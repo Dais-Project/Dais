@@ -1,4 +1,10 @@
 {
+  "approve_all": {
+    "banner": {
+      "action": "全部批准",
+      "title": "有待批准的操作"
+    }
+  },
   "continue": {
     "banner": {
       "action": "继续任务",

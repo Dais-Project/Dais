@@ -1,12 +1,11 @@
 import { useMount } from "ahooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContinueTask } from "../components/ContinueTask";
-import { ErrorRetry } from "../components/ErrorRetry";
 import { PromptInput, PromptInputProvider } from "../components/PromptInput";
 import { TaskConversationContent, TaskConversationProvider, TaskConversationScrollToBottom } from "../components/TaskConversation";
-import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
+import { useAgentTaskAction } from "../hooks/use-agent-task";
 import { CollapsibleStoreProvider } from "../hooks/use-collapsible-store";
+import { SessionStates } from "../components/SessionStates";
 
 export function TaskSessionViewSkeleton() {
   return (
@@ -43,7 +42,6 @@ export function TaskSessionView({
   workspaceId,
   shouldStartStream,
 }: TaskSessionViewProps) {
-  const { state } = useAgentTaskState();
   const { continue: continueTask } = useAgentTaskAction();
 
   useMount(() => {
@@ -60,8 +58,7 @@ export function TaskSessionView({
           <div className="mx-auto w-full max-w-3xl">
             <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
             <div className="w-7/8 mx-auto pointer-events-auto">
-              {state === "idle" && <ContinueTask />}
-              {state === "error" && <ErrorRetry />}
+              <SessionStates />
             </div>
             <PromptInputProvider>
               <PromptInput className="pointer-events-auto" workspaceId={workspaceId} />

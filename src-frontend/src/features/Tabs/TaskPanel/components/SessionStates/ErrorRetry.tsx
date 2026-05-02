@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useAgentTaskAction } from "../hooks/use-agent-task";
+import { useAgentTaskAction } from "../../hooks/use-agent-task";
 
 export function ErrorRetry() {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);

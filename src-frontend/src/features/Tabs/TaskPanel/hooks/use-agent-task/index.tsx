@@ -20,20 +20,15 @@ import {
   type TaskRuntimeContext,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
-  type ToolReviewBody,
 } from "@/api/generated/schemas";
 import {
   continueTask,
   type TaskSseCallbacks,
-  useAppendTaskMessage,
-  useEditTaskMessage,
-  useToolAnswer,
-  useToolReviews,
   useGetTaskRuntimeContextSuspense,
 } from "@/api/tasks";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
-import { toSdkMessage, uiUserMessageFactory, type SdkMessage } from "@/types/message";
+import { type SdkMessage } from "@/types/message";
 import { UiMessage } from "@/types/message";
 import { toUiMessage } from "@/types/message";
 import { sendNotification } from "@/lib/notification";
@@ -46,12 +41,14 @@ import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useNotificationBuffer } from "./use-notification-buffer";
 import { useTaskFlags } from "./use-task-flags";
 import { sounds } from "@/components/audios";
+import { useTaskControl, UseTaskControlResult } from "./use-task-control";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
 export type TaskFlags = {
-  isSuccess: boolean;
-  requiresUserAction: boolean;
+  isFinished: boolean;
+  requiresUserResponse: boolean;
+  requiresUserPermission: boolean;
 };
 
 // --- --- --- --- --- ---
@@ -83,13 +80,9 @@ export type AgentTaskState = {
 
 export type AgentTaskActions = {
   setAgentId: (agentId: number) => void;
-  answerTool: (toolCallId: string, answer: string) => Promise<void>;
-  reviewTool: (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => Promise<void>;
-  appendMessage: (text: string, attachments: File[]) => Promise<void>;
-  editMessage: (messageId: string, content: string) => Promise<void>;
   continue: () => void;
   cancel: () => void;
-};
+} & UseTaskControlResult;
 
 const AgentTaskStateContext = createContext<AgentTaskState | null>(null);
 const AgentTaskActionContext = createContext<AgentTaskActions | null>(null);
@@ -193,7 +186,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const onMessageReplace = (eventData: MessageReplaceEvent) => {
     messageLifecycle.handleMessageReplace(eventData.message);
-  }
+  };
 
   const onToolCallEnd = (eventData: ToolCallEndEvent) => {
     const { message } = eventData;
@@ -201,7 +194,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
     switch (message.name) {
       case BuiltInTools.ExecutionControl__finish_task:
-        setFlag({ isSuccess: true });
+        setFlag({ isFinished: true });
         if (isForeground()) {
           sounds.finished.play();
         } else {
@@ -220,7 +213,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   };
 
   const onToolRequireUserResponse = (_: ToolRequireUserResponseEvent) => {
-    setFlag({ requiresUserAction: true });
+    setFlag({ requiresUserResponse: true });
     if (isForeground()) {
       sounds.notify.play();
     } else {
@@ -231,7 +224,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   };
 
   const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
-    setFlag({ requiresUserAction: true });
+    setFlag({ requiresUserPermission: true });
     if (!isForeground()) {
       permissionNotificationBuffer.enqueue(
         t("notification.require_permission", {
@@ -265,16 +258,14 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
       lastMessage.content.length > 0
     );
     if (isLastMessageNonEmptyAssistantMessage) {
-      setFlag({ requiresUserAction: true });
-    }
-    if (isLastMessageNonEmptyAssistantMessage) {
+      setFlag({ requiresUserResponse: true });
       if (isForeground()) {
         sounds.notify.play();
       } else {
         const notificationContent = t("notification.responded", { response: lastMessage.content });
         sendNotification(notificationContent, { onClick: backToCurrentTab });
       }
-    };
+    }
   };
 
   sseCallbacksRef.current = {
@@ -293,105 +284,19 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const handleTaskContinue = useCallback(
     () => startStream(continueTask, {}),
-    [setData, startStream]
+    [startStream]
   );
 
   const handleTaskCancel = useCallback(() => cancel(), [cancel]);
 
-  /* Agent Task Controls */
-
-  const answerToolMutation = useToolAnswer({
-    mutation: {
-      onSuccess(eventData) {
-        sseCallbacksRef.current.onMessageReplace?.(eventData);
-        handleTaskContinue();
-      },
-    },
+  const taskControl = useTaskControl({
+    taskId,
+    taskType,
+    agentId,
+    onMessageReplace,
+    onTaskContinue: handleTaskContinue,
+    onUpdateRuntimeContext: applyRuntimeContext,
   });
-
-  const toolReviewMutation = useToolReviews({
-    mutation: {
-      onSuccess(eventData) {
-        if (eventData) {
-          sseCallbacksRef.current.onMessageReplace?.(eventData);
-        }
-        handleTaskContinue();
-      },
-    },
-  });
-
-  const appendMessageMutation = useAppendTaskMessage({
-    mutation: {
-      onSuccess(runtimeContext) {
-        applyRuntimeContext(runtimeContext);
-        handleTaskContinue();
-      }
-    }
-  })
-
-  const editMessageMutation = useEditTaskMessage({
-    mutation: {
-      onSuccess(runtimeContext) {
-        applyRuntimeContext(runtimeContext);
-        handleTaskContinue();
-      },
-    },
-  });
-
-  const answerTool = useCallback(async (toolCallId: string, answer: string) => {
-    if (agentId === null) {
-      toast.error("任务失败", { description: "请先选择一个 Agent。" });
-      return;
-    }
-    await answerToolMutation.mutateAsync({
-      taskId, taskType,
-      data: { call_id: toolCallId, agent_id: agentId, answer }
-    });
-  }, [answerToolMutation, taskId]);
-
-  const reviewTool = useCallback(
-    async (toolCallId: string, status: ToolReviewBody["status"], autoApprove: boolean) => {
-      if (agentId === null) {
-        toast.error("任务失败", { description: "请先选择一个 Agent。" });
-        return;
-      }
-      await toolReviewMutation.mutateAsync({
-        taskId, taskType,
-        data: { call_id: toolCallId, agent_id: agentId, status, auto_approve: autoApprove }
-      });
-    }, [toolReviewMutation, taskId, agentId]
-  );
-
-  const appendMessage = useCallback(async (text: string, attachments: File[]) => {
-    if (agentId === null) {
-      toast.error("任务失败", { description: "请先选择一个 Agent。" });
-      return;
-    }
-    const userMessage = uiUserMessageFactory(text);
-    const body = JSON.stringify({
-      message: toSdkMessage(userMessage),
-      agent_id: agentId,
-    });
-    await appendMessageMutation.mutateAsync({
-      taskId, taskType, data: {
-        body, uploaded_files: attachments
-      }
-    });
-  }, [appendMessageMutation, taskId, agentId]);
-
-  const editMessage = useCallback(async (messageId: string, content: string) => {
-    if (agentId === null) {
-      toast.error("任务失败", { description: "请先选择一个 Agent。" });
-      return;
-    }
-    await editMessageMutation.mutateAsync({
-      taskId, taskType, data: {
-        message_id: messageId,
-        agent_id: agentId,
-        content
-      }
-    });
-  }, [editMessageMutation, taskId]);
 
   const stateValue = useMemo(
     () => ({
@@ -409,19 +314,14 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const actionValue = useMemo(
     () => ({
+      ...taskControl,
       setAgentId,
-      answerTool,
-      reviewTool,
-      editMessage,
-      appendMessage,
       continue: handleTaskContinue,
       cancel: handleTaskCancel,
     }),
     [
-      answerTool,
-      reviewTool,
-      editMessage,
-      appendMessage,
+      taskControl,
+      setAgentId,
       handleTaskContinue,
       handleTaskCancel,
     ]

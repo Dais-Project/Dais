@@ -7,10 +7,10 @@ function resolveTaskIndicator(state: TaskState, flags: TaskFlags): TabIndicator 
     case "running": return "in-progress";
     case "error": return "destructive";
   }
-  if (flags.isSuccess) {
+  if (flags.isFinished) {
     return "success";
   }
-  if (flags.requiresUserAction) {
+  if (flags.requiresUserResponse || flags.requiresUserPermission) {
     return "warning";
   }
   return null;

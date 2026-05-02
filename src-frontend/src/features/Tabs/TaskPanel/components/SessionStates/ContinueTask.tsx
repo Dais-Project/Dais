@@ -7,7 +7,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ClosableWrapper } from "@/components/custom/ClosableWrapper";
 import { type UiMessage, isToolMessageCompleted } from "@/types/message";
-import { useAgentTaskAction, useAgentTaskState } from "../hooks/use-agent-task";
+import { useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
 
 function shouldShow(message: UiMessage[]): boolean {
   const lastMessage = message.at(-1);

@@ -1,8 +1,14 @@
 {
+  "approve_all": {
+    "banner": {
+      "action": "Approve all",
+      "title": "Actions pending approval"
+    }
+  },
   "continue": {
     "banner": {
       "action": "Continue task",
-      "title": "Task paused, click to continue."
+      "title": "Task paused, click to continue"
     }
   },
   "create": {
@@ -13,7 +19,7 @@
   "error": {
     "banner": {
       "action": "Retry",
-      "title": "Task failed. Please retry."
+      "title": "Task failed, please retry"
     }
   },
   "notification": {

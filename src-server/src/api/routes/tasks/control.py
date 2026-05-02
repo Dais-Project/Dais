@@ -116,7 +116,26 @@ async def tool_reviews(
     """
     task = await create_agent_task(task_type, task_id, body.agent_id)
     try:
-        return await task.tool_calls.approve(body.call_id, body.status == "approved")
+        return task.tool_calls.approve(body.call_id, body.status == "approved")
+    except MessageNotFoundError:
+        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND)
+    finally:
+        await asyncio.shield(task.persist())
+
+@task_control_router.post("/{task_type}/{task_id}/approve_pendings", response_model=list[MessageReplaceEvent] | None)
+async def approve_pendings(
+    task_type: task_runtime_schemas.TaskType,
+    task_id: int,
+    body: TaskControlBody,
+):
+    task = await create_agent_task(task_type, task_id, body.agent_id)
+    replace_events = []
+    try:
+        for message in task.messages.tail_tool_messages_iter():
+            event = task.tool_calls.approve(message.call_id, True)
+            if event is not None:
+                replace_events.append(event)
+        return replace_events
     except MessageNotFoundError:
         raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND)
     finally:

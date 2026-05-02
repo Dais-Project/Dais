@@ -52,7 +52,7 @@ class ToolCallManager:
         target_message.result = result
         return MessageReplaceEvent(message=target_message)
 
-    async def approve(self, call_id: str, approved: bool) -> MessageReplaceEvent | None:
+    def approve(self, call_id: str, approved: bool) -> MessageReplaceEvent | None:
         target_message = self._message_manager.find(lambda m: m.role == "tool" and m.call_id == call_id)
         assert isinstance(target_message, ToolMessage)
 

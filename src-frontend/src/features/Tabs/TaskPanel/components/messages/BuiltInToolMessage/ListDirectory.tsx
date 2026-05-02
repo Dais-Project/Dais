@@ -60,8 +60,8 @@ export function ListDirectory({ message }: ToolMessageProps) {
           state={userApproval}
           disabled={disabled}
           onSubmit={markAsSubmitted}
-          onAccept={() => reviewTool(message.call_id, "approved", false)}
-          onReject={() => reviewTool(message.call_id, "denied", false)}
+          onAccept={() => reviewTool(message.call_id, "approved")}
+          onReject={() => reviewTool(message.call_id, "denied")}
         />
       )}
     </BuiltInToolContainer>
