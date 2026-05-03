@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from src.agent.notes.manager import NoteManager
+from src.agent.notes import NoteMaterializer
 from src.db.models import workspace as workspace_models
 from src.db.models import agent as agent_models
 from src.db.models import toolset as toolset_models
@@ -9,7 +9,6 @@ from src.schemas import workspace as workspace_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 from .agent import AgentService
-from .utils import build_load_options, Relations
 
 
 class WorkspaceNotFoundError(NotFoundError):
@@ -18,17 +17,20 @@ class WorkspaceNotFoundError(NotFoundError):
 
 class WorkspaceService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            workspace_models.Workspace.usable_tools,
-            workspace_models.Workspace.usable_agents,
-            workspace_models.Workspace.usable_skills,
+            selectinload(workspace_models.Workspace.usable_tools),
+            selectinload(workspace_models.Workspace.usable_agents)
+                .selectinload(agent_models.Agent.model),
+            selectinload(workspace_models.Workspace.usable_skills),
+            selectinload(workspace_models.Workspace.notes),
         ]
 
     def get_workspaces_query(self):
         return (
             select(workspace_models.Workspace)
             .order_by(workspace_models.Workspace.id.asc())
+            .options(*self.relations())
         )
 
     async def _update_relations(
@@ -49,7 +51,7 @@ class WorkspaceService(ServiceBase):
             stmt = (
                 select(agent_models.Agent)
                 .where(agent_models.Agent.id.in_(data.usable_agent_ids))
-                .options(*build_load_options(AgentService.relations()))
+                .options(*AgentService.relations())
             )
             agents = (await self._db_session.scalars(stmt)).all()
             workspace.usable_agents = list(agents)
@@ -68,17 +70,20 @@ class WorkspaceService(ServiceBase):
             skills = (await self._db_session.scalars(stmt)).all()
             workspace.usable_skills = list(skills)
 
+    async def get_all_workspaces(self) -> list[workspace_models.Workspace]:
+        stmt = (
+            select(workspace_models.Workspace)
+            .order_by(workspace_models.Workspace.id.asc())
+            .options(*self.relations())
+        )
+        workspaces = (await self._db_session.scalars(stmt)).all()
+        return list(workspaces)
+
     async def get_workspace_by_id(self, id: int) -> workspace_models.Workspace:
         workspace = await self._db_session.get(
             workspace_models.Workspace,
             id,
-            options=[
-                selectinload(workspace_models.Workspace.usable_tools),
-                selectinload(workspace_models.Workspace.usable_agents)
-                    .selectinload(agent_models.Agent.model),
-                selectinload(workspace_models.Workspace.usable_skills),
-                selectinload(workspace_models.Workspace.notes),
-            ],
+            options=self.relations(),
         )
         if not workspace:
             raise WorkspaceNotFoundError(id)
@@ -112,4 +117,4 @@ class WorkspaceService(ServiceBase):
         workspace = await self.get_workspace_by_id(id)
         await self._db_session.delete(workspace)
         await self._db_session.flush()
-        await NoteManager(workspace.id).clear_materialized(force=True)
+        await NoteMaterializer.clear_materialized(workspace.id)

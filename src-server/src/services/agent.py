@@ -5,7 +5,6 @@ from src.db.models import toolset as toolset_models
 from src.schemas import agent as agent_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
-from .utils import build_load_options, Relations
 
 
 class AgentNotFoundError(NotFoundError):
@@ -14,10 +13,10 @@ class AgentNotFoundError(NotFoundError):
 
 class AgentService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            agent_models.Agent.model,
-            agent_models.Agent.usable_tools,
+            selectinload(agent_models.Agent.model),
+            selectinload(agent_models.Agent.usable_tools),
         ]
 
     def get_agents_query(self):
@@ -30,7 +29,7 @@ class AgentService(ServiceBase):
     async def get_agent_by_id(self, id: int) -> agent_models.Agent:
         agent = await self._db_session.get(
             agent_models.Agent, id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not agent:
             raise AgentNotFoundError(id)
