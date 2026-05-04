@@ -136,6 +136,5 @@ class RunRecordService(ServiceBase):
 
     async def delete_run_record(self, id: int):
         run_record = await self.get_run_record_by_id(id)
-        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.SCHEDULE).delete_task_resources(id)
         await self._db_session.delete(run_record)
         await self._db_session.flush()
