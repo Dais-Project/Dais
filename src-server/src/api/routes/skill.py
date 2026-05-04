@@ -42,8 +42,8 @@ def process_archive(file_obj: IO[bytes]) -> skill_schemas.SkillCreate:
 def start_materializing_background_task(background_tasks: BackgroundTasks, skill_ent: skill_models.Skill):
     skill_data = skill_schemas.SkillRead.model_validate(skill_ent)
     async def clear_and_rematerialize(skill: skill_schemas.SkillRead):
-        await SkillMaterializer.clear_materialized(skill)
-        await SkillMaterializer.materialize_skill(skill)
+        await SkillMaterializer.clear_materialized(skill.id)
+        await SkillMaterializer.materialize(skill)
     background_tasks.add_task(clear_and_rematerialize, skill_data)
 
 @skills_router.get("/", response_model=Page[skill_schemas.SkillBrief])
@@ -99,5 +99,4 @@ async def delete_skill(
     background_tasks: BackgroundTasks,
 ):
     deleted_skill = await SkillService(db_session).delete_skill(skill_id)
-    skill_data = skill_schemas.SkillRead.model_validate(deleted_skill)
-    background_tasks.add_task(SkillMaterializer.clear_materialized, skill_data)
+    background_tasks.add_task(SkillMaterializer.clear_materialized, deleted_skill.id)

@@ -7,6 +7,7 @@ export {
   useGetWorkspaceSuspense,
   useGetWorkspacesSuspenseInfinite,
   useUpdateWorkspace,
+  useUpdateWorkspaceNotes,
   openWorkspace,
 } from "./generated/endpoints/workspace/workspace";
 

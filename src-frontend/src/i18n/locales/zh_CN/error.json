@@ -24,5 +24,6 @@
   "TOOLSET_INTERNAL_KEY_ALREADY_EXISTS": "该工具集已存在。",
   "TOOLSET_NOT_FOUND": "未找到该工具集。",
   "UNEXPECTED_ERROR": "发生错误，请稍后重试。",
-  "WORKSPACE_NOT_FOUND": "未找到该工作区。"
+  "WORKSPACE_NOT_FOUND": "未找到该工作区。",
+  "WORKSPACE_NOTES_LOCKED_BY_RUNNING_TASK": "当前工作区下有任务正在运行，暂时无法更新工作区笔记，请在任务结束后重试。"
 }

@@ -32,7 +32,7 @@ class SkillMaterializer:
         return skill_dir
 
     @classmethod
-    async def materialize_skill(cls, skill: skill_schemas.SkillRead) -> Path:
+    async def materialize(cls, skill: skill_schemas.SkillRead) -> Path:
         """
         Materialize a skill to a temporary directory and return the directory absolute path.
         """
@@ -57,7 +57,7 @@ class SkillMaterializer:
         return skill_dir
 
     @classmethod
-    async def materialize_skills(cls):
+    async def materialize_all(cls):
         async with db_context() as db_session:
             skills = await SkillService(db_session).get_all_skills()
 
@@ -65,17 +65,18 @@ class SkillMaterializer:
         async def sem_materialize(skill: skill_models.Skill):
             async with sem:
                 skill_read = skill_schemas.SkillRead.model_validate(skill)
-                await cls.clear_materialized(skill_read)
-                await cls.materialize_skill(skill_read)
+                await cls.clear_materialized(skill_read.id)
+                await cls.materialize(skill_read)
+
         tasks = [sem_materialize(skill) for skill in skills]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for result in results:
             if isinstance(result, BaseException):
-                cls._logger.opt(exception=result).warning("Failed to materialize skill")
+                cls._logger.opt(exception=result).warning("Failed to materialize skills")
 
     @classmethod
-    async def clear_materialized(cls, skill: skill_schemas.SkillRead):
+    async def clear_materialized(cls, skill_id: int):
         skills_dir = await cls.get_skills_dir()
-        skill_dir = skills_dir / str(skill.id)
+        skill_dir = skills_dir / str(skill_id)
         if not await skill_dir.exists(): return
         await asyncio.to_thread(shutil.rmtree, skill_dir)

@@ -5,23 +5,24 @@ from typing import Annotated, override
 from itertools import islice
 from dais_shell import AgentShell, CommandStep
 from dais_shell.iostream_reader import IOStreamBuffer
-from src.agent.skills import SkillMaterializer
 from src.db.models import toolset as toolset_models
 from src.binaries import UV_PATH, NODE_PATH
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
-from ...notes import NoteManager
 
 
 class OsInteractionsToolset(BuiltInToolset):
     def __init__(self,
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
+        from ...notes import NoteMaterializer
+        from ...skills import SkillMaterializer
+
         super().__init__(ctx, toolset_ent)
         self._shell = AgentShell(
             extra_paths=[str(NODE_PATH.parent), str(UV_PATH.parent)],
             extra_env={
                 **SkillMaterializer.get_skill_dir_env(),
-                **NoteManager.get_notes_dir_env(ctx.workspace_id),
+                **NoteMaterializer.get_notes_dir_env(ctx.workspace_id),
             }
         )
 

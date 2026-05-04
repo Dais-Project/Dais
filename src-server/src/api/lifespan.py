@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Coroutine, TypedDict
 from fastapi import FastAPI
 from src.agent.skills import SkillMaterializer
+from src.agent.notes import NoteMaterializer
 from src.agent.task.schedule_runner import init_schedule_runner
 from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
@@ -47,7 +48,8 @@ class LifespanManager:
         self.background_task_manager = BackgroundTaskManager()
 
     async def _init_resources(self):
-        self.background_task_manager.add_task(SkillMaterializer.materialize_skills())
+        self.background_task_manager.add_task(SkillMaterializer.materialize_all())
+        self.background_task_manager.add_task(NoteMaterializer.materialize_all())
         self.background_task_manager.add_task(self.schedule_runner.load_schedules())
         self.background_task_manager.add_task(self._clear_unused_cache())
 

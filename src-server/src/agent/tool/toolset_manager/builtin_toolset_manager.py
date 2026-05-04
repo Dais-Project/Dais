@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Sequence, override
+from typing import Sequence, override
 from dais_sdk.tool import Toolset
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import db_context
@@ -7,27 +7,16 @@ from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 from ..builtin_tools import BUILT_IN_TOOLSETS
 
-if TYPE_CHECKING:
-    from ...context import ToolRuntimeContext
-
 
 class BuiltinToolsetManager(ToolsetManager):
-    def __init__(self, workspace_id: int, cwd: str, runtime_getter: Callable[[], ToolRuntimeContext]):
-        self._ctx = BuiltInToolsetContext(workspace_id, cwd, runtime_getter)
+    def __init__(self, workspace_id: int, cwd: str):
+        self._ctx = BuiltInToolsetContext(workspace_id, cwd)
         self._toolset_map: dict[str, toolset_models.Toolset] | None = None
         self._toolsets: list[BuiltInToolset] | None = None
 
     @classmethod
     def default(cls):
-        """Create a manager for static built-in tool metadata export only.
-
-        The returned manager is intended for metadata-only operations, such as exporting
-        built-in tool definitions before a real agent runtime context exists. Any access
-        to runtime-backed context fields from this instance is considered invalid.
-        """
-        def runtime_getter():
-            raise ValueError("ToolRuntimeContext is unavailable in BuiltinToolsetManager.default()")
-        return cls(1, "~", runtime_getter)
+        return cls(1, "~")
 
     @staticmethod
     async def sync_toolsets(db_session: AsyncSession):
@@ -60,7 +49,7 @@ class BuiltinToolsetManager(ToolsetManager):
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
 
     @classmethod
-    async def create(cls, workspace_id: int, cwd: str, tool_runtime_context: ToolRuntimeContext) -> BuiltinToolsetManager:
-        manager = cls(workspace_id, cwd, lambda: tool_runtime_context)
+    async def create(cls, workspace_id: int, cwd: str) -> BuiltinToolsetManager:
+        manager = cls(workspace_id, cwd)
         await manager.initialize()
         return manager

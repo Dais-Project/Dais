@@ -1,11 +1,3 @@
-from .aliases import BuiltInToolAliases
-from .models import ToolRuntimeContext, AgentContextResource, AgentContextPersistence
-
-__all__ = [
-    "AgentContext",
-    "ToolRuntimeContext",
-]
-
 import platform
 import xml.etree.ElementTree as ET
 from collections import namedtuple
@@ -14,7 +6,7 @@ from typing import Self
 from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
-from src.agent.notes import NoteManager
+from src.agent.notes import NoteWatcher
 from src.db import db_context
 from src.schemas import (
     agent as agent_schemas,
@@ -29,7 +21,10 @@ from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
 from src.settings import use_app_setting_manager
 from .persistence import create_agent_context_persistence
-from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager, BuiltInToolset
+from .aliases import BuiltInToolAliases
+from .models import AgentContextResource, AgentContextPersistence
+from ..notes import NoteMaterializer
+from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
 from ..prompts import (
     BASE_INSTRUCTION,
     FAILED_TO_LOAD_NOTES_INDEX,
@@ -49,7 +44,8 @@ class AgentContext:
                  *,
                  messages: list[Message],
                  resource: AgentContextResource,
-                 tool_context: ToolRuntimeContext,
+                 usage: ContextUsage,
+                 note_watcher: NoteWatcher,
                  persistence: AgentContextPersistence,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
@@ -58,7 +54,8 @@ class AgentContext:
         self._resource = resource
         self._messages = messages
 
-        self._tool_context = tool_context
+        self._usage = usage
+        self._note_watcher = note_watcher
         self._persistence = persistence
         self._builtin_toolset_manager = builtin_toolset_manager
         self._mcp_toolset_manager = mcp_toolset_manager
@@ -82,12 +79,10 @@ class AgentContext:
         usage = ContextUsage(**asdict(usage))
         messages = task.messages
 
-        note_manager = NoteManager(task.workspace_id)
-        await note_manager.materialize()
-        await note_manager.start_watching()
+        note_watcher = NoteWatcher(task.workspace_id)
+        await note_watcher.start_watching()
 
-        tool_context = ToolRuntimeContext(usage=usage, note_manager=note_manager)
-        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory, tool_context)
+        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory)
         mcp_toolset_manager = use_mcp_toolset_manager()
 
         persistence = create_agent_context_persistence(task)
@@ -101,7 +96,8 @@ class AgentContext:
                        model=provider_schemas.LlmModelRead.model_validate(model),
                        skills=[skill_schemas.SkillBrief.model_validate(skill) for skill in skills],
                    ),
-                   tool_context=tool_context,
+                   usage=usage,
+                   note_watcher=note_watcher,
                    persistence=persistence,
                    builtin_toolset_manager=builtin_toolset_manager,
                    mcp_toolset_manager=mcp_toolset_manager)
@@ -131,7 +127,7 @@ class AgentContext:
 
     @property
     def usage(self) -> ContextUsage:
-        return self._tool_context.usage
+        return self._usage
 
     @property
     def toolsets(self) -> list[Toolset]:
@@ -171,7 +167,7 @@ class AgentContext:
         available_skills = AgentContext._format_skills([
             skill for skill in self._resource.skills if skill.is_enabled])
         resolved_instructions = self._resolve_instructions()
-        notes_index = await self._tool_context.note_manager.get_notes_index()
+        notes_index = await NoteMaterializer.get_notes_index(self._resource.workspace.id)
         resolved_notes_index = notes_index if notes_index is not None else FAILED_TO_LOAD_NOTES_INDEX
 
         return resolved_instructions.base.format(
@@ -195,13 +191,12 @@ class AgentContext:
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         try:
-            await self._tool_context.note_manager.stop_watching()
-            await self._tool_context.note_manager.clear_materialized()
-        except:
-            self._logger.exception("Failed to execute NoteManager cleanup.")
+            await self._note_watcher.stop_watching()
+        except Exception:
+            self._logger.exception("Failed to stop NoteWatcher.")
 
         return await self._persistence.persist(
             self.task_id,
             self._messages,
-            self._tool_context.usage,
+            self._usage,
         )

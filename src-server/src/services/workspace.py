@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from src.agent.notes import NoteMaterializer
 from src.db.models import workspace as workspace_models
 from src.db.models import agent as agent_models
 from src.db.models import toolset as toolset_models
@@ -38,15 +37,6 @@ class WorkspaceService(ServiceBase):
         workspace: workspace_models.Workspace,
         data: workspace_schemas.WorkspaceCreate | workspace_schemas.WorkspaceUpdate,
     ):
-        if data.notes is not None:
-            workspace.notes = [
-                workspace_models.WorkspaceNote(
-                    relative=note.relative,
-                    content=note.content,
-                )
-                for note in data.notes
-            ]
-
         if data.usable_agent_ids is not None:
             stmt = (
                 select(agent_models.Agent)
@@ -93,6 +83,13 @@ class WorkspaceService(ServiceBase):
         create_data = data.model_dump(exclude={"notes", "usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
         new_workspace = workspace_models.Workspace(**create_data)
 
+        new_workspace.notes = [
+            workspace_models.WorkspaceNote(
+                relative=note.relative,
+                content=note.content,
+            )
+            for note in data.notes
+        ]
         await self._update_relations(new_workspace, data)
 
         self._db_session.add(new_workspace)
@@ -113,8 +110,22 @@ class WorkspaceService(ServiceBase):
         updated_workspace = await self.get_workspace_by_id(workspace.id)
         return updated_workspace
 
+    async def update_workspace_notes(self, id, data: workspace_schemas.WorkspaceNotesUpdate):
+        workspace = await self.get_workspace_by_id(id)
+        workspace.notes = [
+            workspace_models.WorkspaceNote(
+                relative=note.relative,
+                content=note.content,
+            )
+            for note in data.notes
+        ]
+        await self._db_session.flush()
+        self._db_session.expunge(workspace)
+
+        updated_workspace = await self.get_workspace_by_id(workspace.id)
+        return updated_workspace
+
     async def delete_workspace(self, id: int) -> None:
         workspace = await self.get_workspace_by_id(id)
         await self._db_session.delete(workspace)
         await self._db_session.flush()
-        await NoteMaterializer.clear_materialized(workspace.id)
