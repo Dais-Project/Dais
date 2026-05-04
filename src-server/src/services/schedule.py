@@ -1,10 +1,10 @@
 from dais_sdk.types import UserMessage
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.db.models import tasks as task_models
 from src.schemas.tasks import schedule as schedule_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
-from .utils import build_load_options, Relations
 
 
 class ScheduleNotFoundError(NotFoundError):
@@ -13,10 +13,10 @@ class ScheduleNotFoundError(NotFoundError):
 
 class ScheduleService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            task_models.Schedule.agent,
-            task_models.Schedule.workspace,
+            selectinload(task_models.Schedule.agent),
+            selectinload(task_models.Schedule.workspace),
         ]
 
     def get_all_schedules_query(self):
@@ -43,7 +43,7 @@ class ScheduleService(ServiceBase):
         schedule = await self._db_session.get(
             task_models.Schedule,
             id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not schedule:
             raise ScheduleNotFoundError(id)
@@ -88,9 +88,9 @@ class RunRecordNotFoundError(NotFoundError):
 
 class RunRecordService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            task_models.RunRecord.schedule,
+            selectinload(task_models.RunRecord.schedule),
         ]
 
     def get_run_records_query(self, schedule_id: int):
@@ -104,7 +104,7 @@ class RunRecordService(ServiceBase):
         run_record = await self._db_session.get(
             task_models.RunRecord,
             id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not run_record:
             raise RunRecordNotFoundError(id)

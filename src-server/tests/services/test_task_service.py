@@ -297,7 +297,6 @@ class TestTaskService:
         workspace_factory,
         agent_factory,
         tool_factory,
-        task_resource_data_dir: Path,
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
@@ -320,15 +319,11 @@ class TestTaskService:
             "note.txt",
             b"resource-bytes",
         )
-        resource_dir = task_resource_data_dir / ".task-resources" / "task" / str(task.id)
-        resource_path = resource_dir / resource.filename
 
         await task_service.delete_task(task.id)
         await db_session.flush()
         db_session.expunge_all()
 
-        assert not resource_path.exists()
-        assert not resource_dir.exists()
         with pytest.raises(TaskNotFoundError, match=f"Task '{task.id}' not found"):
             await task_service.get_task_by_id(task.id)
 

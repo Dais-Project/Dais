@@ -1,10 +1,10 @@
 from loguru import logger
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.db.models import provider as provider_models
 from src.schemas import provider as provider_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
-from .utils import build_load_options, Relations
 
 
 _logger = logger.bind(name="ProviderService")
@@ -15,15 +15,15 @@ class ProviderNotFoundError(NotFoundError):
 
 class ProviderService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            provider_models.Provider.models,
+            selectinload(provider_models.Provider.models),
         ]
 
     def get_providers_query(self):
         return (
             select(provider_models.Provider)
-            .options(*build_load_options(self.relations()))
+            .options(*self.relations())
             .order_by(provider_models.Provider.id.asc())
         )
 
@@ -36,7 +36,7 @@ class ProviderService(ServiceBase):
         provider = await self._db_session.get(
             provider_models.Provider,
             provider_id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not provider:
             raise ProviderNotFoundError(provider_id)

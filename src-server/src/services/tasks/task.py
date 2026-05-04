@@ -1,11 +1,9 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
-from src.schemas.tasks import runtime as task_runtime_schemas
 from ..service_base import ServiceBase
 from ..exceptions import NotFoundError, ServiceErrorCode
-from ..utils import build_load_options, Relations
-from .resource import TaskResourceService
 
 
 class TaskNotFoundError(NotFoundError):
@@ -15,10 +13,10 @@ class TaskNotFoundError(NotFoundError):
 
 class TaskService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            task_models.Task.agent,
-            task_models.Task.workspace,
+            selectinload(task_models.Task.agent),
+            selectinload(task_models.Task.workspace),
         ]
 
     def get_tasks_query(self, workspace_id: int):
@@ -40,7 +38,7 @@ class TaskService(ServiceBase):
     async def get_task_by_id(self, id: int) -> task_models.Task:
         task = await self._db_session.get(
             task_models.Task, id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not task:
             raise TaskNotFoundError(id)
@@ -74,6 +72,5 @@ class TaskService(ServiceBase):
 
     async def delete_task(self, id: int) -> None:
         task = await self.get_task_by_id(id)
-        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.TASK).delete_task_resources(id)
         await self._db_session.delete(task)
         await self._db_session.flush()

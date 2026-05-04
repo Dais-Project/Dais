@@ -1,5 +1,6 @@
 import type {
   WorkspaceCreate,
+  WorkspaceNotesUpdate,
   WorkspaceRead,
   WorkspaceUpdate,
 } from "@/api/generated/schemas";
@@ -52,23 +53,13 @@ export function createFormValuesToPayload(
 export function editFormValuesToPayload(
   values: WorkspaceEditFormValues,
 ): WorkspaceUpdate {
-  return {
-    ...values,
-    notes: null, // explicitly exclude `notes`
-  };
+  return values;
 }
 
 export function notesEditFormValuesToPayload(
   values: WorkspaceNotesEditFormValues,
-): WorkspaceUpdate {
+): WorkspaceNotesUpdate {
   return {
-    name: null,
-    directory: null,
-    instruction: null,
-    usable_agent_ids: null,
-    usable_tool_ids: null,
-    usable_skill_ids: null,
     notes: arboristDataToResources(values.notes),
   };
 }
-

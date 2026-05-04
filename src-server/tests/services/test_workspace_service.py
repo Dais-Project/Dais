@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.agent.notes.manager import NoteManager
+from src.agent.notes import NoteMaterializer
 from src.db.models.markdown_cache import MarkdownCache
 from src.db.models import tasks as task_models
 from src.db.models import workspace as workspace_models
@@ -137,18 +137,12 @@ class TestWorkspaceService:
         db_session.add(cache)
         await db_session.flush()
 
-        note_manager = NoteManager(workspace.id)
-        notes_dir = await note_manager.get_notes_dir()
-        note_path = Path(str(notes_dir)) / "note.md"
-        note_path.write_text("persisted", encoding="utf-8")
-
         await workspace_service.delete_workspace(workspace.id)
         await db_session.flush()
         db_session.expunge_all()
 
         with pytest.raises(WorkspaceNotFoundError, match=f"Workspace '{workspace.id}' not found"):
             await workspace_service.get_workspace_by_id(workspace.id)
-        assert not note_path.exists()
 
         note_in_db = await db_session.scalar(
             select(workspace_models.WorkspaceNote).where(workspace_models.WorkspaceNote.id == note_id)

@@ -16,8 +16,6 @@ from src.binaries import RIPGREP_PATH
 from src.settings import use_app_setting_manager
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
-from ...notes import NoteManager
-from ...skills import SkillMaterializer
 from ...prompts import create_one_turn_llm, SemanticFileAnalysis, SemanticFileAnalysisInput
 
 
@@ -46,10 +44,13 @@ class FileSystemToolset(BuiltInToolset):
     def __init__(self,
                  ctx: BuiltInToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
+        from ...notes import NoteMaterializer
+        from ...skills import SkillMaterializer
+
         super().__init__(ctx, toolset_ent)
         self._path_expander = PathExpander({
             **SkillMaterializer.get_skill_dir_env(),
-            **NoteManager.get_notes_dir_env(ctx.workspace_id),
+            **NoteMaterializer.get_notes_dir_env(ctx.workspace_id),
         })
         self._markdown_converter = MarkdownConverter()
 

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { TABS_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import type { WorkspaceRead } from "@/api/generated/schemas";
-import { invalidateWorkspaceQueries, useUpdateWorkspace } from "@/api/workspace";
+import { invalidateWorkspaceQueries, useUpdateWorkspaceNotes } from "@/api/workspace";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -29,7 +29,7 @@ export function WorkspaceNotesEditForm({ workspace, onConfirm }: WorkspaceNotesE
     [workspace.notes]
   );
 
-  const updateMutation = useUpdateWorkspace({
+  const updateNotesMutation = useUpdateWorkspaceNotes({
     mutation: {
       async onSuccess(updatedWorkspace: { id: number; name: string }) {
         await invalidateWorkspaceQueries(updatedWorkspace.id);
@@ -47,7 +47,7 @@ export function WorkspaceNotesEditForm({ workspace, onConfirm }: WorkspaceNotesE
 
   const handleSubmit = (data: WorkspaceNotesEditFormValues) => {
     const payload = notesEditFormValuesToPayload(data);
-    updateMutation.mutate({ workspaceId: workspace.id, data: payload });
+    updateNotesMutation.mutate({ workspaceId: workspace.id, data: payload });
   };
 
   return (
@@ -59,8 +59,8 @@ export function WorkspaceNotesEditForm({ workspace, onConfirm }: WorkspaceNotesE
       <WorkspaceNoteField labelClassName="hidden" />
 
       <FormShellFooter>
-        <Button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? t("form.submit.saving") : t("form.submit.save")}
+        <Button type="submit" disabled={updateNotesMutation.isPending}>
+          {updateNotesMutation.isPending ? t("form.submit.saving") : t("form.submit.save")}
         </Button>
       </FormShellFooter>
     </FormShell>

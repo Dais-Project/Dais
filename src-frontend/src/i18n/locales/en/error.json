@@ -24,5 +24,6 @@
   "TOOLSET_INTERNAL_KEY_ALREADY_EXISTS": "This toolset already exists.",
   "TOOLSET_NOT_FOUND": "The toolset was not found.",
   "UNEXPECTED_ERROR": "Something went wrong. Please try again.",
-  "WORKSPACE_NOT_FOUND": "The workspace was not found."
+  "WORKSPACE_NOT_FOUND": "The workspace was not found.",
+  "WORKSPACE_NOTES_LOCKED_BY_RUNNING_TASK": "Workspace notes cannot be updated while a task in this workspace is running. Please try again after the task finishes."
 }

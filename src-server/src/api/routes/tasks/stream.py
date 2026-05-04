@@ -70,23 +70,6 @@ async def continue_task(
     body: ContinueTaskBody,
     request: Request,
 ):
-    """
-    Directly continue a existing task
-    """
     task = await create_agent_task(task_type, task_id, body.agent_id)
-
-    # ensure all approved tool calls are executed before continuing
-    try:
-        tail_tool_calls = list(task.messages.tail_tool_messages_iter())
-        dispatch_stream, _ = task.tool_calls.dispatch(tail_tool_calls)
-        async for event in dispatch_stream:
-            yield event
-    finally:
-        await asyncio.shield(task.persist())
-
-    if len(task.tool_calls.collect_pendings()) > 0:
-        # prevent starting agent loop when there are still unresolved tool calls
-        yield TaskDoneEvent()
-        return
     async for event in stream_connector(task, request):
         yield event

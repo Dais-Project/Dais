@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Protocol
 from dais_sdk.types import Message
-from src.agent.notes import NoteManager
 from src.db.models import tasks as task_models
 from src.schemas import (
     agent as agent_schemas,
@@ -10,13 +9,7 @@ from src.schemas import (
     workspace as workspace_schemas,
 )
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.agent.types import ContextUsage
 
-
-@dataclass(frozen=True)
-class ToolRuntimeContext:
-    usage: ContextUsage
-    note_manager: NoteManager
 
 @dataclass(frozen=True)
 class AgentContextResource:

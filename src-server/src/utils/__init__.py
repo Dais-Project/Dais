@@ -1,3 +1,4 @@
+from .directory_watcher import DirectoryWatcher, FileChange
 from .markdown_converter import MarkdownConverter
 from .get_unique_filename import get_unique_filename
 from .open_in_file_manager import open_in_file_manager

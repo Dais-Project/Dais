@@ -4,7 +4,9 @@ from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.agent.task.schedule_runner import use_schedule_runner
 from src.db import DbSessionDep
 from src.schemas.tasks import schedule as schedule_schemas
+from src.services.tasks import TaskResourceService
 from src.services.schedule import RunRecordService, ScheduleService
+from src.schemas.tasks import runtime as task_runtime_schemas
 
 
 schedule_manage_router = APIRouter(tags=["schedule"])
@@ -70,3 +72,4 @@ async def get_run_record(run_record_id: int, db_session: DbSessionDep):
 @schedule_manage_router.delete("/records/{run_record_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_run_record(run_record_id: int, db_session: DbSessionDep):
     await RunRecordService(db_session).delete_run_record(run_record_id)
+    await TaskResourceService(db_session, task_runtime_schemas.TaskType.SCHEDULE).delete_task_resources(run_record_id)

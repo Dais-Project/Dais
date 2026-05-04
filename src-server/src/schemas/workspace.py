@@ -37,7 +37,9 @@ class WorkspaceUpdate(DTOBase):
     name: str | None
     directory: str | None
     instruction: str | None
-    notes: list[WorkspaceNoteBase] | None
     usable_agent_ids: list[int] | None
     usable_tool_ids: list[int] | None
     usable_skill_ids: list[int] | None = None
+
+class WorkspaceNotesUpdate(DTOBase):
+    notes: list[WorkspaceNoteBase]

@@ -1,11 +1,11 @@
 from typing import NamedTuple
 from dais_sdk.types import ToolDef
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.db.models import toolset as toolset_models
 from src.schemas import toolset as toolset_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
-from .utils import build_load_options, Relations
 
 
 class ToolsetNotFoundError(NotFoundError):
@@ -28,9 +28,9 @@ class ToolsetService(ServiceBase):
         auto_approve: bool = False
 
     @staticmethod
-    def relations() -> Relations:
+    def relations():
         return [
-            toolset_models.Toolset.tools,
+            selectinload(toolset_models.Toolset.tools),
         ]
 
     async def get_all_mcp_toolsets(self) -> list[toolset_models.Toolset]:
@@ -44,7 +44,7 @@ class ToolsetService(ServiceBase):
                     ]
                 )
             )
-            .options(*build_load_options(self.relations()))
+            .options(*self.relations())
         )
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
@@ -53,7 +53,7 @@ class ToolsetService(ServiceBase):
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.type == toolset_models.ToolsetType.BUILT_IN)
-            .options(*build_load_options(self.relations()))
+            .options(*self.relations())
         )
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
@@ -62,7 +62,7 @@ class ToolsetService(ServiceBase):
         toolset = await self._db_session.get(
             toolset_models.Toolset,
             id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not toolset:
             raise ToolsetNotFoundError(id)
@@ -72,7 +72,7 @@ class ToolsetService(ServiceBase):
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.internal_key == internal_key)
-            .options(*build_load_options(self.relations()))
+            .options(*self.relations())
         )
         toolset = await self._db_session.scalar(stmt)
         if not toolset:

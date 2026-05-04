@@ -8,8 +8,11 @@ from src.settings import use_app_setting_manager
 from src.db import DbSessionDep
 from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
-from src.services.tasks import TaskService
-from src.schemas.tasks import task as task_schemas
+from src.services.tasks import TaskResourceService, TaskService
+from src.schemas.tasks import (
+    task as task_schemas,
+    runtime as task_runtime_schemas,
+)
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -90,3 +93,4 @@ async def summarize_task_title(task_id: int, db_session: DbSessionDep):
 @task_manage_router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(task_id: int, db_session: DbSessionDep):
     await TaskService(db_session).delete_task(task_id)
+    await TaskResourceService(db_session, task_runtime_schemas.TaskType.TASK).delete_task_resources(task_id)

@@ -4,7 +4,6 @@ from src.db.models import skill as skill_models
 from src.schemas import skill as skill_schemas
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
-from .utils import build_load_options, Relations
 
 
 class SkillNotFoundError(NotFoundError):
@@ -20,8 +19,10 @@ class SkillNameAlreadyExistsError(ConflictError):
 
 class SkillService(ServiceBase):
     @staticmethod
-    def relations() -> Relations:
-        return [skill_models.Skill.resources]
+    def relations():
+        return [
+            selectinload(skill_models.Skill.resources)
+        ]
 
     def get_skills_query(self):
         return (
@@ -34,7 +35,7 @@ class SkillService(ServiceBase):
         stmt = (
             select(skill_models.Skill)
             .order_by(skill_models.Skill.id.asc())
-            .options(*build_load_options(self.relations()))
+            .options(*self.relations())
         )
         skills = (await self._db_session.scalars(stmt)).all()
         return list(skills)
@@ -43,7 +44,7 @@ class SkillService(ServiceBase):
         skill = await self._db_session.get(
             skill_models.Skill,
             id,
-            options=build_load_options(self.relations()),
+            options=self.relations(),
         )
         if not skill:
             raise SkillNotFoundError(id)
@@ -53,7 +54,7 @@ class SkillService(ServiceBase):
         stmt = (
             select(skill_models.Skill)
             .where(skill_models.Skill.name == name)
-            .options(*build_load_options(self.relations()))
+            .options(*self.relations())
         )
         skill = await self._db_session.scalar(stmt)
         if not skill:
