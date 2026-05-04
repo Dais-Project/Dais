@@ -1,54 +1,67 @@
-import asyncio
-from typing import Any, Callable
+from typing import Callable
 from anyio import Path as AnyioPath
-from pathlib import Path as StdPath
 from loguru import logger
-from watchfiles import awatch, Change as ChangeType
+from watchfiles import Change as ChangeType
 from src.db import db_context
+from src.utils import DirectoryWatcher, FileChange
 from .materializer import NoteMaterializer
 from .workspace_ref_manager import WorkspaceRefManager
 
 
-type FileChange = tuple[ChangeType, AnyioPath]
+type NoteChange = tuple[ChangeType, AnyioPath]
 
 class NoteWatcher:
     _logger = logger.bind(name="NoteWatcher")
 
     def __init__(self, workspace_id: int) -> None:
         self._workspace_id = workspace_id
-        self._stop_watching_event = None
-        self._watch_task = None
+        self._ref_acquired = False
+        self._watcher: DirectoryWatcher | None = None
 
-    async def start_watching(self):
-        if self._watch_task is not None:
-            await self.stop_watching()
+    async def _start(self):
+        if self._watcher is not None:
+            await self._stop()
+
         WorkspaceRefManager.increase_workspace_ref(self._workspace_id)
-        self._stop_watching_event = asyncio.Event()
+        self._ref_acquired = True
+        try:
+            notes_dir = await NoteMaterializer.get_notes_dir(self._workspace_id)
+            self._watcher = DirectoryWatcher(notes_dir, on_changes=self._handle_file_changes)
+            await self._watcher.start()
+        except BaseException:
+            WorkspaceRefManager.decrease_workspace_ref(self._workspace_id)
+            self._ref_acquired = False
+            raise
 
+    async def _stop(self) -> None:
+        if self._watcher:
+            await self._watcher.stop()
+            self._watcher = None
+        if self._ref_acquired:
+            WorkspaceRefManager.decrease_workspace_ref(self._workspace_id)
+
+    async def _handle_file_changes(self, raw_changes: list[FileChange]) -> None:
         notes_dir = await NoteMaterializer.get_notes_dir(self._workspace_id)
-        self._watch_task = asyncio.create_task(
-            self._watch_files(notes_dir, self._stop_watching_event))
 
-    async def stop_watching(self) -> None:
-        if self._stop_watching_event:
-            self._stop_watching_event.set()
-            self._stop_watching_event = None
+        markdown_changes: list[NoteChange] = []
+        for change_type, path_str in raw_changes:
+            path = AnyioPath(path_str)
+            if await path.is_symlink() or await path.is_dir():
+                continue
+            if path.suffix.lower() != ".md":
+                continue
+            markdown_changes.append((change_type, path))
 
-        if self._watch_task and not self._watch_task.done():
-            self._watch_task.cancel()
-            try:
-                await self._watch_task
-            except asyncio.CancelledError:
-                pass # since the watch_task is cancelled, we should ignore CancelledError here
-            finally:
-                self._watch_task = None
-        WorkspaceRefManager.decrease_workspace_ref(self._workspace_id)
+        if markdown_changes:
+            await self._handle_note_changes(notes_dir, markdown_changes)
 
-    async def _handle_file_changes(self, base: AnyioPath, changes: list[FileChange]):
+    async def _handle_note_changes(self, base: AnyioPath, changes: list[NoteChange]):
         from src.services.workspace import WorkspaceService
         from src.db.models import workspace as workspace_models
 
         if len(changes) == 0: return
+
+        self._logger.debug(f"Watched changes: {changes}")
         added_notes: list[tuple[AnyioPath, str]] = [] # (relative, content)
         updated_notes: list[tuple[AnyioPath, str]] = []  # (relative, content)
         deleted_notes: list[AnyioPath] = []
@@ -77,7 +90,7 @@ class NoteWatcher:
             }
 
             for path in deleted_notes:
-                existing_notes.pop(normalized_path(path))
+                existing_notes.pop(normalized_path(path), None)
             for path, content in added_notes:
                 relative = normalized_path(path)
                 existing_notes[relative] = workspace_models.WorkspaceNote(
@@ -94,26 +107,9 @@ class NoteWatcher:
 
             workspace.notes = list(existing_notes.values())
 
-    async def _watch_files(self, notes_dir: AnyioPath, stop_event: asyncio.Event) -> None:
-        if not await notes_dir.exists():
-            return
+    async def __aenter__(self):
+        await self._start()
+        return self
 
-        try:
-            async for changes in awatch(
-                StdPath(notes_dir),
-                stop_event=stop_event,
-                debounce=500,
-                recursive=True,
-            ):
-                markdown_changes: list[Any] = []
-                for change_type, path in changes:
-                    path = AnyioPath(path)
-                    if await path.is_symlink() or await path.is_dir(): continue
-                    if path.suffix.lower() != ".md": continue
-                    markdown_changes.append((change_type, path))
-                await self._handle_file_changes(notes_dir, markdown_changes)
-        except asyncio.CancelledError:
-            self._logger.debug(f"Notes watch cancelled for workspace {self._workspace_id}")
-            raise
-        except Exception:
-            self._logger.exception(f"Error watching notes for workspace {self._workspace_id}")
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self._stop()

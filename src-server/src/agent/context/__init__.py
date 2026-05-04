@@ -6,7 +6,6 @@ from typing import Self
 from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef
-from src.agent.notes import NoteWatcher
 from src.db import db_context
 from src.schemas import (
     agent as agent_schemas,
@@ -45,7 +44,6 @@ class AgentContext:
                  messages: list[Message],
                  resource: AgentContextResource,
                  usage: ContextUsage,
-                 note_watcher: NoteWatcher,
                  persistence: AgentContextPersistence,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
@@ -55,7 +53,6 @@ class AgentContext:
         self._messages = messages
 
         self._usage = usage
-        self._note_watcher = note_watcher
         self._persistence = persistence
         self._builtin_toolset_manager = builtin_toolset_manager
         self._mcp_toolset_manager = mcp_toolset_manager
@@ -79,9 +76,6 @@ class AgentContext:
         usage = ContextUsage(**asdict(usage))
         messages = task.messages
 
-        note_watcher = NoteWatcher(task.workspace_id)
-        await note_watcher.start_watching()
-
         builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory)
         mcp_toolset_manager = use_mcp_toolset_manager()
 
@@ -97,7 +91,6 @@ class AgentContext:
                        skills=[skill_schemas.SkillBrief.model_validate(skill) for skill in skills],
                    ),
                    usage=usage,
-                   note_watcher=note_watcher,
                    persistence=persistence,
                    builtin_toolset_manager=builtin_toolset_manager,
                    mcp_toolset_manager=mcp_toolset_manager)
@@ -190,11 +183,6 @@ class AgentContext:
         return None
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
-        try:
-            await self._note_watcher.stop_watching()
-        except Exception:
-            self._logger.exception("Failed to stop NoteWatcher.")
-
         return await self._persistence.persist(
             self.task_id,
             self._messages,
