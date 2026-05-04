@@ -2,6 +2,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
+from src.schemas.tasks import runtime as task_runtime_schemas
+from src.utils.retention import RetentionOption, get_retention_cutoff
+from .resource import TaskResourceService
 from ..service_base import ServiceBase
 from ..exceptions import NotFoundError, ServiceErrorCode
 
@@ -9,7 +12,6 @@ from ..exceptions import NotFoundError, ServiceErrorCode
 class TaskNotFoundError(NotFoundError):
     def __init__(self, task_id: int) -> None:
         super().__init__(ServiceErrorCode.TASK_NOT_FOUND, "Task", task_id)
-
 
 class TaskService(ServiceBase):
     @staticmethod
@@ -70,7 +72,17 @@ class TaskService(ServiceBase):
         updated_task = await self.get_task_by_id(task.id)
         return updated_task
 
-    async def delete_task(self, id: int) -> None:
+    async def delete_task(self, id: int):
         task = await self.get_task_by_id(id)
         await self._db_session.delete(task)
         await self._db_session.flush()
+        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.TASK).delete_task_resources(id)
+
+    async def cleanup_expired_tasks(self, retention: RetentionOption):
+        cutoff = get_retention_cutoff(retention)
+        if cutoff is None: return
+        stmt = select(task_models.Task.id).where(task_models.Task.last_run_at < cutoff)
+        task_ids = (await self._db_session.scalars(stmt)).all()
+
+        for task_id in task_ids:
+            await self.delete_task(task_id)

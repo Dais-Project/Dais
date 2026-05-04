@@ -86,6 +86,24 @@
         "placeholder": "Select language",
         "title": "Model reply language"
       },
+      "auto_delete": {
+        "placeholder": "Select retention period",
+        "task": {
+          "title": "Auto-delete old tasks"
+        },
+        "schedule_run_record": {
+          "title": "Auto-delete scheduled task records"
+        },
+        "options": {
+          "disabled": "Disabled",
+          "days_7": "7 days",
+          "days_14": "14 days",
+          "days_30": "30 days",
+          "days_60": "60 days",
+          "days_180": "180 days",
+          "days_360": "360 days"
+        }
+      },
       "autostart": {
         "title": "Launch at startup",
         "toast": {

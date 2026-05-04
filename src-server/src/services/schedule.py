@@ -3,6 +3,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from src.db.models import tasks as task_models
 from src.schemas.tasks import schedule as schedule_schemas
+from src.schemas.tasks import runtime as task_runtime_schemas
+from src.settings import use_app_setting_manager
+from src.services.tasks.resource import TaskResourceService
+from src.utils.retention import RetentionOption, get_retention_cutoff
 from .service_base import ServiceBase
 from .exceptions import NotFoundError, ServiceErrorCode
 
@@ -140,3 +144,14 @@ class RunRecordService(ServiceBase):
         run_record = await self.get_run_record_by_id(id)
         await self._db_session.delete(run_record)
         await self._db_session.flush()
+        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.SCHEDULE).delete_task_resources(id)
+
+    async def cleanup_expired_run_records(self, retention: RetentionOption) -> None:
+        cutoff = get_retention_cutoff(retention)
+        if cutoff is None: return
+
+        stmt = select(task_models.RunRecord.id).where(task_models.RunRecord.run_at < cutoff)
+        run_record_ids = (await self._db_session.scalars(stmt)).all()
+
+        for run_record_id in run_record_ids:
+            await self.delete_run_record(run_record_id)

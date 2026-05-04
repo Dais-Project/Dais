@@ -10,8 +10,10 @@ from src.agent.task.schedule_runner import init_schedule_runner
 from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
 from src.services.markdown_cache import MarkdownCacheService
+from src.services.schedule import RunRecordService
+from src.services.tasks import TaskService
 from src.services.workspace import WorkspaceService
-from src.settings import use_app_setting_manager
+from src.settings import AppSettings, use_app_setting_manager
 from .sse_dispatcher import SseDispatcher
 
 
@@ -54,13 +56,21 @@ class LifespanManager:
         self.background_task_manager.add_task(self.schedule_runner.load_schedules())
         self.background_task_manager.add_task(self._clear_unused_cache())
 
-        await self.app_setting_manager.initialize()
+        settings = await self.app_setting_manager.initialize()
+        self.background_task_manager.add_task(self._cleanup_expired_task_records(settings))
 
         async with db_context() as db_session:
             await BuiltinToolsetManager.sync_toolsets(db_session)
             await self.mcp_toolset_manager.initialize(db_session)
 
         self.background_task_manager.add_task(self.mcp_toolset_manager.connect_mcp_servers())
+
+    async def _cleanup_expired_task_records(self, settings: AppSettings):
+        async with db_context() as db_session:
+            task_service = TaskService(db_session)
+            run_record_service = RunRecordService(db_session)
+            await task_service.cleanup_expired_tasks(settings.task_retention_days)
+            await run_record_service.cleanup_expired_run_records(settings.schedule_run_record_retention_days)
 
     async def _clear_unused_cache(self):
         async with db_context() as db_session:

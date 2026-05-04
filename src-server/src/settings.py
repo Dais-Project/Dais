@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import GetJsonSchemaHandler
 from pydantic_core import core_schema
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from src.utils.retention import RetentionOption
 from .db import db_context
 from .services.llm_model import LlmModelService
 from .common import DATA_DIR
@@ -67,12 +68,16 @@ class JsonSettings(BaseSettings):
             encoding="utf-8",
         )
 
+
 class AppSettings(JsonSettings):
     reply_language: str = "zh_CN"
     flash_model: int | None = None
 
     smart_approve: bool = True
     smart_approve_threshold: int = 50 # 0 ~ 100
+
+    task_retention_days: RetentionOption = "disabled"
+    schedule_run_record_retention_days: RetentionOption = 30
 
     async def validate_self(self):
         if self.flash_model is not None:
@@ -87,10 +92,11 @@ class AppSettingManager:
     def __init__(self):
         self._settings: AppSettings | None = None
 
-    async def initialize(self):
+    async def initialize(self) -> AppSettings:
         settings = AppSettings()
         await settings.validate_self()
         self._settings = settings
+        return self._settings
 
     @property
     def settings(self) -> AppSettings:
