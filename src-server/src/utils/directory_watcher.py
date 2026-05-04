@@ -36,9 +36,7 @@ class DirectoryWatcher:
         sentinel = self._dir / WATCHFILES_SENTINEL
         await sentinel.write_bytes(b"")
         await sentinel.unlink(missing_ok=True)
-
         await ready_event.wait()
-        self._logger.info(f"File watcher ready: {self._dir}")
 
     async def stop(self) -> None:
         if self._stop_event:
@@ -81,7 +79,6 @@ class DirectoryWatcher:
                 timeout = EXTRA_TIMEOUT_SEC
             except asyncio.TimeoutError:
                 # Quiet for the full window — safe to stop.
-                self._logger.debug("Quiet window elapsed, proceeding to stop")
                 break
         self._change_event = None
 
@@ -90,7 +87,7 @@ class DirectoryWatcher:
                           change_event: asyncio.Event,
                           stop_event: asyncio.Event) -> None:
         if not await self._dir.exists():
-            self._logger.warning(f"Watch directory does not exist: {self._dir}")
+            self._logger.warning(f"Watching directory does not exist: {self._dir}")
             ready_event.set()
             return
 
@@ -101,8 +98,6 @@ class DirectoryWatcher:
                 recursive=True,
                 debounce=100,
             ):
-                self._logger.debug(f"File changes from awatch: {changes}")
-
                 filtered: list[FileChange] = []
                 for change_type, path in changes:
                     if WATCHFILES_SENTINEL in path:

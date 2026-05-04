@@ -1,6 +1,5 @@
 from typing import Callable
 from anyio import Path as AnyioPath
-from loguru import logger
 from watchfiles import Change as ChangeType
 from src.db import db_context
 from src.utils import DirectoryWatcher, FileChange
@@ -11,8 +10,6 @@ from .workspace_ref_manager import WorkspaceRefManager
 type NoteChange = tuple[ChangeType, AnyioPath]
 
 class NoteWatcher:
-    _logger = logger.bind(name="NoteWatcher")
-
     def __init__(self, workspace_id: int) -> None:
         self._workspace_id = workspace_id
         self._ref_acquired = False
@@ -61,7 +58,6 @@ class NoteWatcher:
 
         if len(changes) == 0: return
 
-        self._logger.debug(f"Watched changes: {changes}")
         added_notes: list[tuple[AnyioPath, str]] = [] # (relative, content)
         updated_notes: list[tuple[AnyioPath, str]] = []  # (relative, content)
         deleted_notes: list[AnyioPath] = []
