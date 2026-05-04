@@ -16,9 +16,7 @@ export function SessionStates() {
     if (flags.requiresUserPermission) {
       return <ApproveAll />
     }
-    if (flags.requiresUserResponse) {
-      return <ContinueTask />
-    }
+    return <ContinueTask />
   }
   return null;
 }

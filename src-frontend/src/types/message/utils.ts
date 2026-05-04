@@ -1,8 +1,8 @@
 import { ToolMessageArguments } from "@/api/generated/schemas";
-import { SdkMessage } from "./sdk-message";
+import { SdkMessage, SdkToolMessage } from "./sdk-message";
 import { UiAssistantMessage, UiMessage, UiToolMessage, UiUserMessage } from "./ui-message";
 
-export function isToolMessageCompleted(message: UiToolMessage) {
+export function isToolMessageCompleted(message: SdkToolMessage | UiToolMessage) {
   return message.result !== null || message.error !== null;
 }
 

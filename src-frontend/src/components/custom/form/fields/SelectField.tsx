@@ -66,8 +66,8 @@ export function SelectField<S extends Record<string, string>>({
             Object.entries(selections!).map(
               ([selectionLabel, selectionValue]) => (
                 <SelectItem
-                  key={selectionValue as string}
-                  value={selectionValue as string}
+                  key={selectionValue}
+                  value={selectionValue}
                 >
                   {selectionLabel}
                 </SelectItem>

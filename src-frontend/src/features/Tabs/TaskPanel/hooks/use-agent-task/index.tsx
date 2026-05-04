@@ -39,7 +39,7 @@ import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useNotificationBuffer } from "./use-notification-buffer";
-import { useTaskFlags } from "./use-task-flags";
+import { resolveInitialFlags, useTaskFlags } from "./use-task-flags";
 import { sounds } from "@/components/audios";
 import { useTaskControl, UseTaskControlResult } from "./use-task-control";
 
@@ -115,7 +115,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   });
 
   const [agentId, setAgentId] = useState(data.agent_id);
-  const { flags, setFlag, reset: resetFlags } = useTaskFlags();
+  const { flags, setFlag, reset: resetFlags } = useTaskFlags(() => resolveInitialFlags(data.messages));
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
   const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
   const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
