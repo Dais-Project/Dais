@@ -225,7 +225,9 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const onToolRequirePermission = (eventData: ToolRequirePermissionEvent) => {
     setFlag({ requiresUserPermission: true });
-    if (!isForeground()) {
+    if (isForeground()) {
+      sounds.notify.play();
+    } {
       permissionNotificationBuffer.enqueue(
         t("notification.require_permission", {
           toolName: eventData.tool_name,

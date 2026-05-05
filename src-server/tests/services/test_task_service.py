@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 import pytest
 from sqlalchemy import select
@@ -289,10 +290,95 @@ class TestTaskService:
         assert missing_file_result is None
 
     @pytest.mark.asyncio
+    async def test_cleanup_expired_tasks_removes_only_older_tasks_and_resources(
+        self,
+        task_service: TaskService,
+        task_resource_service: TaskResourceService,
+        task_resource_data_dir: Path,
+        db_session: AsyncSession,
+        workspace_factory,
+        agent_factory,
+    ):
+        agent = await agent_factory(name="Agent A")
+        workspace = await workspace_factory(name="Workspace A")
+        now = int(time.time())
+
+        expired_task = await task_service.create_task(
+            task_schemas.TaskCreate(
+                title="Expired task",
+                agent_id=agent.id,
+                workspace_id=workspace.id,
+            )
+        )
+        retained_task = await task_service.create_task(
+            task_schemas.TaskCreate(
+                title="Retained task",
+                agent_id=agent.id,
+                workspace_id=workspace.id,
+            )
+        )
+
+        expired_task_in_db = await db_session.get(task_models.Task, expired_task.id)
+        retained_task_in_db = await db_session.get(task_models.Task, retained_task.id)
+        assert expired_task_in_db is not None
+        assert retained_task_in_db is not None
+
+        expired_task_in_db.last_run_at = now - 31 * 24 * 60 * 60
+        retained_task_in_db.last_run_at = now - 29 * 24 * 60 * 60
+        await db_session.flush()
+
+        expired_resource = await task_resource_service.save_task_resource(
+            expired_task.id,
+            "expired.txt",
+            b"expired-resource",
+        )
+        retained_resource = await task_resource_service.save_task_resource(
+            retained_task.id,
+            "retained.txt",
+            b"retained-resource",
+        )
+        expired_resource_dir = (
+            task_resource_data_dir / ".task-resources" / "task" / str(expired_task.id)
+        )
+        retained_resource_dir = (
+            task_resource_data_dir / ".task-resources" / "task" / str(retained_task.id)
+        )
+
+        assert expired_resource_dir.exists()
+        assert retained_resource_dir.exists()
+
+        await task_service.cleanup_expired_tasks(30)
+        await db_session.flush()
+        db_session.expunge_all()
+
+        with pytest.raises(TaskNotFoundError, match=f"Task '{expired_task.id}' not found"):
+            await task_service.get_task_by_id(expired_task.id)
+
+        retained = await task_service.get_task_by_id(retained_task.id)
+        assert retained.id == retained_task.id
+
+        expired_resource_in_db = await db_session.scalar(
+            select(task_models.TaskResource).where(
+                task_models.TaskResource.id == expired_resource.id
+            )
+        )
+        retained_resource_in_db = await db_session.scalar(
+            select(task_models.TaskResource).where(
+                task_models.TaskResource.id == retained_resource.id
+            )
+        )
+
+        assert expired_resource_in_db is None
+        assert retained_resource_in_db is not None
+        assert not expired_resource_dir.exists()
+        assert retained_resource_dir.exists()
+
+    @pytest.mark.asyncio
     async def test_delete_task_removes_entity_and_task_resources(
         self,
         task_service: TaskService,
         task_resource_service: TaskResourceService,
+        task_resource_data_dir: Path,
         db_session: AsyncSession,
         workspace_factory,
         agent_factory,
@@ -319,6 +405,9 @@ class TestTaskService:
             "note.txt",
             b"resource-bytes",
         )
+        resource_dir = task_resource_data_dir / ".task-resources" / "task" / str(task.id)
+
+        assert resource_dir.exists()
 
         await task_service.delete_task(task.id)
         await db_session.flush()
@@ -331,3 +420,4 @@ class TestTaskService:
             select(task_models.TaskResource).where(task_models.TaskResource.id == resource.id)
         )
         assert resource_in_db is None
+        assert not resource_dir.exists()

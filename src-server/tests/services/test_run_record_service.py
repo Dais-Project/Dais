@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -110,6 +111,90 @@ class TestRunRecordService:
 
         assert [item.schedule_id for item in records] == [schedule_a.id, schedule_a.id]
         assert [item.id for item in records] == [record_a2.id, record_a1.id]
+
+    @pytest.mark.asyncio
+    async def test_cleanup_expired_run_records_removes_only_older_records_and_resources(
+        self,
+        run_record_service: RunRecordService,
+        run_record_resource_service: TaskResourceService,
+        run_record_resource_data_dir: Path,
+        workspace_factory,
+        db_session: AsyncSession,
+    ):
+        workspace = await workspace_factory(name="Workspace A")
+        now = int(time.time())
+
+        schedule = task_models.Schedule(
+            name="Schedule A",
+            task="Task A",
+            is_enabled=True,
+            config=PollingConfig(type="polling", interval_sec=30),
+            agent_id=None,
+            _workspace_id=workspace.id,
+        )
+        db_session.add(schedule)
+        await db_session.flush()
+
+        expired_record = task_models.RunRecord(
+            schedule_id=schedule.id,
+            run_at=now - 31 * 24 * 60 * 60,
+        )
+        retained_record = task_models.RunRecord(
+            schedule_id=schedule.id,
+            run_at=now - 29 * 24 * 60 * 60,
+        )
+        db_session.add_all([expired_record, retained_record])
+        await db_session.flush()
+
+        expired_resource = await run_record_resource_service.save_task_resource(
+            expired_record.id,
+            "expired.txt",
+            b"expired-resource",
+        )
+        retained_resource = await run_record_resource_service.save_task_resource(
+            retained_record.id,
+            "retained.txt",
+            b"retained-resource",
+        )
+        expired_resource_dir = (
+            run_record_resource_data_dir
+            / ".task-resources"
+            / "schedule"
+            / str(expired_record.id)
+        )
+        retained_resource_dir = (
+            run_record_resource_data_dir
+            / ".task-resources"
+            / "schedule"
+            / str(retained_record.id)
+        )
+
+        assert expired_resource_dir.exists()
+        assert retained_resource_dir.exists()
+
+        await run_record_service.cleanup_expired_run_records(30)
+        await db_session.flush()
+
+        with pytest.raises(
+            RunRecordNotFoundError,
+            match=f"RunRecord '{expired_record.id}' not found",
+        ):
+            await run_record_service.get_run_record_by_id(expired_record.id)
+
+        retained = await run_record_service.get_run_record_by_id(retained_record.id)
+        assert retained.id == retained_record.id
+
+        expired_record_in_db = await db_session.get(task_models.RunRecord, expired_record.id)
+        retained_record_in_db = await db_session.get(task_models.RunRecord, retained_record.id)
+        expired_resource_in_db = await db_session.get(task_models.TaskResource, expired_resource.id)
+        retained_resource_in_db = await db_session.get(task_models.TaskResource, retained_resource.id)
+
+        assert expired_record_in_db is None
+        assert retained_record_in_db is not None
+        assert expired_resource_in_db is None
+        assert retained_resource_in_db is not None
+        assert not expired_resource_dir.exists()
+        assert retained_resource_dir.exists()
 
     @pytest.mark.asyncio
     async def test_delete_run_record_removes_entity_and_resources(
