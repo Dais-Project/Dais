@@ -7,20 +7,22 @@ from .. import DTOBase
 class ScheduleBase(DTOBase):
     name: str
     task: str
-    is_enabled: bool
     config: ScheduleConfig
 
 class ScheduleBrief(ScheduleBase):
     id: int
+    is_enabled: bool
     agent_id: int | None
     workspace_id: int
 
 class ScheduleRead(ScheduleBase):
     id: int
+    is_enabled: bool
     agent_id: int | None
     workspace_id: int
 
 class ScheduleCreate(ScheduleBase):
+    is_enabled: bool = True
     agent_id: int | None
     workspace_id: int
 

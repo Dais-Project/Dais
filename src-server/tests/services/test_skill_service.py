@@ -59,7 +59,6 @@ class TestSkillService:
             skill_schemas.SkillCreate(
                 name="Skill A",
                 description="Description A",
-                is_enabled=True,
                 content="Skill content A",
                 resources=resources,
             )

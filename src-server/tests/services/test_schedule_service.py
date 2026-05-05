@@ -38,7 +38,6 @@ class TestScheduleService:
             schedule_schemas.ScheduleCreate(
                 name="Morning sync",
                 task="Send daily summary",
-                is_enabled=True,
                 config=CronConfig(type="cron", expression="0 9 * * 1"),
                 agent_id=agent.id,
                 workspace_id=workspace.id,
@@ -46,6 +45,7 @@ class TestScheduleService:
         )
 
         assert schedule.name == "Morning sync"
+        assert schedule.is_enabled is True
         assert schedule.workspace_id == workspace.id
         assert schedule.agent_id == agent.id
         assert schedule.config.type == "cron"

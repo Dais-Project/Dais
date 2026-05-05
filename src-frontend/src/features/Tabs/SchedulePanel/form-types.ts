@@ -46,7 +46,6 @@ export function createFormValuesToPayload(
   return {
     name: values.name,
     task: values.task,
-    is_enabled: true,
     agent_id: values.agent_id,
     workspace_id: workspaceId,
     config: transformFormToApiConfig(values.config),

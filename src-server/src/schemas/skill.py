@@ -11,17 +11,19 @@ class SkillResourceRead(SkillResourceBase):
 class SkillBase(DTOBase):
     name: str
     description: str = ""
-    is_enabled: bool = True
 
 class SkillBrief(SkillBase):
     id: int
+    is_enabled: bool
 
 class SkillRead(SkillBase):
     id: int
     content: str
+    is_enabled: bool
     resources: list[SkillResourceRead]
 
 class SkillCreate(SkillBase):
+    is_enabled: bool = True
     content: str
     resources: list[SkillResourceBase]
 

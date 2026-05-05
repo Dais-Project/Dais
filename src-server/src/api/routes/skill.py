@@ -27,7 +27,6 @@ def process_archive(file_obj: IO[bytes]) -> skill_schemas.SkillCreate:
     return skill_schemas.SkillCreate(
         name=skill.name,
         description=skill.description,
-        is_enabled=True,
         content=skill.content,
         resources=[
             skill_schemas.SkillResourceBase(
