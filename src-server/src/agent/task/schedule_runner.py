@@ -6,7 +6,7 @@ from src.db import db_context
 from src.db.models.tasks.schedule import CronConfig, PollingConfig, DelayedConfig
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.schemas.tasks import schedule as schedule_schemas
-from src.services.schedule import RunRecordService, ScheduleService
+from src.services.tasks import RunRecordService, ScheduleService
 from src.utils import Scheduler
 from . import AgentTask
 from ..types import ScheduleRunCompletedEvent

@@ -6,7 +6,7 @@ from src.db.models import tasks as task_models
 from src.db.models.tasks.schedule import CronConfig, DelayedConfig, PollingConfig
 from src.schemas.tasks import schedule as schedule_schemas
 from src.services.exceptions import ServiceErrorCode
-from src.services.schedule import ScheduleNotFoundError, ScheduleService
+from src.services.tasks import ScheduleNotFoundError, ScheduleService
 
 
 @pytest.fixture

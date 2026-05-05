@@ -290,7 +290,7 @@ class TestTaskService:
         assert missing_file_result is None
 
     @pytest.mark.asyncio
-    async def test_cleanup_expired_tasks_removes_only_older_tasks_and_resources(
+    async def test_cleanup_outdated_tasks_removes_only_older_tasks_and_resources(
         self,
         task_service: TaskService,
         task_resource_service: TaskResourceService,
@@ -347,7 +347,7 @@ class TestTaskService:
         assert expired_resource_dir.exists()
         assert retained_resource_dir.exists()
 
-        await task_service.cleanup_expired_tasks(30)
+        await task_service.cleanup_outdated_tasks(30)
         await db_session.flush()
         db_session.expunge_all()
 

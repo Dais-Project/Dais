@@ -1,10 +1,12 @@
 from .resource import TaskResourceService
-from .schedule import RunRecordService, ScheduleService
-from .task import TaskNotFoundError, TaskService
+from .schedule import RunRecordService, ScheduleService, ScheduleNotFoundError, RunRecordNotFoundError
+from .task import TaskService, TaskNotFoundError
 
 __all__ = [
     "RunRecordService",
+    "RunRecordNotFoundError",
     "ScheduleService",
+    "ScheduleNotFoundError",
     "TaskNotFoundError",
     "TaskResourceService",
     "TaskService",

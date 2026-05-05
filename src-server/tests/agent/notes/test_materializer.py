@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -116,7 +117,7 @@ class TestNoteMaterializer:
         assert not (tmp_path / ".notes" / "999").exists()
 
     @pytest.mark.asyncio
-    async def test_materialize_all_clears_then_materializes_each_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    async def test_materialize_all_clears_root_dir_then_materializes_each_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr("src.agent.notes.materializer.DATA_DIR", tmp_path)
 
         workspace_a = MagicMock(spec=workspace_models.Workspace)
@@ -127,7 +128,6 @@ class TestNoteMaterializer:
         mock_service = AsyncMock()
         mock_service.get_all_workspaces.return_value = [workspace_a, workspace_b]
 
-        clear_mock = AsyncMock()
         materialize_mock = AsyncMock()
         workspace_read_mock = MagicMock(side_effect=[
             workspace_schemas.WorkspaceRead.model_validate({
@@ -151,18 +151,18 @@ class TestNoteMaterializer:
                 "usable_skills": [],
             }),
         ])
+        to_thread_mock = AsyncMock()
 
         with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
             with patch("src.agent.notes.materializer.db_context") as mock_db_context:
                 mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
-                with patch.object(NoteMaterializer, "clear_materialized", clear_mock):
+                with patch("src.agent.notes.materializer.asyncio.to_thread", to_thread_mock):
                     with patch.object(NoteMaterializer, "materialize", materialize_mock):
                         with patch.object(workspace_schemas.WorkspaceRead, "model_validate", workspace_read_mock):
                             await NoteMaterializer.materialize_all()
 
-        assert clear_mock.await_args_list == [
-            ((1,), {}),
-            ((2,), {}),
-        ]
+        notes_root_dir = AnyioPath(tmp_path / ".notes")
+        to_thread_mock.assert_awaited_once_with(shutil.rmtree, notes_root_dir)
         assert materialize_mock.await_count == 2
+

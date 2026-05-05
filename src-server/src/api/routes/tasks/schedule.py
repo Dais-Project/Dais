@@ -4,7 +4,7 @@ from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.agent.task.schedule_runner import use_schedule_runner
 from src.db import DbSessionDep
 from src.schemas.tasks import schedule as schedule_schemas
-from src.services.schedule import RunRecordService, ScheduleService
+from src.services.tasks import RunRecordService, ScheduleService
 
 
 schedule_manage_router = APIRouter(tags=["schedule"])

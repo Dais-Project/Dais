@@ -8,8 +8,7 @@ from src.db.models import tasks as task_models
 from src.db.models.tasks.schedule import PollingConfig
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.exceptions import ServiceErrorCode
-from src.services.schedule import RunRecordNotFoundError, RunRecordService
-from src.services.tasks import TaskResourceService
+from src.services.tasks import RunRecordNotFoundError, RunRecordService, TaskResourceService
 
 
 @pytest.fixture
@@ -113,7 +112,7 @@ class TestRunRecordService:
         assert [item.id for item in records] == [record_a2.id, record_a1.id]
 
     @pytest.mark.asyncio
-    async def test_cleanup_expired_run_records_removes_only_older_records_and_resources(
+    async def test_cleanup_outdated_run_records_removes_only_older_records_and_resources(
         self,
         run_record_service: RunRecordService,
         run_record_resource_service: TaskResourceService,
@@ -172,7 +171,7 @@ class TestRunRecordService:
         assert expired_resource_dir.exists()
         assert retained_resource_dir.exists()
 
-        await run_record_service.cleanup_expired_run_records(30)
+        await run_record_service.cleanup_outdated_run_records(30)
         await db_session.flush()
 
         with pytest.raises(

@@ -78,7 +78,7 @@ class TaskService(ServiceBase):
         await self._db_session.flush()
         await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.TASK).delete_task_resources(id)
 
-    async def cleanup_expired_tasks(self, retention: RetentionOption):
+    async def cleanup_outdated_tasks(self, retention: RetentionOption):
         cutoff = get_retention_cutoff(retention)
         if cutoff is None: return
         stmt = select(task_models.Task.id).where(task_models.Task.last_run_at < cutoff)
