@@ -61,13 +61,13 @@ class SkillMaterializer:
         async with db_context() as db_session:
             skills = await SkillService(db_session).get_all_skills()
 
-        sem = asyncio.Semaphore(16)
+        sem = asyncio.Semaphore(12)
         async def sem_materialize(skill: skill_models.Skill):
             async with sem:
                 skill_read = skill_schemas.SkillRead.model_validate(skill)
-                await cls.clear_materialized(skill_read.id)
                 await cls.materialize(skill_read)
 
+        await asyncio.to_thread(shutil.rmtree, await cls.get_skills_dir())
         tasks = [sem_materialize(skill) for skill in skills]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for result in results:

@@ -56,13 +56,13 @@ class NoteMaterializer:
         async with db_context() as db_session:
             workspaces = await WorkspaceService(db_session).get_all_workspaces()
 
-        sem = asyncio.Semaphore(16)
+        sem = asyncio.Semaphore(12)
         async def sem_materialize(workspace: workspace_models.Workspace):
             async with sem:
                 workspace_read = workspace_schemas.WorkspaceRead.model_validate(workspace)
-                await cls.clear_materialized(workspace_read.id)
                 await cls.materialize(workspace_read)
 
+        await asyncio.to_thread(shutil.rmtree, await cls.get_notes_root_dir())
         tasks = [sem_materialize(workspace) for workspace in workspaces]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for result in results:

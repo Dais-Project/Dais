@@ -82,7 +82,6 @@ class LifespanManager:
 
     @asynccontextmanager
     async def __call__(self, app: FastAPI) -> AsyncIterator[AppState]:
-        # --- Startup ---
         await self._init_resources()
 
         try:
