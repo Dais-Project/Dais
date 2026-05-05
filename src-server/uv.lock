@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "dais-sdk"
-version = "0.10.8"
+version = "0.10.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
@@ -365,9 +365,9 @@ dependencies = [
     { name = "starlette" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/57/7e/3858437cc869d1a2ecde8f6f0252a4b8f6cc8eda1255922ee37de77dd4e0/dais_sdk-0.10.8.tar.gz", hash = "sha256:3b208b1a6da9d6c3619a427f75eace0012f97b6d8784800b40681c734dd63c9d", size = 24415, upload-time = "2026-04-12T08:10:04.473Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/77/8a/e84c47272c8ad727ae8b42f885735dfcbaf094131b0d9e86bfe871ce1d04/dais_sdk-0.10.10.tar.gz", hash = "sha256:a386aabfeb57f744469a8540ab8346505cfdcb7e5efd2663712c22abf487b3b7", size = 26336, upload-time = "2026-05-05T14:05:42.295Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9d/2f/c1fbf33d5724be2af1693bde61ff179eb666155c853285c8318c1bcda844/dais_sdk-0.10.8-py3-none-any.whl", hash = "sha256:ff6d54c2b788b11881939719b0e78cba1c0198fd493bdf2a416b309440120047", size = 37287, upload-time = "2026-04-12T08:10:03.145Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/c8/07cca87990abf973309a2192a2f2ef395fdfd9d95864e6f108204448cfef/dais_sdk-0.10.10-py3-none-any.whl", hash = "sha256:cf5950fcd1ba1d3b669ae0a28ca57dd158b074e00076f94b593e09bdd6a73aa3", size = 40914, upload-time = "2026-05-05T14:05:40.629Z" },
 ]
 
 [[package]]
@@ -389,7 +389,6 @@ dependencies = [
     { name = "magika", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'win32'" },
     { name = "magika", version = "0.6.3", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'win32'" },
     { name = "markitdown", extra = ["docx", "pdf", "pptx"] },
-    { name = "pathspec" },
     { name = "platformdirs" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -426,15 +425,14 @@ requires-dist = [
     { name = "apscheduler", specifier = "==3.11.2" },
     { name = "binaryornot", specifier = "==0.6.0" },
     { name = "dais-scantree", specifier = "==0.2.2" },
-    { name = "dais-sdk", specifier = "==0.10.8" },
+    { name = "dais-sdk", specifier = "==0.10.10" },
     { name = "dais-shell", specifier = "==0.1.9" },
     { name = "fastapi", specifier = "==0.136.1" },
     { name = "fastapi-pagination", specifier = "==0.15.12" },
     { name = "loguru", specifier = "==0.7.3" },
     { name = "magika", specifier = ">=0.6.2" },
     { name = "markitdown", extras = ["docx", "pdf", "pptx"], specifier = "==0.1.5" },
-    { name = "pathspec", specifier = "==1.0.4" },
-    { name = "platformdirs", specifier = "==4.5.1" },
+    { name = "platformdirs", specifier = "==4.9.6" },
     { name = "pydantic", specifier = "==2.12.5" },
     { name = "pydantic-settings", specifier = "==2.13.0" },
     { name = "rapidfuzz", specifier = "==3.14.3" },
@@ -1164,11 +1162,11 @@ wheels = [
 
 [[package]]
 name = "platformdirs"
-version = "4.5.1"
+version = "4.9.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/cf/86/0248f086a84f01b37aaec0fa567b397df1a119f73c16f6c7a9aac73ea309/platformdirs-4.5.1.tar.gz", hash = "sha256:61d5cdcc6065745cdd94f0f878977f8de9437be93de97c1c12f853c9c0cdcbda", size = 21715, upload-time = "2025-12-05T13:52:58.638Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/4a/0883b8e3802965322523f0b200ecf33d31f10991d0401162f4b23c698b42/platformdirs-4.9.6.tar.gz", hash = "sha256:3bfa75b0ad0db84096ae777218481852c0ebc6c727b3168c1b9e0118e458cf0a", size = 29400, upload-time = "2026-04-09T00:04:10.812Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/28/3bfe2fa5a7b9c46fe7e13c97bda14c895fb10fa2ebf1d0abb90e0cea7ee1/platformdirs-4.5.1-py3-none-any.whl", hash = "sha256:d03afa3963c806a9bed9d5125c8f4cb2fdaf74a55ab60e5d59b3fde758104d31", size = 18731, upload-time = "2025-12-05T13:52:56.823Z" },
+    { url = "https://files.pythonhosted.org/packages/75/a6/a0a304dc33b49145b21f4808d763822111e67d1c3a32b524a1baf947b6e1/platformdirs-4.9.6-py3-none-any.whl", hash = "sha256:e61adb1d5e5cb3441b4b7710bea7e4c12250ca49439228cc1021c00dcfac0917", size = 21348, upload-time = "2026-04-09T00:04:09.463Z" },
 ]
 
 [[package]]
