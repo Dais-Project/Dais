@@ -1,13 +1,13 @@
 from typing import Annotated, cast
 from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from dais_sdk.tool import LocalMcpToolset, RemoteMcpToolset
+from dais_sdk.types import McpConnectionError
 from fastapi import APIRouter, Depends, Request, status
 from loguru import logger
 from src.db import toolset_models
 from src.services.toolset import ToolsetService
 from src.schemas import toolset as toolset_schemas
 from src.agent.tool import McpToolset
-from src.agent.tool.toolset_wrapper.mcp_toolset import mcp_connect_wrapper
 from src.agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
@@ -81,9 +81,10 @@ async def create_toolset(
             assert isinstance(body.params, RemoteServerParams)
             toolset = RemoteMcpToolset(body.name, body.params)
 
-    mcp_connect_error = await mcp_connect_wrapper(toolset)
-    if mcp_connect_error is not None:
-        raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, mcp_connect_error, "Failed to connect to MCP server")
+    try:
+        await toolset.connect()
+    except McpConnectionError as e:
+        raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, e.error_code, "Failed to connect to MCP server")
 
     tools = toolset.get_tools(namespaced_tool_name=False)
     new_toolset = await ToolsetService(db_session).create_toolset(body, tools)
@@ -109,9 +110,10 @@ async def update_toolset(
             assert isinstance(body.params, RemoteServerParams)
             toolset = RemoteMcpToolset(updated_toolset.name, body.params)
 
-    mcp_connect_error = await mcp_connect_wrapper(toolset)
-    if mcp_connect_error is not None:
-        raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, mcp_connect_error, "Failed to connect to MCP server")
+    try:
+        await toolset.connect()
+    except McpConnectionError as e:
+        raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, e.error_code, "Failed to connect to MCP server")
 
     await mcp_toolset_manager.remove(toolset_id)
     mcp_toolset_manager.append(toolset, updated_toolset)

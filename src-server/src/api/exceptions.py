@@ -1,5 +1,5 @@
 from enum import StrEnum
-from src.agent.tool.toolset_wrapper.mcp_toolset import McpConnectErrorCode
+from dais_sdk.types import McpConnectionErrorCode
 
 
 class ApiErrorCode(StrEnum):
@@ -22,7 +22,7 @@ class ApiErrorCode(StrEnum):
 
 class ApiError(Exception):
     """Base class for all API errors."""
-    def __init__(self, status_code: int, error_code: ApiErrorCode | McpConnectErrorCode, *args) -> None:
+    def __init__(self, status_code: int, error_code: ApiErrorCode | McpConnectionErrorCode, *args) -> None:
         super().__init__(*args)
         self.status_code = status_code
         self.error_code = error_code

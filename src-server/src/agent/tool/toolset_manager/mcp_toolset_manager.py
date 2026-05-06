@@ -6,7 +6,7 @@ from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import toolset_models
 from .types import ToolsetManager
-from ..toolset_wrapper import McpToolset, McpToolsetStatus
+from ..toolset_wrapper import McpToolset
 
 
 class McpToolsetManagerNotInitializedError(Exception):
@@ -31,9 +31,7 @@ class McpToolsetManager(ToolsetManager):
     def toolsets(self) -> Sequence[Toolset]:
         if self._toolset_map is None:
             raise McpToolsetManagerNotInitializedError()
-        return [toolset
-                for toolset in self._toolset_map.values()
-                if toolset.status == McpToolsetStatus.CONNECTED]
+        return [toolset for toolset in self._toolset_map.values()]
 
     async def initialize(self, db_session: AsyncSession):
         from src.services.toolset import ToolsetService

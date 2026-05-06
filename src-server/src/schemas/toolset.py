@@ -1,7 +1,8 @@
 from typing import Literal
 from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
+from dais_sdk.types import McpConnectionErrorCode
 from src.db.models.toolset import ToolsetType
-from src.agent.tool.toolset_wrapper.mcp_toolset import McpConnectErrorCode, McpToolsetStatus
+from src.agent.tool.toolset_wrapper.mcp_toolset import McpToolsetStatus
 from . import DTOBase
 
 
@@ -35,7 +36,7 @@ class ToolsetBrief(DTOBase):
     # "connected" for built-in toolsets, McpToolsetStatus for MCP toolsets
     status: Literal["connected"] | McpToolsetStatus
     # None for built-in toolsets
-    error_code: McpConnectErrorCode | None
+    error_code: McpConnectionErrorCode | None
 
 class ToolsetRead(ToolsetBase):
     id: int
