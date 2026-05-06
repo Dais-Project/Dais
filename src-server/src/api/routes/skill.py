@@ -8,10 +8,10 @@ from dais_sdk.types import InvalidSkillArchiveError
 from dais_sdk.skill import Skill
 from dais_sdk.skill.resource import TextResource
 from src.agent.skills import SkillMaterializer
-from src.db import DbSessionDep
 from src.db.models import skill as skill_models
 from src.services.skill import SkillService
 from src.schemas import skill as skill_schemas
+from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
 
 

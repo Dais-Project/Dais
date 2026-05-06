@@ -3,9 +3,10 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.agent.context import AgentContext
 from src.agent.task import AgentTask
-from src.db import DbSessionDep, db_context
+from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.tasks import RunRecordService, TaskService
+from ...dependencies import DbSessionDep
 
 
 async def _load_task_runtime_context(db_session: AsyncSession,

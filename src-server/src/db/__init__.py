@@ -1,9 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
-import sqlite3
-from typing import Annotated
-from fastapi import Depends
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -41,7 +38,6 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
         except Exception:
             await session.rollback()
             raise
-type DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 db_context = asynccontextmanager(get_db_session)
 
 @event.listens_for(engine.sync_engine, "connect")

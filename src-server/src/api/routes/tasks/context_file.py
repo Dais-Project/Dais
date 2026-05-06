@@ -7,9 +7,9 @@ from dais_scantree import bfs as scantree_bfs
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
 from rapidfuzz import fuzz
-from src.db import DbSessionDep
 from src.services.workspace import WorkspaceService
 from src.schemas.tasks import context_file as context_file_schemas
+from ...dependencies import DbSessionDep
 from ...exceptions import ApiError, ApiErrorCode
 
 

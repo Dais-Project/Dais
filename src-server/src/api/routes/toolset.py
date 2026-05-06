@@ -3,12 +3,13 @@ from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from dais_sdk.tool import LocalMcpToolset, RemoteMcpToolset
 from fastapi import APIRouter, Depends, Request, status
 from loguru import logger
-from src.db import DbSessionDep, toolset_models
+from src.db import toolset_models
 from src.services.toolset import ToolsetService
 from src.schemas import toolset as toolset_schemas
 from src.agent.tool import McpToolset
 from src.agent.tool.toolset_wrapper.mcp_toolset import mcp_connect_wrapper
 from src.agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
+from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
 
 

@@ -5,11 +5,11 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.agent.prompts import create_one_turn_llm, TitleSummarization
 from src.settings import use_app_setting_manager
-from src.db import DbSessionDep
 from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
 from src.services.tasks import TaskService
 from src.schemas.tasks import task as task_schemas
+from ...dependencies import DbSessionDep
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -52,9 +52,7 @@ async def get_task(task_id: int, db_session: DbSessionDep):
 
 @task_manage_router.post("/", status_code=status.HTTP_201_CREATED, response_model=task_schemas.TaskRead)
 async def create_task(body: task_schemas.TaskCreate, db_session: DbSessionDep):
-    new_task = await TaskService(db_session).create_task(body)
-    await db_session.commit() # ensure new task persisted when frontend calls `/summarize-title`
-    return new_task
+    return await TaskService(db_session).create_task(body)
 
 @task_manage_router.post("/{task_id}/summarize-title", response_model=task_schemas.TaskRead)
 async def summarize_task_title(task_id: int, db_session: DbSessionDep):

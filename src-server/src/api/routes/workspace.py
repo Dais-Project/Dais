@@ -1,11 +1,11 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
-from src.db import DbSessionDep
 from src.agent.notes import NoteMaterializer, WorkspaceRefManager
 from src.services.workspace import WorkspaceService
 from src.schemas import workspace as workspace_schemas
 from src.utils.open_in_file_manager import open_in_file_manager
+from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
 
 

@@ -4,6 +4,7 @@ from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.routing import APIRoute
 from fastapi_pagination import add_pagination
 from src.services.exceptions import ServiceError
+from .middlewares import DBSessionMiddleware
 from .routes import (
     sse_router,
     workspaces_router,
@@ -56,6 +57,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(DBSessionMiddleware)
 
 app.add_exception_handler(ServiceError, handle_service_error)
 app.add_exception_handler(ApiError, handle_api_error)

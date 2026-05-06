@@ -1,9 +1,9 @@
 from fastapi import APIRouter, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
-from src.db import DbSessionDep
 from src.services.provider import ProviderService
 from src.schemas import provider as provider_schemas
+from ..dependencies import DbSessionDep
 
 
 providers_router = APIRouter(tags=["provider"])

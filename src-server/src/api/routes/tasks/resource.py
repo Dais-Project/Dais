@@ -1,9 +1,9 @@
 from loguru import logger
 from fastapi import APIRouter, status
 from starlette.responses import FileResponse
-from src.db import DbSessionDep
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.tasks import TaskResourceService
+from ...dependencies import DbSessionDep
 from ...exceptions import ApiError, ApiErrorCode
 
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from src.db import DbSessionDep
 from src.services.llm_model import LlmModelService
 from src.schemas import provider as provider_schemas
+from ..dependencies import DbSessionDep
 
 
 llm_models_router = APIRouter(tags=["llm_model"])

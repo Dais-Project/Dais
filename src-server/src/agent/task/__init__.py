@@ -55,7 +55,9 @@ class AgentTask:
                 async for event in dispatch_stream:
                     yield event
                 has_pending_tool_calls = len(self.tool_calls.collect_pendings()) > 0
-                if has_pending_tool_calls: return
+                if has_pending_tool_calls:
+                    self._logger.debug("Pending tool calls exist; stopping task continuation.")
+                    return
 
                 while self._is_running:
                     last_chunk: MessageEndEvent | TaskInterruptedEvent | ErrorEvent | None = None
