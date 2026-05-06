@@ -9,10 +9,7 @@ import { SkillCreateForm } from "./SkillCreateForm";
 
 function SkillCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);
-
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
+  const handleComplete = () => removeTab(tabId);
 
   return <SkillCreateForm onConfirm={handleComplete} />;
 }
