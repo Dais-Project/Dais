@@ -1,4 +1,4 @@
-﻿{
+{
   "agents": {
     "dialog": {
       "delete_description_with_name": "确定要删除 Agent \"{{name}}\" 吗？此操作无法撤销。"
@@ -252,7 +252,8 @@
     },
     "menu": {
       "delete": "删除",
-      "edit": "编辑工具集"
+      "edit": "编辑工具集",
+      "reconnect": "重新连接"
     },
     "status": {
       "connected": "已连接",
@@ -266,7 +267,9 @@
     },
     "toast": {
       "delete_success_description": "已成功删除工具集。",
-      "delete_success_title": "删除成功"
+      "delete_success_title": "删除成功",
+      "reconnect_success_description": "已成功重新连接工具集。",
+      "reconnection_success_title": "重连成功"
     }
   },
   "workspaces": {

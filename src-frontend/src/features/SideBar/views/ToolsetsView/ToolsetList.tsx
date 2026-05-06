@@ -1,12 +1,13 @@
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, RefreshCwIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { McpToolsetStatus, ToolsetBrief } from "@/api/generated/schemas";
+import { McpToolsetStatus, ToolsetType, type ToolsetBrief } from "@/api/generated/schemas";
 import {
   invalidateToolsetQueries,
   useDeleteToolset,
   useGetToolsetsBriefSuspense,
+  useReconnectMcpToolset,
 } from "@/api/toolset";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import {
@@ -80,11 +81,13 @@ function openToolsetEditTab({
 
 type ToolsetItemProps = {
   toolset: ToolsetBrief;
+  onReconnect?: (toolset: ToolsetBrief) => void;
   onDelete?: (toolset: ToolsetBrief) => void;
 };
 
-function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
+function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const isMcpToolset = toolset.type === ToolsetType.mcp_local || toolset.type === ToolsetType.mcp_remote;
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -131,6 +134,12 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
           <PencilIcon />
           <span>{t("toolsets.menu.edit")}</span>
         </ActionableItemMenuItem>
+        {isMcpToolset && (
+          <ActionableItemMenuItem onClick={() => onReconnect?.(toolset)}>
+            <RefreshCwIcon />
+            <span>{t("toolsets.menu.reconnect")}</span>
+          </ActionableItemMenuItem>
+        )}
         <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(toolset)}>
           <TrashIcon />
           <span>{t("toolsets.menu.delete")}</span>
@@ -143,6 +152,17 @@ function ToolsetItem({ toolset, onDelete }: ToolsetItemProps) {
 export function ToolsetList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
+
+  const reconnectMcpToolsetMutation = useReconnectMcpToolset({
+    mutation: {
+      async onSuccess(_, variables) {
+        await invalidateToolsetQueries(variables.toolsetId);
+        toast.success(t("toolsets.toast.reconnection_success_title"), {
+          description: t("toolsets.toast.reconnect_success_description"),
+        });
+      },
+    },
+  });
 
   const deleteToolsetMutation = useDeleteToolset();
   const asyncConfirm = useAsyncConfirm<ToolsetBrief>({
@@ -164,6 +184,10 @@ export function ToolsetList() {
     query: { refetchInterval: 3000 },
   });
 
+  const handleReconnectMcpToolset = async (toolset: ToolsetBrief) => {
+    await reconnectMcpToolsetMutation.mutateAsync({ toolsetId: toolset.id });
+  };
+
   return (
     <>
       <ScrollArea className="limit-width flex-1 h-full">
@@ -171,6 +195,7 @@ export function ToolsetList() {
           <ToolsetItem
             key={toolset.id}
             toolset={toolset}
+            onReconnect={handleReconnectMcpToolset}
             onDelete={asyncConfirm.trigger}
           />
         ))}

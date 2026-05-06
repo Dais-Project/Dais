@@ -2,12 +2,13 @@ export {
   getGetToolsetQueryKey,
   getGetToolsetsQueryKey,
   getGetToolsetsBriefQueryKey,
-  useCreateToolset,
-  useDeleteToolset,
   useGetToolsetSuspense,
   useGetToolsetsSuspense,
   useGetToolsetsBriefSuspense,
+  useCreateToolset,
+  useDeleteToolset,
   useUpdateToolset,
+  useReconnectMcpToolset,
 } from "./generated/endpoints/toolset/toolset";
 
 import queryClient from "@/query-client";

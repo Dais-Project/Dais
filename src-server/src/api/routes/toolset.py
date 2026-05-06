@@ -119,6 +119,23 @@ async def update_toolset(
     mcp_toolset_manager.append(toolset, updated_toolset)
     return updated_toolset
 
+@toolset_router.post("/{toolset_id}/reconnect", status_code=status.HTTP_204_NO_CONTENT)
+async def reconnect_mcp_toolset(toolset_id: int, mcp_toolset_manager: McpToolsetManagerDep):
+    target_toolset = None
+    for toolset in mcp_toolset_manager.toolsets:
+        assert isinstance(toolset, McpToolset)
+        if toolset.id == toolset_id:
+            target_toolset = toolset
+            break
+    if target_toolset is None:
+        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.MCP_TOOLSET_NOT_FOUND)
+
+    try:
+        await target_toolset.disconnect()
+        await target_toolset.connect()
+    except McpConnectionError as e:
+        raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, e.error_code, "Failed to connect to MCP server")
+
 @toolset_router.delete("/{toolset_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_toolset(
     toolset_id: int,

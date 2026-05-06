@@ -147,4 +147,5 @@ class McpToolset(Toolset):
     async def disconnect(self):
         inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
         await inner_toolset.disconnect()
+        self._error = None
         self._status = McpToolsetStatus.DISCONNECTED
