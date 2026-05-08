@@ -27,16 +27,25 @@ class DirectoryWatcher:
 
         self._stop_event = asyncio.Event()
         self._change_event = asyncio.Event()
-        ready_event = asyncio.Event()
+        ready_future = asyncio.get_running_loop().create_future()
 
         self._watch_task = asyncio.create_task(
-            self._watch_loop(ready_event, self._change_event, self._stop_event))
+            self._watch_loop(ready_future, self._change_event, self._stop_event))
 
         # TODO: use the builtin ready_event of awatch after https://github.com/samuelcolvin/watchfiles/pull/356 is merged
         sentinel = self._dir / WATCHFILES_SENTINEL
+        await asyncio.sleep(0.3)
         await sentinel.write_bytes(b"")
+        await asyncio.wait([ready_future, asyncio.create_task(asyncio.sleep(0.3))], return_when=asyncio.FIRST_COMPLETED) 
         await sentinel.unlink(missing_ok=True)
-        await ready_event.wait()
+        try:
+            await asyncio.wait_for(ready_future, timeout=2)
+        except asyncio.TimeoutError:
+            # since the watchfiles.awatch starts very fast,
+            # sometimes the race condition may trigger this branch,
+            # we treat it as ready here.
+            self._logger.warning("Failed to detect watchfiles.awatch starting")
+            pass
 
     async def stop(self) -> None:
         if self._stop_event:
@@ -83,14 +92,9 @@ class DirectoryWatcher:
         self._change_event = None
 
     async def _watch_loop(self,
-                          ready_event: asyncio.Event,
+                          ready_future: asyncio.Future,
                           change_event: asyncio.Event,
                           stop_event: asyncio.Event) -> None:
-        if not await self._dir.exists():
-            self._logger.warning(f"Watching directory does not exist: {self._dir}")
-            ready_event.set()
-            return
-
         try:
             async for changes in awatch(
                 StdPath(self._dir),
@@ -101,7 +105,8 @@ class DirectoryWatcher:
                 filtered: list[FileChange] = []
                 for change_type, path in changes:
                     if WATCHFILES_SENTINEL in path:
-                        ready_event.set()
+                        if not ready_future.done():
+                            ready_future.set_result(None)
                         continue
                     filtered.append((change_type, path))
 
@@ -109,8 +114,16 @@ class DirectoryWatcher:
                     change_event.set()
                     await self._on_changes(filtered)
 
-        except asyncio.CancelledError:
+        except asyncio.CancelledError as e:
             self._logger.debug(f"Watching cancelled: {self._dir}")
+            if not ready_future.done():
+                ready_future.set_exception(e)
             raise
-        except Exception:
+        except FileNotFoundError as e:
+            self._logger.warning(f"Watching directory does not exist: {self._dir}")
+            if not ready_future.done():
+                ready_future.set_exception(e)
+        except Exception as e:
             self._logger.exception(f"Unexpected error in watcher: {self._dir}")
+            if not ready_future.done():
+                ready_future.set_exception(e)

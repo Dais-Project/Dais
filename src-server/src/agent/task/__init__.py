@@ -10,7 +10,7 @@ from ..notes import NoteWatcher
 from ..context import AgentContext
 from ..types import (
     AgentGenerator, StopReason,
-    ToolCallEndEvent, MessageEndEvent, TaskInterruptedEvent, TaskDoneEvent, ErrorEvent
+    TaskStartEvent, ToolCallEndEvent, MessageEndEvent, TaskInterruptedEvent, TaskDoneEvent, ErrorEvent
 )
 
 
@@ -50,6 +50,7 @@ class AgentTask:
 
         async with NoteWatcher(self.workspace.id):
             try:
+                yield TaskStartEvent()
                 tail_tool_calls = list(self.messages.tail_tool_messages_iter())
                 dispatch_stream, _ = self.tool_calls.dispatch(tail_tool_calls)
                 async for event in dispatch_stream:

@@ -21,6 +21,7 @@ const TASK_STREAM_BASE_URL = new URL("api/tasks/", API_BASE);
 
 export type TaskSseCallbacks = {
   // task status callbacks
+  onTaskStart?: () => void;
   onTaskDone?: () => void;
   onTaskInterrupted?: () => void;
 
@@ -49,6 +50,10 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
     body,
     onMessage: ({ data }) => {
       switch (data?.event_id) {
+        case "TASK_START":
+          callbacks.onTaskStart?.();
+          break
+
         case "MESSAGE_START":
           callbacks.onMessageStart?.(data);
           break;

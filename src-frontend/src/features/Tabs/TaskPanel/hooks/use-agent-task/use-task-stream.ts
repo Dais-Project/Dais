@@ -33,8 +33,11 @@ function createOverrideCallbacks(
   setState: Dispatch<SetStateAction<TaskState>>,
 ): TaskSseCallbacks {
   const overrides: TaskSseCallbacks = {
-    onMessageStart(...args) {
+    onTaskStart(...args) {
       setState("running");
+      sseCallbacksRef.current.onTaskStart?.(...args);
+    },
+    onMessageStart(...args) {
       sseCallbacksRef.current.onMessageStart?.(...args);
     },
     onError(...args) {

@@ -10,6 +10,9 @@ from pydantic import BaseModel, Discriminator
 from src.db.models import tasks as task_models
 
 
+class TaskStartEvent(BaseModel):
+    event_id: Literal["TASK_START"] = "TASK_START"
+
 class MessageStartEvent(BaseModel):
     message_id: str # This ID is for the AssistantMessage that is being streamed
     event_id: Literal["MESSAGE_START"] = "MESSAGE_START"
@@ -117,6 +120,7 @@ type ToolEvent = (
 )
 
 type AgentEvent = Annotated[(
+    TaskStartEvent |
     MessageStartEvent |
     TextChunkEvent |
     ToolCallChunkEvent |
