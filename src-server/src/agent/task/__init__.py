@@ -131,7 +131,7 @@ class AgentTask:
         if len(self._tool_call_manager.collect_pendings()) > 0:
             return StopReason.PENDING_APPROVE
 
-        return StopReason.COMPLETED
+        return StopReason.FINISHED
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()

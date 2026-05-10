@@ -5,4 +5,4 @@ class StopReason(StrEnum):
     ERROR = auto()
     INTERRUPTED = auto()
     PENDING_APPROVE = auto()
-    COMPLETED = auto()
+    FINISHED = auto()

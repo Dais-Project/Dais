@@ -9,8 +9,8 @@ import { invalidateScheduleRunningJobsQuery } from "@/api/tasks/schedule";
 
 function getNotificationTitle(status: StopReason) {
   switch (status) {
-    case StopReason.completed:
-      return i18n.t("notification.completed.title", { ns: TABS_SCHEDULE_NAMESPACE });
+    case StopReason.finished:
+      return i18n.t("notification.finished.title", { ns: TABS_SCHEDULE_NAMESPACE });
     case StopReason.error:
       return i18n.t("notification.error.title", { ns: TABS_SCHEDULE_NAMESPACE });
     case StopReason.interrupted:
@@ -22,8 +22,8 @@ function getNotificationTitle(status: StopReason) {
 
 function getNotificationBody(status: StopReason, scheduleName: string) {
   switch (status) {
-    case StopReason.completed:
-      return i18n.t("notification.completed.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
+    case StopReason.finished:
+      return i18n.t("notification.finished.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
     case StopReason.error:
       return i18n.t("notification.error.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
     case StopReason.interrupted:
@@ -66,7 +66,7 @@ export function useScheduleNotificationListener() {
       const body = getNotificationBody(data.status, data.schedule_name);
       const options = {
         body,
-        onClick: data.status === StopReason.completed
+        onClick: data.status === StopReason.finished
           ? undefined
           : () => openScheduleRecordTab(data.workspace_id, data.schedule_name, data.run_record_id),
       };

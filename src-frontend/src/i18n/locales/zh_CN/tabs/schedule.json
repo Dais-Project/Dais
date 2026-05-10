@@ -76,7 +76,7 @@
     "view_detail": "查看运行记录详情"
   },
   "notification": {
-    "completed": {
+    "finished": {
       "title": "计划任务已完成",
       "body_with_name": "计划任务 {{name}} 已成功执行完成。"
     },
