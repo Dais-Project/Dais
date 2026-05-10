@@ -50,6 +50,7 @@ async def init(db_session: AsyncSession):
         ExecutionControlToolset,
         FileSystemToolset,
         OsInteractionsToolset,
+        OrchestrationToolset,
         UserInteractionToolset,
         WebInteractionToolset,
     )
@@ -58,6 +59,7 @@ async def init(db_session: AsyncSession):
         ("File System", FileSystemToolset),
         ("Execution Control", ExecutionControlToolset),
         ("OS Interactions", OsInteractionsToolset),
+        ("Orchestration", OrchestrationToolset),
         ("User Interaction", UserInteractionToolset),
         ("Web Interaction", WebInteractionToolset),
     ]
