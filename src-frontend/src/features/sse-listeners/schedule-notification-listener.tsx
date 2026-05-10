@@ -15,8 +15,8 @@ function getNotificationTitle(status: StopReason) {
       return i18n.t("notification.error.title", { ns: TABS_SCHEDULE_NAMESPACE });
     case StopReason.interrupted:
       return i18n.t("notification.interrupted.title", { ns: TABS_SCHEDULE_NAMESPACE });
-    case StopReason.pending_approve:
-      return i18n.t("notification.pending_approve.title", { ns: TABS_SCHEDULE_NAMESPACE });
+    case StopReason.waiting_action:
+      return i18n.t("notification.waiting_action.title", { ns: TABS_SCHEDULE_NAMESPACE });
   }
 }
 
@@ -28,8 +28,8 @@ function getNotificationBody(status: StopReason, scheduleName: string) {
       return i18n.t("notification.error.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
     case StopReason.interrupted:
       return i18n.t("notification.interrupted.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
-    case StopReason.pending_approve:
-      return i18n.t("notification.pending_approve.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
+    case StopReason.waiting_action:
+      return i18n.t("notification.waiting_action.body_with_name", { ns: TABS_SCHEDULE_NAMESPACE, name: scheduleName });
   }
 }
 
