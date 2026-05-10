@@ -1,6 +1,6 @@
 from typing import Literal
 from pydantic import BaseModel
-from .stop_reason import StopReason
+from .task_result import StopReason
 
 
 class ScheduleRunCompletedEvent(BaseModel):

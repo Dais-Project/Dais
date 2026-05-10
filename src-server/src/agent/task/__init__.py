@@ -8,8 +8,10 @@ from .tool_call_manager import ToolCallManager
 from .llm_request_manager import LlmRequestManager
 from ..notes import NoteWatcher
 from ..context import AgentContext
+from ..tool import ExecutionControlToolset
 from ..types import (
-    AgentGenerator, StopReason,
+    AgentGenerator,
+    TaskError, TaskWaitingAction, TaskInterrupted, TaskFinished, TaskStopResult,
     TaskStartEvent, ToolCallEndEvent, MessageEndEvent, TaskInterruptedEvent, TaskDoneEvent, ErrorEvent
 )
 
@@ -121,17 +123,25 @@ class AgentTask:
                 if not _exited_by_generator_close:
                     yield TaskDoneEvent()
 
-    async def run_until_done(self) -> StopReason:
+    async def run_until_done(self) -> TaskStopResult:
         async for event in self.run():
             if isinstance(event, ErrorEvent):
-                return StopReason.ERROR
+                return TaskError(event=event)
             if isinstance(event, TaskInterruptedEvent):
-                return StopReason.INTERRUPTED
+                return TaskInterrupted()
 
-        if len(self._tool_call_manager.collect_pendings()) > 0:
-            return StopReason.PENDING_APPROVE
+        pending_tool_calls = self._tool_call_manager.collect_pendings()
+        if len(pending_tool_calls) > 0:
+            return TaskWaitingAction(messages=pending_tool_calls)
 
-        return StopReason.FINISHED
+        last_message = self.messages[-1]
+        if last_message.role == "assistant" and last_message.content is not None:
+            return TaskFinished(summary=last_message.content)
+        if (last_message.role == "tool" and
+           (tool := self._ctx.find_tool(last_message.name)) and
+           tool.executes(ExecutionControlToolset.finish_task)):
+            return TaskFinished(summary=last_message.content)
+        return TaskInterrupted()
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()

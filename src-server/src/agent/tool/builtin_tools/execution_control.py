@@ -45,8 +45,8 @@ class ExecutionControlToolset(BuiltInToolset):
                         The complete and up-to-date list of all todo items.
                         Each call to this tool replaces the previous list entirely, so always include all existing items along with any changes.
                         Each item should contain:
-                        - description: A concise description of the subtask.
-                        - status: The current status of the subtask. Must be one of:
+                        - description: A concise description of the todo item.
+                        - status: The current status of the todo item. Must be one of:
                             - "pending": The task has not been started yet.
                             - "in_progress": The task is currently being worked on.
                             - "completed": The task has been successfully finished.
@@ -54,14 +54,14 @@ class ExecutionControlToolset(BuiltInToolset):
                         """]
                     ) -> str:
         """
-        This tool can help you list out the current subtasks that are required to be completed for a given user request.
-        The list of subtasks helps you keep track of the current task, organize complex queries and help ensure that you don't miss any steps.
+        This tool can help you list out the current todo items that are required to be completed for a given user request.
+        The list of todo items helps you keep track of the current task, organize complex queries and help ensure that you don't miss any steps.
         With this list, the user can also see the current progress you are making in executing a given task.
 
         When SHOULD to use:
-            - At the start of a complex task, after clarifying any ambiguities with the user, to outline all the subtasks required to complete the request
+            - At the start of a complex task, after clarifying any ambiguities with the user, to outline all the todo items required to complete the request
             - When the scope of the task changes (e.g. user adds or removes requirements), to update the list accordingly
-            - When the status of a subtask changes, to reflect the latest progress
+            - When the status of a todo item changes, to reflect the latest progress
 
         IMPORTANTS:
             - Once you have started executing the todo list, you MUST NOT remove any existing items. You may only update the status of existing items
