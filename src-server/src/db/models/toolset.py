@@ -24,6 +24,7 @@ class Tool(Base):
     name: Mapped[str]
     description: Mapped[str] = mapped_column(default="")
     # this field is used to identify and find the specific tool in the toolset
+    # normally use the namespaced toolname
     internal_key: Mapped[str] = mapped_column(unique=True)
     is_enabled: Mapped[bool] = mapped_column(default=True)
     auto_approve: Mapped[bool] = mapped_column(default=False)

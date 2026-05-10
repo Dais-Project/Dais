@@ -87,7 +87,13 @@ async def create_toolset(
         raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, e.error_code, "Failed to connect to MCP server")
 
     tools = toolset.get_tools(namespaced_tool_name=False)
-    new_toolset = await ToolsetService(db_session).create_toolset(body, tools)
+    new_toolset = await ToolsetService(db_session).create_toolset(body, [
+        ToolsetService.ToolLike(
+            name=tool.name,
+            internal_key=toolset.format_tool_name(tool.name),
+            description=tool.description)
+        for tool in tools
+    ])
     mcp_toolset_manager.append(toolset, new_toolset)
     return new_toolset
 

@@ -79,7 +79,7 @@ class ToolsetService(ServiceBase):
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    async def create_toolset(self, data: toolset_schemas.ToolsetCreate, tools: list[ToolDef]) -> toolset_models.Toolset:
+    async def create_toolset(self, data: toolset_schemas.ToolsetCreate, tools: list[ToolLike]) -> toolset_models.Toolset:
         try:
             await self.get_toolset_by_internal_key(data.name)
         except ToolsetNotFoundError:
@@ -93,7 +93,7 @@ class ToolsetService(ServiceBase):
             internal_key=data.name,
             tools=[toolset_models.Tool(
                 name=tool.name,
-                internal_key=tool.name,
+                internal_key=tool.internal_key,
                 description=tool.description,
             ) for tool in tools],
         )

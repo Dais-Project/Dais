@@ -1,6 +1,6 @@
 import json
 import xml.etree.ElementTree as ET
-from typing import Annotated, Literal, override
+from typing import TYPE_CHECKING, Annotated, Literal, override
 from dais_sdk.types import UserMessage
 from pydantic import BaseModel
 from src.db import db_context
@@ -9,9 +9,10 @@ from src.db.models import tasks as tasks_models
 from src.schemas.tasks import subtask as subtask_schemas
 from src.schemas.tasks import runtime as task_runtime_schemas
 from ..toolset_wrapper import built_in_tool, BuiltInToolset
-from ...task import AgentTask
 from ...types import TaskError, TaskInterrupted, TaskWaitingAction, TaskFinished
-from ...context import AgentContext
+
+if TYPE_CHECKING:
+    from ...task import AgentTask
 
 
 class SubtaskToolAnswer(BaseModel):
@@ -36,6 +37,8 @@ class ContinueSubtask(BaseModel):
     message: str | list[SubtaskToolAnswer | SubtaskToolApprove]
 
 async def create_agent_task_from_subtask(subtask: tasks_models.Subtask) -> AgentTask:
+    from ...task import AgentTask
+    from ...context import AgentContext
     task_runtime = task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
     ctx = await AgentContext.create(task_runtime)
     return AgentTask(ctx)

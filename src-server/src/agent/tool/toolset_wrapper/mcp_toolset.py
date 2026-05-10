@@ -98,7 +98,7 @@ class McpToolset(Toolset):
             toolset_service = ToolsetService(db_session)
             tools = [ToolsetService.ToolLike(
                         name=tool.name,
-                        internal_key=tool.name,
+                        internal_key=self.format_tool_name(tool.name),
                         description=tool.description)
                      for tool in latest_tool_list]
             merged_toolset_ent = await toolset_service.sync_toolset(self._toolset_id, tools)

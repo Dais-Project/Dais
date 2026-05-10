@@ -65,7 +65,7 @@ class BuiltInToolset(PythonToolset):
         await toolset_service.sync_toolset(toolset_ent.id,
                                             [ToolsetService.ToolLike(
                                                 name=tool.name,
-                                                internal_key=tool.name,
+                                                internal_key=temp_instance.format_tool_name(tool.name),
                                                 description=tool.description,
                                                 auto_approve=cast(BuiltInToolDefaults, tool.defaults)
                                                                 .get("auto_approve", False))
