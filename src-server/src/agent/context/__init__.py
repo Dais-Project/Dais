@@ -24,6 +24,7 @@ from .aliases import BuiltInToolAliases
 from .models import AgentContextResource, AgentContextPersistence
 from ..notes import NoteMaterializer
 from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltInToolsetContext, McpToolsetManager
+from ..tool.types import is_tool_metadata
 from ..prompts import (
     BASE_INSTRUCTION,
     DEFAULT_BASE_ROLE,
@@ -159,8 +160,24 @@ class AgentContext:
 
     @property
     def usable_tool_ids(self) -> set[int] | None:
+        from ..tool import OrchestrationToolset
+
         workspace_usable_tool_ids = {tool.id for tool in self._resource.workspace.usable_tools}
         agent_usable_tool_ids = {tool.id for tool in self._resource.agent.usable_tools}
+
+        if self.task_type == "subtask":
+            # remove "subtask" tool when the current task_type is "subtask"
+            orchestration_tools = OrchestrationToolset(BuiltInToolsetContext.default()).get_tools()
+            subtask_tool_def = None
+            for tool_def in orchestration_tools:
+                if tool_def.executes(OrchestrationToolset.subtask):
+                    subtask_tool_def = tool_def
+                    break
+            if subtask_tool_def is not None:
+                assert is_tool_metadata(subtask_tool_def.metadata)
+                subtask_tool_id = subtask_tool_def.metadata["id"]
+                if subtask_tool_id in workspace_usable_tool_ids: workspace_usable_tool_ids.remove(subtask_tool_id)
+                if subtask_tool_id in agent_usable_tool_ids: agent_usable_tool_ids.remove(subtask_tool_id)
 
         if len(workspace_usable_tool_ids) == 0 and len(agent_usable_tool_ids) == 0:
             # both workspace and agent have no usable tools configured, return None meaning no need to filter
