@@ -8,7 +8,11 @@ from pydantic import TypeAdapter
 messages_adapter = TypeAdapter(list[Message])
 
 class TaskResourceOwnerType(StrEnum):
+    """
+    The values in this enum are corresponding to the task table names
+    """
     TASK = "tasks"
+    SUBTASK = "subtasks"
     RUN_RECORD = "run_records"
 
 @dataclass

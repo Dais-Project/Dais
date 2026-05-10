@@ -6,7 +6,8 @@ from src.db.models import tasks as task_models
 from src.schemas.tasks import task as task_schemas
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.schemas.tasks import schedule as schedule_schemas
-from src.services.tasks import RunRecordService, TaskService
+from src.schemas.tasks import subtask as subtask_schemas
+from src.services.tasks import RunRecordService, SubtaskService, TaskService
 
 if TYPE_CHECKING:
     from src.agent.context.models import AgentContextPersistence
@@ -30,6 +31,23 @@ class TaskPersistence:
             task = await TaskService(db_session).update_task(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_task(task)
 
+class SubaskPersistence:
+    async def persist(
+        self,
+        runtime_id: int,
+        messages: list[Message],
+        usage: task_models.TaskUsage,
+    ) -> task_runtime_schemas.TaskRuntimeContext:
+        update = subtask_schemas.SubtaskUpdate(
+            messages=messages,
+            usage=usage,
+            task_id=None,
+            agent_id=None,
+        )
+        async with db_context() as db_session:
+            subtask = await SubtaskService(db_session).update_subtask(runtime_id, update)
+        return task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
+
 class SchedulePersistence:
     async def persist(
         self,
@@ -51,7 +69,6 @@ def create_agent_context_persistence(
     task: task_runtime_schemas.TaskRuntimeContext,
 ) -> AgentContextPersistence:
     match task.type:
-        case task_runtime_schemas.TaskType.TASK:
-            return TaskPersistence()
-        case task_runtime_schemas.TaskType.SCHEDULE:
-            return SchedulePersistence()
+        case task_runtime_schemas.TaskType.TASK: return TaskPersistence()
+        case task_runtime_schemas.TaskType.SUBTASK: return SubaskPersistence()
+        case task_runtime_schemas.TaskType.SCHEDULE: return SchedulePersistence()

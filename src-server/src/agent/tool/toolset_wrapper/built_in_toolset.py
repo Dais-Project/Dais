@@ -1,4 +1,4 @@
-from dataclasses import replace
+from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path
 from typing import Self, cast, override, TYPE_CHECKING, TypedDict
 from dais_sdk.tool import PythonToolset, python_tool
@@ -18,10 +18,16 @@ class BuiltInToolDefaults(TypedDict, total=False):
     # Whether this tool needs user interaction (e.g. ask_user, show_plan)
     needs_user_interaction: bool
 
+@dataclass(frozen=True)
 class BuiltInToolsetContext:
-    def __init__(self, workspace_id: int, cwd: str | Path):
-        self.workspace_id = workspace_id
-        self.cwd = Path(cwd).expanduser().resolve()
+    cwd: Path = field(init=False)
+    task_id: int
+    workspace_id: int
+
+    cwd_input: InitVar[str | Path]
+
+    def __post_init__(self, cwd_input: str | Path) -> None:
+        object.__setattr__(self, "cwd", Path(cwd_input).expanduser().resolve())
 
     @classmethod
     def default(cls) -> Self:
@@ -31,7 +37,7 @@ class BuiltInToolsetContext:
         definitions, such as tool metadata synchronization. Runtime-only properties are
         intentionally unavailable on this instance.
         """
-        return cls(1, Path.cwd())
+        return cls(1, 1, Path.cwd())
 
 class BuiltInToolset(PythonToolset):
     def __init__(self,

@@ -37,4 +37,5 @@ __all__ = [
     "TaskWaitingAction",
     "TaskFinished",
     "TaskStopResult",
+    "StopReason",
 ]

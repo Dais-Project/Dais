@@ -39,3 +39,17 @@ class SubtaskService(ServiceBase):
 
         new_subtask = await self.get_subtask_by_id(new_subtask.id)
         return new_subtask
+
+    async def update_subtask(self, id: int, data: subtask_schemas.SubtaskUpdate) -> task_models.Subtask:
+        subtask = await self.get_subtask_by_id(id)
+
+        if data.messages is not None:
+            subtask.messages = data.messages
+
+        self.apply_fields(subtask, data, exclude={"messages"})
+
+        await self._db_session.flush()
+        self._db_session.expunge(subtask)
+
+        updated_subtask = await self.get_subtask_by_id(subtask.id)
+        return updated_subtask

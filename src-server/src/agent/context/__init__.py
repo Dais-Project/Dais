@@ -23,11 +23,14 @@ from .persistence import create_agent_context_persistence
 from .aliases import BuiltInToolAliases
 from .models import AgentContextResource, AgentContextPersistence
 from ..notes import NoteMaterializer
-from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
+from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltInToolsetContext, McpToolsetManager
 from ..prompts import (
     BASE_INSTRUCTION,
+    DEFAULT_BASE_ROLE,
+    APPENDIX_TEMPLATE,
     FAILED_TO_LOAD_NOTES_INDEX,
     NO_AVAILABLE_SKILLS,
+    NO_AVAILABLE_AGENTS,
     NO_WORKSPACE_INSTRUCTION,
     NO_AGENT_INSTRUCTION,
 )
@@ -76,7 +79,13 @@ class AgentContext:
         usage = ContextUsage(**asdict(usage))
         messages = task.messages
 
-        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory)
+        builtin_toolset_manager = await BuiltinToolsetManager.create(
+            BuiltInToolsetContext(
+                task.id,
+                workspace.id,
+                workspace.directory,
+            )
+        )
         mcp_toolset_manager = use_mcp_toolset_manager()
 
         persistence = create_agent_context_persistence(task)
@@ -97,14 +106,22 @@ class AgentContext:
 
     @staticmethod
     def _format_skills(skills: list[skill_schemas.SkillBrief]) -> str:
-        if len(skills) == 0:
-            return NO_AVAILABLE_SKILLS
+        if len(skills) == 0: return NO_AVAILABLE_SKILLS
         root = ET.Element("available_skills")
         for skill in skills:
             skill_elem = ET.SubElement(root, "skill")
             ET.SubElement(skill_elem, "id").text = str(skill.id)
             ET.SubElement(skill_elem, "name").text = skill.name
             ET.SubElement(skill_elem, "description").text = skill.description
+        return ET.tostring(root, encoding="unicode")
+
+    @staticmethod
+    def _format_agents(agents: list[agent_schemas.AgentBrief]) -> str:
+        if len(agents) == 0: return NO_AVAILABLE_AGENTS
+        root = ET.Element("available_agents")
+        for agent in agents:
+            agent_elem = ET.SubElement(root, "agent", attrib={"id": str(agent.id)})
+            agent_elem.text = agent.name
         return ET.tostring(root, encoding="unicode")
 
     ResolvedInstructions = namedtuple("ResolvedInstructions", ["base", "workspace", "agent"])
@@ -160,13 +177,22 @@ class AgentContext:
         available_skills = AgentContext._format_skills([
             skill for skill in self._resource.skills if skill.is_enabled])
         resolved_instructions = self._resolve_instructions()
+
+        resolved_agents_appendix = APPENDIX_TEMPLATE.format(
+            id="C",
+            title="Available Agents",
+            content=AgentContext._format_agents(self._resource.workspace.usable_agents)
+        ) if self.task_type != "subtask" else "" # does not inject agents info under "subtask"
+
         notes_index = await NoteMaterializer.get_notes_index(self._resource.workspace.id)
         resolved_notes_index = notes_index if notes_index is not None else FAILED_TO_LOAD_NOTES_INDEX
 
         return resolved_instructions.base.format(
+            base_role=DEFAULT_BASE_ROLE,
             os_platform=platform.system(),
             user_language=settings.reply_language,
             available_skills=available_skills,
+            runtime_appendices=resolved_agents_appendix,
             workspace_notes_index=resolved_notes_index,
             workspace_name=self._resource.workspace.name,
             workspace_directory=self._resource.workspace.directory,

@@ -7,11 +7,13 @@ from .. import DTOBase
 
 class TaskType(StrEnum):
     TASK = "task"
+    SUBTASK = "subtask"
     SCHEDULE = "schedule"
 
     def to_resource_owner_type(self) -> task_models.TaskResourceOwnerType:
         match self:
             case TaskType.TASK: return task_models.TaskResourceOwnerType.TASK
+            case TaskType.SUBTASK: return task_models.TaskResourceOwnerType.SUBTASK
             case TaskType.SCHEDULE: return task_models.TaskResourceOwnerType.RUN_RECORD
 
 class TaskRuntimeContext(DTOBase):
@@ -31,6 +33,17 @@ class TaskRuntimeContext(DTOBase):
             agent_id=task.agent_id,
             workspace_id=task.workspace_id,
             messages=task.messages,
+        )
+
+    @classmethod
+    def from_subtask(cls, subtask: task_models.Subtask) -> Self:
+        return cls(
+            id=subtask.id,
+            type=TaskType.SUBTASK,
+            usage=subtask.usage,
+            agent_id=subtask.agent_id,
+            workspace_id=subtask.task.workspace_id,
+            messages=subtask.messages,
         )
 
     @classmethod

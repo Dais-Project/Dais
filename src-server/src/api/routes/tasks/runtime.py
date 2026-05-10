@@ -5,7 +5,7 @@ from src.agent.context import AgentContext
 from src.agent.task import AgentTask
 from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.services.tasks import RunRecordService, TaskService
+from src.services.tasks import TaskService, SubtaskService, RunRecordService
 from ...dependencies import DbSessionDep
 
 
@@ -17,6 +17,15 @@ async def _load_task_runtime_context(db_session: AsyncSession,
     if agent_id is not None:
         task.agent_id = agent_id
     return task_runtime_schemas.TaskRuntimeContext.from_task(task)
+
+async def _load_subtask_runtime_context(db_session: AsyncSession,
+                                        subtask_id: int,
+                                        agent_id: int | None,
+                                        ) -> task_runtime_schemas.TaskRuntimeContext:
+    subtask = await SubtaskService(db_session).get_subtask_by_id(subtask_id)
+    if agent_id is not None:
+        subtask.agent_id = agent_id
+    return task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
 
 async def _load_schedule_runtime_context(db_session: AsyncSession,
                                          task_id: int,
@@ -36,6 +45,8 @@ async def load_task_runtime_context(
     match task_type:
         case task_runtime_schemas.TaskType.TASK:
             return await _load_task_runtime_context(db_session, task_id, agent_id)
+        case task_runtime_schemas.TaskType.SUBTASK:
+            return await _load_subtask_runtime_context(db_session, task_id, agent_id)
         case task_runtime_schemas.TaskType.SCHEDULE:
             return await _load_schedule_runtime_context(db_session, task_id, agent_id)
 
