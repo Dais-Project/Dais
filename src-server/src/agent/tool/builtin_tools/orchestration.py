@@ -16,25 +16,31 @@ if TYPE_CHECKING:
 
 
 class SubtaskToolAnswer(BaseModel):
-    answer: str
-    call_id: str
+    answer: Annotated[str,
+                      "The answer to provide for a response-pending tool call."]
+    call_id: Annotated[str,
+                       "The call_id of the pending tool call, as returned in the subtask result."]
 
 class SubtaskToolApprove(BaseModel):
-    status: Literal["approved", "denied"]
-    call_id: str
+    status: Annotated[Literal["approved", "denied"],
+                      "Whether to approve or deny the pending tool call."]
+    call_id: Annotated[str,
+                       "The call_id of the pending tool call, as returned in the subtask result."]
 
 class NewSubtask(BaseModel):
     instruction: Annotated[str, "The initial instruction used to create a new subtask."]
     agent_id: int
 
 class ContinueSubtask(BaseModel):
-    subtask_id: int
+    subtask_id: Annotated[int,
+                          "The ID of the subtask to continue, as returned in the subtask result."]
     agent_id: Annotated[int | None,
                         """
                         The id of target agent to execute the subtask.
                         Sometimes the selected agent may be deleted, can use this parameter to pass a new agent_id.
                         """] = None
-    message: str | list[SubtaskToolAnswer | SubtaskToolApprove]
+    message: Annotated[str | list[SubtaskToolAnswer | SubtaskToolApprove],
+                       "A follow-up instruction to the subagent (str), or a list of responses to pending tool calls."]
 
 async def create_agent_task_from_subtask(subtask: tasks_models.Subtask) -> AgentTask:
     from ...task import AgentTask
