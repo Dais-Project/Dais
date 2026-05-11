@@ -17,7 +17,7 @@ class SkillNameAlreadyExistsError(ConflictError):
             f"Skill '{name}' already exists",
         )
 
-class SkillService(ServiceBase):
+class SkillService(ServiceBase[skill_models.Skill]):
     @staticmethod
     def relations():
         return [
@@ -84,10 +84,8 @@ class SkillService(ServiceBase):
         )
 
         self._db_session.add(new_skill)
-        await self._db_session.flush()
-
-        new_skill = await self.get_skill_by_id(new_skill.id)
-        return new_skill
+        new_id = await self.flush_and_expunge(new_skill)
+        return await self.get_skill_by_id(new_id)
 
     async def update_skill(
         self, id: int, data: skill_schemas.SkillUpdate
@@ -114,11 +112,8 @@ class SkillService(ServiceBase):
             updated_skill.hash = skill_models.Skill.compute_resources_hash(resources)
             updated_skill.resources = resources
 
-        await self._db_session.flush()
-        self._db_session.expunge(updated_skill)
-
-        updated_skill = await self.get_skill_by_id(updated_skill.id)
-        return updated_skill
+        new_id = await self.flush_and_expunge(updated_skill)
+        return await self.get_skill_by_id(new_id)
 
     async def delete_skill(self, id: int) -> skill_models.Skill:
         skill = await self.get_skill_by_id(id)

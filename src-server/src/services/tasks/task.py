@@ -13,7 +13,7 @@ class TaskNotFoundError(NotFoundError):
     def __init__(self, task_id: int) -> None:
         super().__init__(ServiceErrorCode.TASK_NOT_FOUND, "Task", task_id)
 
-class TaskService(ServiceBase):
+class TaskService(ServiceBase[task_models.Task]):
     @staticmethod
     def relations():
         return [
@@ -53,10 +53,8 @@ class TaskService(ServiceBase):
         )
 
         self._db_session.add(new_task)
-        await self._db_session.flush()
-
-        new_task = await self.get_task_by_id(new_task.id)
-        return new_task
+        new_id = await self.flush_and_expunge(new_task)
+        return await self.get_task_by_id(new_id)
 
     async def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:
         task = await self.get_task_by_id(id)
@@ -66,11 +64,8 @@ class TaskService(ServiceBase):
 
         self.apply_fields(task, data, exclude={"messages"})
 
-        await self._db_session.flush()
-        self._db_session.expunge(task)
-
-        updated_task = await self.get_task_by_id(task.id)
-        return updated_task
+        new_id = await self.flush_and_expunge(task)
+        return await self.get_task_by_id(new_id)
 
     async def delete_task(self, id: int):
         task = await self.get_task_by_id(id)

@@ -11,7 +11,7 @@ class AgentNotFoundError(NotFoundError):
     def __init__(self, agent_id: int) -> None:
         super().__init__(ServiceErrorCode.AGENT_NOT_FOUND, "Agent", agent_id)
 
-class AgentService(ServiceBase):
+class AgentService(ServiceBase[agent_models.Agent]):
     @staticmethod
     def relations():
         return [
@@ -53,11 +53,8 @@ class AgentService(ServiceBase):
         await self._update_relations(new_agent, data)
 
         self._db_session.add(new_agent)
-        await self._db_session.flush()
-        self._db_session.expunge(new_agent)
-
-        new_agent = await self.get_agent_by_id(new_agent.id)
-        return new_agent
+        new_id = await self.flush_and_expunge(new_agent)
+        return await self.get_agent_by_id(new_id)
 
     async def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
         updated_agent = await self.get_agent_by_id(id)
@@ -65,11 +62,8 @@ class AgentService(ServiceBase):
         self.apply_fields(updated_agent, data, exclude={"usable_tool_ids"})
 
         await self._update_relations(updated_agent, data)
-        await self._db_session.flush()
-        self._db_session.expunge(updated_agent)
-
-        updated_agent = await self.get_agent_by_id(updated_agent.id)
-        return updated_agent
+        new_id = await self.flush_and_expunge(updated_agent)
+        return await self.get_agent_by_id(new_id)
 
     async def delete_agent(self, id: int) -> None:
         agent = await self.get_agent_by_id(id)

@@ -14,7 +14,7 @@ class WorkspaceNotFoundError(NotFoundError):
     def __init__(self, workspace_id: int) -> None:
         super().__init__(ServiceErrorCode.WORKSPACE_NOT_FOUND, "Workspace", workspace_id)
 
-class WorkspaceService(ServiceBase):
+class WorkspaceService(ServiceBase[workspace_models.Workspace]):
     @staticmethod
     def relations():
         return [
@@ -93,10 +93,8 @@ class WorkspaceService(ServiceBase):
         await self._update_relations(new_workspace, data)
 
         self._db_session.add(new_workspace)
-        await self._db_session.flush()
-
-        new_workspace = await self.get_workspace_by_id(new_workspace.id)
-        return new_workspace
+        new_id = await self.flush_and_expunge(new_workspace)
+        return await self.get_workspace_by_id(new_id)
 
     async def update_workspace(self, id: int, data: workspace_schemas.WorkspaceUpdate) -> workspace_models.Workspace:
         workspace = await self.get_workspace_by_id(id)
@@ -104,11 +102,8 @@ class WorkspaceService(ServiceBase):
         self.apply_fields(workspace, data, exclude={"notes", "usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
         await self._update_relations(workspace, data)
 
-        await self._db_session.flush()
-        self._db_session.expunge(workspace)
-
-        updated_workspace = await self.get_workspace_by_id(workspace.id)
-        return updated_workspace
+        new_id = await self.flush_and_expunge(workspace)
+        return await self.get_workspace_by_id(new_id)
 
     async def update_workspace_notes(self, id, data: workspace_schemas.WorkspaceNotesUpdate):
         workspace = await self.get_workspace_by_id(id)
@@ -119,11 +114,8 @@ class WorkspaceService(ServiceBase):
             )
             for note in data.notes
         ]
-        await self._db_session.flush()
-        self._db_session.expunge(workspace)
-
-        updated_workspace = await self.get_workspace_by_id(workspace.id)
-        return updated_workspace
+        new_id = await self.flush_and_expunge(workspace)
+        return await self.get_workspace_by_id(new_id)
 
     async def delete_workspace(self, id: int) -> None:
         workspace = await self.get_workspace_by_id(id)

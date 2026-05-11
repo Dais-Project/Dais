@@ -10,7 +10,7 @@ class SubtaskNotFoundError(NotFoundError):
     def __init__(self, subtask_id: int) -> None:
         super().__init__(ServiceErrorCode.SUBTASK_NOT_FOUND, "Subtask", subtask_id)
 
-class SubtaskService(ServiceBase):
+class SubtaskService(ServiceBase[task_models.Subtask]):
     @staticmethod
     def relations():
         return [
@@ -33,12 +33,9 @@ class SubtaskService(ServiceBase):
             messages=[UserMessage(content=data.instruction)],
             **data.model_dump(exclude={"instruction"})
         )
-
         self._db_session.add(new_subtask)
-        await self._db_session.flush()
-
-        new_subtask = await self.get_subtask_by_id(new_subtask.id)
-        return new_subtask
+        new_id = await self.flush_and_expunge(new_subtask)
+        return await self.get_subtask_by_id(new_id)
 
     async def update_subtask(self, id: int, data: subtask_schemas.SubtaskUpdate) -> task_models.Subtask:
         subtask = await self.get_subtask_by_id(id)
@@ -47,9 +44,5 @@ class SubtaskService(ServiceBase):
             subtask.messages = data.messages
 
         self.apply_fields(subtask, data, exclude={"messages"})
-
-        await self._db_session.flush()
-        self._db_session.expunge(subtask)
-
-        updated_subtask = await self.get_subtask_by_id(subtask.id)
-        return updated_subtask
+        new_id = await self.flush_and_expunge(subtask)
+        return await self.get_subtask_by_id(new_id)
