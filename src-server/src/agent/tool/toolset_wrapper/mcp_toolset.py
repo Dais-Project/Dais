@@ -68,8 +68,7 @@ class McpToolset(Toolset):
         self._toolset_id = toolset_ent.id
         self._status = McpToolsetStatus.DISCONNECTED
         self._error: McpConnectionErrorCode | None = None
-        self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
-                          for tool in toolset_ent.tools}
+        self._tool_map = {tool.internal_key: tool for tool in toolset_ent.tools}
 
         if self._inner_toolset.connected:
             self._status = McpToolsetStatus.CONNECTED
@@ -127,11 +126,9 @@ class McpToolset(Toolset):
         if self._status != McpToolsetStatus.CONNECTED:
             raise McpToolsetNotConnectedError(self.name)
 
-        inner_toolset = cast(SdkMcpToolset, self._inner_toolset)
-        latest_tool_list = inner_toolset.get_tools(namespaced_tool_name=False)
+        latest_tool_list = self._inner_toolset.get_tools(namespaced_tool_name=False)
         merged_tool_list = await self._merge_tools(latest_tool_list)
-        self._tool_map = {self._inner_toolset.format_tool_name(tool.internal_key): tool
-                          for tool in merged_tool_list}
+        self._tool_map = {tool.internal_key: tool for tool in merged_tool_list}
 
     async def connect(self):
         self._status = McpToolsetStatus.CONNECTING
