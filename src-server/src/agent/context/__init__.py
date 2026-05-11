@@ -18,6 +18,7 @@ from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
+from src.services.toolset import ToolsetService
 from src.settings import use_app_setting_manager
 from .persistence import create_agent_context_persistence
 from .aliases import BuiltInToolAliases
@@ -158,8 +159,7 @@ class AgentContext:
     @messages.setter
     def messages(self, new_messages: list[Message]): self._messages = new_messages
 
-    @property
-    def usable_tool_ids(self) -> set[int] | None:
+    async def filter_usable_tool_ids(self) -> set[int] | None:
         from ..tool import OrchestrationToolset
 
         workspace_usable_tool_ids = {tool.id for tool in self._resource.workspace.usable_tools}
@@ -167,7 +167,10 @@ class AgentContext:
 
         if self.task_type == "subtask":
             # remove "subtask" tool when the current task_type is "subtask"
-            orchestration_tools = OrchestrationToolset(BuiltInToolsetContext.default()).get_tools()
+            async with db_context() as db_session:
+                orchestration_toolset_ent = await ToolsetService(db_session).get_toolset_by_internal_key(OrchestrationToolset.internal_key())
+            orchestration_toolset = OrchestrationToolset(BuiltInToolsetContext.default(), orchestration_toolset_ent)
+            orchestration_tools = orchestration_toolset.get_tools()
             subtask_tool_def = None
             for tool_def in orchestration_tools:
                 if tool_def.executes(OrchestrationToolset.subtask):
