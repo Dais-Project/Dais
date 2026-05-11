@@ -117,6 +117,7 @@ class AgentTask:
                         dispatch_result.has_blocked_tool_calls):
                         self._is_running = False
                         break
+                    await self.persist()
             except GeneratorExit:
                 _exited_by_generator_close = True
             finally:
