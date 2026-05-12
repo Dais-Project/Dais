@@ -91,23 +91,23 @@ class WebInteractionToolset(BuiltInToolset):
             })
         return redirects_el
 
-    def _format_fetch_error(self, res: httpx.Response) -> str:
+    def _format_fetch_error(self, res: httpx.Response) -> ET.Element:
         error_root = ET.Element("error")
         ET.SubElement(error_root, "url").text = str(res.url)
         ET.SubElement(error_root, "status_code").text = str(res.status_code)
         ET.SubElement(error_root, "reason_phrase").text = res.reason_phrase
         error_root.append(self._format_redirects(res.history))
         ET.SubElement(error_root, "text").text = res.text
-        return ET.tostring(error_root, encoding="unicode")
+        return error_root
 
-    async def _format_fetch_result(self, res: httpx.Response, raw: bool) -> str:
+    async def _format_fetch_result(self, res: httpx.Response, raw: bool) -> ET.Element:
         document_root = ET.Element("document")
         ET.SubElement(document_root, "url").text = str(res.url)
         ET.SubElement(document_root, "status_code").text = str(res.status_code)
         ET.SubElement(document_root, "reason_phrase").text = res.reason_phrase
         document_root.append(self._format_redirects(res.history))
         ET.SubElement(document_root, "document_content").text = await self._extract_fetch_content(res, raw)
-        return ET.tostring(document_root, encoding="unicode")
+        return document_root
 
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=False))
     async def fetch(self,
@@ -116,7 +116,7 @@ class WebInteractionToolset(BuiltInToolset):
                     headers: dict[str, str] | None = None,
                     body: FetchBody | None = None,
                     raw: Annotated[bool, "Whether to return the original response body, you can set this to True when the original HTML response is needed."] = False,
-                    ) -> str:
+                    ) -> ET.Element:
         """
         Execute HTTP/HTTPS requests to fetch web pages, interact with REST APIs, download source code, or submit data.
         Use this tool when you need to browse the internet, retrieve external documentation, read remote config files/code, or call web services.

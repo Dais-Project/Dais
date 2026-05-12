@@ -10,6 +10,7 @@ class ToolMessageMetadata(TypedDict, total=False):
     user_approval: UserApprovalStatus
     risk_level: int
     risk_reason: str
+    subtask_id: int # this field is only used for `subtask` tool message
 
 def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
     return True

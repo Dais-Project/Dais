@@ -6,8 +6,8 @@ import pytest
 from src.agent.tool.builtin_tools.os_interactions import OsInteractionsToolset
 
 
-def parse_shell_result(result: str) -> tuple[ET.Element, ET.Element, ET.Element]:
-    root = ET.fromstring(result)
+def parse_shell_result(result: ET.Element) -> tuple[ET.Element, ET.Element, ET.Element]:
+    root = result
     stdout_el = root.find("stdout")
     stderr_el = root.find("stderr")
     assert stdout_el is not None

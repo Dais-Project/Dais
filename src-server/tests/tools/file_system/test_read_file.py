@@ -7,8 +7,8 @@ import src.agent.tool.builtin_tools.file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
-def parse_file_content_xml(result: str) -> tuple[ET.Element, str]:
-    root = ET.fromstring(result)
+def parse_file_content_xml(result: ET.Element) -> tuple[ET.Element, str]:
+    root = result
     text = root.text or ""
     return root, text
 

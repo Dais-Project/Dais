@@ -40,7 +40,7 @@ class OsInteractionsToolset(BuiltInToolset):
                         "The working directory to execute the command in, relative to the current working directory."] = ".",
                     timeout: Annotated[int,
                         "Timeout for command execution in seconds."] = 30
-                    ) -> str:
+                    ) -> ET.Element:
         """
         Execute a shell command.
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
@@ -132,4 +132,4 @@ class OsInteractionsToolset(BuiltInToolset):
         stdout_el.text = stdout_result
         stderr_el = ET.SubElement(root, "stderr", attrib={"truncated": str(stderr_truncated).lower()})
         stderr_el.text = stderr_result
-        return ET.tostring(root, encoding="unicode")
+        return root

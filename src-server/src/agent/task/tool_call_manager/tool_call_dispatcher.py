@@ -12,7 +12,7 @@ from ...types import (
     ToolEvent, ToolExecutedEvent, MessageReplaceEvent, ErrorEvent,
     ToolRequirePermissionEvent,
 )
-from ...tool import ExecutionControlToolset
+from ...tool import ExecutionControlToolset, OrchestrationToolset
 from ...types.metadata import UserApprovalStatus, is_agent_tool_metadata
 
 
@@ -39,7 +39,7 @@ class ToolCallDispatcher:
         Execute tool call and attach the result to the corresponding message.
         This method should not throw any exceptions.
         """
-        result, error = await self._tool_call_executor.execute(tool, message.arguments)
+        result, error, raw_result = await self._tool_call_executor.execute(tool, message.arguments)
         message.result = result
         message.error = error
 

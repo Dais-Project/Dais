@@ -27,7 +27,7 @@ class TestIntegration:
         tool = FileSystemToolset(built_in_toolset_context)
 
         read_content = await tool.read_file(filename)
-        assert original_content in read_content
+        assert read_content.text == original_content
 
         new_content = "Completely new content\nNew line 2"
         await tool.write_file(filename, new_content)
