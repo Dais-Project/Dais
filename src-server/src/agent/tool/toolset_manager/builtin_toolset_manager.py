@@ -1,22 +1,19 @@
-from typing import Sequence, override
+from typing import Self, Sequence, override
 from dais_sdk.tool import Toolset
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import db_context
 from src.db.models import toolset as toolset_models
+from src.schemas.tasks import runtime as task_runtime_schemas
 from .types import ToolsetManager
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
 from ..builtin_tools import BUILT_IN_TOOLSETS
 
 
 class BuiltinToolsetManager(ToolsetManager):
-    def __init__(self, workspace_id: int, cwd: str):
-        self._ctx = BuiltInToolsetContext(workspace_id, cwd)
+    def __init__(self, ctx: BuiltInToolsetContext):
+        self._ctx = ctx
         self._toolset_map: dict[str, toolset_models.Toolset] | None = None
         self._toolsets: list[BuiltInToolset] | None = None
-
-    @classmethod
-    def default(cls):
-        return cls(1, "~")
 
     @staticmethod
     async def sync_toolsets(db_session: AsyncSession):
@@ -49,7 +46,7 @@ class BuiltinToolsetManager(ToolsetManager):
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
 
     @classmethod
-    async def create(cls, workspace_id: int, cwd: str) -> BuiltinToolsetManager:
-        manager = cls(workspace_id, cwd)
+    async def create(cls, ctx: BuiltInToolsetContext) -> Self:
+        manager = cls(ctx)
         await manager.initialize()
         return manager

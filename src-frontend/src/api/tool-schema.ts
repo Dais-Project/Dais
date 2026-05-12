@@ -1,6 +1,5 @@
 import { z } from "zod";
 import type {
-  ContextControlLoadSkill,
   ExecutionControlFinishTask,
   ExecutionControlUpdateTodos,
   FileSystemEditFile,
@@ -9,6 +8,7 @@ import type {
   FileSystemReadFile,
   FileSystemSearchText,
   FileSystemWriteFile,
+  OrchestrationSubtask,
   OsInteractionsShell,
   UserInteractionAskUser,
   UserInteractionShowPlan,
@@ -46,14 +46,37 @@ export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object(
 
 /* --- Execution Control Tools --- */
 
-/* --- Context Manage Tools --- */
+/* --- Orchestration Tools --- */
 
-export const LoadSkillToolSchema: z.ZodType<ContextControlLoadSkill> = z.object({
-  id: z.number().int(),
-  name: z.string(),
+export const SubtaskToolSchema: z.ZodType<OrchestrationSubtask> = z.object({
+  action: z.union([
+    z.object({
+      instruction: z.string(),
+      agent_id: z.number().int(),
+    }),
+    z.object({
+      subtask_id: z.number().int(),
+      agent_id: z.number().int().nullish(),
+      message: z.union([
+        z.string(),
+        z.array(
+          z.union([
+            z.object({
+              answer: z.string(),
+              call_id: z.string(),
+            }),
+            z.object({
+              status: z.enum(["approved", "denied"]),
+              call_id: z.string(),
+            }),
+          ])
+        ),
+      ]),
+    }),
+  ]),
 });
 
-/* --- Context Manage Tools --- */
+/* --- Orchestration Tools --- */
 
 /* --- OS Interaction Tools --- */
 
@@ -72,7 +95,22 @@ export const FetchToolSchema: z.ZodType<WebInteractionFetch> = z.object({
   url: z.string(),
   method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH"]).optional(),
   headers: z.record(z.string(), z.string()).nullish(),
-  body: z.string().nullish(),
+  body: z
+    .discriminatedUnion("type", [
+      z.object({
+        type: z.literal("form"),
+        data: z.record(z.string(), z.string()),
+      }),
+      z.object({
+        type: z.literal("json"),
+        data: z.string(),
+      }),
+      z.object({
+        type: z.literal("text"),
+        data: z.string(),
+      }),
+    ])
+    .nullish(),
   raw: z.boolean().optional(),
 });
 

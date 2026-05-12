@@ -37,7 +37,7 @@ class ToolCallManager:
         self._tool_call_reviewer = ToolCallReviewer(ctx)
         self._tool_call_dispatcher = ToolCallDispatcher(self._ctx, self._tool_call_executor, self._tool_call_reviewer)
 
-    def apply_user_response(self, call_id: str, result: str) -> MessageReplaceEvent:
+    def apply_user_response(self, call_id: str, response: str) -> MessageReplaceEvent:
         target_message = self._message_manager.find(lambda m: m.role == "tool" and m.call_id == call_id)
         assert target_message.role == "tool"
         target_tool = self._ctx.find_tool(target_message.name)
@@ -49,7 +49,7 @@ class ToolCallManager:
         if not target_tool.metadata["needs_user_interaction"]:
             raise ValueError(f"Tool {target_tool.name} is not a tool that needs user interaction.")
 
-        target_message.result = result
+        target_message.result = response
         return MessageReplaceEvent(message=target_message)
 
     def approve(self, call_id: str, approved: bool) -> MessageReplaceEvent | None:

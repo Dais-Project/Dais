@@ -3,6 +3,7 @@ from dais_sdk.types import ToolSchema
 from .execution_control import ExecutionControlToolset
 from .file_system import FileSystemToolset
 from .os_interactions import OsInteractionsToolset
+from .orchestration import OrchestrationToolset
 from .user_interaction import UserInteractionToolset
 from .web_interaction import WebInteractionToolset
 from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
@@ -12,6 +13,7 @@ BUILT_IN_TOOLSETS: list[type[BuiltInToolset]] = [
     ExecutionControlToolset,
     FileSystemToolset,
     OsInteractionsToolset,
+    OrchestrationToolset,
     UserInteractionToolset,
     WebInteractionToolset,
 ]

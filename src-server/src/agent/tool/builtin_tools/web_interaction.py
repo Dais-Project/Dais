@@ -63,52 +63,6 @@ class WebInteractionToolset(BuiltInToolset):
     @override
     def name(self) -> str: return "WebInteraction"
 
-    async def _extract_fetch_content(self, res: httpx.Response, raw: bool) -> str:
-        if res.status_code == 204: return ""
-        content_type = await asyncio.to_thread(self._magika.identify_bytes, res.content)
-        if not content_type.output.is_text:
-            if self._markdown_converter.is_convertable_binary(content_type.output.label):
-                result = await self._markdown_converter.convert(res.content)
-                return result
-            return f"[Binary Data: {content_type.output.label}]"
-        elif content_type.output.label == ContentTypeLabel.HTML and not raw:
-            extracted = await asyncio.to_thread(
-                trafilatura.extract,
-                res.text,
-                output_format="markdown",
-                config=self._trafilatura_config)
-            if extracted is not None: return extracted
-            return f"<!-- trafilatura failed to extract content -->\n\n{res.text}"
-        else: return res.text
-
-    def _format_redirects(self, redirects: list[httpx.Response]) -> ET.Element:
-        redirects_el = ET.Element("redirects")
-        for r in redirects:
-            ET.SubElement(redirects_el, "redirect", attrib={
-                "status_code": str(r.status_code),
-                "reason_phrase": r.reason_phrase,
-                "location": r.headers.get("location", ""),
-            })
-        return redirects_el
-
-    def _format_fetch_error(self, res: httpx.Response) -> str:
-        error_root = ET.Element("error")
-        ET.SubElement(error_root, "url").text = str(res.url)
-        ET.SubElement(error_root, "status_code").text = str(res.status_code)
-        ET.SubElement(error_root, "reason_phrase").text = res.reason_phrase
-        error_root.append(self._format_redirects(res.history))
-        ET.SubElement(error_root, "text").text = res.text
-        return ET.tostring(error_root, encoding="unicode")
-
-    async def _format_fetch_result(self, res: httpx.Response, raw: bool) -> str:
-        document_root = ET.Element("document")
-        ET.SubElement(document_root, "url").text = str(res.url)
-        ET.SubElement(document_root, "status_code").text = str(res.status_code)
-        ET.SubElement(document_root, "reason_phrase").text = res.reason_phrase
-        document_root.append(self._format_redirects(res.history))
-        ET.SubElement(document_root, "document_content").text = await self._extract_fetch_content(res, raw)
-        return ET.tostring(document_root, encoding="unicode")
-
     @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=False))
     async def fetch(self,
                     url: Annotated[str, "The URL to fetch, should include the protocol (http:// or https://)."],
@@ -116,7 +70,7 @@ class WebInteractionToolset(BuiltInToolset):
                     headers: dict[str, str] | None = None,
                     body: FetchBody | None = None,
                     raw: Annotated[bool, "Whether to return the original response body, you can set this to True when the original HTML response is needed."] = False,
-                    ) -> str:
+                    ) -> ET.Element:
         """
         Execute HTTP/HTTPS requests to fetch web pages, interact with REST APIs, download source code, or submit data.
         Use this tool when you need to browse the internet, retrieve external documentation, read remote config files/code, or call web services.
@@ -172,6 +126,53 @@ class WebInteractionToolset(BuiltInToolset):
                 <text>...[Error response body]...</text>
             </error>
         """
+
+        async def extract_fetch_content(res: httpx.Response, raw: bool) -> str:
+            if res.status_code == 204: return ""
+            content_type = await asyncio.to_thread(self._magika.identify_bytes, res.content)
+            if not content_type.output.is_text:
+                if self._markdown_converter.is_convertable_binary(content_type.output.label):
+                    result = await self._markdown_converter.convert(res.content)
+                    return result
+                return f"[Binary Data: {content_type.output.label}]"
+            elif content_type.output.label == ContentTypeLabel.HTML and not raw:
+                extracted = await asyncio.to_thread(
+                    trafilatura.extract,
+                    res.text,
+                    output_format="markdown",
+                    config=self._trafilatura_config)
+                if extracted is not None: return extracted
+                return f"<!-- trafilatura failed to extract content -->\n\n{res.text}"
+            else: return res.text
+
+        def format_redirects(redirects: list[httpx.Response]) -> ET.Element:
+            redirects_el = ET.Element("redirects")
+            for r in redirects:
+                ET.SubElement(redirects_el, "redirect", attrib={
+                    "status_code": str(r.status_code),
+                    "reason_phrase": r.reason_phrase,
+                    "location": r.headers.get("location", ""),
+                })
+            return redirects_el
+
+        def format_fetch_error(res: httpx.Response) -> ET.Element:
+            error_root = ET.Element("error")
+            ET.SubElement(error_root, "url").text = str(res.url)
+            ET.SubElement(error_root, "status_code").text = str(res.status_code)
+            ET.SubElement(error_root, "reason_phrase").text = res.reason_phrase
+            error_root.append(format_redirects(res.history))
+            ET.SubElement(error_root, "text").text = res.text
+            return error_root
+
+        async def format_fetch_result(res: httpx.Response, raw: bool) -> ET.Element:
+            document_root = ET.Element("document")
+            ET.SubElement(document_root, "url").text = str(res.url)
+            ET.SubElement(document_root, "status_code").text = str(res.status_code)
+            ET.SubElement(document_root, "reason_phrase").text = res.reason_phrase
+            document_root.append(format_redirects(res.history))
+            ET.SubElement(document_root, "document_content").text = await extract_fetch_content(res, raw)
+            return document_root
+
         request_kwargs: dict[str, Any] = {"headers": DEFAULT_HEADER.copy()}
         if body is not None:
             request_kwargs.update(body.to_params())
@@ -182,5 +183,5 @@ class WebInteractionToolset(BuiltInToolset):
             res = await client.send(req)
 
         if res.status_code >= 400:
-            return self._format_fetch_error(res)
-        return await self._format_fetch_result(res, raw)
+            return format_fetch_error(res)
+        return await format_fetch_result(res, raw)

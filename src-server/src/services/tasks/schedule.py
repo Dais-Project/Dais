@@ -14,7 +14,7 @@ class ScheduleNotFoundError(NotFoundError):
     def __init__(self, schedule_id: int) -> None:
         super().__init__(ServiceErrorCode.SCHEDULE_NOT_FOUND, "Schedule", schedule_id)
 
-class ScheduleService(ServiceBase):
+class ScheduleService(ServiceBase[task_models.Schedule]):
     @staticmethod
     def relations():
         return [
@@ -60,10 +60,8 @@ class ScheduleService(ServiceBase):
         )
 
         self._db_session.add(instance=new_schedule)
-        await self._db_session.flush()
-
-        new_schedule = await self.get_schedule_by_id(new_schedule.id)
-        return new_schedule
+        new_id = await self.flush_and_expunge(new_schedule)
+        return await self.get_schedule_by_id(new_id)
 
     async def update_schedule(self, id: int, data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
         schedule = await self.get_schedule_by_id(id)
@@ -73,11 +71,8 @@ class ScheduleService(ServiceBase):
 
         self.apply_fields(schedule, data, exclude={"config"})
 
-        await self._db_session.flush()
-        self._db_session.expunge(schedule)
-
-        updated_schedule = await self.get_schedule_by_id(schedule.id)
-        return updated_schedule
+        new_id = await self.flush_and_expunge(schedule)
+        return await self.get_schedule_by_id(new_id)
 
     async def delete_schedule(self, id: int) -> None:
         schedule = await self.get_schedule_by_id(id)
@@ -89,7 +84,7 @@ class RunRecordNotFoundError(NotFoundError):
     def __init__(self, run_record_id: int) -> None:
         super().__init__(ServiceErrorCode.RUN_RECORD_NOT_FOUND, "RunRecord", run_record_id)
 
-class RunRecordService(ServiceBase):
+class RunRecordService(ServiceBase[task_models.RunRecord]):
     @staticmethod
     def relations():
         return [
@@ -120,10 +115,8 @@ class RunRecordService(ServiceBase):
         )
 
         self._db_session.add(new_run_record)
-        await self._db_session.flush()
-
-        new_run_record = await self.get_run_record_by_id(new_run_record.id)
-        return new_run_record
+        new_id = await self.flush_and_expunge(new_run_record)
+        return await self.get_run_record_by_id(new_id)
 
     async def update_run_record(self, id: int, data: schedule_schemas.RunRecordUpdate) -> task_models.RunRecord:
         run_record = await self.get_run_record_by_id(id)
@@ -133,11 +126,8 @@ class RunRecordService(ServiceBase):
 
         self.apply_fields(run_record, data, exclude={"messages"})
 
-        await self._db_session.flush()
-        self._db_session.expunge(run_record)
-
-        updated_run_record = await self.get_run_record_by_id(run_record.id)
-        return updated_run_record
+        new_id = await self.flush_and_expunge(run_record)
+        return await self.get_run_record_by_id(new_id)
 
     async def delete_run_record(self, id: int):
         run_record = await self.get_run_record_by_id(id)

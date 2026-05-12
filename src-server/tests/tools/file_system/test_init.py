@@ -1,6 +1,8 @@
-import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock
+import xml.etree.ElementTree as ET
+
+import pytest
 
 import src.agent.tool.builtin_tools.file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
@@ -21,7 +23,8 @@ class TestFileSystemToolInit:
 
         result = await tool.read_file("hello.txt")
 
-        assert "hello" in result
+        assert isinstance(result, ET.Element)
+        assert result.text == "hello"
 
     @pytest.mark.asyncio
     async def test_read_file_resolves_tilde_cwd(self):
@@ -29,9 +32,10 @@ class TestFileSystemToolInit:
         marker = home / "__dais_test_marker__.txt"
         marker.write_text("tilde-ok", encoding="utf-8")
         try:
-            tool = FileSystemToolset(BuiltInToolsetContext(1, "~"))
+            tool = FileSystemToolset(BuiltInToolsetContext(1, 1, "~"))
             result = await tool.read_file("__dais_test_marker__.txt")
-            assert "tilde-ok" in result
+            assert isinstance(result, ET.Element)
+            assert result.text == "tilde-ok"
         finally:
             marker.unlink(missing_ok=True)
 

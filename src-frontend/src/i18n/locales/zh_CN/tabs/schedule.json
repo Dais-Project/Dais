@@ -76,7 +76,7 @@
     "view_detail": "查看运行记录详情"
   },
   "notification": {
-    "completed": {
+    "finished": {
       "title": "计划任务已完成",
       "body_with_name": "计划任务 {{name}} 已成功执行完成。"
     },
@@ -88,9 +88,9 @@
       "title": "计划任务被中断",
       "body_with_name": "计划任务 {{name}} 在完成前被中断。"
     },
-    "pending_approve": {
-      "title": "计划任务等待批准",
-      "body_with_name": "计划任务 {{name}} 正在等待你的批准以继续。"
+    "waiting_action": {
+      "title": "计划任务等待你的操作",
+      "body_with_name": "计划任务 {{name}} 正在等待你的操作后继续。"
     }
   },
   "toast": {

@@ -18,16 +18,21 @@ from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
+from src.services.toolset import ToolsetService
 from src.settings import use_app_setting_manager
 from .persistence import create_agent_context_persistence
 from .aliases import BuiltInToolAliases
 from .models import AgentContextResource, AgentContextPersistence
 from ..notes import NoteMaterializer
-from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, McpToolsetManager
+from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltInToolsetContext, McpToolsetManager
+from ..tool.types import is_tool_metadata
 from ..prompts import (
     BASE_INSTRUCTION,
+    DEFAULT_BASE_ROLE,
+    APPENDIX_TEMPLATE,
     FAILED_TO_LOAD_NOTES_INDEX,
     NO_AVAILABLE_SKILLS,
+    NO_AVAILABLE_AGENTS,
     NO_WORKSPACE_INSTRUCTION,
     NO_AGENT_INSTRUCTION,
 )
@@ -76,7 +81,13 @@ class AgentContext:
         usage = ContextUsage(**asdict(usage))
         messages = task.messages
 
-        builtin_toolset_manager = await BuiltinToolsetManager.create(workspace.id, workspace.directory)
+        builtin_toolset_manager = await BuiltinToolsetManager.create(
+            BuiltInToolsetContext(
+                task.id,
+                workspace.id,
+                workspace.directory,
+            )
+        )
         mcp_toolset_manager = use_mcp_toolset_manager()
 
         persistence = create_agent_context_persistence(task)
@@ -97,14 +108,22 @@ class AgentContext:
 
     @staticmethod
     def _format_skills(skills: list[skill_schemas.SkillBrief]) -> str:
-        if len(skills) == 0:
-            return NO_AVAILABLE_SKILLS
+        if len(skills) == 0: return NO_AVAILABLE_SKILLS
         root = ET.Element("available_skills")
         for skill in skills:
             skill_elem = ET.SubElement(root, "skill")
             ET.SubElement(skill_elem, "id").text = str(skill.id)
             ET.SubElement(skill_elem, "name").text = skill.name
             ET.SubElement(skill_elem, "description").text = skill.description
+        return ET.tostring(root, encoding="unicode")
+
+    @staticmethod
+    def _format_agents(agents: list[agent_schemas.AgentBrief]) -> str:
+        if len(agents) == 0: return NO_AVAILABLE_AGENTS
+        root = ET.Element("available_agents")
+        for agent in agents:
+            agent_elem = ET.SubElement(root, "agent", attrib={"id": str(agent.id)})
+            agent_elem.text = agent.name
         return ET.tostring(root, encoding="unicode")
 
     ResolvedInstructions = namedtuple("ResolvedInstructions", ["base", "workspace", "agent"])
@@ -140,10 +159,28 @@ class AgentContext:
     @messages.setter
     def messages(self, new_messages: list[Message]): self._messages = new_messages
 
-    @property
-    def usable_tool_ids(self) -> set[int] | None:
+    async def filter_usable_tool_ids(self) -> set[int] | None:
+        from ..tool import OrchestrationToolset
+
         workspace_usable_tool_ids = {tool.id for tool in self._resource.workspace.usable_tools}
         agent_usable_tool_ids = {tool.id for tool in self._resource.agent.usable_tools}
+
+        if self.task_type == "subtask":
+            # remove "subtask" tool when the current task_type is "subtask"
+            async with db_context() as db_session:
+                orchestration_toolset_ent = await ToolsetService(db_session).get_toolset_by_internal_key(OrchestrationToolset.internal_key())
+            orchestration_toolset = OrchestrationToolset(BuiltInToolsetContext.default(), orchestration_toolset_ent)
+            orchestration_tools = orchestration_toolset.get_tools()
+            subtask_tool_def = None
+            for tool_def in orchestration_tools:
+                if tool_def.executes(OrchestrationToolset.subtask):
+                    subtask_tool_def = tool_def
+                    break
+            if subtask_tool_def is not None:
+                assert is_tool_metadata(subtask_tool_def.metadata)
+                subtask_tool_id = subtask_tool_def.metadata["id"]
+                if subtask_tool_id in workspace_usable_tool_ids: workspace_usable_tool_ids.remove(subtask_tool_id)
+                if subtask_tool_id in agent_usable_tool_ids: agent_usable_tool_ids.remove(subtask_tool_id)
 
         if len(workspace_usable_tool_ids) == 0 and len(agent_usable_tool_ids) == 0:
             # both workspace and agent have no usable tools configured, return None meaning no need to filter
@@ -160,13 +197,22 @@ class AgentContext:
         available_skills = AgentContext._format_skills([
             skill for skill in self._resource.skills if skill.is_enabled])
         resolved_instructions = self._resolve_instructions()
+
+        resolved_agents_appendix = APPENDIX_TEMPLATE.format(
+            id="C",
+            title="Available Agents",
+            content=AgentContext._format_agents(self._resource.workspace.usable_agents)
+        ) if self.task_type != "subtask" else "" # does not inject agents info under "subtask"
+
         notes_index = await NoteMaterializer.get_notes_index(self._resource.workspace.id)
         resolved_notes_index = notes_index if notes_index is not None else FAILED_TO_LOAD_NOTES_INDEX
 
         return resolved_instructions.base.format(
+            base_role=DEFAULT_BASE_ROLE,
             os_platform=platform.system(),
             user_language=settings.reply_language,
             available_skills=available_skills,
+            runtime_appendices=resolved_agents_appendix,
             workspace_notes_index=resolved_notes_index,
             workspace_name=self._resource.workspace.name,
             workspace_directory=self._resource.workspace.directory,

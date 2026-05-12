@@ -13,7 +13,7 @@ class ProviderNotFoundError(NotFoundError):
     def __init__(self, provider_id: int) -> None:
         super().__init__(ServiceErrorCode.PROVIDER_NOT_FOUND, "Provider", provider_id)
 
-class ProviderService(ServiceBase):
+class ProviderService(ServiceBase[provider_models.Provider]):
     @staticmethod
     def relations():
         return [
@@ -62,10 +62,8 @@ class ProviderService(ServiceBase):
             new_provider.models = new_models
 
         self._db_session.add(new_provider)
-        await self._db_session.flush()
-
-        new_provider = await self.get_provider_by_id(new_provider.id)
-        return new_provider
+        new_id = await self.flush_and_expunge(new_provider)
+        return await self.get_provider_by_id(new_id)
 
     def _merge_models(
         self,
@@ -123,11 +121,8 @@ class ProviderService(ServiceBase):
 
         self.apply_fields(provider, data, exclude={"models"})
 
-        await self._db_session.flush()
-        self._db_session.expunge(provider)
-
-        updated_provider = await self.get_provider_by_id(provider.id)
-        return updated_provider
+        new_id = await self.flush_and_expunge(provider)
+        return await self.get_provider_by_id(new_id)
 
     async def delete_provider(self, id: int) -> None:
         provider = await self.get_provider_by_id(id)

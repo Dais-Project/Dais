@@ -105,7 +105,7 @@ class LlmRequestManager:
         params = LlmRequestParams(
             instructions=await self._ctx.compose_system_instruction(),
             messages=self._ctx.messages)
-        usable_tool_ids = self._ctx.usable_tool_ids
+        usable_tool_ids = await self._ctx.filter_usable_tool_ids()
         if usable_tool_ids is None:
             # both agent and workspace has no usable tools configured, use all tools
             params.toolsets = self._ctx.toolsets

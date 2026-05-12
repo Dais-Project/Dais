@@ -50,14 +50,14 @@ class ScheduleJob:
         ctx = await AgentContext.create(self._runtime_context)
         task = AgentTask(ctx)
         try:
-            stop_reason = await task.run_until_done()
+            result = await task.run_until_done()
             await self._on_job_completed(ScheduleRunCompletedEvent(
                 event_id="SCHEDULE_RUN_COMPLETED",
                 schedule_id=self._schedule.id,
                 schedule_name=self._schedule.name,
                 workspace_id=self._schedule.workspace_id,
                 run_record_id=self.id,
-                status=stop_reason,
+                status=result.reason,
             ))
         except asyncio.CancelledError:
             await task.stop()

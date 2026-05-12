@@ -9,6 +9,9 @@ class MessageManager:
     def __init__(self, ctx: AgentContext):
         self._ctx = ctx
 
+    def __getitem__(self, index: int) -> Message:
+        return self._ctx.messages[index]
+
     def find(self, predicate: Callable[[Message], bool]) -> Message:
         for message in reversed(self._ctx.messages):
             if predicate(message):

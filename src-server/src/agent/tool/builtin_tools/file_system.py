@@ -77,7 +77,7 @@ class FileSystemToolset(BuiltInToolset):
                             - The goal is to understand, summarize, or extract information from the file
                             NOTE: When the analysis failed, it will fallback to normal reading mode and returns raw file content instead — check the `mode` attribute to know which mode was used.
                             """] = None,
-                        ) -> str:
+                        ) -> ET.Element:
         """
         Read the contents of a file at the specified path.
         For text files, this tool will directly return the file content;
@@ -117,7 +117,7 @@ class FileSystemToolset(BuiltInToolset):
                           total_lines: int,
                           mode: Literal["normal", "semantic"],
                           start_line: int | None = None,
-                          end_line: int | None = None) -> str:
+                          end_line: int | None = None) -> ET.Element:
             attributes = {
                 "total_lines": str(total_lines),
                 "mode": mode
@@ -128,7 +128,7 @@ class FileSystemToolset(BuiltInToolset):
                 attributes["end_line"] = str(end_line)
             root = ET.Element("file_content", attrib=attributes)
             root.text = content
-            return ET.tostring(root, encoding="unicode")
+            return root
 
         abs_path = self._resolve_path(path)
 

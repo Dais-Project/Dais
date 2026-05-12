@@ -79,7 +79,7 @@ class ToolsetService(ServiceBase):
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    async def create_toolset(self, data: toolset_schemas.ToolsetCreate, tools: list[ToolDef]) -> toolset_models.Toolset:
+    async def create_toolset(self, data: toolset_schemas.ToolsetCreate, tools: list[ToolLike]) -> toolset_models.Toolset:
         try:
             await self.get_toolset_by_internal_key(data.name)
         except ToolsetNotFoundError:
@@ -93,16 +93,14 @@ class ToolsetService(ServiceBase):
             internal_key=data.name,
             tools=[toolset_models.Tool(
                 name=tool.name,
-                internal_key=tool.name,
+                internal_key=tool.internal_key,
                 description=tool.description,
             ) for tool in tools],
         )
 
         self._db_session.add(new_toolset)
-        await self._db_session.flush()
-
-        new_toolset = await self.get_toolset_by_internal_key(data.name)
-        return new_toolset
+        new_id = await self.flush_and_expunge(new_toolset)
+        return await self.get_toolset_by_id(new_id)
 
     async def update_toolset(self, id: int, data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
         toolset = await self.get_toolset_by_id(id)
@@ -115,12 +113,8 @@ class ToolsetService(ServiceBase):
             toolset.params = data.params
 
         self.apply_fields(toolset, data, exclude={"params", "tools"})
-
-        await self._db_session.flush()
-        self._db_session.expunge(toolset)
-
-        updated_toolset = await self.get_toolset_by_id(id)
-        return updated_toolset
+        new_id = await self.flush_and_expunge(toolset)
+        return await self.get_toolset_by_id(new_id)
 
     async def update_tool(
         self, toolset_id: int, tool_id: int, data: toolset_schemas.ToolUpdate
@@ -162,11 +156,8 @@ class ToolsetService(ServiceBase):
             if existing_tool.internal_key not in latest_tool_keys:
                 synced_toolset.tools.remove(existing_tool)
 
-        await self._db_session.flush()
-        self._db_session.expunge(synced_toolset)
-
-        synced_toolset = await self.get_toolset_by_id(id)
-        return synced_toolset
+        new_id = await self.flush_and_expunge(synced_toolset)
+        return await self.get_toolset_by_id(new_id)
 
     async def delete_toolset(self, id: int) -> None:
         toolset = await self._db_session.get(toolset_models.Toolset, id)

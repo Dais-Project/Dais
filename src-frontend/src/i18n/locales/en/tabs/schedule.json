@@ -76,8 +76,8 @@
     "view_detail": "View record details"
   },
   "notification": {
-    "completed": {
-      "title": "Schedule completed",
+    "finished": {
+      "title": "Schedule finished",
       "body_with_name": "Schedule {{name}} completed successfully."
     },
     "error": {
@@ -88,9 +88,9 @@
       "title": "Schedule interrupted",
       "body_with_name": "Schedule {{name}} was interrupted before completion."
     },
-    "pending_approve": {
-      "title": "Schedule waiting for approval",
-      "body_with_name": "Schedule {{name}} is waiting for your approval to continue."
+    "waiting_action": {
+      "title": "Schedule waiting for your action",
+      "body_with_name": "Schedule {{name}} is waiting for your action to continue."
     }
   },
   "toast": {

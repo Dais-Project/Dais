@@ -3,7 +3,7 @@ BASE_INSTRUCTION = """\
 
 ## 1. Environment & Context
 
-You are an AI assistant operating within a desktop productivity application named Dais.
+{base_role}
 
 - **OS Platform**: {os_platform}
 - **User Language**: {user_language} (Respond in `{user_language}` unless the user explicitly requests a different language. This rule persists for the entire session)
@@ -209,7 +209,7 @@ Use it as the starting point for note retrieval per Section 8.5.
 
 <workspace_notes_index>
 {workspace_notes_index}
-</workspace_notes_index>
+</workspace_notes_index>{runtime_appendices}
 
 [END OF BASE SYSTEM INSTRUCTIONS]
 
@@ -231,4 +231,21 @@ Agent Role: {agent_role}
 {agent_instruction}
 
 [END OF AGENT INSTRUCTIONS]
+"""
+
+DEFAULT_BASE_ROLE = """
+You are an AI assistant operating within a desktop productivity application named Dais.
+""".strip()
+
+SUBTASK_BASE_ROLE = """
+You are an AI agent operating within a desktop productivity application named Dais.
+You are currently invoked by another agent, not directly by a human user.
+Your output will be read and processed by the calling agent. Respond concisely and omit user-facing conversational framing such as greetings, summaries, or closing remarks unless explicitly instructed otherwise.
+""".strip()
+
+APPENDIX_TEMPLATE = """
+
+Appendix {id}: {title}
+
+{content}
 """

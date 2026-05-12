@@ -1,15 +1,10 @@
 import asyncio
 import json
-from dais_sdk.tool.prepare import prepare_tools
-from src.agent.tool.toolset_manager.builtin_toolset_manager import BuiltinToolsetManager
-from src.agent.types import ContextUsage
+from src.agent.tool.builtin_tools import get_builtin_tool_arg_schemas
+
 
 async def main():
-    built_in_toolset_manager = BuiltinToolsetManager.default()
-    await built_in_toolset_manager.initialize()
-    schemas = []
-    for toolset in built_in_toolset_manager.toolsets:
-        schemas.extend(prepare_tools(toolset.get_tools()))
+    schemas = get_builtin_tool_arg_schemas()
     with open("tool_schema.json", "w") as f:
         json.dump(schemas, f, indent=2, ensure_ascii=False)
 

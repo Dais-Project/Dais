@@ -99,14 +99,6 @@
       "parse_error": "Failed to parse read file arguments",
       "title": "Dais wants to read a file:"
     },
-    "load_skill": {
-      "empty": "Skill is empty",
-      "generating": "Generating load skill arguments...",
-      "parse_error": "Failed to parse load skill arguments",
-      "resources_dir": "Resources directory",
-      "skill_content": "Skill content",
-      "title": "Dais wants to load a skill:"
-    },
     "search_text": {
       "generating": "Generating search text arguments...",
       "parse_error": "Failed to parse search text arguments",
@@ -120,6 +112,11 @@
       "parse_error": "Failed to parse plan arguments",
       "submit_feedback": "Submit feedback",
       "title": "Dais wants to show you a plan:"
+    },
+    "subtask": {
+      "title": "Dais wants to start a subtask",
+      "detail_title": "Subtask details",
+      "view_detail": "View subtask details"
     },
     "update_todos": {
       "empty": "No todo updates",
