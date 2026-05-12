@@ -99,14 +99,6 @@
       "parse_error": "文件读取参数解析失败",
       "title": "Dais 想要读取文件："
     },
-    "load_skill": {
-      "empty": "技能内容为空",
-      "generating": "技能加载参数生成中...",
-      "parse_error": "技能加载参数解析失败",
-      "resources_dir": "资源目录",
-      "skill_content": "技能内容",
-      "title": "Dais 想要加载技能："
-    },
     "search_text": {
       "generating": "文本搜索参数生成中...",
       "parse_error": "文本搜索参数解析失败",
@@ -120,6 +112,11 @@
       "parse_error": "计划参数解析失败",
       "submit_feedback": "提交修改意见",
       "title": "Dais 想要向你展示计划："
+    },
+    "subtask": {
+      "title": "Dais 想要运行子任务",
+      "detail_title": "子任务详情",
+      "view_detail": "查看子任务详情"
     },
     "update_todos": {
       "empty": "暂无待办更新",
