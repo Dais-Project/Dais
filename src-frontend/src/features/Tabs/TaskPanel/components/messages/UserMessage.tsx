@@ -159,7 +159,6 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
               size="icon-sm"
               disabled={isStreaming || !messageId}
               aria-label="Edit message"
-              title="Edit message"
               onClick={() => setMode("edit")}
             >
               <PencilIcon />

@@ -29,7 +29,7 @@ function SubtaskDrawerContent({ subtaskId }: { subtaskId: number }) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
 
   return (
-    <DrawerContent className="shadow">
+    <DrawerContent className="shadow w-[50vw]! max-w-3/4!">
       <DrawerHeader className="flex flex-row items-center">
         <DrawerClose asChild>
           <Button variant="ghost" size="icon-sm">
@@ -75,9 +75,9 @@ export function Subtask({ message }: ToolMessageProps) {
             {(typeof risk.level === "number") && (
               <RiskBadge level={risk.level} reason={risk.reason} />
             )}
-            <DrawerTrigger asChild>
-              <Tooltip>
-                <TooltipTrigger asChild>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DrawerTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -86,10 +86,10 @@ export function Subtask({ message }: ToolMessageProps) {
                   >
                     <PanelRightOpenIcon />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent align="end">{t("tool.subtask.view_detail")}</TooltipContent>
-              </Tooltip>
-            </DrawerTrigger>
+                </DrawerTrigger>
+              </TooltipTrigger>
+              <TooltipContent align="end">{t("tool.subtask.view_detail")}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
         {userApproval && (
