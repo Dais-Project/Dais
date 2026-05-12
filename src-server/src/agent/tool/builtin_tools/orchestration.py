@@ -55,7 +55,7 @@ class OrchestrationToolset(BuiltInToolset):
     def name(self) -> str: return "Orchestration"
 
     @built_in_tool(validate=True)
-    async def subtask(self, action: NewSubtask | ContinueSubtask) -> str:
+    async def subtask(self, action: NewSubtask | ContinueSubtask) -> ET.Element:
         """
         Create a new subtask or continue an existing subtask.
 
@@ -91,7 +91,7 @@ class OrchestrationToolset(BuiltInToolset):
                     case SubtaskToolApprove(call_id=call_id, status=status):
                         task.tool_calls.approve(call_id, status == "approved")
 
-        def serialize_subtask_result(task_result: TaskError | TaskInterrupted | TaskWaitingAction | TaskFinished) -> str:
+        def compose_subtask_result(task_result: TaskError | TaskInterrupted | TaskWaitingAction | TaskFinished) -> ET.Element:
             root = ET.Element("subtask_result", {"subtask_id": str(subtask.id)})
 
             match task_result:
@@ -109,7 +109,7 @@ class OrchestrationToolset(BuiltInToolset):
                 case TaskInterrupted():
                     ET.SubElement(root, "status").text = "interrupted"
 
-            return ET.tostring(root, encoding="unicode")
+            return root
 
         async with db_context() as db_session:
             subtask_service = SubtaskService(db_session)
@@ -131,4 +131,4 @@ class OrchestrationToolset(BuiltInToolset):
             raise ValueError("The agent_id of this subtask is null, please pass a new agent_id when continuing this subtask.")
 
         task_result = await task.run_until_done()
-        return serialize_subtask_result(task_result)
+        return compose_subtask_result(task_result)

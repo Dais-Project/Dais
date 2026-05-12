@@ -1,4 +1,5 @@
 import asyncio
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from collections.abc import AsyncGenerator
 from typing import AsyncGenerator
@@ -42,6 +43,12 @@ class ToolCallDispatcher:
         result, error, raw_result = await self._tool_call_executor.execute(tool, message.arguments)
         message.result = result
         message.error = error
+
+        assert is_agent_tool_metadata(message.metadata)
+        if tool.executes(OrchestrationToolset.subtask):
+            assert isinstance(raw_result, ET.Element)
+            if subtask_id := raw_result.attrib.get("subtask_id"):
+                message.metadata["subtask_id"] = int(subtask_id)
 
         return ToolExecutedEvent(
             call_id=message.call_id,
