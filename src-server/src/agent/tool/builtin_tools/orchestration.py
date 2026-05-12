@@ -1,3 +1,4 @@
+import asyncio
 import json
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING, Annotated, Literal, override
@@ -130,5 +131,11 @@ class OrchestrationToolset(BuiltInToolset):
         if subtask.agent_id is None:
             raise ValueError("The agent_id of this subtask is null, please pass a new agent_id when continuing this subtask.")
 
-        task_result = await task.run_until_done()
-        return compose_subtask_result(task_result)
+        try:
+            task_result = await task.run_until_done()
+            return compose_subtask_result(task_result)
+        except asyncio.CancelledError:
+            await task.stop()
+            raise
+        finally:
+            await asyncio.shield(task.persist())
