@@ -6,6 +6,7 @@ import { TaskConversationContent, TaskConversationProvider, TaskConversationScro
 import { useAgentTaskAction } from "../hooks/use-agent-task";
 import { CollapsibleStoreProvider } from "../hooks/use-collapsible-store";
 import { SessionStates } from "../components/SessionStates";
+import { DrawerContainer } from "@/components/ui/drawer";
 
 export function TaskSessionViewSkeleton() {
   return (
@@ -52,20 +53,22 @@ export function TaskSessionView({
 
   return (
     <CollapsibleStoreProvider>
-      <TaskConversationProvider className="relative flex h-full flex-col">
-        <TaskConversationContent />
-        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
-          <div className="mx-auto w-full max-w-3xl">
-            <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
-            <div className="w-7/8 mx-auto pointer-events-auto">
-              <SessionStates />
+      <DrawerContainer className="size-full">
+        <TaskConversationProvider className="relative flex h-full flex-col" data-task-conversation>
+          <TaskConversationContent />
+          <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pointer-events-none">
+            <div className="mx-auto w-full max-w-3xl">
+              <TaskConversationScrollToBottom className="flex static mx-auto mb-2 pointer-events-auto" />
+              <div className="w-7/8 mx-auto pointer-events-auto">
+                <SessionStates />
+              </div>
+              <PromptInputProvider>
+                <PromptInput className="pointer-events-auto" workspaceId={workspaceId} />
+              </PromptInputProvider>
             </div>
-            <PromptInputProvider>
-              <PromptInput className="pointer-events-auto" workspaceId={workspaceId} />
-            </PromptInputProvider>
           </div>
-        </div>
-      </TaskConversationProvider>
+        </TaskConversationProvider>
+      </DrawerContainer>
     </CollapsibleStoreProvider>
   );
 }
