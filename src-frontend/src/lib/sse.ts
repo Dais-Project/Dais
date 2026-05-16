@@ -75,6 +75,7 @@ message data: ${event.data}`,
     },
 
     onclose() {
+      // Only triggers when the server closed the SSE stream
       onClose?.();
     },
   });

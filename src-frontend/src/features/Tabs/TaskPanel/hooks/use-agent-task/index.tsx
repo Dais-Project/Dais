@@ -289,7 +289,10 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
     [startStream]
   );
 
-  const handleTaskCancel = useCallback(() => cancel(), [cancel]);
+  const handleTaskCancel = useCallback(() => {
+    cancel();
+    messageLifecycle.handleCancel();
+  }, [messageLifecycle, cancel]);
 
   const taskControl = useTaskControl({
     taskId,

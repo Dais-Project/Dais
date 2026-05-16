@@ -14,6 +14,7 @@ type UseMessageLifecycleResult = {
   handleToolCallEnd: (message: SdkToolMessage) => void;
   handleMessageEnd: (message: SdkAssistantMessage) => void;
   handleMessageReplace: (updatedMessage: SdkMessage) => void;
+  handleCancel: () => void;
   handleClose: () => void;
 };
 
@@ -120,7 +121,8 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
   const handleClose = useCallback(() => {
     setData((draft) => (
       draft.filter((message) => {
-        const isDeterminedMessage = message.id !== undefined;
+        const { isStreaming } = message;
+        const isDeterminedMessage = message.id !== undefined && !isStreaming;
         if (!isDeterminedMessage) {
           console.warn("Undetermined message found and removed: ", current(message));
         }
@@ -128,6 +130,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
       })
     ));
   }, [setData]);
+  const handleCancel = handleClose;
 
   return {
     handleMessageStart,
@@ -136,6 +139,7 @@ export function useMessageLifecycle({ setData }: UseMessageLifecycleOptions): Us
     handleToolCallEnd,
     handleMessageEnd,
     handleMessageReplace,
+    handleCancel,
     handleClose,
   };
 }

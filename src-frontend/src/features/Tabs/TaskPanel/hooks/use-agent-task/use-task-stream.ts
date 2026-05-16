@@ -1,4 +1,4 @@
-import { Dispatch, type RefObject, SetStateAction, useCallback, useRef, useState } from "react";
+import { Dispatch, type RefObject, SetStateAction, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { TaskSseCallbacks } from "@/api/tasks";
 import type { TaskState } from ".";
@@ -103,9 +103,9 @@ export function useTaskStream({ taskType, taskId, agentId, sseCallbacksRef }: Ta
 
   useUnmount(cancel);
 
-  return {
+  return useMemo(() => ({
     state,
     startStream,
     cancel,
-  };
+  }), [state, startStream, cancel]);
 }
