@@ -36,8 +36,9 @@ class ToolCallReviewer:
         self._ctx = ctx
 
     async def _request(self, safety_audit: ToolCallSafetyAudit, input: ToolCallSafetyAuditInput) -> ToolCallSafetyAuditOutput:
+        settings = use_app_setting_manager().settings
         if self._ctx.task_type == "task":
-            output = await asyncio.wait_for(safety_audit(input), 20)
+            output = await asyncio.wait_for(safety_audit(input), settings.smart_approve_timeout)
             return output
         for i in range(3):
             try:

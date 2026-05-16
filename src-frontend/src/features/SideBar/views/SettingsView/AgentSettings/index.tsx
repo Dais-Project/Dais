@@ -67,6 +67,21 @@ export function AgentSettings() {
           />
         )}
       </SettingItem>
+
+      <SettingItem title={t("settings.agents.smart_approve_timeout.title")}>
+        {localSettings === null ? (
+          <Skeleton className="h-9 w-24" />
+        ) : (
+          <Input
+            type="number"
+            value={localSettings.smart_approve_timeout}
+            min={1}
+            step={1}
+            onChange={(e) => handleValueChange({ smart_approve_timeout: Number(e.target.value) })}
+            disabled={disabled}
+          />
+        )}
+      </SettingItem>
     </div>
   );
 }

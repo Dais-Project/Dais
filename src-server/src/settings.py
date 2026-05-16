@@ -75,6 +75,7 @@ class AppSettings(JsonSettings):
 
     smart_approve: bool = True
     smart_approve_threshold: int = 50 # 0 ~ 100
+    smart_approve_timeout: int = 20
 
     task_retention_days: RetentionOption = "disabled"
     schedule_run_record_retention_days: RetentionOption = 30

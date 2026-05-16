@@ -69,6 +69,9 @@
       },
       "smart_approve_threshold": {
         "title": "智能批准阈值"
+      },
+      "smart_approve_timeout": {
+        "title": "智能批准超时（秒）"
       }
     },
     "dev": {
