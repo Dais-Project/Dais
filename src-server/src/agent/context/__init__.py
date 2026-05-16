@@ -5,7 +5,7 @@ from dataclasses import asdict
 from typing import Self
 from loguru import logger
 from dais_sdk.tool import Toolset
-from dais_sdk.types import Message, ToolDef
+from dais_sdk.types import Message, ToolDef, ToolFn
 from src.db import db_context
 from src.schemas import (
     agent as agent_schemas,
@@ -160,31 +160,40 @@ class AgentContext:
     def messages(self, new_messages: list[Message]): self._messages = new_messages
 
     async def filter_usable_tool_ids(self) -> set[int] | None:
-        from ..tool import OrchestrationToolset
+        from ..tool import BuiltInToolset, OrchestrationToolset, UserInteractionToolset
+        def find_builtin_tool_id(toolset_cls: type[BuiltInToolset], target_tool: ToolFn) -> int | None:
+            target_toolset = None
+            for toolset in self._builtin_toolset_manager.toolsets:
+                assert isinstance(toolset, BuiltInToolset)
+                if toolset.internal_key() == toolset_cls.internal_key():
+                    target_toolset = toolset
+            if target_toolset is None: return None
+            for tool_def in target_toolset.get_tools():
+                if tool_def.executes(target_tool):
+                    assert is_tool_metadata(tool_def.metadata)
+                    return tool_def.metadata["id"]
+            return None
 
         workspace_usable_tool_ids = {tool.id for tool in self._resource.workspace.usable_tools}
         agent_usable_tool_ids = {tool.id for tool in self._resource.agent.usable_tools}
 
-        if self.task_type == "subtask":
-            # remove "subtask" tool when the current task_type is "subtask"
-            async with db_context() as db_session:
-                orchestration_toolset_ent = await ToolsetService(db_session).get_toolset_by_internal_key(OrchestrationToolset.internal_key())
-            orchestration_toolset = OrchestrationToolset(BuiltInToolsetContext.default(), orchestration_toolset_ent)
-            orchestration_tools = orchestration_toolset.get_tools()
-            subtask_tool_def = None
-            for tool_def in orchestration_tools:
-                if tool_def.executes(OrchestrationToolset.subtask):
-                    subtask_tool_def = tool_def
-                    break
-            if subtask_tool_def is not None:
-                assert is_tool_metadata(subtask_tool_def.metadata)
-                subtask_tool_id = subtask_tool_def.metadata["id"]
-                if subtask_tool_id in workspace_usable_tool_ids: workspace_usable_tool_ids.remove(subtask_tool_id)
-                if subtask_tool_id in agent_usable_tool_ids: agent_usable_tool_ids.remove(subtask_tool_id)
-
         if len(workspace_usable_tool_ids) == 0 and len(agent_usable_tool_ids) == 0:
             # both workspace and agent have no usable tools configured, return None meaning no need to filter
             return None
+
+        if self.task_type == "subtask":
+            # remove "subtask" tool when the current task_type is "subtask"
+            subtask_tool_id = find_builtin_tool_id(OrchestrationToolset, OrchestrationToolset.subtask)
+            if subtask_tool_id is not None:
+                if subtask_tool_id in workspace_usable_tool_ids: workspace_usable_tool_ids.remove(subtask_tool_id)
+                if subtask_tool_id in agent_usable_tool_ids: agent_usable_tool_ids.remove(subtask_tool_id)
+
+        if self.task_type == "schedule":
+            # remove "show_plan" tool when the current task_type is "schedule"
+            show_plan_tool_id = find_builtin_tool_id(UserInteractionToolset, UserInteractionToolset.show_plan)
+            if show_plan_tool_id is not None:
+                if show_plan_tool_id in workspace_usable_tool_ids: workspace_usable_tool_ids.remove(show_plan_tool_id)
+                if show_plan_tool_id in agent_usable_tool_ids: agent_usable_tool_ids.remove(show_plan_tool_id)
 
         if len(workspace_usable_tool_ids) == 0:
             return agent_usable_tool_ids
