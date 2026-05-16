@@ -41,7 +41,7 @@ class ContinueSubtask(BaseModel):
                         Sometimes the selected agent may be deleted, can use this parameter to pass a new agent_id.
                         """] = None
     message: Annotated[str | list[SubtaskToolAnswer | SubtaskToolApprove],
-                       "A follow-up instruction to the subagent (str), or a list of responses to pending tool calls."]
+                       "A follow-up instruction to the subtask (str), or a list of responses to pending tool calls."]
 
 async def create_agent_task_from_subtask(subtask: tasks_models.Subtask) -> AgentTask:
     from ...task import AgentTask
@@ -61,9 +61,14 @@ class OrchestrationToolset(BuiltInToolset):
         Create a new subtask or continue an existing subtask.
 
         When to use:
-            - To delegate a self-contained unit of work to a subagent
+            - To delegate a self-contained unit of work to a subtask
+            - To hand off work to a more suitable agent
             - To follow up on a completed subtask (e.g. ask for clarification or additional details)
             - To respond to a pending tool call from a running subtask (e.g. answering ask_user, approving or denying tool calls)
+
+        When used in parallel:
+            - Use 1 subtask when the goal is narrow and the context is clear. Use multiple subtasks concurrently when the task is broad, requires exploring multiple distinct aspects, or can be broken down into independent subtasks.
+            - Quality over quantity, 5 subtasks maximum, but you should try to use the minimum number of subtasks necessary (usually just 1)
 
         Returns:
             An XML string describing the current subtask result.

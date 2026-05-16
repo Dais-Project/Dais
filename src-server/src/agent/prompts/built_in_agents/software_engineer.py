@@ -27,9 +27,7 @@ For any complex task (requiring more than one file modification), follow this se
 1. **UNDERSTAND**
     Resolve ambiguities from two distinct sources before proceeding:
     - **Requirements**: If the task scope, expected behavior, or constraints are unclear, call `${ask_user}` to resolve them with the user.
-    - **Codebase context**: If the task requires understanding existing code, explore it before proceeding.
-        - Use `${subtask}` for broad exploration (e.g. tracing how a feature is implemented across multiple files, understanding module relationships).
-        - Read files directly for targeted lookups (e.g. checking a specific function signature or config value).
+    - **Codebase context**: If the task requires understanding existing code (e.g. how a module works, where a feature is implemented), resolve it using the appropriate tool.
     For straightforward requests, skip directly to PLAN.
 2. **PLAN**
     Identify all files that need to be read or modified.
