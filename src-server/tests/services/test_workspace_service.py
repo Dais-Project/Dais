@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.agent.notes import NoteMaterializer
 from src.db.models.markdown_cache import MarkdownCache
 from src.db.models import tasks as task_models
+from src.db.models.tasks.schedule import DelayedConfig
 from src.db.models import workspace as workspace_models
 from src.schemas import workspace as workspace_schemas
 from src.services.exceptions import ServiceErrorCode
@@ -128,6 +129,15 @@ class TestWorkspaceService:
         )
         note_id = workspace.notes[0].id
         task = await task_factory(workspace=workspace, title="Task A", agent=agent)
+        schedule = task_models.Schedule(
+            name="Daily sync",
+            task="Send sync",
+            is_enabled=True,
+            config=DelayedConfig(type="delayed", scheduled_at=999999),
+            agent_id=agent.id,
+            _workspace_id=workspace.id,
+        )
+        db_session.add(schedule)
         cache = MarkdownCache(
             hash="cache-hash",
             content="cached markdown",
@@ -136,6 +146,7 @@ class TestWorkspaceService:
         )
         db_session.add(cache)
         await db_session.flush()
+        schedule_id = schedule.id
 
         await workspace_service.delete_workspace(workspace.id)
         await db_session.flush()
@@ -148,10 +159,14 @@ class TestWorkspaceService:
             select(workspace_models.WorkspaceNote).where(workspace_models.WorkspaceNote.id == note_id)
         )
         task_in_db = await db_session.scalar(select(task_models.Task).where(task_models.Task.id == task.id))
+        schedule_in_db = await db_session.scalar(
+            select(task_models.Schedule).where(task_models.Schedule.id == schedule_id)
+        )
         cache_in_db = await db_session.scalar(
             select(MarkdownCache).where(MarkdownCache.id == cache.id)
         )
 
         assert note_in_db is None
         assert task_in_db is None
+        assert schedule_in_db is None
         assert cache_in_db is None

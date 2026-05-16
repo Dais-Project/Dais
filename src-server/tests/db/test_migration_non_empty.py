@@ -101,3 +101,56 @@ def test_upgrade_empty_database_to_812b93ec54d5(alembic_runner, alembic_engine) 
         "tasks",
         "workspace_agent_association",
     }.issubset(table_names)
+
+
+@pytest.mark.integration
+def test_upgrade_non_empty_database_to_1c2d5a8b4f90(alembic_runner, alembic_engine) -> None:
+    alembic_runner.migrate_up_before("1c2d5a8b4f90")
+
+    with alembic_engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                INSERT INTO workspaces (id, name, directory, instruction)
+                VALUES (:id, :name, :directory, :instruction)
+                """
+            ),
+            {
+                "id": 1,
+                "name": "workspace-a",
+                "directory": "/tmp/workspace-a",
+                "instruction": "instruction-a",
+            },
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO schedules (id, name, task, is_enabled, config, agent_id, _workspace_id)
+                VALUES (:id, :name, :task, :is_enabled, :config, :agent_id, :workspace_id)
+                """
+            ),
+            {
+                "id": 1,
+                "name": "daily-sync",
+                "task": "send update",
+                "is_enabled": 1,
+                "config": '{"type":"delayed","scheduled_at":123456}',
+                "agent_id": None,
+                "workspace_id": 1,
+            },
+        )
+
+    alembic_runner.migrate_up_one()
+
+    with alembic_engine.connect() as conn:
+        current_revision = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+        foreign_keys = conn.execute(text("PRAGMA foreign_key_list('schedules')")).mappings().all()
+
+    workspace_foreign_keys = [
+        row for row in foreign_keys
+        if row["table"] == "workspaces" and row["from"] == "_workspace_id" and row["to"] == "id"
+    ]
+
+    assert current_revision == "1c2d5a8b4f90"
+    assert len(workspace_foreign_keys) == 1
+    assert workspace_foreign_keys[0]["on_delete"] == "CASCADE"
