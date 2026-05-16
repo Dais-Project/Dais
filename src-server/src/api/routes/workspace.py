@@ -1,9 +1,9 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.agent.notes import NoteMaterializer, WorkspaceRefManager
-from src.services.workspace import WorkspaceService
 from src.schemas import workspace as workspace_schemas
+from src.services.workspace import WorkspaceService
 from src.utils.open_in_file_manager import open_in_file_manager
 from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
@@ -15,6 +15,17 @@ workspaces_router = APIRouter(tags=["workspace"])
 async def get_workspaces(db_session: DbSessionDep):
     query = WorkspaceService(db_session).get_workspaces_query()
     return await apaginate(db_session, query)
+
+@workspaces_router.get("/frequents/", response_model=list[workspace_schemas.WorkspaceBrief])
+async def get_frequent_workspaces(
+    db_session: DbSessionDep,
+    limit: int = Query(default=3, ge=1),
+    recent_task_limit: int = Query(default=30, ge=1),
+):
+    return await WorkspaceService(db_session).get_frequent_workspaces(
+        limit=limit,
+        recent_task_limit=recent_task_limit,
+    )
 
 @workspaces_router.get("/{workspace_id}", response_model=workspace_schemas.WorkspaceRead)
 async def get_workspace(workspace_id: int, db_session: DbSessionDep):

@@ -1,4 +1,5 @@
-import { CircleIcon, FolderIcon, FolderOpenIcon, NotebookPenIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { useMemo } from "react";
+import { CircleIcon, Clock3Icon, FolderIcon, FolderOpenIcon, NotebookPenIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
@@ -6,6 +7,7 @@ import {
   invalidateWorkspaceQueries,
   openWorkspace,
   useDeleteWorkspace,
+  useGetFrequentWorkspacesSuspense,
   useGetWorkspacesSuspenseInfinite,
 } from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
@@ -18,12 +20,7 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
@@ -103,11 +100,13 @@ function openWorkspaceNotesEditTab({ workspaceId, workspaceName }: OpenWorkspace
   }
 }
 
+type WorkspaceItemVariant = "current" | "frequent" | "default";
+
 type WorkspaceItemProps = {
   workspace: WorkspaceBrief;
   disabled: boolean;
-  isSelected: boolean;
-  index: number;
+  index?: number;
+  variant?: WorkspaceItemVariant;
   ref?: React.Ref<HTMLDivElement>;
   onSelect?: (workspaceId: number) => void;
   onDelete?: (workspace: WorkspaceBrief) => void;
@@ -116,8 +115,8 @@ type WorkspaceItemProps = {
 function WorkspaceItem({
   workspace,
   disabled,
-  isSelected,
   index,
+  variant = "default",
   ref,
   onSelect,
   onDelete,
@@ -160,6 +159,17 @@ function WorkspaceItem({
     }
   };
 
+  const icon = (() => {
+    switch (variant) {
+      case "current":
+        return <FolderIcon fill="currentColor" className="size-4" />;
+      case "frequent":
+        return <Clock3Icon className="size-4" />;
+      default:
+        return <FolderIcon className="size-4" />;
+    }
+  })();
+
   return (
     <ActionableItem>
       <ActionableItemTrigger ref={ref} data-index={index}>
@@ -169,13 +179,13 @@ function WorkspaceItem({
           onClick={handleSelect}
           aria-disabled={disabled}
         >
-          <FolderIcon fill={isSelected ? "currentColor" : "none"} className="size-4" />
+          {icon}
         </ActionableItemIcon>
         <ActionableItemInfo title={workspace.name} description={workspace.directory} />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem onClick={handleSelect} disabled={isSelected}>
+        <ActionableItemMenuItem onClick={handleSelect} disabled={variant === "current"}>
           <CircleIcon />
           <span>{t("workspaces.menu.select")}</span>
         </ActionableItemMenuItem>
@@ -213,7 +223,8 @@ export function WorkspaceList() {
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isCurrentWorkspaceLoading = useWorkspaceStore((state) => state.isLoading);
 
-  const query = useGetWorkspacesSuspenseInfinite(undefined, {
+  const frequentWorkspaces = useGetFrequentWorkspacesSuspense({ limit: 4 });
+  const allWorkspacesQuery = useGetWorkspacesSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
 
@@ -225,7 +236,6 @@ export function WorkspaceList() {
           tab.metadata.id === variables.workspaceId));
         await invalidateWorkspaceQueries(variables.workspaceId);
 
-        // clear current workspace if deleted
         const { current: currentWorkspace, setCurrent: setCurrentWorkspace } = useWorkspaceStore.getState();
         if (variables.workspaceId === currentWorkspace?.id) {
           await setCurrentWorkspace(null);
@@ -243,7 +253,33 @@ export function WorkspaceList() {
     }
   });
 
-  if (query.data.pages.length === 0) {
+  type WorkspaceListItem = WorkspaceBrief & { variant: WorkspaceItemVariant };
+  const workspaceListItems = useMemo<WorkspaceListItem[]>(() => {
+    const frequentItems: WorkspaceListItem[] = frequentWorkspaces.data
+      .filter((workspace) => workspace.id !== currentWorkspace?.id)
+      .slice(0, 3)
+      .map((workspace) => ({
+        ...workspace,
+        variant: "frequent",
+      }));
+    const frequentWorkspaceIds = new Set(frequentItems.map((workspace) => workspace.id))
+
+    const allWorkspaces = allWorkspacesQuery.data.pages.flatMap((page) => page.items);
+    const otherItems: WorkspaceListItem[] = allWorkspaces
+      .filter((workspace) => {
+        if (workspace.id === currentWorkspace?.id) {
+          return false;
+        }
+        return !frequentWorkspaceIds.has(workspace.id);
+      })
+      .map((workspace) => ({
+        ...workspace,
+        variant: "default",
+      }));
+    return [...frequentItems, ...otherItems];
+  }, [currentWorkspace?.id, allWorkspacesQuery.data.pages, frequentWorkspaces.data]);
+
+  if (workspaceListItems.length === 0 && !currentWorkspace) {
     return (
       <Empty>
         <EmptyContent>
@@ -256,26 +292,42 @@ export function WorkspaceList() {
 
   return (
     <>
-      <InfiniteVirtualScroll
-        query={query}
-        className="limit-width"
-        selectItems={(page) => page.items}
-        getItemKey={(item) => item.id}
-        itemHeight={69}
-        overscan={3}
-        itemRender={({ item, key, index, ref }) => (
-          <WorkspaceItem
-            key={key}
-            workspace={item}
-            ref={ref}
-            index={index}
-            disabled={isCurrentWorkspaceLoading}
-            isSelected={item.id === currentWorkspace?.id}
-            onSelect={setCurrentWorkspace}
-            onDelete={asyncConfirm.trigger}
-          />
+      <div className="flex h-full flex-col">
+        {currentWorkspace && (
+          <div className="shrink-0">
+            <WorkspaceItem
+              workspace={currentWorkspace}
+              disabled={isCurrentWorkspaceLoading}
+              variant="current"
+              onSelect={setCurrentWorkspace}
+              onDelete={asyncConfirm.trigger}
+            />
+          </div>
         )}
-      />
+
+        <InfiniteVirtualScroll
+          data={workspaceListItems}
+          fetchNextPage={() => allWorkspacesQuery.fetchNextPage()}
+          hasNextPage={allWorkspacesQuery.hasNextPage}
+          isFetchingNextPage={allWorkspacesQuery.isFetchingNextPage}
+          className="min-h-0 flex-1"
+          getItemKey={(item) => item.id}
+          itemHeight={69}
+          overscan={3}
+          itemRender={({ item, key, index, ref }) => (
+            <WorkspaceItem
+              key={key}
+              workspace={item}
+              ref={ref}
+              index={index}
+              disabled={isCurrentWorkspaceLoading}
+              variant={item.variant}
+              onSelect={setCurrentWorkspace}
+              onDelete={asyncConfirm.trigger}
+            />
+          )}
+        />
+      </div>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
         description={t("workspaces.dialog.delete_description_with_name", {

@@ -44,8 +44,6 @@ export function InfiniteScroll<T, P>({
 }
 
 type InfiniteVirtualScrollProps<TItem, TPage> = {
-  query: UseSuspenseInfiniteQueryResult<InfiniteData<TPage>>;
-  selectItems: (page: TPage) => TItem[];
   getItemKey: (item: TItem) => string | number;
   itemHeight: number;
   overscan?: number;
@@ -59,28 +57,42 @@ type InfiniteVirtualScrollProps<TItem, TPage> = {
     key: VirtualItem["key"],
     ref: Virtualizer<HTMLDivElement, Element>["measureElement"]
   }) => React.ReactNode;
-};
+} & (
+    | {
+      query: UseSuspenseInfiniteQueryResult<InfiniteData<TPage>>;
+      selectItems: (page: TPage) => TItem[];
+    }
+    | {
+      data: TItem[];
+      fetchNextPage: () => void;
+      hasNextPage: boolean;
+      isFetchingNextPage: boolean;
+    }
+  );
 
-export function InfiniteVirtualScroll<T, P>({
-  query,
-  itemHeight,
-  overscan = 3,
-  paddingStart,
-  paddingEnd,
-  className,
-  selectItems,
-  getItemKey,
-  itemRender,
-}: InfiniteVirtualScrollProps<T, P>) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
+export function InfiniteVirtualScroll<T, P>(props: InfiniteVirtualScrollProps<T, P>) {
+  const { getItemKey, itemHeight, overscan = 3, paddingStart, paddingEnd, className, itemRender } = props;
+  const { dataItems, fetchNextPage, hasNextPage, isFetchingNextPage } = useMemo(() => {
+    if ("query" in props) {
+      const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = props.query;
+      return {
+        dataItems: data.pages.flatMap(props.selectItems),
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+      };
+    } else {
+      return {
+        dataItems: props.data,
+        fetchNextPage: props.fetchNextPage,
+        hasNextPage: props.hasNextPage,
+        isFetchingNextPage: props.isFetchingNextPage,
+      };
+    }
+  }, [props]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const selectItemsLatest = useLatest(selectItems);
   const getItemKeyLatest = useLatest(getItemKey);
-
-  const dataItems = useMemo(() => {
-    return data.pages.flatMap(selectItemsLatest.current);
-  }, [data.pages]);
 
   const { run: handleScroll } = useDebounceFn((virtualizerInstance) => {
     const totalSize = virtualizerInstance.getTotalSize();

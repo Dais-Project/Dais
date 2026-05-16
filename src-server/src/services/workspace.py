@@ -1,13 +1,14 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
-from src.db.models import workspace as workspace_models
 from src.db.models import agent as agent_models
-from src.db.models import toolset as toolset_models
 from src.db.models import skill as skill_models
+from src.db.models import tasks as task_models
+from src.db.models import toolset as toolset_models
+from src.db.models import workspace as workspace_models
 from src.schemas import workspace as workspace_schemas
-from .service_base import ServiceBase
-from .exceptions import NotFoundError, ServiceErrorCode
 from .agent import AgentService
+from .exceptions import NotFoundError, ServiceErrorCode
+from .service_base import ServiceBase
 
 
 class WorkspaceNotFoundError(NotFoundError):
@@ -78,6 +79,29 @@ class WorkspaceService(ServiceBase[workspace_models.Workspace]):
         if not workspace:
             raise WorkspaceNotFoundError(id)
         return workspace
+
+    async def get_frequent_workspaces(
+        self,
+        *,
+        limit: int,
+        recent_task_limit: int,
+    ) -> list[workspace_models.Workspace]:
+        recent_tasks_subquery = (
+            select(task_models.Task.workspace_id.label("workspace_id"))
+            .order_by(task_models.Task.id.desc())
+            .limit(recent_task_limit)
+            .subquery()
+        )
+        stmt = (
+            select(workspace_models.Workspace)
+            .join(recent_tasks_subquery, recent_tasks_subquery.c.workspace_id == workspace_models.Workspace.id)
+            .group_by(workspace_models.Workspace.id)
+            .order_by(func.count().desc(), workspace_models.Workspace.id.asc())
+            .limit(limit)
+            .options(*self.relations())
+        )
+        workspaces = (await self._db_session.scalars(stmt)).all()
+        return list(workspaces)
 
     async def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
         create_data = data.model_dump(exclude={"notes", "usable_agent_ids", "usable_tool_ids", "usable_skill_ids"})
