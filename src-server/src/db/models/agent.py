@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from dais_sdk.types import ToolFn
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +9,7 @@ from .relationships import agent_tool_association_table
 if TYPE_CHECKING:
     from .provider import LlmModel
     from .toolset import Tool
+    from ...agent.tool import BuiltInToolset
 
 class Agent(Base):
     __tablename__ = "agents"
@@ -24,6 +26,7 @@ class Agent(Base):
 
 async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType
+    from ...agent.tool import BuiltInToolsetContext
     from ...agent.tool.builtin_tools import (
         FileSystemToolset,
         ExecutionControlToolset,
@@ -36,6 +39,23 @@ async def init(db_session: AsyncSession):
         SOFTWARE_ENGINEER_AGENT_INSTRUCTION,
         TERMINAL_INTERPRETER_AGENT_INSTRUCTION,
     )
+
+    builtin_toolset_ctx = BuiltInToolsetContext.default()
+    builtin_toolsets: dict[type[BuiltInToolset], BuiltInToolset] = {
+        toolset_t: toolset_t(builtin_toolset_ctx)
+        for toolset_t in [
+            FileSystemToolset,
+            ExecutionControlToolset,
+            OsInteractionsToolset,
+            UserInteractionToolset,
+            WebInteractionToolset,
+        ]
+    }
+
+    def find_builtin_tool(toolset_t: type[BuiltInToolset], tool: ToolFn) -> Tool:
+        toolset = builtin_toolsets[toolset_t]
+        internal_key = toolset.format_tool_name(tool.__name__)
+        return builtin_tools_map[internal_key]
 
     # check if there are any agents
     stmt = select(Agent).limit(1)
@@ -53,18 +73,19 @@ async def init(db_session: AsyncSession):
     ALL_TOOLS = object()
     builtin_agents = [
         ("Daily Assistant", DAILY_ASSISTANT_AGENT_INSTRUCTION, "chat", [
-            UserInteractionToolset.ask_user,
-            ExecutionControlToolset.finish_task,
-            FileSystemToolset.read_file,
-            FileSystemToolset.list_directory,
-            FileSystemToolset.find_files,
-            WebInteractionToolset.fetch,
+            (UserInteractionToolset, UserInteractionToolset.ask_user),
+            (ExecutionControlToolset, ExecutionControlToolset.finish_task),
+            (FileSystemToolset, FileSystemToolset.read_file),
+            (FileSystemToolset, FileSystemToolset.write_file),
+            (FileSystemToolset, FileSystemToolset.edit_file),
+            (FileSystemToolset, FileSystemToolset.list_directory),
+            (FileSystemToolset, FileSystemToolset.find_files),
+            (WebInteractionToolset, WebInteractionToolset.fetch),
         ]),
         ("Terminal Interpreter", TERMINAL_INTERPRETER_AGENT_INSTRUCTION, "terminal", [
-            OsInteractionsToolset.shell,
-            UserInteractionToolset.ask_user,
-            UserInteractionToolset.show_plan,
-            ExecutionControlToolset.finish_task,
+            (OsInteractionsToolset, OsInteractionsToolset.shell),
+            (UserInteractionToolset, UserInteractionToolset.ask_user),
+            (ExecutionControlToolset, ExecutionControlToolset.finish_task),
         ]),
         ("Software Engineer", SOFTWARE_ENGINEER_AGENT_INSTRUCTION, "code-xml", ALL_TOOLS),
     ]
@@ -80,6 +101,6 @@ async def init(db_session: AsyncSession):
         if tools is ALL_TOOLS:
             agent.usable_tools = list(builtin_tools)
         else:
-            agent.usable_tools = [builtin_tools_map[tool.__name__] for tool in tools]
+            agent.usable_tools = [find_builtin_tool(toolset_t, tool) for toolset_t, tool in tools]
         db_session.add(agent)
         await db_session.flush()
