@@ -2,6 +2,7 @@ import type { AgentCreate } from "@/api/generated/schemas";
 
 export const DEFAULT_AGENT = {
   name: "",
+  description: "",
   icon_name: "bot",
   instruction: "",
   model_id: null,

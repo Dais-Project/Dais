@@ -122,8 +122,10 @@ class AgentContext:
         if len(agents) == 0: return NO_AVAILABLE_AGENTS
         root = ET.Element("available_agents")
         for agent in agents:
-            agent_elem = ET.SubElement(root, "agent", attrib={"id": str(agent.id)})
-            agent_elem.text = agent.name
+            agent_elem = ET.SubElement(root, "agent", attrib={"id": str(agent.id), "name": agent.name})
+            if agent.description:
+                description_elem = ET.SubElement(agent_elem, "description")
+                description_elem.text = agent.description
         return ET.tostring(root, encoding="unicode")
 
     ResolvedInstructions = namedtuple("ResolvedInstructions", ["base", "workspace", "agent"])

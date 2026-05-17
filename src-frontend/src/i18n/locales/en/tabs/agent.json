@@ -1,5 +1,9 @@
 {
   "form": {
+    "description": {
+      "label": "Description",
+      "placeholder": "Describe when this agent should be chosen for a subtask"
+    },
     "icon": {
       "label": "Icon"
     },

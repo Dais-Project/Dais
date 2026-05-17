@@ -32,6 +32,7 @@ class TestAgentService:
         agent = await agent_service.create_agent(
             agent_schemas.AgentCreate(
                 name="Agent A",
+                description="Agent A description",
                 icon_name="bot",
                 instruction="Instruction A",
                 model_id=None,
@@ -40,6 +41,7 @@ class TestAgentService:
         )
 
         assert agent.name == "Agent A"
+        assert agent.description == "Agent A description"
         assert agent.icon_name == "bot"
         assert agent.instruction == "Instruction A"
         assert agent.model_id is None
@@ -55,6 +57,7 @@ class TestAgentService:
         initial = await agent_service.create_agent(
             agent_schemas.AgentCreate(
                 name="Agent A",
+                description="Agent A description",
                 icon_name="bot",
                 instruction="Instruction A",
                 model_id=None,
@@ -67,6 +70,7 @@ class TestAgentService:
             initial.id,
             agent_schemas.AgentUpdate(
                 name="Agent B",
+                description="Agent B description",
                 icon_name="sparkles",
                 instruction="Instruction B",
                 model_id=None,
@@ -75,6 +79,7 @@ class TestAgentService:
         )
 
         assert updated.name == "Agent B"
+        assert updated.description == "Agent B description"
         assert updated.icon_name == "sparkles"
         assert updated.instruction == "Instruction B"
         assert updated.model_id is None
@@ -91,6 +96,7 @@ class TestAgentService:
         agent = await agent_service.create_agent(
             agent_schemas.AgentCreate(
                 name="Agent A",
+                description="Agent A description",
                 icon_name="bot",
                 instruction="Instruction A",
                 model_id=None,

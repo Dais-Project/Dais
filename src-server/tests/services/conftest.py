@@ -174,6 +174,7 @@ def agent_factory(db_session: AsyncSession):
     async def _create(
         *,
         name: str = "Agent",
+        description: str = "Test agent description",
         icon_name: str = "bot",
         instruction: str = "Test instruction",
         model_id: int | None = None,
@@ -181,6 +182,7 @@ def agent_factory(db_session: AsyncSession):
     ) -> agent_models.Agent:
         agent = agent_models.Agent(
             name=name,
+            description=description,
             icon_name=icon_name,
             instruction=instruction,
             model_id=model_id,

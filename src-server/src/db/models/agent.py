@@ -15,6 +15,7 @@ class Agent(Base):
     __tablename__ = "agents"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
+    description: Mapped[str] = mapped_column(default="")
     # name of lucide icon, default is "bot"
     icon_name: Mapped[str] = mapped_column(default="bot")
     instruction: Mapped[str]
@@ -35,8 +36,11 @@ async def init(db_session: AsyncSession):
         WebInteractionToolset,
     )
     from ...agent.prompts.built_in_agents import (
+        DAILY_ASSISTANT_AGENT_DESCRIPTION,
         DAILY_ASSISTANT_AGENT_INSTRUCTION,
+        SOFTWARE_ENGINEER_AGENT_DESCRIPTION,
         SOFTWARE_ENGINEER_AGENT_INSTRUCTION,
+        TERMINAL_INTERPRETER_AGENT_DESCRIPTION,
         TERMINAL_INTERPRETER_AGENT_INSTRUCTION,
     )
 
@@ -72,27 +76,43 @@ async def init(db_session: AsyncSession):
 
     ALL_TOOLS = object()
     builtin_agents = [
-        ("Daily Assistant", DAILY_ASSISTANT_AGENT_INSTRUCTION, "chat", [
-            (UserInteractionToolset, UserInteractionToolset.ask_user),
-            (ExecutionControlToolset, ExecutionControlToolset.finish_task),
-            (FileSystemToolset, FileSystemToolset.read_file),
-            (FileSystemToolset, FileSystemToolset.write_file),
-            (FileSystemToolset, FileSystemToolset.edit_file),
-            (FileSystemToolset, FileSystemToolset.list_directory),
-            (FileSystemToolset, FileSystemToolset.find_files),
-            (WebInteractionToolset, WebInteractionToolset.fetch),
-        ]),
-        ("Terminal Interpreter", TERMINAL_INTERPRETER_AGENT_INSTRUCTION, "terminal", [
-            (OsInteractionsToolset, OsInteractionsToolset.shell),
-            (UserInteractionToolset, UserInteractionToolset.ask_user),
-            (ExecutionControlToolset, ExecutionControlToolset.finish_task),
-        ]),
-        ("Software Engineer", SOFTWARE_ENGINEER_AGENT_INSTRUCTION, "code-xml", ALL_TOOLS),
+        (
+            "Daily Assistant", "chat",
+            DAILY_ASSISTANT_AGENT_DESCRIPTION,
+            DAILY_ASSISTANT_AGENT_INSTRUCTION,
+            [
+                (UserInteractionToolset, UserInteractionToolset.ask_user),
+                (ExecutionControlToolset, ExecutionControlToolset.finish_task),
+                (FileSystemToolset, FileSystemToolset.read_file),
+                (FileSystemToolset, FileSystemToolset.write_file),
+                (FileSystemToolset, FileSystemToolset.edit_file),
+                (FileSystemToolset, FileSystemToolset.list_directory),
+                (FileSystemToolset, FileSystemToolset.find_files),
+                (WebInteractionToolset, WebInteractionToolset.fetch),
+            ],
+        ),
+        (
+            "Terminal Interpreter", "terminal",
+            TERMINAL_INTERPRETER_AGENT_DESCRIPTION,
+            TERMINAL_INTERPRETER_AGENT_INSTRUCTION,
+            [
+                (OsInteractionsToolset, OsInteractionsToolset.shell),
+                (UserInteractionToolset, UserInteractionToolset.ask_user),
+                (ExecutionControlToolset, ExecutionControlToolset.finish_task),
+            ],
+        ),
+        (
+            "Software Engineer", "code-xml",
+            SOFTWARE_ENGINEER_AGENT_DESCRIPTION,
+            SOFTWARE_ENGINEER_AGENT_INSTRUCTION,
+            ALL_TOOLS,
+        ),
     ]
 
-    for name, instruction, icon_name, tools in builtin_agents:
+    for name, icon_name, description, instruction, tools in builtin_agents:
         agent = Agent(
             name=name,
+            description=description,
             instruction=instruction,
             icon_name=icon_name,
             model_id=1,

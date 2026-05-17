@@ -1,5 +1,9 @@
 {
   "form": {
+    "description": {
+      "label": "用途描述",
+      "placeholder": "请输入该 Agent 的适用场景，帮助其他 Agent 选择合适的 subtask 执行者"
+    },
     "icon": {
       "label": "图标"
     },

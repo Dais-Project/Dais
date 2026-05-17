@@ -7,6 +7,7 @@ import type { AgentRead } from "@/api/generated/schemas";
 import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
+import { AgentDescriptionField } from "./fields/AgentDescriptionField";
 import { AgentIconField } from "./fields/AgentIconField";
 import { AgentModelField } from "./fields/AgentModelField";
 import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
@@ -46,6 +47,8 @@ export function AgentEditForm({ agent, onConfirm }: AgentEditFormProps) {
       />
 
       <AgentIconField />
+
+      <AgentDescriptionField />
 
       <AgentModelField />
 

@@ -7,6 +7,7 @@ export type AgentEditFormValues = AgentCreate;
 export function agentToEditFormValues(agent: AgentRead): AgentEditFormValues {
   return {
     name: agent.name,
+    description: agent.description,
     icon_name: agent.icon_name,
     instruction: agent.instruction,
     model_id: agent.model?.id ?? null,
