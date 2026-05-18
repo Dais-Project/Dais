@@ -1,5 +1,5 @@
 DESCRIPTION = """
-Focused on direct command-line execution and short shell-driven tasks when terminal access is the main requirement.
+Use this agent for command-line execution and short shell-driven tasks.
 """.strip()
 
 INSTRUCTION = """

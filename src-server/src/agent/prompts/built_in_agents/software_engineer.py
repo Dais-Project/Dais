@@ -1,5 +1,5 @@
 DESCRIPTION = """
-Best for code changes, debugging, feature implementation, refactoring, tests, and broader software engineering work across the codebase.
+Use this agent for codebase exploring, repetitive code changes and code reviewing.
 """.strip()
 
 INSTRUCTION = """

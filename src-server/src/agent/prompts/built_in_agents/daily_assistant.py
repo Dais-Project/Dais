@@ -1,5 +1,5 @@
 DESCRIPTION = """
-General-purpose assistant for everyday tasks, lightweight research, note handling, and common workspace operations.
+Use this agent everyday tasks, lightweight research, note handling, and common workspace operations.
 """.strip()
 
 INSTRUCTION = """
