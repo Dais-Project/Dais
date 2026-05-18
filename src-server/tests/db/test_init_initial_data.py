@@ -10,6 +10,7 @@ import src.db as db_module
 from src.db.models import Base
 from src.db.models import agent as agent_models
 from src.db.models import provider as provider_models
+from src.db.models import skill as skill_models
 from src.db.models import toolset as toolset_models
 from src.db.models import workspace as workspace_models
 from src.services.agent import AgentService
@@ -74,6 +75,7 @@ class TestInitInitialData:
                     .options(*WorkspaceService.relations())
                 )
             ).all()
+            skills = (await session.scalars(select(skill_models.Skill).order_by(skill_models.Skill.id.asc()))).all()
 
             provider = providers[0]
             model = models[0]
@@ -109,6 +111,12 @@ class TestInitInitialData:
             assert {agent.id for agent in workspace.usable_agents} == {agent.id for agent in agents}
             assert {tool.id for tool in workspace.usable_tools} == {tool.id for tool in tools}
 
+            assert [skill.name for skill in skills] == [
+                "skill writer",
+                "workspace instructions writer",
+            ]
+            assert all(skill.is_enabled for skill in skills)
+
     @pytest.mark.asyncio
     async def test_init_initial_data_is_idempotent(self, monkeypatch: pytest.MonkeyPatch, test_session_factory):
         monkeypatch.setattr(db_module, "AsyncSessionLocal", test_session_factory)
@@ -123,6 +131,7 @@ class TestInitInitialData:
             tool_count = await session.scalar(select(func.count()).select_from(toolset_models.Tool))
             agent_count = await session.scalar(select(func.count()).select_from(agent_models.Agent))
             workspace_count = await session.scalar(select(func.count()).select_from(workspace_models.Workspace))
+            skill_count = await session.scalar(select(func.count()).select_from(skill_models.Skill))
 
             assert provider_count == 1
             assert model_count == 1
@@ -130,3 +139,4 @@ class TestInitInitialData:
             assert tool_count > 0
             assert agent_count == 3
             assert workspace_count == 1
+            assert skill_count == 2

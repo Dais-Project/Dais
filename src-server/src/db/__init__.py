@@ -12,6 +12,7 @@ from .models import (
     agent as agent_models,
     workspace as workspace_models,
     toolset as toolset_models,
+    skill as skill_models,
 )
 # this unused import is necessary to alembic
 from . import models
@@ -51,6 +52,7 @@ async def init_initial_data() -> None:
         await provider_models.init(session)
         await toolset_models.init(session)
         await agent_models.init(session)
+        await skill_models.init(session)
         await workspace_models.init(session)
 
 async def migrate_db() -> None:

@@ -1,13 +1,16 @@
-NAME = "workspace-instructions-writer"
-DESCRIPTION = """\
+NAME: str = "workspace instructions writer"
+
+DESCRIPTION: str = """
 Draft workspace instructions from scratch based on the current workspace's goals, conventions, and collaboration needs. Use this skill whenever the user asks to write workspace instructions, create project-level rules, define team directory conventions and collaboration norms, or turn project context into a reusable workspace instruction block.
 
 Typical triggers include:
 - asking to write workspace instructions
 - asking for project-wide rules or conventions
 - asking to capture directory conventions, collaboration norms, or shared context
-- asking to turn project goals into reusable instructions for future sessions"""
-CONTENT = """\
+- asking to turn project goals into reusable instructions for future sessions
+""".strip()
+
+CONTENT: str = """
 # Workspace Instructions Writer
 
 Write clear, practical workspace instructions that match the workspace's actual purpose. The goal is not to produce generic policy text, but to give the assistant durable project-level guidance that improves future work in this workspace.
@@ -121,4 +124,4 @@ Use a structure like this when appropriate:
 
 ## Domain Notes
 ...
-"""
+""".strip()

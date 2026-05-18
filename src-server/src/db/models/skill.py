@@ -33,25 +33,33 @@ class Skill(Base):
         return h.hexdigest()
 
 async def init(db_session: AsyncSession) -> None:
+    from typing import Protocol
     from src.agent.skills.builtin_skills import (
-        workspace_instruction_writer as workspace_instruction_writer_skill
+        skill_writer as skill_writer_skill,
+        workspace_instruction_writer as workspace_instruction_writer_skill,
     )
 
     stmt = select(Skill.id).limit(1)
     exists = await db_session.scalar(stmt)
     if exists: return
 
-    built_in_skills = [
-        (workspace_instruction_writer_skill.NAME, workspace_instruction_writer_skill.DESCRIPTION, workspace_instruction_writer_skill.CONTENT),
+    class BuiltInSkill(Protocol):
+        NAME: str
+        DESCRIPTION: str
+        CONTENT: str
+
+    built_in_skills: list[BuiltInSkill] = [
+        skill_writer_skill,
+        workspace_instruction_writer_skill,
     ]
 
-    for name, description, content in built_in_skills:
+    for skill in built_in_skills:
         db_session.add(Skill(
-            name=name,
+            name=skill.NAME,
             hash="",
-            description=description,
+            description=skill.DESCRIPTION,
             is_enabled=True,
-            content=content,
+            content=skill.CONTENT,
             resources=[],
         ))
 
