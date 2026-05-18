@@ -5,8 +5,8 @@ from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 @pytest.mark.tool
 class TestWriteFile:
     @pytest.mark.asyncio
-    async def test_write_new_file(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_new_file(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         content = "Hello World!\nThis is a test file."
 
         result = await tool.write_file("new_file.txt", content)
@@ -17,8 +17,8 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == content
 
     @pytest.mark.asyncio
-    async def test_write_file_with_unicode_content(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_file_with_unicode_content(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         content = "你好世界！\nこんにちは\n🎉🎊"
 
         result = await tool.write_file("unicode.txt", content)
@@ -28,8 +28,8 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == content
 
     @pytest.mark.asyncio
-    async def test_write_file_creates_parent_directories(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_file_creates_parent_directories(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         content = "Nested file content"
 
         result = await tool.write_file("parent/child/nested.txt", content)
@@ -40,8 +40,8 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == content
 
     @pytest.mark.asyncio
-    async def test_write_empty_file(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_empty_file(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.write_file("empty_new.txt", "")
 
@@ -51,8 +51,8 @@ class TestWriteFile:
         assert file_path.read_text(encoding="utf-8") == ""
 
     @pytest.mark.asyncio
-    async def test_write_large_file(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_large_file(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         content = "A" * (1024 * 1024)
 
         result = await tool.write_file("large_file.txt", content)
@@ -63,8 +63,8 @@ class TestWriteFile:
         assert len(file_path.read_text(encoding="utf-8")) == len(content)
 
     @pytest.mark.asyncio
-    async def test_write_file_with_special_characters_in_name(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_file_with_special_characters_in_name(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         content = "Content with special filename"
 
         result = await tool.write_file("file with spaces.txt", content)

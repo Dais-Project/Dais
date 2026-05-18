@@ -15,7 +15,7 @@ from src.services.markdown_cache import MarkdownCacheService
 from src.binaries import RIPGREP_PATH
 from src.settings import use_app_setting_manager
 from src.utils import MarkdownConverter
-from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext, BuiltInToolDefaults
+from ..toolset_wrapper import builtin_tool, BuiltinToolset, BuiltinToolsetContext, BuiltinToolDefaults
 from ...prompts import create_one_turn_llm, SemanticFileAnalysis, SemanticFileAnalysisInput
 
 
@@ -38,11 +38,11 @@ class PathExpander:
         template = Template(path)
         return template.safe_substitute(self._path_envs)
 
-class FileSystemToolset(BuiltInToolset):
+class FileSystemToolset(BuiltinToolset):
     _logger = logger.bind(name="FileSystemToolset")
 
     def __init__(self,
-                 ctx: BuiltInToolsetContext,
+                 ctx: BuiltinToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         from ...notes import NoteMaterializer
         from ...skills import SkillMaterializer
@@ -63,7 +63,7 @@ class FileSystemToolset(BuiltInToolset):
         expanded_path = os.path.expanduser(expanded_path)
         return AnyioPath(self._ctx.cwd / expanded_path)
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def read_file(self,
                         path: Annotated[str,
                           "The path of the file to read (relative to the current working directory)."],
@@ -169,7 +169,7 @@ class FileSystemToolset(BuiltInToolset):
             total_lines=len(lines),
             mode="normal")
 
-    @built_in_tool(validate=True)
+    @builtin_tool(validate=True)
     async def write_file(self,
                          path: Annotated[str,
                           "The path of the file to write (relative to the current working directory)."],
@@ -200,7 +200,7 @@ class FileSystemToolset(BuiltInToolset):
             await f.write(content)
         return "File written successfully."
 
-    @built_in_tool(validate=True)
+    @builtin_tool(validate=True)
     async def edit_file(self,
                         path: Annotated[str,
                             "The path of the file to edit (relative to the current working directory)."],
@@ -346,7 +346,7 @@ class FileSystemToolset(BuiltInToolset):
             result_lines.extend(format_items_flat(abs_path))
         return "\n".join(result_lines)
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def list_directory(self,
                              path: Annotated[str,
                               "The path of the directory to list contents for (relative to the current working directory)."] = ".",
@@ -468,7 +468,7 @@ class FileSystemToolset(BuiltInToolset):
             "matches": results,
         }
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def find_files(self,
                          pattern: Annotated[str,
                            """
@@ -532,7 +532,7 @@ class FileSystemToolset(BuiltInToolset):
             show_all,
         )
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def search_text(self,
                           regex: Annotated[str,
                             "The search pattern. Supports regular expressions by default. Use simple strings for literal searches."],

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Discriminator, Field, field_validator
 from trafilatura.settings import use_config
 from src.db.models import toolset as toolset_models
 from src.utils import MarkdownConverter
-from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
+from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset, BuiltinToolsetContext
 from ...utils import get_magika
 
 
@@ -50,9 +50,9 @@ type FetchBody = Annotated[
     Discriminator("type"),
 ]
 
-class WebInteractionToolset(BuiltInToolset):
+class WebInteractionToolset(BuiltinToolset):
     def __init__(self,
-                 ctx: BuiltInToolsetContext,
+                 ctx: BuiltinToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         super().__init__(ctx, toolset_ent)
         self._magika = get_magika()
@@ -63,7 +63,7 @@ class WebInteractionToolset(BuiltInToolset):
     @override
     def name(self) -> str: return "WebInteraction"
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=False))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
     async def fetch(self,
                     url: Annotated[str, "The URL to fetch, should include the protocol (http:// or https://)."],
                     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"] = "GET",

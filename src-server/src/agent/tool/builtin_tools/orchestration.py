@@ -9,7 +9,7 @@ from src.services.tasks import SubtaskService
 from src.db.models import tasks as tasks_models
 from src.schemas.tasks import subtask as subtask_schemas
 from src.schemas.tasks import runtime as task_runtime_schemas
-from ..toolset_wrapper import built_in_tool, BuiltInToolset
+from ..toolset_wrapper import builtin_tool, BuiltinToolset
 from ...types import TaskError, TaskInterrupted, TaskWaitingAction, TaskFinished
 
 if TYPE_CHECKING:
@@ -50,12 +50,12 @@ async def create_agent_task_from_subtask(subtask: tasks_models.Subtask) -> Agent
     ctx = await AgentContext.create(task_runtime)
     return AgentTask(ctx)
 
-class OrchestrationToolset(BuiltInToolset):
+class OrchestrationToolset(BuiltinToolset):
     @property
     @override
     def name(self) -> str: return "Orchestration"
 
-    @built_in_tool(validate=True)
+    @builtin_tool(validate=True)
     async def subtask(self, action: NewSubtask | ContinueSubtask) -> ET.Element:
         """
         Create a new subtask or continue an existing subtask.

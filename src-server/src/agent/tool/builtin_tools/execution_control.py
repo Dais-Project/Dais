@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Annotated, Literal, override
-from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset
+from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset
 
 
 @dataclass
@@ -8,12 +8,12 @@ class TodoItem:
     description: str
     status: Literal["pending", "in_progress", "completed", "cancelled"]
 
-class ExecutionControlToolset(BuiltInToolset):
+class ExecutionControlToolset(BuiltinToolset):
     @property
     @override
     def name(self) -> str: return "ExecutionControl"
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     def finish_task(self,
                     task_summary: Annotated[str,
                         """
@@ -38,7 +38,7 @@ class ExecutionControlToolset(BuiltInToolset):
         """
         ...
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(auto_approve=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     def update_todos(self,
                      todos: Annotated[list[TodoItem],
                         """

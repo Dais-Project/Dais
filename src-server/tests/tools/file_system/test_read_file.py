@@ -16,9 +16,9 @@ def parse_file_content_xml(result: ET.Element) -> tuple[ET.Element, str]:
 @pytest.mark.tool
 class TestReadFile:
     @pytest.mark.asyncio
-    async def test_read_text_file_default(self, built_in_toolset_context, temp_workspace, sample_text_file):
+    async def test_read_text_file_default(self, builtin_toolset_context, temp_workspace, sample_text_file):
         filename, expected_content = sample_text_file
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.read_file(filename)
         root, text = parse_file_content_xml(result)
@@ -30,9 +30,9 @@ class TestReadFile:
         assert text == expected_content
 
     @pytest.mark.asyncio
-    async def test_read_text_file_with_offset_and_max_lines(self, built_in_toolset_context, temp_workspace, sample_text_file):
+    async def test_read_text_file_with_offset_and_max_lines(self, builtin_toolset_context, temp_workspace, sample_text_file):
         filename, _ = sample_text_file
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.read_file(filename, offset=2, max_lines=2)
         root, text = parse_file_content_xml(result)
@@ -43,7 +43,7 @@ class TestReadFile:
         assert text == "Line 2\nLine 3"
 
     @pytest.mark.asyncio
-    async def test_read_markitdown_convertable_file(self, built_in_toolset_context, temp_workspace, monkeypatch: pytest.MonkeyPatch):
+    async def test_read_markitdown_convertable_file(self, builtin_toolset_context, temp_workspace, monkeypatch: pytest.MonkeyPatch):
         pdf_path = temp_workspace / "test.pdf"
         pdf_path.write_bytes(b"fake pdf content")
 
@@ -68,7 +68,7 @@ class TestReadFile:
         monkeypatch.setattr(file_system_module, "db_context", fake_db_context)
         monkeypatch.setattr(file_system_module, "MarkdownCacheService", FakeMarkdownCacheService)
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         monkeypatch.setattr(tool._markdown_converter, "convert", fake_convert.__get__(tool._markdown_converter, type(tool._markdown_converter)))
         result = await tool.read_file("test.pdf")
         root, text = parse_file_content_xml(result)
@@ -82,7 +82,7 @@ class TestReadFile:
     @pytest.mark.asyncio
     async def test_read_markitdown_convertable_file_uses_cached_conversion(
         self,
-        built_in_toolset_context,
+        builtin_toolset_context,
         temp_workspace,
         monkeypatch: pytest.MonkeyPatch,
     ):
@@ -115,7 +115,7 @@ class TestReadFile:
         monkeypatch.setattr(file_system_module, "db_context", fake_db_context)
         monkeypatch.setattr(file_system_module, "MarkdownCacheService", FakeMarkdownCacheService)
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         monkeypatch.setattr(tool._markdown_converter, "convert", fake_convert.__get__(tool._markdown_converter, type(tool._markdown_converter)))
 
         first_result = await tool.read_file("cached.pdf")
@@ -131,15 +131,15 @@ class TestReadFile:
         assert cache_store == {"cached.pdf": "# Cached PDF\nConverted once"}
 
     @pytest.mark.asyncio
-    async def test_read_nonexistent_file(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_read_nonexistent_file(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         with pytest.raises(FileNotFoundError) as exc_info:
             await tool.read_file("nonexistent.txt")
         assert "File not found at nonexistent.txt" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_read_empty_file(self, built_in_toolset_context, temp_workspace, empty_file):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_read_empty_file(self, builtin_toolset_context, temp_workspace, empty_file):
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.read_file(empty_file)
         root, text = parse_file_content_xml(result)
@@ -150,12 +150,12 @@ class TestReadFile:
         assert text == ""
 
     @pytest.mark.asyncio
-    async def test_read_binary_file(self, built_in_toolset_context, temp_workspace, mocker):
+    async def test_read_binary_file(self, builtin_toolset_context, temp_workspace, mocker):
         file_path = temp_workspace / "binary.bin"
         file_path.write_bytes(b"\x00\x01\x02")
         mocker.patch("src.agent.tool.builtin_tools.file_system.is_binary", return_value=True)
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         with pytest.raises(ValueError) as exc_info:
             await tool.read_file("binary.bin")

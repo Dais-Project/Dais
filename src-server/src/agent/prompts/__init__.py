@@ -4,7 +4,7 @@ from .instruction import (
     APPENDIX_TEMPLATE,
 )
 from .one_turns import *
-from .built_in_agents import *
+from .builtin_agents import *
 
 USER_IGNORED_TOOL_CALL_RESULT = "[System] User ignored this tool call."
 USER_DENIED_TOOL_CALL_RESULT = "[System] User denied this tool call."

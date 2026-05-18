@@ -48,12 +48,12 @@ async def init(db_session: AsyncSession) -> None:
         DESCRIPTION: str
         CONTENT: str
 
-    built_in_skills: list[BuiltInSkill] = [
+    builtin_skills: list[BuiltInSkill] = [
         skill_writer_skill,
         workspace_instruction_writer_skill,
     ]
 
-    for skill in built_in_skills:
+    for skill in builtin_skills:
         db_session.add(Skill(
             name=skill.NAME,
             hash="",

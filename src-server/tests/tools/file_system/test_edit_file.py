@@ -5,9 +5,9 @@ from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 @pytest.mark.tool
 class TestEditFile:
     @pytest.mark.asyncio
-    async def test_edit_file_single_line(self, built_in_toolset_context, temp_workspace, file_with_content):
+    async def test_edit_file_single_line(self, builtin_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.edit_file(filename, "Second line", "Modified second line")
 
@@ -23,9 +23,9 @@ class TestEditFile:
         assert "Second line" not in new_content
 
     @pytest.mark.asyncio
-    async def test_edit_file_multiple_lines(self, built_in_toolset_context, temp_workspace, file_with_content):
+    async def test_edit_file_multiple_lines(self, builtin_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         old_content = "Second line\nThird line"
         new_content = "New second line\nNew third line"
@@ -40,9 +40,9 @@ class TestEditFile:
         assert "New third line" in final_content
 
     @pytest.mark.asyncio
-    async def test_edit_file_returns_valid_diff(self, built_in_toolset_context, temp_workspace, file_with_content):
+    async def test_edit_file_returns_valid_diff(self, builtin_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.edit_file(filename, "Original content", "Updated content")
 
@@ -52,8 +52,8 @@ class TestEditFile:
         assert any(line.startswith("@@") for line in lines)
 
     @pytest.mark.asyncio
-    async def test_edit_file_with_unicode(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_edit_file_with_unicode(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         filename = "unicode_edit.txt"
         original = "原始内容\n第二行"
 
@@ -67,8 +67,8 @@ class TestEditFile:
         assert "原始内容" not in new_content
 
     @pytest.mark.asyncio
-    async def test_edit_nonexistent_file(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_edit_nonexistent_file(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
 
         with pytest.raises(FileNotFoundError) as exc_info:
             await tool.edit_file("nonexistent.txt", "old", "new")
@@ -76,9 +76,9 @@ class TestEditFile:
         assert "File not found at nonexistent.txt" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_edit_file_content_not_found(self, built_in_toolset_context, temp_workspace, file_with_content):
+    async def test_edit_file_content_not_found(self, builtin_toolset_context, temp_workspace, file_with_content):
         filename, _ = file_with_content
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         with pytest.raises(ValueError) as exc_info:
             await tool.edit_file(filename, "This content does not exist", "new content")
@@ -86,9 +86,9 @@ class TestEditFile:
         assert "Content not found in file" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_edit_file_content_found_multiple_times(self, built_in_toolset_context, temp_workspace, file_with_duplicate_content):
+    async def test_edit_file_content_found_multiple_times(self, builtin_toolset_context, temp_workspace, file_with_duplicate_content):
         filename, _ = file_with_duplicate_content
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.edit_file(
             filename,
@@ -107,8 +107,8 @@ class TestEditFile:
         assert "Duplicate line" not in updated_content
 
     @pytest.mark.asyncio
-    async def test_edit_file_with_whitespace_sensitivity(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_edit_file_with_whitespace_sensitivity(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         filename = "whitespace.txt"
         content = "Line with spaces\n  Indented line\nNormal line"
 

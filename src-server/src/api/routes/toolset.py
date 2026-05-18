@@ -26,15 +26,15 @@ async def get_toolsets_brief(
     mcp_toolset_manager: McpToolsetManagerDep,
 ):
     service = ToolsetService(db_session)
-    built_in_toolsets = await service.get_all_built_in_toolsets()
+    builtin_toolsets = await service.get_all_builtin_toolsets()
 
-    built_in_toolset_briefs = [
+    builtin_toolset_briefs = [
         toolset_schemas.ToolsetBrief(id=toolset.id,
                                      name=toolset.name,
                                      type=toolset.type,
                                      status="connected",
                                      error_code=None)
-        for toolset in built_in_toolsets
+        for toolset in builtin_toolsets
     ]
 
     mcp_toolsets = await service.get_all_mcp_toolsets()
@@ -52,14 +52,14 @@ async def get_toolsets_brief(
                                          status=toolset.status,
                                          error_code=toolset.error))
     mcp_toolset_briefs.sort(key=lambda toolset: toolset.id)
-    return built_in_toolset_briefs + mcp_toolset_briefs
+    return builtin_toolset_briefs + mcp_toolset_briefs
 
 @toolset_router.get("/", response_model=list[toolset_schemas.ToolsetRead])
 async def get_toolsets(db_session: DbSessionDep):
     service = ToolsetService(db_session)
-    built_in_toolsets = await service.get_all_built_in_toolsets()
+    builtin_toolsets = await service.get_all_builtin_toolsets()
     mcp_toolsets = await service.get_all_mcp_toolsets()
-    return built_in_toolsets + mcp_toolsets
+    return builtin_toolsets + mcp_toolsets
 
 @toolset_router.get("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)
 async def get_toolset(toolset_id: int, db_session: DbSessionDep):

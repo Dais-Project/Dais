@@ -18,8 +18,8 @@ def parse_shell_result(result: ET.Element) -> tuple[ET.Element, ET.Element, ET.E
 @pytest.mark.tool
 class TestOsInteractionsShell:
     @pytest.mark.asyncio
-    async def test_shell_executes_command(self, built_in_toolset_context):
-        tool = OsInteractionsToolset(built_in_toolset_context)
+    async def test_shell_executes_command(self, builtin_toolset_context):
+        tool = OsInteractionsToolset(builtin_toolset_context)
 
         result = await tool.shell(
             command="python",
@@ -38,12 +38,12 @@ class TestOsInteractionsShell:
         assert "oops" in (stderr_el.text or "")
 
     @pytest.mark.asyncio
-    async def test_shell_respects_cwd(self, built_in_toolset_context, temp_workspace):
+    async def test_shell_respects_cwd(self, builtin_toolset_context, temp_workspace):
         target_dir: Path = temp_workspace / "subdir"
         target_dir.mkdir()
         (target_dir / "cwd.txt").write_text("from-cwd", encoding="utf-8")
 
-        tool = OsInteractionsToolset(built_in_toolset_context)
+        tool = OsInteractionsToolset(builtin_toolset_context)
         result = await tool.shell(
             command="python",
             args=["-c", "from pathlib import Path; print(Path('cwd.txt').read_text())"],
@@ -53,8 +53,8 @@ class TestOsInteractionsShell:
         assert "from-cwd" in (stdout_el.text or "")
 
     @pytest.mark.asyncio
-    async def test_shell_truncates_stdout_and_stderr(self, built_in_toolset_context):
-        tool = OsInteractionsToolset(built_in_toolset_context)
+    async def test_shell_truncates_stdout_and_stderr(self, builtin_toolset_context):
+        tool = OsInteractionsToolset(builtin_toolset_context)
         script = textwrap.dedent(
             """
             import sys
@@ -91,11 +91,11 @@ class TestOsInteractionsShell:
     )
     async def test_shell_rejects_command_with_inline_arguments(
         self,
-        built_in_toolset_context,
+        builtin_toolset_context,
         command: str,
         args: list[str],
     ):
-        tool = OsInteractionsToolset(built_in_toolset_context)
+        tool = OsInteractionsToolset(builtin_toolset_context)
 
         with pytest.raises(ValueError, match="must be the executable only"):
             await tool.shell(command=command, args=args)

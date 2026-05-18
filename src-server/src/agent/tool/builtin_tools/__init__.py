@@ -6,10 +6,10 @@ from .os_interactions import OsInteractionsToolset
 from .orchestration import OrchestrationToolset
 from .user_interaction import UserInteractionToolset
 from .web_interaction import WebInteractionToolset
-from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
+from ..toolset_wrapper import BuiltinToolset, BuiltinToolsetContext
 
 
-BUILT_IN_TOOLSETS: list[type[BuiltInToolset]] = [
+BUILT_IN_TOOLSETS: list[type[BuiltinToolset]] = [
     ExecutionControlToolset,
     FileSystemToolset,
     OsInteractionsToolset,
@@ -21,7 +21,7 @@ BUILT_IN_TOOLSETS: list[type[BuiltInToolset]] = [
 def get_builtin_tool_enum() -> type[Enum]:
     builtin_tool_members = {}
     for toolset in BUILT_IN_TOOLSETS:
-        temp_instance = toolset(BuiltInToolsetContext.default())
+        temp_instance = toolset(BuiltinToolsetContext.default())
         # use get_original_tools instead of get_tools
         # to get the original tools without any filtering
         # and avoid database dependency
@@ -36,7 +36,7 @@ def get_builtin_tool_arg_schemas() -> list[ToolSchema]:
 
     result = []
     for toolset in BUILT_IN_TOOLSETS:
-        temp_instance = toolset(BuiltInToolsetContext.default())
+        temp_instance = toolset(BuiltinToolsetContext.default())
         tools = temp_instance.get_original_tools(namespaced_tool_name=True)
         # only append the parameters schema
         result.extend(prepare_tools(tools))

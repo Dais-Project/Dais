@@ -4,15 +4,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import db_context
 from src.db.models import toolset as toolset_models
 from .types import ToolsetManager
-from ..toolset_wrapper import BuiltInToolset, BuiltInToolsetContext
+from ..toolset_wrapper import BuiltinToolset, BuiltinToolsetContext
 from ..builtin_tools import BUILT_IN_TOOLSETS
 
 
 class BuiltinToolsetManager(ToolsetManager):
-    def __init__(self, ctx: BuiltInToolsetContext):
+    def __init__(self, ctx: BuiltinToolsetContext):
         self._ctx = ctx
         self._toolset_map: dict[str, toolset_models.Toolset] | None = None
-        self._toolsets: list[BuiltInToolset] | None = None
+        self._toolsets: list[BuiltinToolset] | None = None
 
     @staticmethod
     async def sync_toolsets(db_session: AsyncSession):
@@ -36,7 +36,7 @@ class BuiltinToolsetManager(ToolsetManager):
         from src.services.toolset import ToolsetService
 
         async with db_context() as db_session:
-            toolset_ents = await ToolsetService(db_session).get_all_built_in_toolsets()
+            toolset_ents = await ToolsetService(db_session).get_all_builtin_toolsets()
         self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
 
         self._toolsets = []
@@ -45,7 +45,7 @@ class BuiltinToolsetManager(ToolsetManager):
             self._toolsets.append(toolset_t(self._ctx, toolset_ent))
 
     @classmethod
-    async def create(cls, ctx: BuiltInToolsetContext) -> Self:
+    async def create(cls, ctx: BuiltinToolsetContext) -> Self:
         manager = cls(ctx)
         await manager.initialize()
         return manager

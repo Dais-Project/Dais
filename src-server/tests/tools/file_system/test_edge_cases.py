@@ -13,31 +13,31 @@ def parse_file_content_xml(result: ET.Element) -> tuple[ET.Element, str]:
 @pytest.mark.tool
 class TestEdgeCases:
     @pytest.mark.asyncio
-    async def test_unicode_filename(self, built_in_toolset_context, temp_workspace):
+    async def test_unicode_filename(self, builtin_toolset_context, temp_workspace):
         filename = "测试文件.txt"
         file_path = temp_workspace / filename
         content = "Unicode content: 你好世界"
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.read_file(filename)
         _, text = parse_file_content_xml(result)
         assert text == content
 
     @pytest.mark.asyncio
-    async def test_special_characters_in_content(self, built_in_toolset_context, temp_workspace):
+    async def test_special_characters_in_content(self, builtin_toolset_context, temp_workspace):
         filename = "special.txt"
         content = "Special chars: <>&\"'\n\t"
         file_path = temp_workspace / filename
         file_path.write_text(content, encoding="utf-8")
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.read_file(filename)
         _, text = parse_file_content_xml(result)
         assert "<>&\"'" in text
 
     @pytest.mark.asyncio
-    async def test_list_directory_sorting(self, built_in_toolset_context, temp_workspace):
+    async def test_list_directory_sorting(self, builtin_toolset_context, temp_workspace):
         base = temp_workspace
 
         (base / "zebra.txt").write_text("", encoding="utf-8")
@@ -45,7 +45,7 @@ class TestEdgeCases:
         (base / "zoo_dir").mkdir()
         (base / "alpha_dir").mkdir()
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.list_directory(".")
 
         lines = result.split("\n")[1:]

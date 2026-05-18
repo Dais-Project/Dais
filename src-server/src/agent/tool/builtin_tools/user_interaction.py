@@ -1,13 +1,13 @@
 from typing import Annotated, override
-from ..toolset_wrapper import built_in_tool, BuiltInToolDefaults, BuiltInToolset, BuiltInToolsetContext
+from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset, BuiltinToolsetContext
 
 
-class UserInteractionToolset(BuiltInToolset):
+class UserInteractionToolset(BuiltinToolset):
     @property
     @override
     def name(self) -> str: return "UserInteraction"
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(needs_user_interaction=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(needs_user_interaction=True))
     def ask_user(self,
                  question: Annotated[str,
                     """
@@ -48,7 +48,7 @@ class UserInteractionToolset(BuiltInToolset):
         """
         ...
 
-    @built_in_tool(validate=True, defaults=BuiltInToolDefaults(needs_user_interaction=True))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(needs_user_interaction=True))
     def show_plan(self,
                   plan: Annotated[str,
                     """

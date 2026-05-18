@@ -10,16 +10,16 @@ if TYPE_CHECKING:
     from ....db.models import toolset as toolset_models
 
 
-built_in_tool = python_tool
+builtin_tool = python_tool
 
-class BuiltInToolDefaults(TypedDict, total=False):
+class BuiltinToolDefaults(TypedDict, total=False):
     auto_approve: bool
 
     # Whether this tool needs user interaction (e.g. ask_user, show_plan)
     needs_user_interaction: bool
 
 @dataclass(frozen=True)
-class BuiltInToolsetContext:
+class BuiltinToolsetContext:
     cwd: Path = field(init=False)
     task_id: int
     workspace_id: int
@@ -39,9 +39,9 @@ class BuiltInToolsetContext:
         """
         return cls(1, 1, Path.cwd())
 
-class BuiltInToolset(PythonToolset):
+class BuiltinToolset(PythonToolset):
     def __init__(self,
-                 ctx: BuiltInToolsetContext,
+                 ctx: BuiltinToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None) -> None:
         self._ctx = ctx
         self._namespaced_tools_cache = super().get_tools(namespaced_tool_name=True)
@@ -59,7 +59,7 @@ class BuiltInToolset(PythonToolset):
     async def sync(cls, db_session: AsyncSession):
         from src.services.toolset import ToolsetService
 
-        temp_instance = cls(BuiltInToolsetContext.default())
+        temp_instance = cls(BuiltinToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
         toolset_service = ToolsetService(db_session)
         toolset_ent = await toolset_service.get_toolset_by_internal_key(cls.internal_key())
@@ -68,7 +68,7 @@ class BuiltInToolset(PythonToolset):
                                                 name=tool.name,
                                                 internal_key=temp_instance.format_tool_name(tool.name),
                                                 description=tool.description,
-                                                auto_approve=cast(BuiltInToolDefaults, tool.defaults).get("auto_approve", False))
+                                                auto_approve=cast(BuiltinToolDefaults, tool.defaults).get("auto_approve", False))
                                             for tool in raw_tools])
 
     def get_original_tools(self, namespaced_tool_name: bool=True) -> list[ToolDef]:
@@ -86,7 +86,7 @@ class BuiltInToolset(PythonToolset):
             if not tool_ent.is_enabled: continue
 
             normalized_tool = namespaced if namespaced_tool_name else non_namespaced
-            tool_defaults = cast(BuiltInToolDefaults, normalized_tool.defaults)
+            tool_defaults = cast(BuiltinToolDefaults, normalized_tool.defaults)
             tool_with_metadata = replace(normalized_tool,
                                          metadata=ToolMetadata(
                                             id=tool_ent.id,

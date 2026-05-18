@@ -9,7 +9,7 @@ from .relationships import agent_tool_association_table
 if TYPE_CHECKING:
     from .provider import LlmModel
     from .toolset import Tool
-    from ...agent.tool import BuiltInToolset
+    from ...agent.tool import BuiltinToolset
 
 class Agent(Base):
     __tablename__ = "agents"
@@ -27,7 +27,7 @@ class Agent(Base):
 
 async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType
-    from ...agent.tool import BuiltInToolsetContext
+    from ...agent.tool import BuiltinToolsetContext
     from ...agent.tool.builtin_tools import (
         FileSystemToolset,
         ExecutionControlToolset,
@@ -35,7 +35,7 @@ async def init(db_session: AsyncSession):
         UserInteractionToolset,
         WebInteractionToolset,
     )
-    from ...agent.prompts.built_in_agents import (
+    from ...agent.prompts.builtin_agents import (
         DAILY_ASSISTANT_AGENT_DESCRIPTION,
         DAILY_ASSISTANT_AGENT_INSTRUCTION,
         SOFTWARE_ENGINEER_AGENT_DESCRIPTION,
@@ -44,8 +44,8 @@ async def init(db_session: AsyncSession):
         TERMINAL_INTERPRETER_AGENT_INSTRUCTION,
     )
 
-    builtin_toolset_ctx = BuiltInToolsetContext.default()
-    builtin_toolsets: dict[type[BuiltInToolset], BuiltInToolset] = {
+    builtin_toolset_ctx = BuiltinToolsetContext.default()
+    builtin_toolsets: dict[type[BuiltinToolset], BuiltinToolset] = {
         toolset_t: toolset_t(builtin_toolset_ctx)
         for toolset_t in [
             FileSystemToolset,
@@ -56,7 +56,7 @@ async def init(db_session: AsyncSession):
         ]
     }
 
-    def find_builtin_tool(toolset_t: type[BuiltInToolset], tool: ToolFn) -> Tool:
+    def find_builtin_tool(toolset_t: type[BuiltinToolset], tool: ToolFn) -> Tool:
         toolset = builtin_toolsets[toolset_t]
         internal_key = toolset.format_tool_name(tool.__name__)
         return builtin_tools_map[internal_key]

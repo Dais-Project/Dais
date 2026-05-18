@@ -9,8 +9,8 @@ class TestFindFiles:
             yield directory / f"file_{index}.txt"
 
     @pytest.mark.asyncio
-    async def test_find_files_basic_matches(self, built_in_toolset_context, nested_directory):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_find_files_basic_matches(self, builtin_toolset_context, nested_directory):
+        tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.find_files("*.txt")
 
         assert result["total"] == 5
@@ -23,16 +23,16 @@ class TestFindFiles:
         }
 
     @pytest.mark.asyncio
-    async def test_find_files_limit(self, built_in_toolset_context, nested_directory):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_find_files_limit(self, builtin_toolset_context, nested_directory):
+        tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.find_files("*.txt", limit=2)
 
         assert result["total"] == 2
         assert len(result["matches"]) == 2
 
     @pytest.mark.asyncio
-    async def test_find_files_relative_paths(self, built_in_toolset_context, nested_directory):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_find_files_relative_paths(self, builtin_toolset_context, nested_directory):
+        tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.find_files("file3.txt")
 
         assert result["matches"] == ["dir1/file3.txt"]
@@ -48,12 +48,12 @@ class TestFindFiles:
     )
     async def test_find_files_rejects_invalid_search_roots(
         self,
-        built_in_toolset_context,
+        builtin_toolset_context,
         sample_text_file,
         path: str,
         expected_error: type[Exception],
     ):
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         with pytest.raises(expected_error):
             await tool.find_files("*.txt", path=path)

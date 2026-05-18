@@ -24,7 +24,7 @@ from .persistence import create_agent_context_persistence
 from .aliases import BuiltInToolAliases
 from .models import AgentContextResource, AgentContextPersistence
 from ..notes import NoteMaterializer
-from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltInToolsetContext, McpToolsetManager
+from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltinToolsetContext, McpToolsetManager
 from ..tool.types import is_tool_metadata
 from ..prompts import (
     BASE_INSTRUCTION,
@@ -82,7 +82,7 @@ class AgentContext:
         messages = task.messages
 
         builtin_toolset_manager = await BuiltinToolsetManager.create(
-            BuiltInToolsetContext(
+            BuiltinToolsetContext(
                 task.id,
                 workspace.id,
                 workspace.directory,
@@ -162,11 +162,11 @@ class AgentContext:
     def messages(self, new_messages: list[Message]): self._messages = new_messages
 
     async def filter_usable_tool_ids(self) -> set[int] | None:
-        from ..tool import BuiltInToolset, OrchestrationToolset, UserInteractionToolset
-        def find_builtin_tool_id(toolset_cls: type[BuiltInToolset], target_tool: ToolFn) -> int | None:
+        from ..tool import BuiltinToolset, OrchestrationToolset, UserInteractionToolset
+        def find_builtin_tool_id(toolset_cls: type[BuiltinToolset], target_tool: ToolFn) -> int | None:
             target_toolset = None
             for toolset in self._builtin_toolset_manager.toolsets:
-                assert isinstance(toolset, BuiltInToolset)
+                assert isinstance(toolset, BuiltinToolset)
                 if toolset.internal_key() == toolset_cls.internal_key():
                     target_toolset = toolset
             if target_toolset is None: return None

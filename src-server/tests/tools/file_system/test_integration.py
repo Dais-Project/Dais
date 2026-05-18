@@ -6,8 +6,8 @@ import pytest
 @pytest.mark.integration
 class TestIntegration:
     @pytest.mark.asyncio
-    async def test_write_edit_workflow(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_write_edit_workflow(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
         filename = "workflow_test.txt"
 
         initial_content = "Initial content\nSecond line"
@@ -22,9 +22,9 @@ class TestIntegration:
         assert "Initial content" not in final_content
 
     @pytest.mark.asyncio
-    async def test_read_write_edit_delete_workflow(self, built_in_toolset_context, temp_workspace, sample_text_file):
+    async def test_read_write_edit_delete_workflow(self, builtin_toolset_context, temp_workspace, sample_text_file):
         filename, original_content = sample_text_file
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         read_content = await tool.read_file(filename)
         assert read_content.text == original_content
@@ -38,8 +38,8 @@ class TestIntegration:
         assert "Edited content" in file_path.read_text(encoding="utf-8")
 
     @pytest.mark.asyncio
-    async def test_read_file_set_consistency_across_operations(self, built_in_toolset_context, temp_workspace):
-        tool = FileSystemToolset(built_in_toolset_context)
+    async def test_read_file_set_consistency_across_operations(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
 
         filename1 = "file1.txt"
         file1_path = temp_workspace / filename1

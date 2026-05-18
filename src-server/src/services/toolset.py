@@ -49,7 +49,7 @@ class ToolsetService(ServiceBase):
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
 
-    async def get_all_built_in_toolsets(self) -> list[toolset_models.Toolset]:
+    async def get_all_builtin_toolsets(self) -> list[toolset_models.Toolset]:
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.type == toolset_models.ToolsetType.BUILT_IN)

@@ -1,6 +1,6 @@
 import re
 from typing import cast
-from src.agent.tool import BuiltInToolset, BuiltinToolsetManager
+from src.agent.tool import BuiltinToolset, BuiltinToolsetManager
 
 
 class BuiltInToolAliases:
@@ -11,7 +11,7 @@ class BuiltInToolAliases:
     def _init_map(self) -> dict[str, str]:
         result = {}
         for toolset in self._toolset_manager.toolsets:
-            toolset = cast(BuiltInToolset, toolset)
+            toolset = cast(BuiltinToolset, toolset)
             namespaced_tool_names = [tool.name for tool in toolset.get_tools(namespaced_tool_name=True)]
             non_namespaced_tool_names = [tool.name for tool in toolset.get_tools(namespaced_tool_name=False)]
             for namespaced_tool_name, non_namespaced_tool_name in zip(namespaced_tool_names, non_namespaced_tool_names):

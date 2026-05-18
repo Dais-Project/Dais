@@ -7,12 +7,12 @@ from dais_shell import AgentShell, CommandStep
 from dais_shell.iostream_reader import IOStreamBuffer
 from src.db.models import toolset as toolset_models
 from src.binaries import UV_PATH, NODE_PATH
-from ..toolset_wrapper import built_in_tool, BuiltInToolset, BuiltInToolsetContext
+from ..toolset_wrapper import builtin_tool, BuiltinToolset, BuiltinToolsetContext
 
 
-class OsInteractionsToolset(BuiltInToolset):
+class OsInteractionsToolset(BuiltinToolset):
     def __init__(self,
-                 ctx: BuiltInToolsetContext,
+                 ctx: BuiltinToolsetContext,
                  toolset_ent: toolset_models.Toolset | None = None):
         from ...notes import NoteMaterializer
         from ...skills import SkillMaterializer
@@ -30,7 +30,7 @@ class OsInteractionsToolset(BuiltInToolset):
     @override
     def name(self) -> str: return "OsInteractions"
 
-    @built_in_tool(validate=True)
+    @builtin_tool(validate=True)
     async def shell(self,
                     command: Annotated[str,
                         "The command to execute. Do not pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd)."],

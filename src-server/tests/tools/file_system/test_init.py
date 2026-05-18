@@ -6,7 +6,7 @@ import pytest
 
 import src.agent.tool.builtin_tools.file_system as file_system_module
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
-from src.agent.tool.toolset_wrapper import BuiltInToolsetContext
+from src.agent.tool.toolset_wrapper import BuiltinToolsetContext
 from src.agent.types import ContextUsage
 
 
@@ -17,9 +17,9 @@ NON_CONVERTABLE_EXTENSIONS = ["txt", "py", "json", "md"]
 @pytest.mark.tool
 class TestFileSystemToolInit:
     @pytest.mark.asyncio
-    async def test_read_file_resolves_absolute_cwd(self, built_in_toolset_context, temp_workspace):
+    async def test_read_file_resolves_absolute_cwd(self, builtin_toolset_context, temp_workspace):
         (temp_workspace / "hello.txt").write_text("hello", encoding="utf-8")
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
 
         result = await tool.read_file("hello.txt")
 
@@ -32,7 +32,7 @@ class TestFileSystemToolInit:
         marker = home / "__dais_test_marker__.txt"
         marker.write_text("tilde-ok", encoding="utf-8")
         try:
-            tool = FileSystemToolset(BuiltInToolsetContext(1, 1, "~"))
+            tool = FileSystemToolset(BuiltinToolsetContext(1, 1, "~"))
             result = await tool.read_file("__dais_test_marker__.txt")
             assert isinstance(result, ET.Element)
             assert result.text == "tilde-ok"
@@ -60,7 +60,7 @@ class TestMarkitdownConvertableBinaryDetection:
     @pytest.mark.asyncio
     async def test_convertable_file_invokes_converter(
         self,
-        built_in_toolset_context,
+        builtin_toolset_context,
         temp_workspace,
         ext,
         monkeypatch: pytest.MonkeyPatch,
@@ -77,7 +77,7 @@ class TestMarkitdownConvertableBinaryDetection:
 
         monkeypatch.setattr(file_system_module, "db_context", lambda: FakeDbContext())
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         tool._markdown_converter.convert = AsyncMock(return_value="# converted")
 
         await tool.read_file(filename)
@@ -87,12 +87,12 @@ class TestMarkitdownConvertableBinaryDetection:
     @pytest.mark.parametrize("ext", NON_CONVERTABLE_EXTENSIONS)
     @pytest.mark.asyncio
     async def test_non_convertable_file_does_not_invoke_converter(
-        self, built_in_toolset_context, temp_workspace, ext
+        self, builtin_toolset_context, temp_workspace, ext
     ):
         filename = f"test.{ext}"
         (temp_workspace / filename).write_text("plain text", encoding="utf-8")
 
-        tool = FileSystemToolset(built_in_toolset_context)
+        tool = FileSystemToolset(builtin_toolset_context)
         tool._markdown_converter.convert = AsyncMock(return_value="should not be called")
 
         await tool.read_file(filename)
