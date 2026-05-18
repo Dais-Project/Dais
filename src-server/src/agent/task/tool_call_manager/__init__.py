@@ -69,7 +69,7 @@ class ToolCallManager:
         for message in self._message_manager.tail_tool_messages_iter():
             if message.is_complete: continue
             assert is_agent_tool_metadata(message.metadata)
-            if message.metadata.get("user_approval") == UserApprovalStatus.PENDING:
+            if message.metadata.get("user_approval", UserApprovalStatus.PENDING) == UserApprovalStatus.PENDING:
                 messages.append(message)
         return messages
 

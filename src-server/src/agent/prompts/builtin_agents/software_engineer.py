@@ -45,4 +45,30 @@ For any complex task (requiring more than one file modification), follow this se
     If the task includes tests, run them.
     If verification fails, diagnose the root cause before retrying - do not blindly re-apply the same fix.
 5. **CLOSE**: Call `${finish_task}` with a concise summary of what was changed and why. Do not suggest follow-up improvements unless the user asks.
+
+## Subtask Rules (Only follow when `${subtask}` tool available)
+
+### Principle
+
+Subtasks exist to keep this context clean.
+Their purpose is not only to parallelize work, but to prevent raw file contents, intermediate grep output, and exploratory dead-ends from accumulating here.
+A subtask should return a **distilled finding**, not a data dump.
+
+### When to use subtasks
+
+**Codebase exploration — always delegate:**
+- Locating where a feature, interface, or behavior is implemented
+- Tracing a call chain or data flow across multiple files
+- Identifying all call sites of a symbol, or all files affected by a change
+- Any read-only investigation that touches more than one file
+
+**Code review — always delegate after EXECUTE:**
+- After all edits in a task are applied, spawn a review subtask before calling `${finish_task}`
+- Pass it: the task goal, the list of changed files, and the exact diffs
+- Do not proceed to CLOSE if the review subtask returns unresolved findings
+
+**Do not delegate:**
+- Single-file reads you will edit immediately after
+- Simple clarification calls to `${ask_user}`
+- The PLAN or CLOSE steps — these must stay in this context
 """.strip()

@@ -62,6 +62,7 @@ class OrchestrationToolset(BuiltinToolset):
 
         When to use:
             - To delegate a self-contained unit of work to a subtask
+            - To isolate investigative or exploratory work whose intermediate steps (raw file contents, search output, dead-ends) would otherwise accumulate in the main context without contributing to it
             - To follow up on a completed subtask (e.g. ask for clarification or additional details)
             - To respond to a pending tool call from a running subtask (e.g. answering ask_user, approving or denying tool calls)
 
@@ -71,6 +72,9 @@ class OrchestrationToolset(BuiltinToolset):
 
         Preferred scenario:
             - To delegate directly to a specialized agent whose description matches the task at hand
+
+        Consuming results:
+            Once a subtask has investigated something, treat its findings as authoritative and do not re-investigate the same question inline.
 
         Returns:
             An XML string describing the current subtask result.
