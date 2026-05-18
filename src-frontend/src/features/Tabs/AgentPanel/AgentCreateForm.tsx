@@ -6,6 +6,7 @@ import { FormShell, FormShellFooter } from "@/components/custom/form/FormShell";
 import { NameField, RichTextField } from "@/components/custom/form/fields";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_AGENT } from "@/constants/agent";
+import { AgentDescriptionField } from "./fields/AgentDescriptionField";
 import { AgentIconField } from "./fields/AgentIconField";
 import { AgentModelField } from "./fields/AgentModelField";
 import { ToolMultiSelectField } from "./fields/ToolMultiSelectField";
@@ -43,6 +44,8 @@ export function AgentCreateForm({ onConfirm }: AgentCreateFormProps) {
       />
 
       <AgentIconField />
+
+      <AgentDescriptionField />
 
       <AgentModelField />
 

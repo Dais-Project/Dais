@@ -4,6 +4,7 @@ from .toolset import ToolRead
 
 class AgentBase(DTOBase):
     name: str
+    description: str
     icon_name: str
 
 class AgentBrief(AgentBase):
@@ -23,6 +24,7 @@ class AgentCreate(AgentBase):
 
 class AgentUpdate(DTOBase):
     name: str | None
+    description: str | None
     icon_name: str | None
     instruction: str | None
     model_id: int | None

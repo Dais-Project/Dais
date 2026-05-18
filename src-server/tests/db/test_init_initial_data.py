@@ -98,6 +98,7 @@ class TestInitInitialData:
                 "Terminal Interpreter",
                 "Software Engineer",
             }
+            assert all(agent.description for agent in agents)
             assert all(agent.model_id == model.id for agent in agents)
             assert len(software_engineer.usable_tools) == len(tools)
 

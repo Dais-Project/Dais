@@ -75,7 +75,7 @@ export function AgentSettings() {
           <Input
             type="number"
             value={localSettings.smart_approve_timeout}
-            min={1}
+            min={3}
             step={1}
             onChange={(e) => handleValueChange({ smart_approve_timeout: Number(e.target.value) })}
             disabled={disabled}
