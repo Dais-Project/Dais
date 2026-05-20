@@ -56,7 +56,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
         riskLevel={risk.level}
         riskReason={risk.reason}
       />
-      <ToolContent>
+      <ToolContent className="bg-card">
         <ToolInput input={toolArguments} />
         <Activity mode={activityVisible(hasResult)}>
           <ToolOutput output={message.result} errorText={message.error} />
