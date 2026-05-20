@@ -141,7 +141,7 @@ class AgentTask:
         if (last_message.role == "tool" and
            (tool := self._ctx.find_tool(last_message.name)) and
            tool.executes(ExecutionControlToolset.finish_task)):
-            return TaskFinished(summary=last_message.content)
+            return TaskFinished(summary=last_message.arguments["summary"])
         return TaskInterrupted()
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
