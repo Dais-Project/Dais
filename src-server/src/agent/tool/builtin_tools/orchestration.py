@@ -10,7 +10,7 @@ from src.db.models import tasks as tasks_models
 from src.schemas.tasks import subtask as subtask_schemas
 from src.schemas.tasks import runtime as task_runtime_schemas
 from ..toolset_wrapper import builtin_tool, BuiltinToolset
-from ...types import TaskError, TaskInterrupted, TaskWaitingAction, TaskFinished
+from ...types import TaskError, TaskInterrupted, TaskWaitingAction, TaskFinished, is_agent_tool_metadata
 
 if TYPE_CHECKING:
     from ...task import AgentTask
@@ -83,8 +83,8 @@ class OrchestrationToolset(BuiltinToolset):
                 <subtask_result subtask_id="1">
                     # Title <!-- markdown text -->
                     some content
-                    <tool_call call_id="xxx" name="ask_user">Some question</tool_call>
-                    <tool_call call_id="xxx" name="shell">rm -rf ./directory</tool_call>
+                    <tool_call call_id="xxx" name="ask_user" pending_action="respond">Some question</tool_call>
+                    <tool_call call_id="xxx" name="shell" pending_action="approve">rm -rf ./directory</tool_call>
                     <error>error messages</error>
                 </subtask_result>
 
@@ -111,10 +111,13 @@ class OrchestrationToolset(BuiltinToolset):
                     root.text = summary
                 case TaskWaitingAction(messages=messages):
                     for message in messages:
+                        assert is_agent_tool_metadata(message.metadata)
                         tool_call_elem = ET.SubElement(root, "tool_call", {
                             "call_id": message.call_id,
                             "name": message.name,
                         })
+                        if pending_action := message.metadata.get("pending_action"):
+                            tool_call_elem.attrib["pending_action"] = pending_action
                         tool_call_elem.text = json.dumps(message.arguments, ensure_ascii=False)
                 case TaskError(event=event):
                     ET.SubElement(root, "error").text = event.error

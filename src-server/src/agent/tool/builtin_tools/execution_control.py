@@ -15,7 +15,7 @@ class ExecutionControlToolset(BuiltinToolset):
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     def finish_task(self,
-                    task_summary: Annotated[str,
+                    summary: Annotated[str,
                         """
                         A final summary of the completed task.
                         - 1-3 sentences

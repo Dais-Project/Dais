@@ -20,8 +20,8 @@ export function FinishTask({ message }: ToolMessageProps) {
         iconClassName="text-green-600"
       />
       <BuiltInToolContent>
-        {toolArguments?.task_summary && (
-          <Markdown className="px-4 pb-4">{toolArguments.task_summary}</Markdown>
+        {toolArguments?.summary && (
+          <Markdown className="px-4 pb-4">{toolArguments.summary}</Markdown>
         )}
       </BuiltInToolContent>
     </BuiltInToolContainer>

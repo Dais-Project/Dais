@@ -41,7 +41,7 @@ export const UpdateTodosSchema: z.ZodType<ExecutionControlUpdateTodos> = z.objec
 });
 
 export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object({
-  task_summary: z.string(),
+  summary: z.string(),
 });
 
 /* --- Execution Control Tools --- */
