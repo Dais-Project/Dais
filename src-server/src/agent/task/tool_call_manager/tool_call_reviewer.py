@@ -14,9 +14,9 @@ from ...prompts import (
 from ...context import AgentContext
 from ...types import (
     ToolDeniedEvent, ToolEvent,
-    ToolRequirePermissionEvent, ToolRequireUserResponseEvent
+    ToolRequirePermissionEvent, ToolRequireUserResponseEvent,
+    ToolMessageMetadata, UserApprovalStatus, is_agent_tool_metadata
 )
-from ...types.metadata import ToolMessageMetadata, UserApprovalStatus, is_agent_tool_metadata
 
 if TYPE_CHECKING:
     from .tool_call_dispatcher import ToolCallDispatch
@@ -150,6 +150,7 @@ class ToolCallReviewer:
         assert is_agent_tool_metadata(message.metadata)
 
         if tool.metadata["needs_user_interaction"]:
+            message.metadata["pending_action"] = "respond"
             return ToolCallBlocked(event=ToolRequireUserResponseEvent(tool_name=message.name))
 
         if tool.metadata["auto_approve"] == True:
@@ -160,6 +161,7 @@ class ToolCallReviewer:
             message.metadata["user_approval"] = UserApprovalStatus.PENDING
         match message.metadata["user_approval"]:
             case UserApprovalStatus.PENDING:
+                message.metadata["pending_action"] = "approve"
                 return ToolCallBlocked(
                     event=ToolRequirePermissionEvent(call_id=message.call_id, tool_name=tool.name))
             case UserApprovalStatus.DENIED:

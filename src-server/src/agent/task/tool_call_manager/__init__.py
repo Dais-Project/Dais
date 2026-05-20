@@ -14,10 +14,6 @@ from .exception_handlers import (
 from ..message_manager import MessageManager
 from ...context import AgentContext
 from ...prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
-from ...tool.types import is_tool_metadata
-from ...types import (
-    MessageReplaceEvent, UserApprovalStatus, is_agent_tool_metadata
-)
 from ...types import (
     UserApprovalStatus, is_agent_tool_metadata,
     ToolEvent, MessageReplaceEvent, ErrorEvent
@@ -39,15 +35,11 @@ class ToolCallManager:
 
     def apply_user_response(self, call_id: str, response: str) -> MessageReplaceEvent:
         target_message = self._message_manager.find(lambda m: m.role == "tool" and m.call_id == call_id)
-        assert target_message.role == "tool"
-        target_tool = self._ctx.find_tool(target_message.name)
-        if target_tool is None:
-            target_message.error = handle_tool_does_not_exist_error(ToolDoesNotExistError(target_message.name))
-            return MessageReplaceEvent(message=target_message)
+        assert isinstance(target_message, ToolMessage)
 
-        assert is_tool_metadata(target_tool.metadata)
-        if not target_tool.metadata["needs_user_interaction"]:
-            raise ValueError(f"Tool {target_tool.name} is not a tool that needs user interaction.")
+        assert is_agent_tool_metadata(target_message.metadata)
+        if target_message.metadata.get("pending_action") != "respond":
+            raise ValueError(f"Tool {target_message.name} is not a tool that needs user interaction.")
 
         target_message.result = response
         return MessageReplaceEvent(message=target_message)
@@ -58,6 +50,9 @@ class ToolCallManager:
 
         metadata = target_message.metadata
         assert is_agent_tool_metadata(metadata)
+        if target_message.metadata.get("pending_action") != "approve":
+            raise ValueError(f"Tool {target_message.name} is not a tool that needs approval.")
+
         if not self._tool_call_reviewer.apply_user_approval(call_id, metadata, approved):
             return None
         if "user_approval" in metadata and metadata["user_approval"] == UserApprovalStatus.DENIED:
