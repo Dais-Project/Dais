@@ -3,7 +3,6 @@ import sys
 import os
 import subprocess
 import re
-import shutil
 from pathlib import Path
 
 def get_rustc_host() -> str:
@@ -15,7 +14,7 @@ def get_rustc_host() -> str:
         sys.exit(1)
 
     m = re.search(r'host:\s+(\S+)', text)
-    if not m:
+    if m is None:
         print('Failed to determine platform target triple', file=sys.stderr)
         sys.exit(1)
     target = m.group(1)
@@ -23,10 +22,10 @@ def get_rustc_host() -> str:
 
 RUSTC_TARGET = get_rustc_host()
 
-parser = argparse.ArgumentParser(description="Move server binaries to Tauri directory.")
+parser = argparse.ArgumentParser(description="Rename the Python sidecar executable in the build artifacts.")
 parser.add_argument(
-    "--target", 
-    type=str, 
+    "--target",
+    type=str,
     help="The target platform triple (e.g., x86_64-pc-windows-msvc). If not provided, it will be detected via rustc.",
     default=RUSTC_TARGET,
 )
@@ -36,25 +35,12 @@ parser.add_argument(
     help="The name of the server executable.",
     default="server",
 )
-parser.add_argument(
-    "--output-dir",
-    type=str,
-    help="The output directory for the server binaries.",
-    default="../src-tauri/",
-)
 
 def main():
     args = parser.parse_args()
     target: str = args.target
     name: str = args.name
-    output_dir: str = args.output_dir
     ext = ".exe" if os.name == "nt" else ""
-
-    # prepare dest path
-    dest_dir = Path(output_dir) / "bin"
-    dest_executable = dest_dir / f"{name}-{target}{ext}"
-    dest_dependency_dir = Path(output_dir)
-    dest_dir.mkdir(parents=True, exist_ok=True)
 
     src_dir = Path("dist/" + name)
     src_executable = src_dir / f"{name}{ext}"
@@ -63,11 +49,12 @@ def main():
         print(f"Build artifacts not found: {src_executable}", file=sys.stderr)
         sys.exit(1)
 
+    dest_executable = src_dir / f"{name}-{target}{ext}"
+
     try:
-        shutil.move(src_executable, dest_executable)
-        shutil.move(src_dependency_dir, dest_dependency_dir)
+        src_executable.rename(dest_executable)
     except Exception as e:
-        print(f"Failed to move: {e}", file=sys.stderr)
+        print(f"Failed to rename: {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

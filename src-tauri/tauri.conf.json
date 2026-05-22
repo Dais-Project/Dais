@@ -33,11 +33,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": [
-      "./_internal/"
-    ],
-    "externalBin": [
-      "./bin/server"
-    ]
+    "resources": {
+      "../src-server/dist/server/_internal/": "_internal/",
+      "../src-frontend/dist/": "dist/"
+    },
+    "externalBin": ["../src-server/dist/server/server"]
   }
 }
