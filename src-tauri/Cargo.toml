@@ -26,6 +26,7 @@ tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2.3.3"
 tauri-plugin-fs = "2.5.0"
+mime_guess = "2.0.5"
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-autostart = "2.5.1"
