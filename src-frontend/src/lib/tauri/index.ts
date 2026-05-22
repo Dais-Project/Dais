@@ -26,8 +26,8 @@ export { saveFile } from "./save-file";
     }
   });
 
-  // ignore devtools keydown under production
-  if (globalThis.__INJECTED__.dev === "true") {
+  // ignore devtools keydown under production for tauri
+  if (globalThis.__INJECTED__?.dev === "true") {
     return;
   }
 

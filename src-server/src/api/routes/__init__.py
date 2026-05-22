@@ -1,4 +1,5 @@
 from .sse import sse_router
+from .static import static_router
 from .tasks import *
 from .workspace import workspaces_router
 from .agent import agents_router

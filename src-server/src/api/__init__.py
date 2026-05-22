@@ -7,6 +7,7 @@ from src.services.exceptions import ServiceError
 from .middlewares import DBSessionMiddleware
 from .routes import (
     sse_router,
+    static_router,
     workspaces_router,
     providers_router,
     llm_api_router,
@@ -42,7 +43,7 @@ app = FastAPI(
     responses={
         400: {"model": ErrorResponseSchema},
         401: {"model": ErrorResponseSchema},
-        403: {"model": ErrorResponseSchema}, 
+        403: {"model": ErrorResponseSchema},
         404: {"model": ErrorResponseSchema},
         409: {"model": ErrorResponseSchema},
         422: {"model": ErrorResponseSchema},
@@ -84,6 +85,8 @@ app.include_router(task_manage_router, prefix="/api/tasks")
 app.include_router(schedule_manage_router, prefix="/api/schedules")
 
 app.include_router(health_router, prefix="/api/health")
+
+app.include_router(static_router)
 
 add_pagination(app)
 
