@@ -94,6 +94,7 @@ class OrchestrationToolset(BuiltinToolset):
         """
         async def resolve_continue_subtask(task: AgentTask, continue_message: str | list[SubtaskToolAnswer | SubtaskToolApprove]):
             if isinstance(continue_message, str):
+                task.tool_calls.discard_pendings()
                 task.messages.append(UserMessage(content=continue_message))
                 return
             for message in continue_message:
