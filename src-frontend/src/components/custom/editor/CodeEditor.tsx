@@ -1,5 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { CreateHandler, DeleteHandler, MoveHandler, RenameHandler } from "react-arborist";
+import {
+  CreateHandler,
+  DeleteHandler,
+  MoveHandler,
+  RenameHandler,
+} from "react-arborist";
 import type { LanguageSupport } from "@codemirror/language";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
@@ -7,10 +12,15 @@ import { python } from "@codemirror/lang-python";
 import { markdown } from "@codemirror/lang-markdown";
 import { json } from "@codemirror/lang-json";
 import { xml } from "@codemirror/lang-xml";
-import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from "@/components/ui/resizable";
+import {
+  ResizablePanel,
+  ResizablePanelGroup,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { ArboristTree, ArboristTreeHeaderAction, TreeItem } from "../file-tree";
 import { MaximizeIcon, MinimizeIcon } from "lucide-react";
+import { safeUuid } from "@/lib/safe-uuid";
 
 function getLanguageExtensions(filename: string): LanguageSupport | null {
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
@@ -35,12 +45,7 @@ export type CodeEditorProps = {
   onChange?: (updater: ImmerUpdater<TreeItem[]>) => void;
 };
 
-export function CodeEditor({
-  value,
-  title,
-  theme,
-  onChange,
-}: CodeEditorProps) {
+export function CodeEditor({ value, title, theme, onChange }: CodeEditorProps) {
   const editorLatestValueRef = useRef<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -67,50 +72,62 @@ export function CodeEditor({
     });
   };
 
-  const handleMove: MoveHandler<TreeItem> = useCallback(({ dragIds, parentId }) => {
-    const targetId = dragIds[0];
-    onChange?.((draft: TreeItem[]) => {
-      const target = draft.find((i) => i.id === targetId);
-      if (!target) return;
-      target.parentId = parentId;
-    });
-  }, [onChange]);
+  const handleMove: MoveHandler<TreeItem> = useCallback(
+    ({ dragIds, parentId }) => {
+      const targetId = dragIds[0];
+      onChange?.((draft: TreeItem[]) => {
+        const target = draft.find((i) => i.id === targetId);
+        if (!target) return;
+        target.parentId = parentId;
+      });
+    },
+    [onChange],
+  );
 
-  const handleDelete: DeleteHandler<TreeItem> = useCallback(({ ids }) => {
-    onChange?.((draft: TreeItem[]) => {
-      const targetIndex = draft.findIndex((i) => i.id === ids[0]);
-      if (targetIndex === -1) return;
-      draft.splice(targetIndex, 1);
-    });
-  }, [onChange]);
+  const handleDelete: DeleteHandler<TreeItem> = useCallback(
+    ({ ids }) => {
+      onChange?.((draft: TreeItem[]) => {
+        const targetIndex = draft.findIndex((i) => i.id === ids[0]);
+        if (targetIndex === -1) return;
+        draft.splice(targetIndex, 1);
+      });
+    },
+    [onChange],
+  );
 
-  const handleRename: RenameHandler<TreeItem> = useCallback(({ id, name, node }) => {
-    if (name.trim() === "") {
-      handleDelete({ ids: [id], nodes: [node] });
-      return;
-    }
-    onChange?.((draft: TreeItem[]) => {
-      const target = draft.find((i) => i.id === id);
-      if (!target) return;
-      target.name = name;
-    });
-  }, [onChange, handleDelete]);
+  const handleRename: RenameHandler<TreeItem> = useCallback(
+    ({ id, name, node }) => {
+      if (name.trim() === "") {
+        handleDelete({ ids: [id], nodes: [node] });
+        return;
+      }
+      onChange?.((draft: TreeItem[]) => {
+        const target = draft.find((i) => i.id === id);
+        if (!target) return;
+        target.name = name;
+      });
+    },
+    [onChange, handleDelete],
+  );
 
-  const handleCreate: CreateHandler<TreeItem> = useCallback(({ parentId, type }) => {
-    const id = crypto.randomUUID();
-    const isFolder = type === "internal";
-    let newNode = { id, name: "", parentId };
-    if (isFolder) {
-      Object.assign(newNode, { type: "folder" });
-    } else {
-      Object.assign(newNode, { type: "file", content: "" });
-    }
-    onChange?.((draft: TreeItem[]) => {
-      if (draft.some((i) => i.id === id)) return;
-      draft.push(newNode as TreeItem);
-    });
-    return { id };
-  }, [onChange]);
+  const handleCreate: CreateHandler<TreeItem> = useCallback(
+    ({ parentId, type }) => {
+      const id = safeUuid();
+      const isFolder = type === "internal";
+      let newNode = { id, name: "", parentId };
+      if (isFolder) {
+        Object.assign(newNode, { type: "folder" });
+      } else {
+        Object.assign(newNode, { type: "file", content: "" });
+      }
+      onChange?.((draft: TreeItem[]) => {
+        if (draft.some((i) => i.id === id)) return;
+        draft.push(newNode as TreeItem);
+      });
+      return { id };
+    },
+    [onChange],
+  );
 
   const extensions = useMemo(() => {
     const result: LanguageSupport[] = [];
@@ -127,18 +144,17 @@ export function CodeEditor({
   return (
     <div className="hidden-during-resizing overflow-hidden rounded-md border w-full h-[60vh]">
       <div
-        className={cn("bg-background h-full",
-          { "fixed inset-0 z-50 h-screen": isFullscreen },
-        )}
+        className={cn("bg-background h-full", {
+          "fixed inset-0 z-50 h-screen": isFullscreen,
+        })}
         data-fullscreen-wrapper
       >
-        <ResizablePanelGroup className="bg-transparent dark:bg-input/30" orientation="horizontal">
+        <ResizablePanelGroup
+          className="bg-transparent dark:bg-input/30"
+          orientation="horizontal"
+        >
           {/* ── Left: File tree ── */}
-          <ResizablePanel
-            minSize={200}
-            defaultSize={200}
-            maxSize={"60%"}
-          >
+          <ResizablePanel minSize={200} defaultSize={200} maxSize={"60%"}>
             <ArboristTree
               data={value}
               title={title ?? "EXPLORER"}
@@ -148,13 +164,13 @@ export function CodeEditor({
               onRename={handleRename}
               onDelete={handleDelete}
               onCreate={handleCreate}
-              actions={(
+              actions={
                 <ArboristTreeHeaderAction
                   icon={isFullscreen ? MinimizeIcon : MaximizeIcon}
                   title="切换全屏"
                   onClick={() => setIsFullscreen((prev) => !prev)}
                 />
-              )}
+              }
             />
           </ResizablePanel>
 
@@ -164,8 +180,10 @@ export function CodeEditor({
           <ResizablePanel className="flex flex-col bg-background">
             {selectedItem ? (
               <CodeMirror
-                value={(selectedItem.type === "file" && selectedItem.content) || ""}
-                onChange={(content) => editorLatestValueRef.current = content}
+                value={
+                  (selectedItem.type === "file" && selectedItem.content) || ""
+                }
+                onChange={(content) => (editorLatestValueRef.current = content)}
                 onBlur={handleEditorBlur}
                 extensions={extensions}
                 theme={theme}

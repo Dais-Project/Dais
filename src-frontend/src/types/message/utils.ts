@@ -1,21 +1,32 @@
-import { ToolMessageArguments } from "@/api/generated/schemas";
-import { SdkMessage, SdkToolMessage } from "./sdk-message";
-import { UiAssistantMessage, UiMessage, UiToolMessage, UiUserMessage } from "./ui-message";
+import type { ToolMessageArguments } from "@/api/generated/schemas";
+import type { SdkMessage, SdkToolMessage } from "./sdk-message";
+import type {
+  UiAssistantMessage,
+  UiMessage,
+  UiToolMessage,
+  UiUserMessage,
+} from "./ui-message";
+import { safeUuid } from "@/lib/safe-uuid";
 
-export function isToolMessageCompleted(message: SdkToolMessage | UiToolMessage) {
+export function isToolMessageCompleted(
+  message: SdkToolMessage | UiToolMessage,
+) {
   return message.result !== null || message.error !== null;
 }
 
 export function uiUserMessageFactory(content: string): UiUserMessage {
   return {
-    id: crypto.randomUUID(),
+    id: safeUuid(),
     role: "user",
     isStreaming: false,
     content,
   };
 }
 
-export function uiAssistantMessageFactory(id?: string, content?: string): UiAssistantMessage {
+export function uiAssistantMessageFactory(
+  id?: string,
+  content?: string,
+): UiAssistantMessage {
   return {
     id,
     role: "assistant",
@@ -30,7 +41,7 @@ export function uiAssistantMessageFactory(id?: string, content?: string): UiAssi
 export function uiToolMessageFactory(
   callId: string,
   name: string,
-  args: string | ToolMessageArguments
+  args: string | ToolMessageArguments,
 ): UiToolMessage {
   const isStreaming = typeof args === "string";
   return {
@@ -47,7 +58,9 @@ export function uiToolMessageFactory(
 
 export function toUiMessage(value: SdkMessage): UiMessage;
 export function toUiMessage(value: SdkMessage[]): UiMessage[];
-export function toUiMessage(value: SdkMessage | SdkMessage[]): UiMessage | UiMessage[] {
+export function toUiMessage(
+  value: SdkMessage | SdkMessage[],
+): UiMessage | UiMessage[] {
   if (!Array.isArray(value)) {
     return { ...value, isStreaming: false };
   }
@@ -60,7 +73,9 @@ export function toUiMessage(value: SdkMessage | SdkMessage[]): UiMessage | UiMes
 
 export function toSdkMessage(value: UiMessage): SdkMessage;
 export function toSdkMessage(value: UiMessage[]): SdkMessage[];
-export function toSdkMessage(value: UiMessage | UiMessage[]): SdkMessage | SdkMessage[] {
+export function toSdkMessage(
+  value: UiMessage | UiMessage[],
+): SdkMessage | SdkMessage[] {
   if (!Array.isArray(value)) {
     if (value.isStreaming) {
       throw new Error("Cannot convert streaming tool message to SDK message");
