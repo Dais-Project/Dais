@@ -7,19 +7,9 @@
     "devUrl": "http://localhost:1420"
   },
   "app": {
-    "windows": [
-      {
-        "label": "main",
-        "title": "Dais",
-        "width": 800,
-        "height": 600,
-        "visible": false,
-        "devtools": true,
-        "dragDropEnabled": false
-      }
-    ],
+    "windows": [],
     "security": {
-      "csp": "default-src 'self' static: blob: data:; script-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self' app: blob: data:; script-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {

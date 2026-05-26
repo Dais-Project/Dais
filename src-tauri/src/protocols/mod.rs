@@ -1,3 +1,3 @@
-mod r#static;
+mod app;
 
-pub use r#static::handle_static_protocol;
+pub use app::{handle_app_protocol, APP_PROTOCOL_NAME};

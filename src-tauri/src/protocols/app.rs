@@ -3,7 +3,9 @@ use tauri::{
   Manager, Runtime, UriSchemeContext,
 };
 
-pub fn handle_static_protocol<R: Runtime>(
+pub const APP_PROTOCOL_NAME: &str = "app";
+
+pub fn handle_app_protocol<R: Runtime>(
   ctx: UriSchemeContext<'_, R>,
   request: Request<Vec<u8>>,
 ) -> Response<Vec<u8>> {

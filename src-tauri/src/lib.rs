@@ -64,18 +64,8 @@ pub fn run(args: Args) {
       ("dev", args.dev.to_string()),
       ("server_port", server_port.to_string()),
     ])))
-    .register_uri_scheme_protocol("static", protocols::handle_static_protocol)
+    .register_uri_scheme_protocol(protocols::APP_PROTOCOL_NAME, protocols::handle_app_protocol)
     .setup(move |app| {
-      #[cfg(desktop)]
-      // init autostart plugin
-      let autostart_plugin_init_result = app.handle().plugin(tauri_plugin_autostart::init(
-        tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-        None,
-      ));
-      if let Err(err) = autostart_plugin_init_result {
-        eprintln!("Failed to initialize autostart plugin: {}", err);
-      }
-
       if !args.dev {
         // only start sidecar in production mode
         let child = start_sidecar(app.handle().clone(), server_port)?;
@@ -88,22 +78,36 @@ pub fn run(args: Args) {
         });
       }
 
+      // init autostart plugin
+      #[cfg(desktop)]
+      let autostart_plugin_init_result = app.handle().plugin(tauri_plugin_autostart::init(
+        tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+        None,
+      ));
+      if let Err(err) = autostart_plugin_init_result {
+        eprintln!("Failed to initialize autostart plugin: {}", err);
+      }
+
+      // single instance plugin
       #[cfg(desktop)]
       let _ = app
         .handle()
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}));
 
-      if let Some(window) = app.get_webview_window("main") {
-        let window_url = if args.dev {
-          "http://localhost:1420"
-        } else {
-          "static://index.html"
-        };
-        let _ = window.navigate(window_url.parse().unwrap());
-
-        let _ = window.restore_state(StateFlags::all());
-        let _ = window.show();
-      }
+      let window_url = if args.dev {
+        tauri::WebviewUrl::External("http://localhost:1420".parse().unwrap())
+      } else {
+        tauri::WebviewUrl::CustomProtocol("app://localhost/".parse().unwrap())
+      };
+      let window = tauri::WebviewWindowBuilder::new(app, "main", window_url)
+        .title("Dais")
+        .inner_size(800.0, 600.0)
+        .visible(false)
+        .devtools(true)
+        .disable_drag_drop_handler()
+        .build()?;
+      window.restore_state(StateFlags::all())?;
+      window.show()?;
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![commands::devtools::open_devtools])
