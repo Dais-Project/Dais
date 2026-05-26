@@ -1,21 +1,30 @@
+import { API_BASE } from "@/api";
 import type { DispatcherEventData } from "@/api/generated/schemas";
 import { createSseStream } from "./sse";
-import { API_BASE } from "@/api";
 
 type DispatcherEvent = DispatcherEventData["event_id"];
 
 type DispatcherEventMap = {
-  [TEvent in DispatcherEvent]: Extract<DispatcherEventData, { event_id: TEvent }>;
+  [TEvent in DispatcherEvent]: Extract<
+    DispatcherEventData,
+    { event_id: TEvent }
+  >;
 };
 
-type DispatcherEventHandler<TEvent extends DispatcherEvent> = (data: DispatcherEventMap[TEvent]) => void;
+type DispatcherEventHandler<TEvent extends DispatcherEvent> = (
+  data: DispatcherEventMap[TEvent],
+) => void;
 
 class _SseDispatcher {
   private abortController: AbortController | null = null;
   private readonly listeners: Map<DispatcherEvent, Set<unknown>> = new Map();
 
-  private getEventListeners<TEvent extends DispatcherEvent>(eventType: TEvent): Set<DispatcherEventHandler<TEvent>> {
-    const listeners = this.listeners.get(eventType) as Set<DispatcherEventHandler<TEvent>> | undefined;
+  private getEventListeners<TEvent extends DispatcherEvent>(
+    eventType: TEvent,
+  ): Set<DispatcherEventHandler<TEvent>> {
+    const listeners = this.listeners.get(eventType) as
+      | Set<DispatcherEventHandler<TEvent>>
+      | undefined;
     if (listeners) {
       return listeners;
     }
@@ -25,13 +34,21 @@ class _SseDispatcher {
     return nextListeners;
   }
 
-  on<TEvent extends DispatcherEvent>(eventType: TEvent, callback: DispatcherEventHandler<TEvent>) {
+  on<TEvent extends DispatcherEvent>(
+    eventType: TEvent,
+    callback: DispatcherEventHandler<TEvent>,
+  ) {
     const listeners = this.getEventListeners(eventType);
     listeners.add(callback);
   }
 
-  off<TEvent extends DispatcherEvent>(eventType: TEvent, callback: DispatcherEventHandler<TEvent>) {
-    const listeners = this.listeners.get(eventType) as Set<DispatcherEventHandler<TEvent>> | undefined;
+  off<TEvent extends DispatcherEvent>(
+    eventType: TEvent,
+    callback: DispatcherEventHandler<TEvent>,
+  ) {
+    const listeners = this.listeners.get(eventType) as
+      | Set<DispatcherEventHandler<TEvent>>
+      | undefined;
     if (!listeners) {
       return;
     }
@@ -42,13 +59,21 @@ class _SseDispatcher {
     }
   }
 
-  subscribe<TEvent extends DispatcherEvent>(eventType: TEvent, callback: DispatcherEventHandler<TEvent>): () => void {
+  subscribe<TEvent extends DispatcherEvent>(
+    eventType: TEvent,
+    callback: DispatcherEventHandler<TEvent>,
+  ): () => void {
     this.on(eventType, callback);
     return () => this.off(eventType, callback);
   }
 
-  private emit<TEvent extends DispatcherEvent>(eventType: TEvent, data: DispatcherEventMap[TEvent]) {
-    const listeners = this.listeners.get(eventType) as Set<DispatcherEventHandler<TEvent>> | undefined;
+  private emit<TEvent extends DispatcherEvent>(
+    eventType: TEvent,
+    data: DispatcherEventMap[TEvent],
+  ) {
+    const listeners = this.listeners.get(eventType) as
+      | Set<DispatcherEventHandler<TEvent>>
+      | undefined;
     if (!listeners) {
       return;
     }
@@ -66,7 +91,7 @@ class _SseDispatcher {
           return;
         }
 
-        this.emit(data.event_id!, data);
+        this.emit(data.event_id, data);
       },
     });
   }
@@ -78,5 +103,5 @@ class _SseDispatcher {
   }
 }
 
-export const SSE_ENDPOINT = new URL("/api/events", API_BASE);
+export const SSE_ENDPOINT = new URL("/api/events/", API_BASE);
 export default new _SseDispatcher();

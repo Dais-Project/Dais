@@ -1,7 +1,7 @@
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -12,10 +12,12 @@ export default defineConfig(async () => ({
     react(),
     tailwindcss(),
     viteStaticCopy({
-      targets: [{
-        src: "node_modules/vditor/dist/**/*",
-        dest: "vditor/dist",
-      }],
+      targets: [
+        {
+          src: "node_modules/vditor/dist/**/*",
+          dest: "vditor/dist",
+        },
+      ],
     }),
   ],
 
@@ -37,10 +39,16 @@ export default defineConfig(async () => ({
     host,
     hmr: host
       ? {
+          // mobile
           protocol: "ws",
           host,
           port: 1421,
         }
-      : undefined,
+      : {
+          // desktop
+          protocol: "ws",
+          host: "localhost",
+          port: 1420,
+        },
   },
 }));

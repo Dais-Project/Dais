@@ -13,7 +13,7 @@ const input: InputOptions = {
   target: "../openapi.json",
   filters: {
     mode: "exclude",
-    tags: ["stream"],
+    tags: ["static", "stream"],
   },
 };
 
@@ -51,7 +51,9 @@ export default defineConfig({
       },
     },
     hooks: {
-      afterAllFilesWrite: ["biome format --write --config-path config/biome.format.jsonc"],
+      afterAllFilesWrite: [
+        "biome format --write --config-path config/biome.format.jsonc",
+      ],
     },
   },
 });

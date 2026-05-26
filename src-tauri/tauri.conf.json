@@ -4,8 +4,7 @@
   "version": "../package.json",
   "identifier": "org.dais.desktop",
   "build": {
-    "devUrl": "http://localhost:1420",
-    "frontendDist": "../src-frontend/dist"
+    "devUrl": "http://localhost:1420"
   },
   "app": {
     "windows": [
@@ -20,7 +19,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' static: blob: data:; script-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {
@@ -33,11 +32,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": [
-      "./_internal/"
-    ],
-    "externalBin": [
-      "./bin/server"
-    ]
+    "resources": {
+      "../src-server/dist/server/_internal/": "_internal/",
+      "../src-frontend/dist/": "dist/"
+    },
+    "externalBin": ["../src-server/dist/server/server"]
   }
 }

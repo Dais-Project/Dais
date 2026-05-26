@@ -1,6 +1,7 @@
 mod args;
 mod commands;
 mod plugins;
+mod protocols;
 mod state;
 mod utils;
 
@@ -63,6 +64,7 @@ pub fn run(args: Args) {
       ("dev", args.dev.to_string()),
       ("server_port", server_port.to_string()),
     ])))
+    .register_uri_scheme_protocol("static", protocols::handle_static_protocol)
     .setup(move |app| {
       #[cfg(desktop)]
       // init autostart plugin
@@ -92,6 +94,13 @@ pub fn run(args: Args) {
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}));
 
       if let Some(window) = app.get_webview_window("main") {
+        let window_url = if args.dev {
+          "http://localhost:1420"
+        } else {
+          "static://index.html"
+        };
+        let _ = window.navigate(window_url.parse().unwrap());
+
         let _ = window.restore_state(StateFlags::all());
         let _ = window.show();
       }

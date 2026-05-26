@@ -1,6 +1,7 @@
 import asyncio
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+import inspect
+from collections.abc import AsyncGenerator, Callable
+from contextlib import AsyncExitStack, asynccontextmanager
 from pathlib import Path
 from typing import Coroutine, TypedDict
 from fastapi import FastAPI
@@ -14,6 +15,7 @@ from src.services.tasks import RunRecordService, TaskService
 from src.services.workspace import WorkspaceService
 from src.settings import AppSettings, use_app_setting_manager
 from .sse_dispatcher import SseDispatcher
+from .cleanup import CleanupManager
 
 
 class AppState(TypedDict):
@@ -48,8 +50,20 @@ class LifespanManager:
         self.mcp_toolset_manager = use_mcp_toolset_manager()
         self.background_task_manager = BackgroundTaskManager()
 
+    @asynccontextmanager
+    async def __call__(self, app: FastAPI) -> AsyncGenerator[AppState]:
+        await self._init_resources()
+
+        try:
+            yield AppState(
+                sse_dispatcher=self.sse_dispatcher,
+                mcp_toolset_manager=self.mcp_toolset_manager
+            )
+        finally:
+            await CleanupManager.cleanup()
+
     async def _init_resources(self):
-        settings = await self.app_setting_manager.initialize()
+        settings = self.app_setting_manager.settings
         self.background_task_manager.add_task(self._cleanup_outdated_task_records(settings))
         self.background_task_manager.add_task(self._clear_unused_cache())
         self.background_task_manager.add_task(self._init_toolsets())
@@ -61,6 +75,13 @@ class LifespanManager:
         # schedule runner loads after materialize calls,
         # prevent the scheduled task runs without skills and notes
         self.background_task_manager.add_task(self.schedule_runner.load_schedules())
+
+        CleanupManager.add_cleanup(self.schedule_runner.shutdown)
+        CleanupManager.add_cleanup(self.background_task_manager.shutdown)
+        CleanupManager.add_cleanup(self.mcp_toolset_manager.disconnect_mcp_servers)
+        CleanupManager.add_cleanup(self.app_setting_manager.persist)
+        CleanupManager.add_cleanup(self.sse_dispatcher.close)
+        CleanupManager.add_cleanup(database_engine.dispose)
 
     async def _init_toolsets(self):
         async with db_context() as db_session:
@@ -82,24 +103,3 @@ class LifespanManager:
             workspaces = (await db_session.scalars(stmt)).all()
             for workspace in workspaces:
                 await MarkdownCacheService(db_session, workspace.id, Path(workspace.directory)).clear_unused()
-
-    @asynccontextmanager
-    async def __call__(self, app: FastAPI) -> AsyncIterator[AppState]:
-        await self._init_resources()
-
-        try:
-            yield AppState(
-                sse_dispatcher=self.sse_dispatcher,
-                mcp_toolset_manager=self.mcp_toolset_manager
-            )
-        finally:
-            await self._shutdown()
-
-    async def _shutdown(self):
-        await self.schedule_runner.shutdown()
-        await self.background_task_manager.shutdown()
-
-        await self.mcp_toolset_manager.disconnect_mcp_servers()
-        await self.app_setting_manager.persist()
-        await self.sse_dispatcher.close()
-        await database_engine.dispose()

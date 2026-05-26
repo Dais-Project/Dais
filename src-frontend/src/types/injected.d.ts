@@ -4,7 +4,7 @@ type InjectedVars = {
 };
 
 declare global {
-  var __INJECTED__: InjectedVars;
+  var __INJECTED__: InjectedVars | undefined;
 }
 
 export {};

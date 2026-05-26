@@ -7,16 +7,11 @@
     "install": {
       "command": "uv sync --all-groups",
       "cache": true,
-      "inputs": [
-        "{projectRoot}/pyproject.toml",
-        "{projectRoot}/uv.lock"
-      ]
+      "inputs": ["{projectRoot}/pyproject.toml", "{projectRoot}/uv.lock"]
     },
     "install-prebuilts": {
       "executor": "nx:run-commands",
-      "inputs": [
-        "{projectRoot}/prebuilt-down.toml"
-      ],
+      "inputs": ["{projectRoot}/prebuilt-down.toml"],
       "options": {
         "commands": [
           {
@@ -33,28 +28,18 @@
     },
     "test": {
       "command": "uv run pytest",
-      "dependsOn": [
-        "install"
-      ]
+      "dependsOn": ["install"]
     },
     "dev": {
       "command": "uv run python -m scripts.watches dev",
       "continuous": true,
-      "dependsOn": [
-        "install",
-        "install-prebuilts",
-        "watch-schema"
-      ]
+      "dependsOn": ["install", "install-prebuilts", "watch-schema"]
     },
     "watch-schema": {
       "command": "uv run python -m scripts.watches schema",
       "continuous": true,
-      "dependsOn": [
-        "install"
-      ],
-      "outputs": [
-        "{workspaceRoot}/openapi.json"
-      ]
+      "dependsOn": ["install"],
+      "outputs": ["{workspaceRoot}/openapi.json"]
     },
     "build": {
       "executor": "nx:run-commands",
@@ -63,27 +48,19 @@
         "install-prebuilts",
         {
           "target": "build",
-          "projects": [
-            "frontend"
-          ]
+          "projects": ["frontend"]
         }
       ],
       "cache": true,
       "options": {
         "commands": [
           "uv run pyinstaller --noconfirm entry.spec",
-          "uv run python -m scripts.rename_python_sidecar --name=server --output-dir=../src-tauri/"
+          "uv run python -m scripts.rename_python_sidecar --name=server"
         ],
         "parallel": false
       },
-      "inputs": [
-        "{projectRoot}/**/*.py",
-        "{projectRoot}/pyproject.toml"
-      ],
-      "outputs": [
-        "{projectRoot}/dist",
-        "{workspaceRoot}/src-tauri/server*"
-      ]
+      "inputs": ["{projectRoot}/**/*.py", "{projectRoot}/pyproject.toml"],
+      "outputs": ["{projectRoot}/dist", "{workspaceRoot}/src-tauri/server*"]
     },
     "type-check": {
       "command": "uv run pyright"
@@ -97,18 +74,14 @@
         "{projectRoot}/src/settings.py",
         "{projectRoot}/scripts/export_openapi.py"
       ],
-      "outputs": [
-        "{workspaceRoot}/openapi.json"
-      ]
+      "outputs": ["{workspaceRoot}/openapi.json"]
     },
     "export-tool-schema": {
       "command": "uv run python -m scripts.export_tool_specs"
     },
     "generate-migration": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "install"
-      ],
+      "dependsOn": ["install"],
       "options": {
         "commands": [
           "uv run alembic upgrade head",

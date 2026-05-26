@@ -1,11 +1,14 @@
 import argparse
-import uvicorn
-from typing import Callable
+import asyncio
+from typing import cast
 from loguru import logger
-from uvicorn.server import Server
+from hypercorn.config import Config as HypercornConfig
+from hypercorn.asyncio import serve as hypercorn_serve
+from hypercorn.typing import Framework
 from . import IS_DEV
 from .api import app
 from .db import migrate_db
+from .settings import use_app_setting_manager
 from .logger import get_log_level, setup_logging
 from .utils import ParentWatchdog
 
@@ -38,17 +41,36 @@ def prevent_port_occupancy(port: int):
             continue
     time.sleep(1)
 
-def create_server(port: int, log_level: int) -> tuple[Server, Callable[[], None]]:
-    def stop_server():
-        server.should_exit = True
+class Server:
+    def __init__(self, log_level: int, local_port: int, remote_port: int | None = None) -> None:
+        self._config = Server._create_config(log_level, local_port, remote_port)
+        self._shutdown_event = asyncio.Event()
+        self._loop = asyncio.get_event_loop()
 
-    server_config = uvicorn.Config(app,
-                                           host="127.0.0.1",
-                                           port=port,
-                                           workers=1,
-                                           log_level=log_level)
-    server = uvicorn.Server(server_config)
-    return server, stop_server
+    @staticmethod
+    def _create_config(log_level: int, local_port: int, remote_port: int | None):
+        LEVEL_MAP = {10: "debug", 20: "info", 30: "warning", 40: "error", 50: "critical"}
+        config = HypercornConfig()
+        config.bind = [f"127.0.0.1:{local_port}"]
+        if remote_port is not None:
+            config.bind.append(f"0.0.0.0:{remote_port}")
+        config.loglevel = LEVEL_MAP.get(log_level, "info")
+        config.workers = 1
+        return config
+
+    async def serve(self):
+        global app
+        await hypercorn_serve(cast(Framework, app),
+                              self._config,
+                              shutdown_trigger=self._shutdown_event.wait)
+
+    def stop(self):
+        self._loop.call_soon_threadsafe(self._shutdown_event.set)
+
+def resolve_remote_access_port() -> int | None:
+    settings = use_app_setting_manager().settings
+    if not settings.remote_access: return None
+    return settings.remote_access_port
 
 async def main():
     parser = argparse.ArgumentParser()
@@ -59,10 +81,12 @@ async def main():
         prevent_port_occupancy(args.port)
 
     await migrate_db()
+    await use_app_setting_manager().initialize()
 
     log_level = get_log_level(IS_DEV)
-    server, stop_server = create_server(args.port, log_level)
-    ParentWatchdog(stop_server).start()
+    remote_port = resolve_remote_access_port()
+    server = Server(log_level, args.port, remote_port)
+    ParentWatchdog(server.stop).start()
     setup_logging(log_level)
 
     await server.serve()
