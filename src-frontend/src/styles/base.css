@@ -6,6 +6,8 @@
 html,
 body {
   overscroll-behavior: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 input[type="password"]::-ms-reveal {
