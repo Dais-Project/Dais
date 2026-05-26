@@ -86,7 +86,7 @@ class AppSettings(JsonSettings):
                 service = LlmModelService(db_session)
                 try:
                     await service.get_model_by_id(self.flash_model)
-                except:
+                except Exception:
                     self.flash_model = None
 
 class AppSettingManager:

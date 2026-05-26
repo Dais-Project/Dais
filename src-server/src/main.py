@@ -43,10 +43,10 @@ def create_server(port: int, log_level: int) -> tuple[Server, Callable[[], None]
         server.should_exit = True
 
     server_config = uvicorn.Config(app,
-                                           host="127.0.0.1",
-                                           port=port,
-                                           workers=1,
-                                           log_level=log_level)
+                                   host="127.0.0.1",
+                                   port=port,
+                                   workers=1,
+                                   log_level=log_level)
     server = uvicorn.Server(server_config)
     return server, stop_server
 
