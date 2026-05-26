@@ -29,19 +29,11 @@ def _resolve_static_file(static_root: Path, request_path: str) -> Path:
     normalized_path = request_path.strip("/")
     candidate = (static_root / normalized_path).resolve()
 
-    try:
-        candidate.relative_to(static_root)
-    except ValueError:
-        return static_root / "index.html"
-
     if candidate.is_dir():
         index_file = candidate / "index.html"
-        if index_file.is_file():
-            return index_file
-
-    if candidate.is_file():
+        if index_file.is_file(): return index_file
+    elif candidate.is_file():
         return candidate
-
     return static_root / "index.html"
 
 async def _proxy_to_frontend_dev_server(request: Request, request_path: str) -> Response:
