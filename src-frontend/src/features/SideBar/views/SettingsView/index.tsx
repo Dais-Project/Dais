@@ -7,6 +7,7 @@ import { GeneralSettings } from "./GeneralSettings";
 import { ProviderSettings } from "./ProviderSettings";
 import { HelperModelSettings } from "./HelperModelSettings";
 import { AgentSettings } from "./AgentSettings";
+import { RemoteAccessSettings } from "./RemoteAccessSettings";
 import { DevSettings } from "./DevSettings";
 import { SideBarHeader } from "../../components/SideBarHeader";
 
@@ -33,6 +34,11 @@ export function SettingsView() {
       id: "agents",
       title: t("settings.tabs.agents"),
       content: <AgentSettings />,
+    },
+    {
+      id: "remote-access",
+      title: t("settings.tabs.remote_access"),
+      content: <RemoteAccessSettings />,
     },
     {
       id: "dev",

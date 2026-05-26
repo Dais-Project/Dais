@@ -1,23 +1,33 @@
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useDebounceFn } from "ahooks";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { useTranslation } from "react-i18next";
+import type { AppSettings } from "@/api/generated/schemas";
 import { SettingItem } from "@/components/custom/item/SettingItem";
-import { useServerSettingsStore } from "@/stores/server-settings-store";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import type { AppSettings } from "@/api/generated/schemas";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { useServerSettingsStore } from "@/stores/server-settings-store";
 
-export function AgentSettings() {
+function isValidRemoteAccessPort(value: number) {
+  return Number.isInteger(value) && value >= 1 && value <= 65535;
+}
+
+export function RemoteAccessSettings() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const { current: serverSettings, setPartial: setPartialServerSettings } =
     useServerSettingsStore();
   const [localSettings, setLocalSettings] = useState(serverSettings);
+  const [localRemoteAccessPort, setLocalRemoteAccessPort] = useState(
+    serverSettings?.remote_access_port.toString() ?? "",
+  );
   const [disabled, setDisabled] = useState(false);
 
   useEffect(() => {
     setLocalSettings(serverSettings);
+    setLocalRemoteAccessPort(
+      serverSettings?.remote_access_port.toString() ?? "",
+    );
   }, [serverSettings]);
 
   const { run: handleUpdateSettings } = useDebounceFn(
@@ -42,58 +52,43 @@ export function AgentSettings() {
     handleUpdateSettings(update);
   };
 
+  const handleRemoteAccessPortChange = (value: string) => {
+    setLocalRemoteAccessPort(value);
+    const remoteAccessPort = Number(value);
+    if (!isValidRemoteAccessPort(remoteAccessPort)) {
+      return;
+    }
+    handleValueChange({ remote_access_port: remoteAccessPort });
+  };
+
   return (
     <div className="px-4 py-2">
-      <SettingItem title={t("settings.agents.smart_approve.title")}>
+      <SettingItem title={t("settings.remote_access.enabled.title")}>
         {localSettings === null ? (
           <Skeleton className="h-4.5 w-8" />
         ) : (
           <Switch
-            checked={localSettings.smart_approve}
+            checked={localSettings.remote_access}
             onCheckedChange={(checked) =>
-              handleValueChange({ smart_approve: checked })
+              handleValueChange({ remote_access: checked })
             }
             disabled={disabled}
           />
         )}
       </SettingItem>
 
-      <SettingItem title={t("settings.agents.smart_approve_threshold.title")}>
+      <SettingItem title={t("settings.remote_access.port.title")}>
         {localSettings === null ? (
           <Skeleton className="h-9 w-24" />
         ) : (
           <Input
             type="number"
-            value={localSettings.smart_approve_threshold}
-            min={0}
-            max={100}
-            step={10}
-            onChange={(e) =>
-              handleValueChange({
-                smart_approve_threshold: Number(e.target.value),
-              })
-            }
-            disabled={disabled}
-          />
-        )}
-      </SettingItem>
-
-      <SettingItem title={t("settings.agents.smart_approve_timeout.title")}>
-        {localSettings === null ? (
-          <Skeleton className="h-9 w-24" />
-        ) : (
-          <Input
-            type="number"
-            value={localSettings.smart_approve_timeout}
-            max={999}
-            min={3}
+            value={localRemoteAccessPort}
+            min={1}
+            max={65535}
             step={1}
-            onChange={(e) =>
-              handleValueChange({
-                smart_approve_timeout: Number(e.target.value),
-              })
-            }
-            disabled={disabled}
+            onChange={(e) => handleRemoteAccessPortChange(e.target.value)}
+            disabled={disabled || !localSettings.remote_access}
           />
         )}
       </SettingItem>

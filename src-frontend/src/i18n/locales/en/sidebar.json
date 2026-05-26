@@ -156,12 +156,21 @@
         "delete_success_title": "Delete success"
       }
     },
+    "remote_access": {
+      "enabled": {
+        "title": "Enable remote access"
+      },
+      "port": {
+        "title": "Remote access port"
+      }
+    },
     "tabs": {
       "agents": "Agents",
       "dev": "Development",
       "general": "General",
       "helper_model": "Helper model",
-      "providers": "Model providers"
+      "providers": "Model providers",
+      "remote_access": "Remote access"
     }
   },
   "schedules": {
