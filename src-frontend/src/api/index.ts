@@ -1,5 +1,11 @@
 const port = globalThis.__INJECTED__?.server_port;
-export const API_BASE = `http://localhost:${port}/`;
+let api_base: string;
+if (port !== undefined) {
+  api_base = `http://localhost:${port}/`;
+} else {
+  api_base = location.href;
+}
+export const API_BASE = api_base;
 
 import { getHealth } from "./generated/endpoints/health/health";
 async function backendReady() {

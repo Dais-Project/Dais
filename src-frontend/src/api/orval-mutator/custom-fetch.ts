@@ -1,7 +1,13 @@
-import { ErrorResponseSchema, McpConnectionErrorCode } from "../generated/schemas";
 import { API_BASE } from "..";
+import type {
+  ErrorResponseSchema,
+  McpConnectionErrorCode,
+} from "../generated/schemas";
 
-export type ErrorCode = ErrorResponseSchema["error_code"] | McpConnectionErrorCode | "NETWORK_ERROR";
+export type ErrorCode =
+  | ErrorResponseSchema["error_code"]
+  | McpConnectionErrorCode
+  | "NETWORK_ERROR";
 
 export type ErrorResponse = {
   error_code: ErrorCode;
@@ -26,7 +32,7 @@ export type ErrorType<E extends ErrorResponse> = FetchError<E>;
 
 export async function fetchApi<T>(
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<T> {
   const url = new URL(input.toString(), API_BASE);
   let res: Response;
@@ -50,7 +56,9 @@ export async function fetchApi<T>(
   try {
     errorBody = (await res.json()) as ErrorResponse;
   } catch {
-    console.warn(`Failed to parse error response as JSON: ${res.status} ${res.statusText}`);
+    console.warn(
+      `Failed to parse error response as JSON: ${res.status} ${res.statusText}`,
+    );
     throw new FetchError(res.status, {
       error_code: "UNEXPECTED_ERROR",
       message: res.statusText,

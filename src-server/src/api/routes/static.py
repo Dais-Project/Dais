@@ -3,9 +3,11 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request, status
 from starlette.responses import FileResponse, Response
 from src.common import STATIC_DIR
+from ..cleanup import CleanupManager
 
 
 static_router = APIRouter(tags=["static"])
+_PROXY_CLIENT = httpx.AsyncClient(follow_redirects=True)
 _FRONTEND_DEV_URL = "http://localhost:1420"
 _HOP_BY_HOP_HEADERS = {
     "connection",
@@ -20,6 +22,8 @@ _HOP_BY_HOP_HEADERS = {
     "content-length",
     "host",
 }
+
+CleanupManager.add_cleanup(_PROXY_CLIENT.aclose)
 
 def _resolve_static_file(static_root: Path, request_path: str) -> Path:
     normalized_path = request_path.strip("/")
@@ -51,13 +55,12 @@ async def _proxy_to_frontend_dev_server(request: Request, request_path: str) -> 
         if key.lower() not in _HOP_BY_HOP_HEADERS
     }
 
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        upstream_response = await client.request(
-            request.method,
-            target_url,
-            content=await request.body(),
-            headers=request_headers,
-        )
+    upstream_response = await _PROXY_CLIENT.request(
+        request.method,
+        target_url,
+        content=await request.body(),
+        headers=request_headers,
+    )
 
     response_headers = {
         key: value
