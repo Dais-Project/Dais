@@ -63,7 +63,7 @@ class LifespanManager:
             await CleanupManager.cleanup()
 
     async def _init_resources(self):
-        settings = await self.app_setting_manager.initialize()
+        settings = self.app_setting_manager.settings
         self.background_task_manager.add_task(self._cleanup_outdated_task_records(settings))
         self.background_task_manager.add_task(self._clear_unused_cache())
         self.background_task_manager.add_task(self._init_toolsets())

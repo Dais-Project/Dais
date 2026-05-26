@@ -8,6 +8,7 @@ from hypercorn.typing import Framework
 from . import IS_DEV
 from .api import app
 from .db import migrate_db
+from .settings import use_app_setting_manager
 from .logger import get_log_level, setup_logging
 from .utils import ParentWatchdog
 
@@ -66,6 +67,11 @@ class Server:
     def stop(self):
         self._loop.call_soon_threadsafe(self._shutdown_event.set)
 
+def resolve_remote_access_port() -> int | None:
+    settings = use_app_setting_manager().settings
+    if not settings.remote_access: return None
+    return settings.remote_access_port
+
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=1460)
@@ -75,9 +81,11 @@ async def main():
         prevent_port_occupancy(args.port)
 
     await migrate_db()
+    await use_app_setting_manager().initialize()
 
     log_level = get_log_level(IS_DEV)
-    server = Server(log_level, args.port)
+    remote_port = resolve_remote_access_port()
+    server = Server(log_level, args.port, remote_port)
     ParentWatchdog(server.stop).start()
     setup_logging(log_level)
 
