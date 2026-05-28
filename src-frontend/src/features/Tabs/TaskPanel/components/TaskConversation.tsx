@@ -20,7 +20,7 @@ import { ToolMessage } from "./messages/BuiltInToolMessage";
 import { AssistantMessage } from "./messages/AssistantMessage";
 import { UserMessage } from "./messages/UserMessage";
 import type { TaskResourceMetadata } from "@/api/generated/schemas";
-import { UiMessage } from "@/types/message";
+import type { UiMessage } from "@/types/message";
 
 export function TaskConversationProvider({
   className,

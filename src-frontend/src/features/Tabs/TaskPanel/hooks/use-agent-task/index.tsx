@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
@@ -28,8 +35,8 @@ import {
 } from "@/api/tasks";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
-import { type SdkMessage } from "@/types/message";
-import { UiMessage } from "@/types/message";
+import type { SdkMessage } from "@/types/message";
+import type { UiMessage } from "@/types/message";
 import { toUiMessage } from "@/types/message";
 import { sendNotification } from "@/lib/notification";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -41,7 +48,7 @@ import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useNotificationBuffer } from "./use-notification-buffer";
 import { resolveInitialFlags, useTaskFlags } from "./use-task-flags";
 import { sounds } from "@/components/audios";
-import { useTaskControl, UseTaskControlResult } from "./use-task-control";
+import { useTaskControl, type UseTaskControlResult } from "./use-task-control";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -55,7 +62,10 @@ export type TaskFlags = {
 
 function findLatestTodoList(messages: SdkMessage[]): TodoItem[] | null {
   for (const message of messages.reverseIter()) {
-    if (message.role === "tool" && message.name === BuiltInTools.ExecutionControl__update_todos) {
+    if (
+      message.role === "tool" &&
+      message.name === BuiltInTools.ExecutionControl__update_todos
+    ) {
       const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
       if (todoList) {
         return todoList.todos;
@@ -74,7 +84,7 @@ export type AgentTaskState = {
   usage: TaskUsage;
   messages: UiMessage[];
   taskId: number;
-  taskType: TaskType,
+  taskType: TaskType;
   agentId: number | null;
 };
 
@@ -89,19 +99,25 @@ const AgentTaskActionContext = createContext<AgentTaskActions | null>(null);
 
 type AgentTaskProviderProps = {
   taskId: number;
-  taskType: TaskType,
+  taskType: TaskType;
   children: React.ReactNode;
 };
 
-export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProviderProps) {
+export function AgentTaskProvider({
+  taskId,
+  taskType,
+  children,
+}: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const setActiveTab = useTabsStore((state) => state.setActive);
-  const backToCurrentTab = () => setActiveTab((tab) => (
-    tab.type === "task" &&
-    tab.metadata.type === taskType &&
-    "id" in tab.metadata &&
-    tab.metadata.id === taskId
-  ));
+  const backToCurrentTab = () =>
+    setActiveTab(
+      (tab) =>
+        tab.type === "task" &&
+        tab.metadata.type === taskType &&
+        "id" in tab.metadata &&
+        tab.metadata.id === taskId,
+    );
 
   const { data } = useGetTaskRuntimeContextSuspense(taskType, taskId, {
     query: {
@@ -115,28 +131,34 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   });
 
   const [agentId, setAgentId] = useState(data.agent_id);
-  const { flags, setFlag, reset: resetFlags } = useTaskFlags(() => resolveInitialFlags(data.messages));
+  const {
+    flags,
+    setFlag,
+    reset: resetFlags,
+  } = useTaskFlags(() => resolveInitialFlags(data.messages));
   const [usage, setUsage] = useState<TaskUsage>(data.usage);
-  const [messages, setMessages] = useState<UiMessage[]>(() => toUiMessage(data.messages));
-  const [todos, setTodos] = useState<TodoItem[] | null>(() => findLatestTodoList(data.messages) ?? null);
+  const [messages, setMessages] = useState<UiMessage[]>(() =>
+    toUiMessage(data.messages),
+  );
+  const [todos, setTodos] = useState<TodoItem[] | null>(
+    () => findLatestTodoList(data.messages) ?? null,
+  );
 
-  const applyRuntimeContext = useCallback((runtimeContext: TaskRuntimeContext) => {
-    setAgentId(runtimeContext.agent_id);
-    setUsage(runtimeContext.usage);
-    setMessages(toUiMessage(runtimeContext.messages));
-    setTodos(findLatestTodoList(runtimeContext.messages) ?? null);
-  }, []);
+  const applyRuntimeContext = useCallback(
+    (runtimeContext: TaskRuntimeContext) => {
+      setAgentId(runtimeContext.agent_id);
+      setUsage(runtimeContext.usage);
+      setMessages(toUiMessage(runtimeContext.messages));
+      setTodos(findLatestTodoList(runtimeContext.messages) ?? null);
+    },
+    [],
+  );
 
   const latestMessage = useLatest(messages);
 
-  const setData = useCallback(
-    (updater: ImmerUpdater<UiMessage[]>) => {
-      setMessages(
-        produce((draft) => updater(draft))
-      );
-    },
-    [setMessages]
-  );
+  const setData = useCallback((updater: ImmerUpdater<UiMessage[]>) => {
+    setMessages(produce((draft) => updater(draft)));
+  }, []);
 
   const messageLifecycle = useMessageLifecycle({ setData });
   const textBuffer = useTextBuffer({
@@ -175,7 +197,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   const onUsageChunk = (chunk: UsageChunkEvent) => {
     const { event_id, ...usage } = chunk;
     setUsage(usage);
-  }
+  };
 
   const onMessageEnd = (eventData: MessageEndEvent) => {
     textBuffer.clear();
@@ -199,16 +221,17 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
           sounds.finished.play();
         } else {
           sendNotification(t("notification.task_done"), {
-            onClick: backToCurrentTab
+            onClick: backToCurrentTab,
           });
         }
         break;
-      case BuiltInTools.ExecutionControl__update_todos:
+      case BuiltInTools.ExecutionControl__update_todos: {
         const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
         if (todoList) {
           setTodos(todoList.todos);
         }
         break;
+      }
     }
   };
 
@@ -227,11 +250,11 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
     setFlag({ requiresUserPermission: true });
     if (isForeground()) {
       sounds.notify.play();
-    } {
+    } else {
       permissionNotificationBuffer.enqueue(
         t("notification.require_permission", {
           toolName: eventData.tool_name,
-        })
+        }),
       );
     }
   };
@@ -253,18 +276,19 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
   const onClose = () => {
     messageLifecycle.handleClose();
     const lastMessage = latestMessage.current.at(-1);
-    const isLastMessageNonEmptyAssistantMessage = (
+    const isLastMessageNonEmptyAssistantMessage =
       lastMessage !== undefined &&
       lastMessage?.role === "assistant" &&
       lastMessage.content !== null &&
-      lastMessage.content.length > 0
-    );
+      lastMessage.content.length > 0;
     if (isLastMessageNonEmptyAssistantMessage) {
       setFlag({ requiresUserResponse: true });
       if (isForeground()) {
         sounds.notify.play();
       } else {
-        const notificationContent = t("notification.responded", { response: lastMessage.content });
+        const notificationContent = t("notification.responded", {
+          response: lastMessage.content,
+        });
         sendNotification(notificationContent, { onClick: backToCurrentTab });
       }
     }
@@ -286,7 +310,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
 
   const handleTaskContinue = useCallback(
     () => startStream(continueTask, {}),
-    [startStream]
+    [startStream],
   );
 
   const handleTaskCancel = useCallback(() => {
@@ -314,7 +338,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
       taskType,
       agentId,
     }),
-    [state, flags, todos, usage, messages, taskId, taskType, agentId]
+    [state, flags, todos, usage, messages, taskId, taskType, agentId],
   );
 
   const actionValue = useMemo(
@@ -324,12 +348,7 @@ export function AgentTaskProvider({ taskId, taskType, children }: AgentTaskProvi
       continue: handleTaskContinue,
       cancel: handleTaskCancel,
     }),
-    [
-      taskControl,
-      setAgentId,
-      handleTaskContinue,
-      handleTaskCancel,
-    ]
+    [taskControl, handleTaskContinue, handleTaskCancel],
   );
 
   return (

@@ -94,8 +94,8 @@ class AgentTask:
                             break
 
                     assistant_message = last_chunk.message
-                    if (assistant_message.content == None and
-                        assistant_message.reasoning_content == None and
+                    if (assistant_message.content is None and
+                        assistant_message.reasoning_content is None and
                         (assistant_message.tool_calls is None or len(assistant_message.tool_calls) == 0)):
                         # empty message, retry
                         continue
