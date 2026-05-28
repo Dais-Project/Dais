@@ -9,6 +9,7 @@ from .routes import (
     sse_router,
     static_router,
     workspaces_router,
+    filesystem_router,
     providers_router,
     llm_api_router,
     llm_models_router,
@@ -66,7 +67,6 @@ app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(Exception, handle_unexpected_exception)
 
-app.include_router(sse_router, prefix="/api/events")
 app.include_router(workspaces_router, prefix="/api/workspaces")
 app.include_router(agents_router, prefix="/api/agents")
 app.include_router(providers_router, prefix="/api/providers")
@@ -75,18 +75,21 @@ app.include_router(llm_api_router, prefix="/api/llm")
 app.include_router(toolset_router, prefix="/api/toolsets")
 app.include_router(skills_router, prefix="/api/skills")
 app.include_router(settings_router, prefix="/api/settings")
+
 app.include_router(task_control_router, prefix="/api/tasks")
 app.include_router(task_resource_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
-app.include_router(task_runtime_router, prefix="/api/tasks/runtime")
 app.include_router(context_file_router, prefix="/api/tasks")
-
 app.include_router(task_manage_router, prefix="/api/tasks")
+app.include_router(task_runtime_router, prefix="/api/tasks/runtime")
 app.include_router(schedule_manage_router, prefix="/api/schedules")
 
+app.include_router(sse_router, prefix="/api/events")
 app.include_router(health_router, prefix="/api/health")
+app.include_router(filesystem_router, prefix="/api/filesystem")
 
 app.include_router(static_router)
+
 
 add_pagination(app)
 

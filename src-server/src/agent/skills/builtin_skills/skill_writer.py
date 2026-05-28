@@ -149,14 +149,14 @@ Create additional files for progressive disclosure:
 **templates/**: File templates or boilerplate
 
 Reference them from SKILL.md:
-```markdown
+````markdown
 For advanced usage, see [reference.md](reference.md).
 
 Run the helper script:
-\`\`\`bash
+```bash
 python scripts/helper.py input.txt
-\`\`\`
 ```
+````
 
 ### Step 7: Validate the skill
 
@@ -201,7 +201,7 @@ description: Read and analyze code without making changes. Use for code review, 
 
 ### Script-based skill
 
-```yaml
+````yaml
 ---
 name: data-processor
 description: Process CSV and JSON data files with Python scripts. Use when analyzing data files or transforming datasets.
@@ -212,15 +212,15 @@ description: Process CSV and JSON data files with Python scripts. Use when analy
 ## Instructions
 
 1. Use the processing script:
-\`\`\`bash
+```bash
 python scripts/process.py input.csv --output results.json
-\`\`\`
+```
 
 2. Validate output with:
-\`\`\`bash
+```bash
 python scripts/validate.py results.json
-\`\`\`
 ```
+````
 
 ### Multi-file skill with progressive disclosure
 

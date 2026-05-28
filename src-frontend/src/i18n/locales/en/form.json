@@ -3,6 +3,12 @@
     "directory": {
       "choose_button": "Choose",
       "choose_error": "Failed to choose directory",
+      "dialog": {
+        "cancel": "Cancel",
+        "loading": "Loading directories...",
+        "select": "Select",
+        "title": "Select directory"
+      },
       "label": "Directory path",
       "placeholder": "Enter directory path",
       "validation": {

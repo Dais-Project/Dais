@@ -3,6 +3,12 @@
     "directory": {
       "choose_button": "选择",
       "choose_error": "选择目录失败",
+      "dialog": {
+        "cancel": "取消",
+        "loading": "正在加载目录...",
+        "select": "选择",
+        "title": "选择目录"
+      },
       "label": "目录路径",
       "placeholder": "请输入目录路径",
       "validation": {

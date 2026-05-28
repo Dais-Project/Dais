@@ -154,12 +154,16 @@ const FolderContentLoader = ({
           />
         ) : (
           <FileTreeFile
-            icon={child.icon ?? <FileIcon className="size-4 text-muted-foreground" />}
+            icon={
+              child.icon ?? (
+                <FileIcon className="size-4 text-muted-foreground" />
+              )
+            }
             key={child.path}
             name={child.name}
             path={child.path}
           />
-        )
+        ),
       )}
     </>
   );
@@ -216,12 +220,14 @@ export const LazyFileTree = ({
           />
         ) : (
           <FileTreeFile
-            icon={node.icon ?? <FileIcon className="size-4 text-muted-foreground" />}
+            icon={
+              node.icon ?? <FileIcon className="size-4 text-muted-foreground" />
+            }
             key={node.path}
             name={node.name}
             path={node.path}
           />
-        )
+        ),
       )}
     </FileTree>
   );
