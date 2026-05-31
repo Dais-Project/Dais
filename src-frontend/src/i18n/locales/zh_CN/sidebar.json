@@ -66,6 +66,9 @@
     "about": {
       "version": {
         "title": "版本"
+      },
+      "author": {
+        "title": "作者"
       }
     },
     "agents": {
