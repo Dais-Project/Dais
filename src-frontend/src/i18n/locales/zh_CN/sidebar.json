@@ -63,6 +63,11 @@
     }
   },
   "settings": {
+    "about": {
+      "version": {
+        "title": "版本"
+      }
+    },
     "agents": {
       "smart_approve": {
         "title": "智能批准"
@@ -165,6 +170,7 @@
       }
     },
     "tabs": {
+      "about": "关于",
       "agents": "Agents",
       "dev": "开发",
       "general": "通用",

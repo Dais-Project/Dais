@@ -63,6 +63,11 @@
     }
   },
   "settings": {
+    "about": {
+      "version": {
+        "title": "Version"
+      }
+    },
     "agents": {
       "smart_approve": {
         "title": "Smart approve"
@@ -165,6 +170,7 @@
       }
     },
     "tabs": {
+      "about": "About",
       "agents": "Agents",
       "dev": "Development",
       "general": "General",

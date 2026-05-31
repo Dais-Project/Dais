@@ -9,6 +9,7 @@ import { HelperModelSettings } from "./HelperModelSettings";
 import { AgentSettings } from "./AgentSettings";
 import { RemoteAccessSettings } from "./RemoteAccessSettings";
 import { DevSettings } from "./DevSettings";
+import { AboutSettings } from "./AboutSettings";
 import { SideBarHeader } from "../../components/SideBarHeader";
 
 export function SettingsView() {
@@ -44,6 +45,11 @@ export function SettingsView() {
       id: "dev",
       title: t("settings.tabs.dev"),
       content: <DevSettings />,
+    },
+    {
+      id: "about",
+      title: t("settings.tabs.about"),
+      content: <AboutSettings />,
     },
   ];
 

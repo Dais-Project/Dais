@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -5,6 +6,11 @@ import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const host = process.env.TAURI_DEV_HOST;
+
+// Read version from root package.json
+const rootPackageJson = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, "../package.json"), "utf-8"),
+);
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -26,6 +32,10 @@ export default defineConfig(async () => ({
       "@": path.resolve(import.meta.dirname, "./src"),
       "@shared": path.resolve(import.meta.dirname, "../public"),
     },
+  },
+
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(rootPackageJson.version),
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

@@ -101,7 +101,7 @@ const TaskMessageItem = memo(
         );
       case "assistant": {
         const { content } = message;
-        if (content === null || content.length === 0) {
+        if (content === null || content.trim().length === 0) {
           return null;
         }
         return (
