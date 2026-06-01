@@ -55,10 +55,11 @@ async def append_task_message(
                     raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.TASK_RESOURCE_SHOULD_HAVE_FILENAME_AND_CONTENTTYPE)
                 file_bytes = await file.read()
                 resource = await TaskResourceService(db_session, task_type).save_task_resource(task_id, file.filename, file_bytes)
+                mimetype = file.content_type.split(";")[0].strip().lower()
                 metadatas.append(TaskResourceMetadata(
                     resource_id=resource.id,
                     filename=file.filename,
-                    mimetype=file.content_type,
+                    mimetype=mimetype,
                 ))
         return metadatas
 
@@ -78,7 +79,7 @@ async def edit_task_message(
     task_type: task_runtime_schemas.TaskType,
     task_id: int,
     body: TaskMessageEditBody,
-):    
+):
     task = await create_agent_task(task_type, task_id, body.agent_id)
     try:
         task.messages.edit(body.message_id, body.content)
