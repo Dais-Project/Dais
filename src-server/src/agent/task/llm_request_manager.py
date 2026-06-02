@@ -21,7 +21,7 @@ from src.schemas.tasks import runtime as task_runtime_schemas
 from src.utils import MarkdownConverter, to_base64_str
 from ..context import AgentContext
 from ..types import (
-    is_task_resource_metadata, TaskResourceMetadata,
+    is_task_resource_metadata, FileResourceMetadata,
     MessageStartEvent, MessageEndEvent,
     TextChunkEvent, ToolCallChunkEvent, UsageChunkEvent,
     ToolCallEndEvent,
@@ -54,7 +54,7 @@ class TaskResourceRetriever(ContentBlockResolver):
         await markdowned_path.write_text(result, "utf-8")
         return result
 
-    async def _resolve_resource(self, metadata: TaskResourceMetadata) -> ContentBlock | None:
+    async def _resolve_file_resource(self, metadata: FileResourceMetadata) -> ContentBlock | None:
         async with db_context() as db_session:
             resource_path = await TaskResourceService(db_session, self._task_type).load_task_resource(self._task_id, metadata["resource_id"])
             if resource_path is None: return None
@@ -78,7 +78,10 @@ class TaskResourceRetriever(ContentBlockResolver):
     @override
     async def resolve(self, metadata: ContentBlockMetadata) -> list[ContentBlock] | ContentBlock | None:
         assert is_task_resource_metadata(metadata)
-        file_block = await self._resolve_resource(metadata)
+        if "text" in metadata: # TextResourceMetadata
+            return TextBlock(text=metadata["text"])
+
+        file_block = await self._resolve_file_resource(metadata)
         if file_block is None: return None
 
         attachment_start_block = TextBlock(text=f"<attachment filename=\"{metadata['filename']}\">")

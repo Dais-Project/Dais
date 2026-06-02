@@ -5,7 +5,7 @@ from loguru import logger
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from pydantic import BaseModel
 from src.agent.task import MessageNotFoundError
-from src.agent.types import MessageReplaceEvent, TaskResourceMetadata
+from src.agent.types import MessageReplaceEvent, FileResourceMetadata
 from src.db import db_context
 from src.services.tasks import TaskResourceService
 from src.schemas.tasks import runtime as task_runtime_schemas
@@ -46,7 +46,7 @@ async def append_task_message(
     body: TaskAppendMessageBody = Depends(parse_append_message_body),
     uploaded_files: list[UploadFile] = File(default=[]),
 ):
-    async def persist_attachments() -> list[TaskResourceMetadata]:
+    async def persist_attachments() -> list[FileResourceMetadata]:
         nonlocal uploaded_files
         metadatas = []
         async with db_context() as db_session:
@@ -56,7 +56,7 @@ async def append_task_message(
                 file_bytes = await file.read()
                 resource = await TaskResourceService(db_session, task_type).save_task_resource(task_id, file.filename, file_bytes)
                 mimetype = file.content_type.split(";")[0].strip().lower()
-                metadatas.append(TaskResourceMetadata(
+                metadatas.append(FileResourceMetadata(
                     resource_id=resource.id,
                     filename=file.filename,
                     mimetype=mimetype,

@@ -17,10 +17,16 @@ class ToolMessageMetadata(TypedDict, total=False):
 def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
     return True
 
-class TaskResourceMetadata(TypedDict):
+class TextResourceMetadata(TypedDict):
+    resource_id: int
+    text: str
+
+class FileResourceMetadata(TypedDict):
     resource_id: int
     filename: str
     mimetype: str
+
+type TaskResourceMetadata = TextResourceMetadata | FileResourceMetadata
 
 @staticmethod
 def is_task_resource_metadata(_: Mapping) -> TypeGuard[TaskResourceMetadata]:
