@@ -1,14 +1,24 @@
 import { PencilIcon } from "lucide-react";
 import { Activity, useEffect, useMemo, useState } from "react";
-import { Message, MessageActions, MessageContent } from "@/components/ai-elements/message";
+import {
+  Message,
+  MessageActions,
+  MessageContent,
+} from "@/components/ai-elements/message";
 import { Markdown } from "@/components/custom/Markdown";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { TaskResourceMetadata } from "@/api/generated/schemas";
-import { attachmentCategoryIcons, resolveMimetypeCategory } from "@/components/ai-elements/attachments";
-import { useAgentTaskAction, useAgentTaskState } from "../../hooks/use-agent-task";
+import type { TaskResourceMetadata } from "@/api/generated/schemas";
+import {
+  attachmentCategoryIcons,
+  resolveMimetypeCategory,
+} from "@/components/ai-elements/attachments";
+import {
+  useAgentTaskAction,
+  useAgentTaskState,
+} from "../../hooks/use-agent-task";
 import { activityVisible } from "@/lib/activity-visible";
 import { escapeXml } from "@/lib/escape-xml";
 import { getGetTaskResourceFileUrl } from "@/api/tasks";
@@ -22,11 +32,14 @@ function formatUserMessage(text: string) {
   const segments = [];
   const codeBlockRegex = /(```[\s\S]*?```|`[^`]+`)/g;
   let lastIndex = 0;
-  let match;
+  let match: RegExpExecArray | null;
 
   while ((match = codeBlockRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      segments.push({ code: false, content: text.slice(lastIndex, match.index) });
+      segments.push({
+        code: false,
+        content: text.slice(lastIndex, match.index),
+      });
     }
     segments.push({ code: true, content: match[0] });
     lastIndex = match.index + match[0].length;
@@ -39,24 +52,43 @@ function formatUserMessage(text: string) {
   return segments
     .map((seg) => {
       if (seg.code) return seg.content;
-      return escapeXml(seg.content).replace(/(?<!\n)\n(?!\n)/g, "  \n")
+      return escapeXml(seg.content).replace(/(?<!\n)\n(?!\n)/g, "  \n");
     })
     .join("");
 }
 
 function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
   const { taskId, taskType } = useAgentTaskState();
+  if ("text" in data) {
+    const Icon = attachmentCategoryIcons.document;
+    return (
+      <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
+        <Icon className="size-6 text-muted-foreground" />
+      </div>
+    );
+  }
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = getGetTaskResourceFileUrl(taskType, taskId, data.resource_id);
+  const resourceUrl = getGetTaskResourceFileUrl(
+    taskType,
+    taskId,
+    data.resource_id,
+  );
   const content = (() => {
     switch (resourceType) {
       case "image":
-        return <img className="size-full" src={resourceUrl.toString()} />
+        return <img className="size-full" src={resourceUrl.toString()} />;
       case "video":
-        return <video className="size-full object-cover" muted src={resourceUrl.toString()} />
-      default:
+        return (
+          <video
+            className="size-full object-cover"
+            muted
+            src={resourceUrl.toString()}
+          />
+        );
+      default: {
         const Icon = attachmentCategoryIcons[resourceType];
-        return <Icon className="size-6 text-muted-foreground" />
+        return <Icon className="size-6 text-muted-foreground" />;
+      }
     }
   })();
   return (
@@ -73,7 +105,12 @@ type UserMessageProps = {
   isStreaming: boolean;
 };
 
-export function UserMessage({ messageId, text, attachments, isStreaming }: UserMessageProps) {
+export function UserMessage({
+  messageId,
+  text,
+  attachments,
+  isStreaming,
+}: UserMessageProps) {
   const { editMessage } = useAgentTaskAction();
   const [mode, setMode] = useState<UserMessageMode>("view");
   const [draft, setDraft] = useState(text);
@@ -89,7 +126,7 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
       setEditedText(draft);
       setMode("view");
     } catch (e) {
-      console.error(`Failed to edit message ${messageId}`, e)
+      console.error(`Failed to edit message ${messageId}`, e);
     }
   };
 
@@ -106,10 +143,9 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
   return (
     <>
       <div className="max-w-[85%] ml-auto mb-2 flex flex-wrap justify-end gap-2">
-        {attachments &&
-          attachments.map((data) =>
-            <UserMessageAttachment key={data.resource_id} data={data} />)
-        }
+        {attachments?.map((data) => (
+          <UserMessageAttachment key={data.resource_id} data={data} />
+        ))}
       </div>
       <Message className="selectable" from="user">
         <MessageContent className={cn({ "w-full": mode === "edit" })}>
@@ -144,7 +180,10 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
               </div>
             </div>
           ) : (
-            <Markdown mode={!isStreaming ? "static" : "streaming"} parseIncompleteMarkdown={isStreaming}>
+            <Markdown
+              mode={!isStreaming ? "static" : "streaming"}
+              parseIncompleteMarkdown={isStreaming}
+            >
               {formattedText}
             </Markdown>
           )}
@@ -152,7 +191,11 @@ export function UserMessage({ messageId, text, attachments, isStreaming }: UserM
 
         <Activity mode={activityVisible(mode === "view")}>
           <MessageActions className="justify-end">
-            <CopyButton variant="ghost" size="icon-sm" content={viewText.trim()} />
+            <CopyButton
+              variant="ghost"
+              size="icon-sm"
+              content={viewText.trim()}
+            />
             <Button
               type="button"
               variant="ghost"
