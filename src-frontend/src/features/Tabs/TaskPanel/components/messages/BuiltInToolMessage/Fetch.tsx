@@ -6,7 +6,7 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { WebInteractionFetch } from "@/api/generated/schemas";
 import { FetchToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
-import { ToolMessageProps } from ".";
+import type { ToolMessageProps } from ".";
 import {
   BuiltInToolContainer,
   BuiltInToolContent,
@@ -22,23 +22,23 @@ import { getToolMessageMetadata } from "@/types/message";
 
 type ParsedFetchResult =
   | {
-    kind: "document";
-    url: string;
-    statusCode: number | null;
-    reasonPhrase: string;
-    content: string;
-  }
+      kind: "document";
+      url: string;
+      statusCode: number | null;
+      reasonPhrase: string;
+      content: string;
+    }
   | {
-    kind: "error";
-    url: string;
-    statusCode: number | null;
-    reasonPhrase: string;
-    text: string;
-  }
+      kind: "error";
+      url: string;
+      statusCode: number | null;
+      reasonPhrase: string;
+      text: string;
+    }
   | {
-    kind: "raw";
-    rawText: string;
-  };
+      kind: "raw";
+      rawText: string;
+    };
 
 function parseStatusCode(value: string | null | undefined): number | null {
   if (!value) {
@@ -71,7 +71,7 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
         kind: "document",
         url: documentRoot.querySelector("url")?.textContent ?? "",
         statusCode: parseStatusCode(
-          documentRoot.querySelector("status_code")?.textContent
+          documentRoot.querySelector("status_code")?.textContent,
         ),
         reasonPhrase:
           documentRoot.querySelector("reason_phrase")?.textContent ?? "",
@@ -86,9 +86,10 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
         kind: "error",
         url: errorRoot.querySelector("url")?.textContent ?? "",
         statusCode: parseStatusCode(
-          errorRoot.querySelector("status_code")?.textContent
+          errorRoot.querySelector("status_code")?.textContent,
         ),
-        reasonPhrase: errorRoot.querySelector("reason_phrase")?.textContent ?? "",
+        reasonPhrase:
+          errorRoot.querySelector("reason_phrase")?.textContent ?? "",
         text: errorRoot.querySelector("text")?.textContent ?? "",
       };
     }
@@ -103,7 +104,11 @@ function FetchContent({ result }: { result: string }) {
 
   if (parsed.kind === "raw") {
     if (parsed.rawText.trim().length === 0) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">Empty response</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          Empty response
+        </p>
+      );
     }
     return (
       <div className="px-4 pb-4">
@@ -119,12 +124,17 @@ function FetchContent({ result }: { result: string }) {
   const responseSummary = (
     <div className="text-sm">
       <span className="text-muted-foreground">响应状态：</span>
-      <span className="font-medium font-mono">{parsed.statusCode ?? "-"} {parsed.reasonPhrase}</span>
+      <span className="font-medium font-mono">
+        {parsed.statusCode ?? "-"} {parsed.reasonPhrase}
+      </span>
     </div>
   );
 
   if (parsed.kind === "error") {
-    const errorText = parsed.text.trim().length === 0 ? "(empty error response body)" : parsed.text;
+    const errorText =
+      parsed.text.trim().length === 0
+        ? "(empty error response body)"
+        : parsed.text;
     return (
       <div className="px-4 pb-4 space-y-2">
         {responseSummary}
@@ -161,7 +171,10 @@ function FetchContent({ result }: { result: string }) {
 export function Fetch({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<WebInteractionFetch>(message, FetchToolSchema);
+  const toolArguments = useToolArgument<WebInteractionFetch>(
+    message,
+    FetchToolSchema,
+  );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
@@ -184,7 +197,7 @@ export function Fetch({ message }: ToolMessageProps) {
       return <BuiltInToolError error={message.error} />;
     }
     if (message.result !== null) {
-      return <FetchContent result={message.result} />;
+      return <FetchContent result={message.result as string} />;
     }
   })();
 

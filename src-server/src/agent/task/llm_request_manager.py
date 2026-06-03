@@ -165,7 +165,7 @@ class LlmRequestManager:
             yield TaskInterruptedEvent()
             raise
         except Exception as e:
-            self._logger.exception(f"Failed to create llm call.")
+            self._logger.exception("Failed to create llm call.")
             retryable = isinstance(e, (ProviderRateLimitError, ProviderServerError, ProviderTimeoutError, ProviderNetworkError))
             yield ErrorEvent(error=str(e), retryable=retryable)
         finally:

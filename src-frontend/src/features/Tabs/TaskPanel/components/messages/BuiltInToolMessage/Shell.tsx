@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { OsInteractionsShell } from "@/api/generated/schemas";
+import type { OsInteractionsShell } from "@/api/generated/schemas";
 import { ShellToolSchema } from "@/api/tool-schema";
 import { CollapsibleTerminal } from "@/components/custom/CollapsibleTerminal";
 import { RiskBadge } from "@/components/ai-elements/tool";
-import { ToolMessageProps } from ".";
+import type { ToolMessageProps } from ".";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
@@ -50,7 +50,10 @@ function parseShellResult(resultText: string): ShellResult {
 
 export function Shell({ message }: ToolMessageProps) {
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<OsInteractionsShell>(message, ShellToolSchema);
+  const toolArguments = useToolArgument<OsInteractionsShell>(
+    message,
+    ShellToolSchema,
+  );
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
   const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
   const { userApproval, risk } = getToolMessageMetadata(message);
@@ -77,7 +80,7 @@ export function Shell({ message }: ToolMessageProps) {
       }
       return { stdout: "正在执行...", stderr: null };
     }
-    return parseShellResult(message.result);
+    return parseShellResult(message.result as string);
   }, [message.isStreaming, message.error, message.result, userApproval]);
 
   return (
@@ -91,9 +94,11 @@ export function Shell({ message }: ToolMessageProps) {
       defaultOpen={true}
       className="visibility-auto"
       title={toolArguments?.command ?? "Shell"}
-      actions={(risk.level !== undefined) ? (
-        <RiskBadge level={risk.level} reason={risk.reason} />
-      ) : null}
+      actions={
+        risk.level !== undefined ? (
+          <RiskBadge level={risk.level} reason={risk.reason} />
+        ) : null
+      }
     >
       {userApproval && (
         <ToolConfirmation

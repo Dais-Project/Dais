@@ -7,8 +7,14 @@ import { DiffView } from "@/components/custom/DiffView";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { getToolMessageMetadata } from "@/types/message";
-import { ToolMessageProps } from ".";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
+import type { ToolMessageProps } from ".";
+import {
+  BuiltInToolContainer,
+  BuiltInToolContent,
+  BuiltInToolError,
+  BuiltInToolHeader,
+  BuiltInToolTitle,
+} from "./components/BuiltInTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
@@ -16,26 +22,38 @@ import { useToolActionable } from "../../../hooks/use-tool-actionable";
 export function EditFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<FileSystemEditFile>(message, EditFileToolSchema);
+  const toolArguments = useToolArgument<FileSystemEditFile>(
+    message,
+    EditFileToolSchema,
+  );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.edit_file.generating")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.edit_file.generating")}
+        </p>
+      );
     }
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
-    if (message.result !== null && message.result.trim().length > 0) {
+    const result = message.result as string | null;
+    if (result !== null && result.trim().length > 0) {
       return (
         <div className="px-4 pb-4">
-          <DiffView diffText={message.result} />
+          <DiffView diffText={result} />
         </div>
       );
     }
     if (toolArguments === null) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.edit_file.parse_error")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.edit_file.parse_error")}
+        </p>
+      );
     }
     return (
       <div className="px-4 pb-4">

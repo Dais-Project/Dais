@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AskUserToolSchema } from "@/api/tool-schema";
 import { Markdown } from "@/components/custom/Markdown";
-import { ToolMessageProps } from ".";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "./components/BuiltInTool";
+import type { ToolMessageProps } from ".";
+import {
+  BuiltInToolContainer,
+  BuiltInToolContent,
+  BuiltInToolHeader,
+} from "./components/BuiltInTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
@@ -18,10 +22,14 @@ export function AskUser({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { answerTool } = useAgentTaskAction();
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const toolArguments = useToolArgument<UserInteractionAskUser>(message, AskUserToolSchema);
+  const toolArguments = useToolArgument<UserInteractionAskUser>(
+    message,
+    AskUserToolSchema,
+  );
   const { question, options } = toolArguments ?? {};
-  const selectedOption = options && (message.result as string);
-  const [answer, setAnswer] = useState(message.result ?? "");
+  const result = message.result as string | null;
+  const selectedOption = options && result;
+  const [answer, setAnswer] = useState(result ?? "");
 
   const handleSelectOption = (option: string) => {
     markAsSubmitted();
@@ -43,9 +51,7 @@ export function AskUser({ message }: ToolMessageProps) {
         icon={MessageCircleQuestionMark}
       />
       <BuiltInToolContent>
-        {question && (
-          <Markdown className="px-4 pb-2">{question}</Markdown>
-        )}
+        {question && <Markdown className="px-4 pb-2">{question}</Markdown>}
         {options && (
           <Suggestions className="flex-col items-start px-4 pt-2 pb-4">
             {options.map((option) => (

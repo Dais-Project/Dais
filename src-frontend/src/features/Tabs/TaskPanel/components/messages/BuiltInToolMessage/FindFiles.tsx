@@ -8,8 +8,14 @@ import { FindFilesToolSchema } from "@/api/tool-schema";
 import { getToolMessageMetadata } from "@/types/message";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { tryParseSchema } from "@/lib/utils";
-import { ToolMessageProps } from ".";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
+import type { ToolMessageProps } from ".";
+import {
+  BuiltInToolContainer,
+  BuiltInToolContent,
+  BuiltInToolError,
+  BuiltInToolHeader,
+  BuiltInToolTitle,
+} from "./components/BuiltInTool";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -25,11 +31,19 @@ function FindFilesContent({ result }: { result: string }) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const parsedResult = tryParseSchema(findFilesResultSchema, result);
   if (parsedResult === null) {
-    return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.find_files.parse_error")}</p>;
+    return (
+      <p className="px-4 pb-4 text-muted-foreground text-sm">
+        {t("tool.find_files.parse_error")}
+      </p>
+    );
   }
   return (
     <div className="px-4 pb-4">
-      <CodeBlock code={parsedResult.matches.join("\n")} language={"text" as BundledLanguage} showLineNumbers={false} />
+      <CodeBlock
+        code={parsedResult.matches.join("\n")}
+        language={"text" as BundledLanguage}
+        showLineNumbers={false}
+      />
     </div>
   );
 }
@@ -37,22 +51,33 @@ function FindFilesContent({ result }: { result: string }) {
 export function FindFiles({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<FileSystemFindFiles>(message, FindFilesToolSchema);
+  const toolArguments = useToolArgument<FileSystemFindFiles>(
+    message,
+    FindFilesToolSchema,
+  );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.find_files.generating")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.find_files.generating")}
+        </p>
+      );
     }
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
     if (message.result !== null) {
-      return <FindFilesContent result={message.result} />;
+      return <FindFilesContent result={message.result as string} />;
     }
     if (toolArguments === null) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.find_files.parse_error")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.find_files.parse_error")}
+        </p>
+      );
     }
   })();
 

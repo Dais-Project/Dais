@@ -1,16 +1,25 @@
 import { FileTextIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { BundledLanguage, bundledLanguages } from "shiki";
+import { type BundledLanguage, bundledLanguages } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { FileSystemReadFile } from "@/api/generated/schemas";
+import type {
+  ContentBlockMetadata,
+  FileSystemReadFile,
+} from "@/api/generated/schemas";
 import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
 import { getFileExtension } from "@/lib/path";
 import { getToolMessageMetadata } from "@/types/message";
-import { ToolMessageProps } from ".";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolError, BuiltInToolHeader, BuiltInToolTitle } from "./components/BuiltInTool";
+import type { ToolMessageProps } from ".";
+import {
+  BuiltInToolContainer,
+  BuiltInToolContent,
+  BuiltInToolError,
+  BuiltInToolHeader,
+  BuiltInToolTitle,
+} from "./components/BuiltInTool";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
@@ -27,13 +36,15 @@ function decodeXmlEntities(text: string): string {
   return text
     .replaceAll("&lt;", "<")
     .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", "\"")
+    .replaceAll("&quot;", '"')
     .replaceAll("&apos;", "'")
     .replaceAll("&#39;", "'")
     .replaceAll("&amp;", "&");
 }
 
-function fallbackParseReadFileResult(resultText: string): ParsedReadFileResult | null {
+function fallbackParseReadFileResult(
+  resultText: string,
+): ParsedReadFileResult | null {
   const openTagMatch = resultText.match(/<file_content\b([^>]*)>/);
   if (!openTagMatch || openTagMatch.index === undefined) {
     return null;
@@ -42,15 +53,23 @@ function fallbackParseReadFileResult(resultText: string): ParsedReadFileResult |
   const openTag = openTagMatch[0];
   const attributes = openTagMatch[1] ?? "";
   const contentStartIndex = openTagMatch.index + openTag.length;
-  const contentEndIndex = resultText.indexOf("</file_content>", contentStartIndex);
+  const contentEndIndex = resultText.indexOf(
+    "</file_content>",
+    contentStartIndex,
+  );
   if (contentEndIndex === -1) {
     return null;
   }
 
   const startLineMatch = attributes.match(/\bstart_line="(\d+)"/);
   const parsedStartLine = Number.parseInt(startLineMatch?.[1] ?? "1", 10);
-  const startLineNumber = Number.isFinite(parsedStartLine) && parsedStartLine > 0 ? parsedStartLine : 1;
-  const fileContent = decodeXmlEntities(resultText.slice(contentStartIndex, contentEndIndex));
+  const startLineNumber =
+    Number.isFinite(parsedStartLine) && parsedStartLine > 0
+      ? parsedStartLine
+      : 1;
+  const fileContent = decodeXmlEntities(
+    resultText.slice(contentStartIndex, contentEndIndex),
+  );
 
   return { fileContent, startLineNumber };
 }
@@ -71,9 +90,13 @@ function parseReadFileResult(resultText: string): ParsedReadFileResult {
     if (!parserError) {
       const contentNode = doc.querySelector("file_content");
       if (contentNode) {
-        const startLineAttribute = contentNode.getAttribute("start_line") ?? "1";
+        const startLineAttribute =
+          contentNode.getAttribute("start_line") ?? "1";
         const parsedStartLine = Number.parseInt(startLineAttribute, 10);
-        const startLineNumber = Number.isFinite(parsedStartLine) && parsedStartLine > 0 ? parsedStartLine : 1;
+        const startLineNumber =
+          Number.isFinite(parsedStartLine) && parsedStartLine > 0
+            ? parsedStartLine
+            : 1;
         return { fileContent: contentNode.textContent ?? "", startLineNumber };
       }
     }
@@ -91,11 +114,15 @@ function parseReadFileResult(resultText: string): ParsedReadFileResult {
 
 type ReadFileContentProps = {
   arguments: FileSystemReadFile;
-  result: string;
+  result: string | ContentBlockMetadata[];
 };
 
-function ReadFileContent({ arguments: toolArguments, result }: ReadFileContentProps) {
+function ReadFileContent({
+  arguments: toolArguments,
+  result,
+}: ReadFileContentProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  // TODO: add content block metadata support
   const { language, fileContent, startLineNumber } = useMemo(() => {
     const extension = getFileExtension(toolArguments.path);
     const language = (() => {
@@ -109,7 +136,11 @@ function ReadFileContent({ arguments: toolArguments, result }: ReadFileContentPr
   }, [toolArguments, result]);
 
   if (fileContent.trim().length === 0) {
-    return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.read_file.empty")}</p>;
+    return (
+      <p className="px-4 pb-4 text-muted-foreground text-sm">
+        {t("tool.read_file.empty")}
+      </p>
+    );
   }
 
   return (
@@ -127,22 +158,35 @@ function ReadFileContent({ arguments: toolArguments, result }: ReadFileContentPr
 export function ReadFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<FileSystemReadFile>(message, ReadFileToolSchema);
+  const toolArguments = useToolArgument<FileSystemReadFile>(
+    message,
+    ReadFileToolSchema,
+  );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.read_file.generating")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.read_file.generating")}
+        </p>
+      );
     }
     if (toolArguments === null) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.read_file.parse_error")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.read_file.parse_error")}
+        </p>
+      );
     }
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
     if (message.result !== null) {
-      return <ReadFileContent arguments={toolArguments} result={message.result} />;
+      return (
+        <ReadFileContent arguments={toolArguments} result={message.result} />
+      );
     }
   })();
 

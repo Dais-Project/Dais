@@ -4,13 +4,20 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { ExecutionControlFinishTask } from "@/api/generated/schemas";
 import { FinishTaskSchema } from "@/api/tool-schema";
 import { Markdown } from "@/components/custom/Markdown";
-import { ToolMessageProps } from ".";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "./components/BuiltInTool";
+import type { ToolMessageProps } from ".";
+import {
+  BuiltInToolContainer,
+  BuiltInToolContent,
+  BuiltInToolHeader,
+} from "./components/BuiltInTool";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 
 export function FinishTask({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const toolArguments = useToolArgument<ExecutionControlFinishTask>(message, FinishTaskSchema);
+  const toolArguments = useToolArgument<ExecutionControlFinishTask>(
+    message,
+    FinishTaskSchema,
+  );
 
   return (
     <BuiltInToolContainer id={message.call_id} defaultOpen>
