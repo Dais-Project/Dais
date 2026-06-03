@@ -21,7 +21,7 @@ import {
 } from "../../hooks/use-agent-task";
 import { activityVisible } from "@/lib/activity-visible";
 import { escapeXml } from "@/lib/escape-xml";
-import { getGetTaskResourceFileUrl } from "@/api/tasks";
+import { createTaskResourceUrl } from "@/api/tasks";
 
 type UserMessageMode = "view" | "edit";
 
@@ -67,16 +67,25 @@ function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
       </div>
     );
   }
+  if ("url" in data) {
+    const Icon = attachmentCategoryIcons.source;
+    return (
+      <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
+        <Icon className="size-6 text-muted-foreground" />
+      </div>
+    );
+  }
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = getGetTaskResourceFileUrl(
-    taskType,
-    taskId,
-    data.resource_id,
-  );
+  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
   const content = (() => {
     switch (resourceType) {
       case "image":
-        return <img className="size-full" src={resourceUrl.toString()} />;
+        return (
+          <img
+            className="size-full object-cover"
+            src={resourceUrl.toString()}
+          />
+        );
       case "video":
         return (
           <video

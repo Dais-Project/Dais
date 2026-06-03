@@ -7,7 +7,7 @@ import type {
   FileSystemReadFile,
   TaskResourceMetadata,
 } from "@/api/generated/schemas";
-import { getGetTaskResourceFileUrl } from "@/api/tasks";
+import { createTaskResourceUrl } from "@/api/tasks";
 import {
   attachmentCategoryIcons,
   resolveMimetypeCategory,
@@ -178,11 +178,7 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
   }
 
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = getGetTaskResourceFileUrl(
-    taskType,
-    taskId,
-    data.resource_id,
-  );
+  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
   const content = (() => {
     switch (resourceType) {
       case "image":
@@ -190,7 +186,7 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
           <img
             alt={data.filename}
             className="max-h-80 rounded-lg object-contain"
-            src={resourceUrl}
+            src={resourceUrl.toString()}
           />
         );
       case "video":
@@ -211,14 +207,8 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
   })();
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg bg-muted p-3">
-      <div className="flex items-center justify-center overflow-hidden rounded-lg">
-        {content}
-      </div>
-      <div className="min-w-0 space-y-1 text-sm">
-        <p className="truncate font-medium">{data.filename}</p>
-        <p className="text-muted-foreground">{data.mimetype}</p>
-      </div>
+    <div className="flex flex-col items-center justify-center rounded bg-muted p-3">
+      {content}
     </div>
   );
 }
