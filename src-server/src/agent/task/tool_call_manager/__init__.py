@@ -1,16 +1,7 @@
 from collections.abc import AsyncGenerator
-from dais_sdk.tool import ToolCallExecutor
-from dais_sdk.types import (
-    ToolMessage,
-    ToolDoesNotExistError, ToolArgumentDecodeError, ToolExecutionError,
-)
+from dais_sdk.types import ToolMessage
 from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatchResult, ToolCallDispatcher
-from .exception_handlers import (
-    handle_tool_does_not_exist_error,
-    handle_tool_argument_decode_error,
-    handle_tool_execution_error,
-)
 from ..message_manager import MessageManager
 from ...context import AgentContext
 from ...prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
@@ -25,13 +16,8 @@ class ToolCallManager:
         self._ctx = ctx
         self._message_manager = message_manager
 
-        self._tool_call_executor = ToolCallExecutor()
-        self._tool_call_executor.exception_handler.set_handler(ToolDoesNotExistError, handle_tool_does_not_exist_error)
-        self._tool_call_executor.exception_handler.set_handler(ToolArgumentDecodeError, handle_tool_argument_decode_error)
-        self._tool_call_executor.exception_handler.set_handler(ToolExecutionError, handle_tool_execution_error)
-
         self._tool_call_reviewer = ToolCallReviewer(ctx)
-        self._tool_call_dispatcher = ToolCallDispatcher(self._ctx, self._tool_call_executor, self._tool_call_reviewer)
+        self._tool_call_dispatcher = ToolCallDispatcher(self._ctx, self._tool_call_reviewer)
 
     def apply_user_response(self, call_id: str, response: str) -> MessageReplaceEvent:
         target_message = self._message_manager.find(lambda m: m.role == "tool" and m.call_id == call_id)

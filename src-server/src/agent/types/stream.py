@@ -3,6 +3,7 @@ from typing import Annotated, Literal, Self
 from dais_sdk.types import (
     Message,
     ToolMessage, AssistantMessage,
+    ContentBlockMetadata,
     TextChunkEvent as SdkTextChunkEvent,
     ToolCallChunkEvent as SdkToolCallChunkEvent
 )
@@ -95,7 +96,7 @@ class ErrorEvent(BaseModel):
 
 class ToolExecutedEvent(BaseModel):
     call_id: str
-    result: str | None
+    result: str | list[ContentBlockMetadata] | None
     event_id: Literal["TOOL_EXECUTED"] = "TOOL_EXECUTED"
 
 class ToolDeniedEvent(BaseModel):
