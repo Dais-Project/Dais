@@ -1,10 +1,12 @@
+import base64
 import xml.etree.ElementTree as ET
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
 import src.agent.tool.builtin_tools.file_system as file_system_module
-from src.agent.tool.builtin_tools.file_system import FileSystemToolset
+from dais_sdk.types import AudioBlock, ImageBlock, VideoBlock
+from src.agent.tool.builtin_tools.file_system import FileSystemToolset, MAX_MEDIA_CONTENT_BLOCK_BYTES
 
 
 def parse_file_content_xml(result: ET.Element) -> tuple[ET.Element, str]:
@@ -41,6 +43,84 @@ class TestReadFile:
         assert int(root.attrib["end_line"]) == 3
         assert int(root.attrib["total_lines"]) == 4
         assert text == "Line 2\nLine 3"
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("filename", "content", "detected_group", "detected_mime_type", "expected_block_type"),
+        [
+            ("image.png", b"fake image", "image", "image/png", ImageBlock),
+            ("audio.mp3", b"fake audio", "audio", "audio/mpeg", AudioBlock),
+            ("video.mp4", b"fake video", "video", "video/mp4", VideoBlock),
+        ],
+    )
+    async def test_read_media_file_returns_content_block(
+        self,
+        builtin_toolset_context,
+        temp_workspace,
+        monkeypatch: pytest.MonkeyPatch,
+        filename: str,
+        content: bytes,
+        detected_group: str,
+        detected_mime_type: str,
+        expected_block_type: type[ImageBlock | AudioBlock | VideoBlock],
+    ):
+        class FakeOutput:
+            group = detected_group
+            mime_type = detected_mime_type
+
+        async def fake_magika_identify_path(path: Path) -> FakeOutput:
+            return FakeOutput()
+
+        monkeypatch.setattr(file_system_module, "magika_identify_path", fake_magika_identify_path)
+
+        (temp_workspace / filename).write_bytes(content)
+        tool = FileSystemToolset(builtin_toolset_context)
+
+        result = await tool.read_file(filename)
+
+        assert isinstance(result, list)
+        assert len(result) == 1
+        block = result[0]
+        assert isinstance(block, expected_block_type)
+        assert block.source.type == "base64"
+        assert block.source.mime_type == detected_mime_type
+        assert block.source.data == base64.b64encode(content).decode("ascii")
+
+    @pytest.mark.asyncio
+    async def test_read_file_does_not_treat_spoofed_media_extension_as_content_block(
+        self,
+        builtin_toolset_context,
+        temp_workspace,
+    ):
+        (temp_workspace / "spoofed.png").write_text("plain text", encoding="utf-8")
+        tool = FileSystemToolset(builtin_toolset_context)
+
+        with pytest.raises(ValueError, match="is a binary file"):
+            await tool.read_file("spoofed.png")
+
+    @pytest.mark.asyncio
+    async def test_read_media_file_rejects_oversized_content_block(
+        self,
+        builtin_toolset_context,
+        temp_workspace,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        class FakeOutput:
+            group = "image"
+            mime_type = "image/png"
+
+        async def fake_magika_identify_path(path: Path) -> FakeOutput:
+            return FakeOutput()
+
+        monkeypatch.setattr(file_system_module, "magika_identify_path", fake_magika_identify_path)
+
+        file_path = temp_workspace / "large.png"
+        with file_path.open("wb") as f:
+            f.truncate(MAX_MEDIA_CONTENT_BLOCK_BYTES + 1)
+        tool = FileSystemToolset(builtin_toolset_context)
+
+        with pytest.raises(ValueError, match="too large to return as a ContentBlock"):
+            await tool.read_file("large.png")
 
     @pytest.mark.asyncio
     async def test_read_markitdown_convertable_file(self, builtin_toolset_context, temp_workspace, monkeypatch: pytest.MonkeyPatch):
