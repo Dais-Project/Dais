@@ -24,6 +24,7 @@ class TextResourceMetadata(TypedDict):
 class UrlResourceMetadata(TypedDict):
     resource_id: str
     url: str
+    type: Literal["image", "audio", "video", "document"]
 
 class FileResourceMetadata(TypedDict):
     resource_id: int

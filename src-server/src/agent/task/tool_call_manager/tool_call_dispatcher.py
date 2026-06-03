@@ -63,7 +63,7 @@ class TaskResourcePersister(ContentBlockPersister):
                 return await self._persist_file_resource(source.mime_type, source.data)
             case ImageBlock() | AudioBlock() | VideoBlock() | DocumentBlock() as block\
                 if block.source.type == "url":
-                return UrlResourceMetadata(resource_id=str(uuid.uuid4()), url=block.source.url)
+                return UrlResourceMetadata(resource_id=str(uuid.uuid4()), type=block.type, url=block.source.url)
             case _:
                 raise ValueError("Unreachable")
 

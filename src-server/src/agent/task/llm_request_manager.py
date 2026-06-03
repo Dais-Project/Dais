@@ -8,7 +8,7 @@ from dais_sdk import LLM
 from dais_sdk.types import (
     ContentBlock, ContentBlockMetadata, ContentBlockResolver,
     ProviderNetworkError, ProviderRateLimitError, ProviderServerError, ProviderTimeoutError,
-    TextBlock, ImageBlock, AudioBlock, VideoBlock, DocumentBlock, Base64Source,
+    TextBlock, ImageBlock, AudioBlock, UrlSource, VideoBlock, DocumentBlock, Base64Source,
     LlmRequestParams,
     AssistantMessageEvent,
     TextChunkEvent as SdkTextChunkEvent,
@@ -78,8 +78,16 @@ class TaskResourceRetriever(ContentBlockResolver):
     @override
     async def resolve(self, metadata: ContentBlockMetadata) -> list[ContentBlock] | ContentBlock | None:
         assert is_task_resource_metadata(metadata)
+
         if "text" in metadata: # TextResourceMetadata
             return TextBlock(text=metadata["text"])
+
+        if "url" in metadata: # UrlResourceMetadata
+            match metadata["type"]:
+                case "image": return ImageBlock(source=UrlSource(url=metadata["url"]))
+                case "audio": return AudioBlock(source=UrlSource(url=metadata["url"]))
+                case "video": return VideoBlock(source=UrlSource(url=metadata["url"]))
+                case "document": return DocumentBlock(source=UrlSource(url=metadata["url"]))
 
         file_block = await self._resolve_file_resource(metadata)
         if file_block is None: return None
