@@ -1,7 +1,4 @@
-import type {
-  ContentBlockMetadata,
-  TaskResourceMetadata,
-} from "@/api/generated/schemas";
+import type { TaskResourceMetadata } from "@/api/generated/schemas";
 import { UrlResourceMetadataType } from "@/api/generated/schemas";
 import type {
   UiAssistantMessage,

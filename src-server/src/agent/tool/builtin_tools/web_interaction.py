@@ -1,10 +1,12 @@
 import asyncio
+import base64
 import json
 import httpx
 import trafilatura
 import xml.etree.ElementTree as ET
 from magika import ContentTypeLabel
-from typing import Annotated, Any, Literal, override
+from typing import Annotated, Any, Literal, cast, override
+from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, TextBlock, VideoBlock
 from pydantic import BaseModel, Discriminator, Field, field_validator
 from trafilatura.settings import use_config
 from src.db.models import toolset as toolset_models
@@ -14,6 +16,7 @@ from ...utils import get_magika
 
 
 DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"}
+MAX_MEDIA_CONTENT_BLOCK_BYTES = 50 * 1024 * 1024
 
 class FormBody(BaseModel):
     type: Literal["form"]
@@ -40,7 +43,7 @@ class JsonBody(BaseModel):
 class TextBody(BaseModel):
     type: Literal["text"]
     data: str
-    
+
     def to_params(self) -> dict[str, Any]:
         return {"content": self.data,
                 "headers": {"Content-Type": "text/plain; charset=utf-8"},}
@@ -70,7 +73,7 @@ class WebInteractionToolset(BuiltinToolset):
                     headers: dict[str, str] | None = None,
                     body: FetchBody | None = None,
                     raw: Annotated[bool, "Whether to return the original response body, you can set this to True when the original HTML response is needed."] = False,
-                    ) -> ET.Element:
+                    ) -> ET.Element | list[ContentBlock]:
         """
         Execute HTTP/HTTPS requests to fetch web pages, interact with REST APIs, download source code, or submit data.
         Use this tool when you need to browse the internet, retrieve external documentation, read remote config files/code, or call web services.
@@ -78,8 +81,9 @@ class WebInteractionToolset(BuiltinToolset):
         Content Handling:
             - General Text (Code, Configs, JSON, CSV, Plain Text): Returned directly as-is.
             - HTML Pages: By default (raw=False), HTML is intelligently extracted into clean, readable Markdown (stripping navbars, ads, and footers). If you need to parse specific DOM elements or the extraction fails, set `raw=True` to get the original HTML.
+            - Media Files (images, audio, video): Returned as a ContentBlock array when the response is successful.
             - Binary Files (PDF, DOCX, PPTX, XLSX, EPUB): Automatically converted to Markdown for direct reading.
-              Other binary types (e.g., images, archives) are not converted and return a placeholder (e.g., `[Binary Data: image/png]`).
+              Other binary types (e.g., archives) are not converted and return a placeholder (e.g., `[Binary Data: application/zip]`).
             - Redirects: Automatically followed and recorded in the result.
 
         Body Payload Construction:
@@ -91,14 +95,14 @@ class WebInteractionToolset(BuiltinToolset):
         Examples:
             # 1. Read a blog post (returns clean Markdown)
             >>> fetch("https://example.com/article", method="GET")
-            
+
             # 2. Fetch raw source code or config files (returns original text)
             >>> fetch("https://raw.githubusercontent.com/user/repo/main/config.yaml")
 
             # 3. Submit data to an API
             >>> fetch(
-                    url="https://httpbin.org/post", 
-                    method="POST", 
+                    url="https://httpbin.org/post",
+                    method="POST",
                     body={"type": "json", "data": "{\\"name\\": \\"Agent\\", \\"role\\": \\"AI\\"}"}
                 )
 
@@ -116,7 +120,7 @@ class WebInteractionToolset(BuiltinToolset):
                 </redirects>
                 <document_content>...[Markdown, Code, JSON, or HTML content]...</document_content>
             </document>
-            
+
             For failed requests (status >= 400):
             <error>
                 <url>...</url>
@@ -127,9 +131,27 @@ class WebInteractionToolset(BuiltinToolset):
             </error>
         """
 
-        async def extract_fetch_content(res: httpx.Response, raw: bool) -> str:
+        async def read_media_content_block(
+            res: httpx.Response,
+            media_type: Literal["image", "audio", "video"],
+            mime_type: str,
+        ) -> ContentBlock:
+            content_length = len(res.content)
+            if content_length > MAX_MEDIA_CONTENT_BLOCK_BYTES:
+                raise ValueError(
+                    f"Response from {res.url} is too large to return as a ContentBlock "
+                    f"({content_length} bytes, max {MAX_MEDIA_CONTENT_BLOCK_BYTES} bytes)."
+                )
+
+            encoded = await asyncio.to_thread(base64.b64encode, res.content)
+            source = Base64Source(mime_type=mime_type, data=encoded.decode("ascii"))
+            match media_type:
+                case "image": return ImageBlock(source=source)
+                case "audio": return AudioBlock(source=source)
+                case "video": return VideoBlock(source=source)
+
+        async def extract_fetch_content(res: httpx.Response, raw: bool, content_type: Any) -> str:
             if res.status_code == 204: return ""
-            content_type = await asyncio.to_thread(self._magika.identify_bytes, res.content)
             if not content_type.output.is_text:
                 if self._markdown_converter.is_convertable_binary(content_type.output.label):
                     result = await self._markdown_converter.convert(res.content)
@@ -164,14 +186,22 @@ class WebInteractionToolset(BuiltinToolset):
             ET.SubElement(error_root, "text").text = res.text
             return error_root
 
-        async def format_fetch_result(res: httpx.Response, raw: bool) -> ET.Element:
-            document_root = ET.Element("document")
-            ET.SubElement(document_root, "url").text = str(res.url)
-            ET.SubElement(document_root, "status_code").text = str(res.status_code)
-            ET.SubElement(document_root, "reason_phrase").text = res.reason_phrase
-            document_root.append(format_redirects(res.history))
-            ET.SubElement(document_root, "document_content").text = await extract_fetch_content(res, raw)
-            return document_root
+        async def format_fetch_result(res: httpx.Response, raw: bool) -> ET.Element | list[ContentBlock]:
+            fetch_root = ET.Element("fetch")
+            ET.SubElement(fetch_root, "url").text = str(res.url)
+            ET.SubElement(fetch_root, "status_code").text = str(res.status_code)
+            ET.SubElement(fetch_root, "reason_phrase").text = res.reason_phrase
+            fetch_root.append(format_redirects(res.history))
+
+            content_type = await asyncio.to_thread(self._magika.identify_bytes, res.content)
+            if content_type.output.group in {"image", "audio", "video"}:
+                media_type = cast(Literal["image", "audio", "video"], content_type.output.group)
+                media_block = await read_media_content_block(res, media_type, content_type.output.mime_type)
+                return [TextBlock(text=ET.tostring(fetch_root, encoding="unicode")), media_block]
+
+            ET.SubElement(fetch_root, "document_content").text =\
+                await extract_fetch_content(res, raw, content_type)
+            return fetch_root
 
         request_kwargs: dict[str, Any] = {"headers": DEFAULT_HEADER.copy()}
         if body is not None:

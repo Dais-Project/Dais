@@ -1,6 +1,5 @@
 import { SearchIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemSearchText } from "@/api/generated/schemas";
 import { SearchTextToolSchema } from "@/api/tool-schema";

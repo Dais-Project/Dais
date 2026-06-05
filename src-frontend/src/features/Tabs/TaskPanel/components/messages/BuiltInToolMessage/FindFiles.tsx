@@ -1,6 +1,5 @@
 import { FolderSearchIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { BundledLanguage } from "shiki";
 import z from "zod";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemFindFiles } from "@/api/generated/schemas";
