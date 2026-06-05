@@ -1,7 +1,6 @@
 import { GlobeIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { WebInteractionFetch } from "@/api/generated/schemas";
 import { FetchToolSchema } from "@/api/tool-schema";
@@ -114,7 +113,7 @@ function FetchContent({ result }: { result: string }) {
       <div className="px-4 pb-4">
         <CodeBlock
           code={parsed.rawText}
-          language={"text" as BundledLanguage}
+          language="text"
           showLineNumbers={false}
         />
       </div>
@@ -138,11 +137,7 @@ function FetchContent({ result }: { result: string }) {
     return (
       <div className="px-4 pb-4 space-y-2">
         {responseSummary}
-        <CodeBlock
-          code={errorText}
-          language={"text" as BundledLanguage}
-          showLineNumbers={false}
-        />
+        <CodeBlock code={errorText} language="text" showLineNumbers={false} />
       </div>
     );
   }
@@ -161,7 +156,7 @@ function FetchContent({ result }: { result: string }) {
       {responseSummary}
       <CodeBlock
         code={parsed.content}
-        language={"markdown" as BundledLanguage}
+        language="markdown"
         showLineNumbers={false}
       />
     </div>

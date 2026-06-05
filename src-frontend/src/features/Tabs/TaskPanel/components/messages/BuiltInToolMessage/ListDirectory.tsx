@@ -1,6 +1,5 @@
 import { FolderTreeIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { FileSystemListDirectory } from "@/api/generated/schemas";
 import { ListDirectoryToolSchema } from "@/api/tool-schema";
@@ -52,11 +51,7 @@ export function ListDirectory({ message }: ToolMessageProps) {
       }
       return (
         <div className="px-4 pb-4">
-          <CodeBlock
-            code={result}
-            language={"text" as BundledLanguage}
-            showLineNumbers={false}
-          />
+          <CodeBlock code={result} language="text" showLineNumbers={false} />
         </div>
       );
     }

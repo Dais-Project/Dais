@@ -41,7 +41,7 @@ function FindFilesContent({ result }: { result: string }) {
     <div className="px-4 pb-4">
       <CodeBlock
         code={parsedResult.matches.join("\n")}
-        language={"text" as BundledLanguage}
+        language="text"
         showLineNumbers={false}
       />
     </div>

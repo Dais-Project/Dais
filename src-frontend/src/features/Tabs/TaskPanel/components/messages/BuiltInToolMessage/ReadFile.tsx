@@ -161,7 +161,8 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
     return (
       <CodeBlock
         code={data.text}
-        language={"text" as BundledLanguage}
+        className="w-full"
+        language="text"
         showLineNumbers={true}
         startingLineNumber={1}
       />
@@ -170,7 +171,7 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
 
   if ("url" in data) {
     return (
-      <div className="flex items-center gap-3 rounded-lg bg-muted p-3 text-sm">
+      <div className="flex items-center gap-2 w-full rounded-lg bg-muted text-sm">
         <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
         <span className="break-all font-mono">{data.url}</span>
       </div>
@@ -179,7 +180,7 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
 
   const resourceType = resolveMimetypeCategory(data.mimetype);
   const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
-  const content = (() => {
+  return (() => {
     switch (resourceType) {
       case "image":
         return (
@@ -192,12 +193,16 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
       case "video":
         return (
           // biome-ignore lint: a11y/useMediaCaption
-          <video className="max-h-80 rounded-lg" controls src={resourceUrl} />
+          <video
+            className="max-h-80 rounded-lg"
+            controls
+            src={resourceUrl.toString()}
+          />
         );
       case "audio":
         return (
           // biome-ignore lint: a11y/useMediaCaption
-          <audio className="w-full" controls src={resourceUrl} />
+          <audio className="w-full" controls src={resourceUrl.toString()} />
         );
       default: {
         const Icon = attachmentCategoryIcons[resourceType];
@@ -205,12 +210,6 @@ function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
       }
     }
   })();
-
-  return (
-    <div className="flex flex-col items-center justify-center rounded bg-muted p-3">
-      {content}
-    </div>
-  );
 }
 
 type ReadFileContentProps = {
@@ -234,7 +233,7 @@ function ReadFileContent({
     );
   }
   return (
-    <div className="space-y-3 px-4 pb-4">
+    <div className="flex flex-col justify-center items-center gap-2 px-4 pb-4">
       {result.map((data) => (
         <ResourceFileContent key={data.resource_id} data={data} />
       ))}

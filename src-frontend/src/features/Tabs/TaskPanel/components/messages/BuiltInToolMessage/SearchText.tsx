@@ -45,7 +45,7 @@ export function SearchText({ message }: ToolMessageProps) {
         <div className="px-4 pb-4">
           <CodeBlock
             code={message.result as string}
-            language={"text" as BundledLanguage}
+            language="text"
             showLineNumbers={false}
           />
         </div>
