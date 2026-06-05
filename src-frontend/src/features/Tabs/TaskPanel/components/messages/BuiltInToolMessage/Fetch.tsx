@@ -166,14 +166,11 @@ function FetchContentBlockItem({ data }: { data: TaskResourceMetadata }) {
 }
 
 function FetchContentBlocks({ result }: { result: TaskResourceMetadata[] }) {
+  const [_fetchMetadata, actualResult] = result;
+
   return (
     <div className="flex flex-col items-center justify-center gap-2 px-4 pb-4">
-      {result.map((data, index) => (
-        <FetchContentBlockItem
-          key={`${typeof data.resource_id}:${data.resource_id}:${index}`}
-          data={data}
-        />
-      ))}
+      <FetchContentBlockItem data={actualResult} />
     </div>
   );
 }
@@ -241,14 +238,6 @@ function FetchTextContent({ result }: { result: string }) {
       />
     </div>
   );
-}
-
-function FetchContent({ result }: { result: string | TaskResourceMetadata[] }) {
-  if (isTaskResourceMetadataList(result)) {
-    return <FetchContentBlocks result={result} />;
-  }
-
-  return <FetchTextContent result={result} />;
 }
 
 function FetchResult({ message }: ToolMessageProps) {
