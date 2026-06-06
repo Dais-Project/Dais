@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
@@ -120,3 +122,21 @@ class TestEditFile:
 
         result = await tool.edit_file(filename, "Line with spaces", "Modified line")
         assert "Modified line" in file_path.read_text(encoding="utf-8")
+
+    @pytest.mark.asyncio
+    async def test_edit_file_follows_symlink(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
+        target_path = temp_workspace / "target.txt"
+        link_path = temp_workspace / "link.txt"
+        target_path.write_text("old content", encoding="utf-8")
+        try:
+            os.symlink(target_path, link_path)
+        except OSError as exc:
+            pytest.skip(f"Symlink creation is not available: {exc}")
+
+        result = await tool.edit_file("link.txt", "old", "new")
+
+        assert "-old content" in result
+        assert "+new content" in result
+        assert link_path.is_symlink()
+        assert target_path.read_text(encoding="utf-8") == "new content"

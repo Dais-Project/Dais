@@ -1,9 +1,11 @@
 import asyncio
 import base64
+import contextlib
 import difflib
 import os
+import tempfile
 import xml.etree.ElementTree as ET
-from typing import Annotated, Literal, TypedDict, cast, override
+from typing import Annotated, ClassVar, Literal, TypedDict, cast, override
 from pathlib import Path as StdPath
 from string import Template
 from anyio import Path as AnyioPath
@@ -46,6 +48,8 @@ class PathExpander:
 
 class FileSystemToolset(BuiltinToolset):
     _logger = logger.bind(name="FileSystemToolset")
+    _file_locks: ClassVar[dict[str, asyncio.Lock]] = {}
+    _file_locks_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
 
     def __init__(self,
                  ctx: BuiltinToolsetContext,
@@ -68,6 +72,42 @@ class FileSystemToolset(BuiltinToolset):
         expanded_path = self._path_expander.substitute(file_path)
         expanded_path = os.path.expanduser(expanded_path)
         return AnyioPath(self._ctx.cwd / expanded_path)
+
+    async def _get_file_lock(self, path: StdPath | AnyioPath) -> asyncio.Lock:
+        lock_key_path = await AnyioPath(path).resolve(strict=False)
+        normalized_key = str(lock_key_path)
+        async with self._file_locks_lock:
+            lock = self._file_locks.get(normalized_key)
+            if lock is None:
+                lock = asyncio.Lock()
+                self._file_locks[normalized_key] = lock
+            return lock
+
+    async def _atomic_write_text(self, path: AnyioPath, content: str) -> None:
+        def write_impl() -> None:
+            std_path = StdPath(path)
+            if std_path.is_symlink():
+                std_path = std_path.resolve(strict=False)
+
+            temp_file_path: str | None = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    "w",
+                    encoding="utf-8",
+                    dir=std_path.parent,
+                    delete=False,
+                ) as temp_file:
+                    temp_file_path = temp_file.name
+                    temp_file.write(content)
+                    temp_file.flush()
+                    os.fsync(temp_file.fileno())
+                os.replace(temp_file_path, std_path)
+            finally:
+                if temp_file_path is not None:
+                    with contextlib.suppress(FileNotFoundError):
+                        os.unlink(temp_file_path)
+
+        await asyncio.to_thread(write_impl)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def read_file(self,
@@ -221,11 +261,15 @@ class FileSystemToolset(BuiltinToolset):
             A success message if the file was written successfully.
         """
         abs_path = self._resolve_path(path)
-        await abs_path.parent.mkdir(parents=True, exist_ok=True)
+        lock = await self._get_file_lock(abs_path)
+        async with lock:
+            await abs_path.parent.mkdir(parents=True, exist_ok=True)
 
-        open_mode: Literal["a", "w"] = "a" if append else "w"
-        async with await abs_path.open(open_mode, encoding="utf-8") as f:
-            await f.write(content)
+            if append:
+                async with await abs_path.open("a", encoding="utf-8") as f:
+                    await f.write(content)
+            else:
+                await self._atomic_write_text(abs_path, content)
         return "File written successfully."
 
     @builtin_tool(validate=True)
@@ -263,24 +307,25 @@ class FileSystemToolset(BuiltinToolset):
             return "\n".join(diff)
 
         abs_path = self._resolve_path(path)
+        lock = await self._get_file_lock(abs_path)
+        async with lock:
+            if not await abs_path.exists():
+                raise FileNotFoundError(f"File not found at {path}")
 
-        if not await abs_path.exists():
-            raise FileNotFoundError(f"File not found at {path}")
+            content = await abs_path.read_text("utf-8")
+            count = content.count(old_content)
+            if count == 0:
+                raise ValueError(f"Content not found in file: {path}")
+            if count < expected_replacements:
+                raise ValueError(
+                    f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
+                    f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
+                )
 
-        content = await abs_path.read_text("utf-8")
-        count = content.count(old_content)
-        if count == 0:
-            raise ValueError(f"Content not found in file: {path}")
-        if count < expected_replacements:
-            raise ValueError(
-                f"Expected {expected_replacements} occurrence(s) of the given content in {path}, "
-                f"but found {count}. Adjust `old_content` or `expected_replacements` accordingly."
-            )
-
-        old_file_content = content
-        new_file_content = content.replace(old_content, new_content, expected_replacements)
-        await abs_path.write_text(new_file_content, "utf-8")
-        diff = await asyncio.to_thread(generate_diff, old_file_content, new_file_content, path)
+            old_file_content = content
+            new_file_content = content.replace(old_content, new_content, expected_replacements)
+            diff = await asyncio.to_thread(generate_diff, old_file_content, new_file_content, path)
+            await self._atomic_write_text(abs_path, new_file_content)
         return diff
 
     def _list_directory_impl(self,
