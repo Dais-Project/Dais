@@ -1,12 +1,14 @@
 import asyncio
+import base64
 import difflib
 import os
 import xml.etree.ElementTree as ET
-from typing import Annotated, Literal, TypedDict, override
+from typing import Annotated, Literal, TypedDict, cast, override
 from pathlib import Path as StdPath
 from string import Template
 from anyio import Path as AnyioPath
 from loguru import logger
+from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, VideoBlock
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
 from src.db import db_context
@@ -17,13 +19,17 @@ from src.settings import use_app_setting_manager
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import builtin_tool, BuiltinToolset, BuiltinToolsetContext, BuiltinToolDefaults
 from ...prompts import create_one_turn_llm, SemanticFileAnalysis, SemanticFileAnalysisInput
+from ...utils import magika_identify_path
+
+
+MAX_MEDIA_CONTENT_BLOCK_BYTES = 50 * 1024 * 1024
 
 
 # Since `is_binary` from binaryornot sometimes misdetects some files as binary,
 # we defines a enhanced wrapper function here.
 # TODO: remove this function once binaryornot.check.is_binary is fixed.
 def is_binary(path: StdPath) -> bool:
-    from binaryornot.helpers import has_binary_extension, is_binary_string
+    from binaryornot.helpers import has_binary_extension, is_binary_string  # pyright: ignore[reportAttributeAccessIssue]
     if has_binary_extension(path):
         return True
     with open(path, "rb") as f:
@@ -77,10 +83,11 @@ class FileSystemToolset(BuiltinToolset):
                             - The goal is to understand, summarize, or extract information from the file
                             NOTE: When the analysis failed, it will fallback to normal reading mode and returns raw file content instead — check the `mode` attribute to know which mode was used.
                             """] = None,
-                        ) -> ET.Element:
+                        ) -> ET.Element | list[ContentBlock]:
         """
         Read the contents of a file at the specified path.
-        For text files, this tool will directly return the file content;
+        For image, audio, and video files, this tool will return the file as a ContentBlock array;
+        for text files, this tool will directly return the file content;
         for .pdf, .docx, .pptx, .xlsx, .epub files, this tool will convert the file to markdown format and return the markdown text.
 
         Returns:
@@ -130,6 +137,24 @@ class FileSystemToolset(BuiltinToolset):
             root.text = content
             return root
 
+        async def read_media_content_blocks(path: AnyioPath,
+                                            media_type: Literal["image", "audio", "video"],
+                                            mime_type: str) -> list[ContentBlock]:
+            file_size = (await path.stat()).st_size
+            if file_size > MAX_MEDIA_CONTENT_BLOCK_BYTES:
+                raise ValueError(
+                    f"File {path.name} is too large to return as a ContentBlock "
+                    f"({file_size} bytes, max {MAX_MEDIA_CONTENT_BLOCK_BYTES} bytes)."
+                )
+
+            file_bytes = await path.read_bytes()
+            encoded = await asyncio.to_thread(base64.b64encode, file_bytes)
+            source = Base64Source(mime_type=mime_type, data=encoded.decode("ascii"))
+            match media_type:
+                case "image": return [ImageBlock(source=source)]
+                case "audio": return [AudioBlock(source=source)]
+                case "video": return [VideoBlock(source=source)]
+
         abs_path = self._resolve_path(path)
 
         if not await abs_path.exists():
@@ -138,6 +163,9 @@ class FileSystemToolset(BuiltinToolset):
         if self._markdown_converter.is_convertable_binary(abs_path):
             result = await convert_to_markdown_with_cache(abs_path)
             lines = result.splitlines()
+        elif (output := await magika_identify_path(abs_path)) and output.group in {"image", "audio", "video"}:
+            media_type, mime_type = output.group, output.mime_type
+            return await read_media_content_blocks(abs_path, cast(Literal["image", "audio", "video"], media_type), mime_type)
         elif is_binary(StdPath(abs_path)):
             raise ValueError(f"File {path} is a binary file, and is not supported to read.")
         else:

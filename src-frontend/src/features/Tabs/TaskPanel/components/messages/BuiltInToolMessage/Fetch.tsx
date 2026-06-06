@@ -1,12 +1,19 @@
-import { GlobeIcon } from "lucide-react";
+import { GlobeIcon, LinkIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { BundledLanguage } from "shiki";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import type { WebInteractionFetch } from "@/api/generated/schemas";
+import type {
+  TaskResourceMetadata,
+  WebInteractionFetch,
+} from "@/api/generated/schemas";
+import { createTaskResourceUrl } from "@/api/tasks";
+import {
+  attachmentCategoryIcons,
+  resolveMimetypeCategory,
+} from "@/components/ai-elements/attachments";
 import { FetchToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
-import { ToolMessageProps } from ".";
+import type { ToolMessageProps } from ".";
 import {
   BuiltInToolContainer,
   BuiltInToolContent,
@@ -14,31 +21,35 @@ import {
   BuiltInToolHeader,
   BuiltInToolTitle,
 } from "./components/BuiltInTool";
-import { useAgentTaskAction } from "../../../hooks/use-agent-task";
+import {
+  useAgentTaskAction,
+  useAgentTaskState,
+} from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { getToolMessageMetadata } from "@/types/message";
+import { isTaskResourceMetadataList } from "@/types/message/type-guards";
 
 type ParsedFetchResult =
   | {
-    kind: "document";
-    url: string;
-    statusCode: number | null;
-    reasonPhrase: string;
-    content: string;
-  }
+      kind: "success";
+      url: string;
+      statusCode: number | null;
+      reasonPhrase: string;
+      content: string;
+    }
   | {
-    kind: "error";
-    url: string;
-    statusCode: number | null;
-    reasonPhrase: string;
-    text: string;
-  }
+      kind: "error";
+      url: string;
+      statusCode: number | null;
+      reasonPhrase: string;
+      text: string;
+    }
   | {
-    kind: "raw";
-    rawText: string;
-  };
+      kind: "raw";
+      rawText: string;
+    };
 
 function parseStatusCode(value: string | null | undefined): number | null {
   if (!value) {
@@ -65,18 +76,17 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
       return { kind: "raw", rawText: resultText };
     }
 
-    const documentRoot = doc.querySelector("document");
-    if (documentRoot) {
+    const fetchRoot = doc.querySelector("fetch");
+    if (fetchRoot) {
       return {
-        kind: "document",
-        url: documentRoot.querySelector("url")?.textContent ?? "",
+        kind: "success",
+        url: fetchRoot.querySelector("url")?.textContent ?? "",
         statusCode: parseStatusCode(
-          documentRoot.querySelector("status_code")?.textContent
+          fetchRoot.querySelector("status_code")?.textContent,
         ),
         reasonPhrase:
-          documentRoot.querySelector("reason_phrase")?.textContent ?? "",
-        content:
-          documentRoot.querySelector("document_content")?.textContent ?? "",
+          fetchRoot.querySelector("reason_phrase")?.textContent ?? "",
+        content: fetchRoot.querySelector("document_content")?.textContent ?? "",
       };
     }
 
@@ -86,9 +96,10 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
         kind: "error",
         url: errorRoot.querySelector("url")?.textContent ?? "",
         statusCode: parseStatusCode(
-          errorRoot.querySelector("status_code")?.textContent
+          errorRoot.querySelector("status_code")?.textContent,
         ),
-        reasonPhrase: errorRoot.querySelector("reason_phrase")?.textContent ?? "",
+        reasonPhrase:
+          errorRoot.querySelector("reason_phrase")?.textContent ?? "",
         text: errorRoot.querySelector("text")?.textContent ?? "",
       };
     }
@@ -98,18 +109,88 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
   }
 }
 
-function FetchContent({ result }: { result: string }) {
+function FetchContentBlockItem({ data }: { data: TaskResourceMetadata }) {
+  const { taskId, taskType } = useAgentTaskState();
+
+  if ("text" in data) {
+    return (
+      <CodeBlock
+        code={data.text}
+        language="text"
+        showLineNumbers={true}
+        startingLineNumber={1}
+      />
+    );
+  }
+
+  if ("url" in data) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg bg-muted p-3 text-sm">
+        <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
+        <span className="break-all font-mono">{data.url}</span>
+      </div>
+    );
+  }
+
+  const resourceType = resolveMimetypeCategory(data.mimetype);
+  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
+
+  switch (resourceType) {
+    case "image":
+      return (
+        <img
+          alt={data.filename}
+          className="max-h-80 rounded-lg object-contain"
+          src={resourceUrl.toString()}
+        />
+      );
+    case "video":
+      return (
+        // biome-ignore lint: a11y/useMediaCaption
+        <video
+          className="max-h-80 rounded-lg"
+          controls
+          src={resourceUrl.toString()}
+        />
+      );
+    case "audio":
+      return (
+        // biome-ignore lint: a11y/useMediaCaption
+        <audio className="w-full" controls src={resourceUrl.toString()} />
+      );
+    default: {
+      const Icon = attachmentCategoryIcons[resourceType];
+      return <Icon className="size-8 text-muted-foreground" />;
+    }
+  }
+}
+
+function FetchContentBlocks({ result }: { result: TaskResourceMetadata[] }) {
+  const [_fetchMetadata, actualResult] = result;
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 px-4 pb-4">
+      <FetchContentBlockItem data={actualResult} />
+    </div>
+  );
+}
+
+function FetchTextContent({ result }: { result: string }) {
   const parsed = useMemo(() => parseFetchResult(result), [result]);
 
   if (parsed.kind === "raw") {
     if (parsed.rawText.trim().length === 0) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">Empty response</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          Empty response
+        </p>
+      );
     }
     return (
       <div className="px-4 pb-4">
         <CodeBlock
           code={parsed.rawText}
-          language={"text" as BundledLanguage}
+          language="text"
           showLineNumbers={false}
         />
       </div>
@@ -119,20 +200,21 @@ function FetchContent({ result }: { result: string }) {
   const responseSummary = (
     <div className="text-sm">
       <span className="text-muted-foreground">响应状态：</span>
-      <span className="font-medium font-mono">{parsed.statusCode ?? "-"} {parsed.reasonPhrase}</span>
+      <span className="font-medium font-mono">
+        {parsed.statusCode ?? "-"} {parsed.reasonPhrase}
+      </span>
     </div>
   );
 
   if (parsed.kind === "error") {
-    const errorText = parsed.text.trim().length === 0 ? "(empty error response body)" : parsed.text;
+    const errorText =
+      parsed.text.trim().length === 0
+        ? "(empty error response body)"
+        : parsed.text;
     return (
       <div className="px-4 pb-4 space-y-2">
         {responseSummary}
-        <CodeBlock
-          code={errorText}
-          language={"text" as BundledLanguage}
-          showLineNumbers={false}
-        />
+        <CodeBlock code={errorText} language="text" showLineNumbers={false} />
       </div>
     );
   }
@@ -151,42 +233,55 @@ function FetchContent({ result }: { result: string }) {
       {responseSummary}
       <CodeBlock
         code={parsed.content}
-        language={"markdown" as BundledLanguage}
+        language="markdown"
         showLineNumbers={false}
       />
     </div>
   );
 }
 
+function FetchResult({ message }: ToolMessageProps) {
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const toolArguments = useToolArgument<WebInteractionFetch>(
+    message,
+    FetchToolSchema,
+  );
+  if (message.isStreaming) {
+    return (
+      <p className="px-4 pb-4 text-muted-foreground text-sm">
+        {t("tool.fetch.generating")}
+      </p>
+    );
+  }
+  if (toolArguments === null) {
+    return (
+      <p className="px-4 pb-4 text-muted-foreground text-sm">
+        {t("tool.fetch.parse_error")}
+      </p>
+    );
+  }
+  const { result, error } = message;
+  if (error) {
+    return <BuiltInToolError error={error} />;
+  }
+  if (result !== null) {
+    if (isTaskResourceMetadataList(result)) {
+      return <FetchContentBlocks result={result} />;
+    }
+    return <FetchTextContent result={result as string} />;
+  }
+  return null;
+}
+
 export function Fetch({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const toolArguments = useToolArgument<WebInteractionFetch>(
+    message,
+    FetchToolSchema,
+  );
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<WebInteractionFetch>(message, FetchToolSchema);
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
-
-  const content = (() => {
-    if (message.isStreaming) {
-      return (
-        <p className="px-4 pb-4 text-muted-foreground text-sm">
-          {t("tool.fetch.generating")}
-        </p>
-      );
-    }
-    if (toolArguments === null) {
-      return (
-        <p className="px-4 pb-4 text-muted-foreground text-sm">
-          {t("tool.fetch.parse_error")}
-        </p>
-      );
-    }
-    if (message.error) {
-      return <BuiltInToolError error={message.error} />;
-    }
-    if (message.result !== null) {
-      return <FetchContent result={message.result} />;
-    }
-  })();
 
   return (
     <BuiltInToolContainer id={message.call_id}>
@@ -204,7 +299,9 @@ export function Fetch({ message }: ToolMessageProps) {
           )}
         </BuiltInToolTitle>
       </BuiltInToolHeader>
-      <BuiltInToolContent>{content}</BuiltInToolContent>
+      <BuiltInToolContent>
+        <FetchResult message={message} />
+      </BuiltInToolContent>
       {userApproval && (
         <ToolConfirmation
           state={userApproval}

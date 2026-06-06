@@ -26,7 +26,11 @@ def format_context(context: list[Message]) -> list[ET.Element]:
                 ET.SubElement(msg_elem, "name").text = msg.name
                 ET.SubElement(msg_elem, "arguments").text = json.dumps(msg.arguments, ensure_ascii=False)
                 if msg.result is not None:
-                    ET.SubElement(msg_elem, "result").text = msg.result
+                    result = msg.result
+                    ET.SubElement(msg_elem, "result").text = (
+                        result if isinstance(result, str) else
+                        json.dumps(result, ensure_ascii=False)
+                    )
                 if msg.error is not None:
                     ET.SubElement(msg_elem, "error").text = msg.error
                 elements.append(msg_elem)

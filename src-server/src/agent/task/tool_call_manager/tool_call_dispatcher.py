@@ -1,21 +1,71 @@
 import asyncio
+import base64
+import uuid
+import mimetypes
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from collections.abc import AsyncGenerator
-from typing import AsyncGenerator
 from loguru import logger
 from dais_sdk.tool import ToolCallExecutor
-from dais_sdk.types import ToolDef, ToolMessage, ToolDoesNotExistError
+from dais_sdk.types import (
+    ToolDef, ToolMessage,
+    ContentBlock, ContentBlockMetadata, ContentBlockPersister,
+    TextBlock, ImageBlock, AudioBlock, VideoBlock, DocumentBlock,
+    ToolDoesNotExistError, ToolArgumentParsingError, ToolResultSerializationError, ToolExecutionError,
+)
+from src.db import db_context
+from src.services.tasks import TaskResourceService
+from src.schemas.tasks import runtime as task_runtime_schemas
 from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
-from .exception_handlers import handle_tool_does_not_exist_error
+from .exception_handlers import (
+    handle_tool_does_not_exist_error,
+    handle_tool_argument_parsing_error,
+    handle_tool_execution_error,
+    handle_tool_result_serialization_error,
+)
 from ...context import AgentContext
 from ...types import (
     ToolEvent, ToolExecutedEvent, MessageReplaceEvent, ErrorEvent,
     ToolRequirePermissionEvent,
+    TaskResourceMetadata, TextResourceMetadata, UrlResourceMetadata, FileResourceMetadata,
 )
 from ...tool import ExecutionControlToolset, OrchestrationToolset
 from ...types.metadata import UserApprovalStatus, is_agent_tool_metadata
 
+
+class TaskResourcePersister(ContentBlockPersister):
+    def __init__(self, task_id: int, task_type: task_runtime_schemas.TaskType):
+        super().__init__()
+        self._task_id = task_id
+        self._task_type = task_type
+
+    async def _persist_file_resource(self, mime_type: str, data: str) -> TaskResourceMetadata:
+        file_bytes = await asyncio.to_thread(base64.b64decode, data)
+        extension = mimetypes.guess_extension(mime_type) or ".bin"
+        filename = f"tool-result_{mime_type}.{extension}"
+
+        async with db_context() as db_session:
+            task_resource_service = TaskResourceService(db_session, self._task_type)
+            resource = await task_resource_service.save_task_resource(self._task_id, filename, file_bytes)
+            return FileResourceMetadata(
+                resource_id=resource.id,
+                filename=resource.filename,
+                mimetype=mime_type,
+            )
+
+    async def persist(self, content_block: ContentBlock) -> ContentBlockMetadata:
+        match content_block:
+            case TextBlock():
+                return TextResourceMetadata(resource_id=str(uuid.uuid4()), text=content_block.text)
+            case ImageBlock() | AudioBlock() | VideoBlock() | DocumentBlock() as block\
+                if block.source.type == "base64":
+                source = block.source
+                return await self._persist_file_resource(source.mime_type, source.data)
+            case ImageBlock() | AudioBlock() | VideoBlock() | DocumentBlock() as block\
+                if block.source.type == "url":
+                return UrlResourceMetadata(resource_id=str(uuid.uuid4()), type=block.type, url=block.source.url)
+            case _:
+                raise ValueError("Unreachable")
 
 @dataclass
 class ToolCallDispatchResult:
@@ -30,10 +80,15 @@ class ToolCallDispatch:
 class ToolCallDispatcher:
     _logger = logger.bind(name="ToolCallDispatcher")
 
-    def __init__(self, ctx: AgentContext, tool_call_executor: ToolCallExecutor, tool_call_reviewer: ToolCallReviewer):
+    def __init__(self, ctx: AgentContext, tool_call_reviewer: ToolCallReviewer):
         self._ctx = ctx
-        self._tool_call_executor = tool_call_executor
         self._tool_call_reviewer = tool_call_reviewer
+        content_block_persister = TaskResourcePersister(self._ctx.task_id, self._ctx.task_type)
+        self._tool_call_executor = ToolCallExecutor(content_block_persister)
+        self._tool_call_executor.exception_handler.set_handler(ToolDoesNotExistError, handle_tool_does_not_exist_error)
+        self._tool_call_executor.exception_handler.set_handler(ToolArgumentParsingError, handle_tool_argument_parsing_error)
+        self._tool_call_executor.exception_handler.set_handler(ToolResultSerializationError, handle_tool_result_serialization_error)
+        self._tool_call_executor.exception_handler.set_handler(ToolExecutionError, handle_tool_execution_error)
 
     async def execute(self, tool: ToolDef, message: ToolMessage) -> ToolExecutedEvent:
         """

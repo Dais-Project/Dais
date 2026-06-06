@@ -18,7 +18,6 @@ from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
-from src.services.toolset import ToolsetService
 from src.settings import use_app_setting_manager
 from .persistence import create_agent_context_persistence
 from .aliases import BuiltInToolAliases

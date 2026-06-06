@@ -1,4 +1,7 @@
-import type { ToolMessageArguments } from "@/api/generated/schemas";
+import type {
+  ToolMessageArguments,
+  ToolMessageMetadata,
+} from "@/api/generated/schemas";
 import type { SdkMessage, SdkToolMessage } from "./sdk-message";
 import type {
   UiAssistantMessage,
@@ -12,6 +15,23 @@ export function isToolMessageCompleted(
   message: SdkToolMessage | UiToolMessage,
 ) {
   return message.result !== null || message.error !== null;
+}
+
+export function getToolMessageMetadata(message: UiToolMessage): {
+  userApproval: ToolMessageMetadata["user_approval"];
+  risk: {
+    level?: number;
+    reason?: string;
+  };
+} {
+  const metadata = message.metadata as ToolMessageMetadata;
+  return {
+    userApproval: metadata.user_approval,
+    risk: {
+      level: metadata.risk_level,
+      reason: metadata.risk_reason,
+    },
+  };
 }
 
 export function uiUserMessageFactory(content: string): UiUserMessage {

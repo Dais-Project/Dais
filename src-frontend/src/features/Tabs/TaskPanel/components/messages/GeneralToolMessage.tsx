@@ -1,11 +1,30 @@
 import { Activity } from "react";
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput, ToolState } from "@/components/ai-elements/tool";
+import { LinkIcon } from "lucide-react";
+import type { TaskResourceMetadata } from "@/api/generated/schemas";
+import { createTaskResourceUrl } from "@/api/tasks";
+import {
+  attachmentCategoryIcons,
+  resolveMimetypeCategory,
+} from "@/components/ai-elements/attachments";
+import { CodeBlock } from "@/components/ai-elements/code-block";
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolInput,
+  ToolOutput,
+  type ToolState,
+} from "@/components/ai-elements/tool";
 import { activityVisible } from "@/lib/activity-visible";
-import { ToolMessageMetadata } from "@/api/generated/schemas";
-import { getToolMessageMetadata, UiToolMessage } from "@/types/message";
-import { ToolMessageProps } from "./BuiltInToolMessage";
+import type { ToolMessageMetadata } from "@/api/generated/schemas";
+import { getToolMessageMetadata, type UiToolMessage } from "@/types/message";
+import { isTaskResourceMetadataList } from "@/types/message/type-guards";
+import type { ToolMessageProps } from "./BuiltInToolMessage";
 import { ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmation";
-import { useAgentTaskAction } from "../../hooks/use-agent-task";
+import {
+  useAgentTaskAction,
+  useAgentTaskState,
+} from "../../hooks/use-agent-task";
 import { useToolName } from "../../hooks/use-tool-name";
 import { useToolActionable } from "../../hooks/use-tool-actionable";
 import { useCollapsed } from "../../hooks/use-collapsible-store";
@@ -30,6 +49,62 @@ function getToolState(message: UiToolMessage): ToolState {
     default: // do nothing
   }
   return "input-streaming";
+}
+
+function ContentBlockItem({ data }: { data: TaskResourceMetadata }) {
+  const { taskId, taskType } = useAgentTaskState();
+
+  if ("text" in data) {
+    return (
+      <CodeBlock
+        code={data.text}
+        language="text"
+        showLineNumbers={true}
+        startingLineNumber={1}
+      />
+    );
+  }
+
+  if ("url" in data) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg bg-muted p-3 text-sm">
+        <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
+        <span className="break-all font-mono">{data.url}</span>
+      </div>
+    );
+  }
+
+  const resourceType = resolveMimetypeCategory(data.mimetype);
+  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
+
+  switch (resourceType) {
+    case "image":
+      return (
+        <img
+          alt={data.filename}
+          className="max-h-80 rounded-lg object-contain"
+          src={resourceUrl.toString()}
+        />
+      );
+    case "video":
+      return (
+        // biome-ignore lint: a11y/useMediaCaption
+        <video
+          className="max-h-80 rounded-lg"
+          controls
+          src={resourceUrl.toString()}
+        />
+      );
+    case "audio":
+      return (
+        // biome-ignore lint: a11y/useMediaCaption
+        <audio className="w-full" controls src={resourceUrl.toString()} />
+      );
+    default: {
+      const Icon = attachmentCategoryIcons[resourceType];
+      return <Icon className="size-8 text-muted-foreground" />;
+    }
+  }
 }
 
 export function GeneralToolMessage({ message }: ToolMessageProps) {
@@ -59,7 +134,18 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
       <ToolContent className="bg-card">
         <ToolInput input={toolArguments} />
         <Activity mode={activityVisible(hasResult)}>
-          <ToolOutput output={message.result} errorText={message.error} />
+          {isTaskResourceMetadataList(message.result) ? (
+            <div className="flex flex-col items-center justify-center gap-2">
+              {message.result.map((item, index) => (
+                <ContentBlockItem
+                  key={`${typeof item.resource_id}:${item.resource_id}:${index}`}
+                  data={item}
+                />
+              ))}
+            </div>
+          ) : (
+            <ToolOutput output={message.result} errorText={message.error} />
+          )}
         </Activity>
       </ToolContent>
       {userApproval && (

@@ -5,8 +5,12 @@ import type { ExecutionControlUpdateTodos } from "@/api/generated/schemas";
 import { getToolMessageMetadata } from "@/types/message";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { TodoList } from "@/features/Tabs/TaskPanel/components/TodoList";
-import { ToolMessageProps } from ".";
-import { BuiltInToolContainer, BuiltInToolContent, BuiltInToolHeader } from "./components/BuiltInTool";
+import type { ToolMessageProps } from ".";
+import {
+  BuiltInToolContainer,
+  BuiltInToolContent,
+  BuiltInToolHeader,
+} from "./components/BuiltInTool";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
@@ -15,20 +19,35 @@ import { useToolActionable } from "../../../hooks/use-tool-actionable";
 export function UpdateTodos({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(message, UpdateTodosSchema);
+  const toolArguments = useToolArgument<ExecutionControlUpdateTodos>(
+    message,
+    UpdateTodosSchema,
+  );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const todos = toolArguments?.todos ?? [];
   const { userApproval, risk } = getToolMessageMetadata(message);
 
   const content = (() => {
     if (message.isStreaming) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.generating")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.update_todos.generating")}
+        </p>
+      );
     }
     if (toolArguments === null) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.parse_error")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.update_todos.parse_error")}
+        </p>
+      );
     }
     if (todos.length === 0) {
-      return <p className="px-4 pb-4 text-muted-foreground text-sm">{t("tool.update_todos.empty")}</p>;
+      return (
+        <p className="px-4 pb-4 text-muted-foreground text-sm">
+          {t("tool.update_todos.empty")}
+        </p>
+      );
     }
     return (
       <div className="px-2 pb-4">

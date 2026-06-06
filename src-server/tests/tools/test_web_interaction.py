@@ -1,0 +1,199 @@
+import base64
+import xml.etree.ElementTree as ET
+
+import httpx
+import pytest
+import src.agent.tool.builtin_tools.web_interaction as web_interaction_module
+from dais_sdk.types import AudioBlock, ImageBlock, TextBlock, VideoBlock
+from src.agent.tool.builtin_tools.web_interaction import (
+    MAX_MEDIA_CONTENT_BLOCK_BYTES,
+    WebInteractionToolset,
+)
+
+
+class FakeContentTypeOutput:
+    def __init__(self, group: str, mime_type: str, is_text: bool, label):
+        self.group = group
+        self.mime_type = mime_type
+        self.is_text = is_text
+        self.label = label
+
+
+class FakeContentType:
+    def __init__(self, output: FakeContentTypeOutput):
+        self.output = output
+
+
+class FakeMagika:
+    def __init__(self, output: FakeContentTypeOutput):
+        self._output = output
+
+    def identify_bytes(self, _: bytes) -> FakeContentType:
+        return FakeContentType(self._output)
+
+
+class FakeAsyncClient:
+    def __init__(self, response: httpx.Response):
+        self._response = response
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
+
+    async def send(self, _: httpx.Request) -> httpx.Response:
+        return self._response
+
+
+def make_response(
+    content: bytes,
+    status_code: int = 200,
+    content_type: str = "application/octet-stream",
+) -> httpx.Response:
+    request = httpx.Request("GET", "https://example.com/resource")
+    return httpx.Response(
+        status_code,
+        content=content,
+        request=request,
+        headers={"content-type": content_type},
+    )
+
+
+@pytest.mark.tool
+class TestFetch:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("group", "mime_type", "expected_block_type"),
+        [
+            ("image", "image/png", ImageBlock),
+            ("audio", "audio/mpeg", AudioBlock),
+            ("video", "video/mp4", VideoBlock),
+        ],
+    )
+    async def test_fetch_media_response_returns_content_block(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+        group: str,
+        mime_type: str,
+        expected_block_type: type[ImageBlock | AudioBlock | VideoBlock],
+    ):
+        content = b"fake media"
+        response = make_response(content, content_type=mime_type)
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group=group,
+                mime_type=mime_type,
+                is_text=False,
+                label=mime_type,
+            ),
+        )
+
+        result = await tool.fetch("https://example.com/resource")
+
+        assert isinstance(result, list)
+        assert len(result) == 2
+        metadata_block = result[0]
+        assert isinstance(metadata_block, TextBlock)
+        assert "Fetched media resource: https://example.com/resource" in metadata_block.text
+        assert "Status: 200 OK" in metadata_block.text
+        block = result[1]
+        assert isinstance(block, expected_block_type)
+        assert block.source.type == "base64"
+        assert block.source.mime_type == mime_type
+        assert block.source.data == base64.b64encode(content).decode("ascii")
+
+    @pytest.mark.asyncio
+    async def test_fetch_media_response_rejects_oversized_content_block(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        response = make_response(
+            b"0" * (MAX_MEDIA_CONTENT_BLOCK_BYTES + 1),
+            content_type="image/png",
+        )
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group="image",
+                mime_type="image/png",
+                is_text=False,
+                label="image/png",
+            ),
+        )
+
+        with pytest.raises(ValueError, match="too large to return as a ContentBlock"):
+            await tool.fetch("https://example.com/resource")
+
+    @pytest.mark.asyncio
+    async def test_fetch_media_bytes_with_non_media_content_type_returns_document_xml(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        response = make_response(b"fake image", content_type="text/plain")
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group="image",
+                mime_type="image/png",
+                is_text=False,
+                label="image/png",
+            ),
+        )
+
+        result = await tool.fetch("https://example.com/resource")
+
+        assert isinstance(result, ET.Element)
+        assert result.tag == "document"
+        assert result.findtext("document_content") == "[Binary Data: image/png]"
+
+    @pytest.mark.asyncio
+    async def test_fetch_text_response_returns_document_xml(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        response = make_response(b"hello")
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group="text",
+                mime_type="text/plain",
+                is_text=True,
+                label="txt",
+            ),
+        )
+
+        result = await tool.fetch("https://example.com/resource")
+
+        assert isinstance(result, ET.Element)
+        assert result.tag == "document"
+        assert result.findtext("document_content") == "hello"
