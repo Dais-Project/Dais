@@ -288,6 +288,7 @@ class FileSystemToolset(BuiltinToolset):
         `old_content` and `new_content` should be the MINIMAL snippet necessary to make the change (though you may include a few extra lines BEFORE and AFTER the target text to ensure uniqueness).
 
         Use this when you need to edit an existing file with existing content you have read before.
+        If the target file is a binary file, the tool will raise an error without editing it.
         If you intend to replace multiple identical occurrences at once, set `expected_replacements` to the exact count.
         The tool will raise an error if the actual count is fewer than `expected_replacements`.
 
@@ -311,8 +312,13 @@ class FileSystemToolset(BuiltinToolset):
         async with lock:
             if not await abs_path.exists():
                 raise FileNotFoundError(f"File not found at {path}")
+            if is_binary(StdPath(abs_path)):
+                raise ValueError(f"File {path} is a binary file, and is not supported to edit.")
 
-            content = await abs_path.read_text("utf-8")
+            try:
+                content = await abs_path.read_text("utf-8")
+            except UnicodeDecodeError as exc:
+                raise ValueError(f"File {path} is a binary file, and is not supported to edit.") from exc
             count = content.count(old_content)
             if count == 0:
                 raise ValueError(f"Content not found in file: {path}")

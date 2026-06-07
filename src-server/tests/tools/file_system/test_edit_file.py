@@ -109,6 +109,20 @@ class TestEditFile:
         assert "Duplicate line" not in updated_content
 
     @pytest.mark.asyncio
+    async def test_edit_file_rejects_binary_file(self, builtin_toolset_context, temp_workspace):
+        tool = FileSystemToolset(builtin_toolset_context)
+        filename = "binary_without_extension"
+        binary_content = b"\x00\x01\x02old content\xff"
+        file_path = temp_workspace / filename
+        file_path.write_bytes(binary_content)
+
+        with pytest.raises(ValueError) as exc_info:
+            await tool.edit_file(filename, "old content", "new content")
+
+        assert f"File {filename} is a binary file, and is not supported to edit." in str(exc_info.value)
+        assert file_path.read_bytes() == binary_content
+
+    @pytest.mark.asyncio
     async def test_edit_file_with_whitespace_sensitivity(self, builtin_toolset_context, temp_workspace):
         tool = FileSystemToolset(builtin_toolset_context)
         filename = "whitespace.txt"
