@@ -107,10 +107,8 @@ class WebInteractionToolset(BuiltinToolset):
                 )
 
         Returns:
-            An XML string representing the response.
-
-            For successful requests (status < 400):
-            <document>
+            For text responses, binary responses that can be converted into markdown, or non-media binary responses, an XML element representing the response:
+            <fetch>
                 <url>https://final-url-after-redirects.com</url>
                 <status_code>200</status_code>
                 <reason_phrase>OK</reason_phrase>
@@ -119,9 +117,13 @@ class WebInteractionToolset(BuiltinToolset):
                     <redirect status_code="301" reason_phrase="Moved Permanently" location="..."/>
                 </redirects>
                 <document_content>...[Markdown, Code, JSON, or HTML content]...</document_content>
-            </document>
+            </fetch>
 
-            For failed requests (status >= 400):
+            For detected media files, a ContentBlock array is returned. The first TextBlock
+            contains the <fetch> metadata XML without <document_content>, and the second
+            block contains the detected image, audio, or video content.
+
+            For failed requests (status >= 400), an XML element is returned:
             <error>
                 <url>...</url>
                 <status_code>404</status_code>

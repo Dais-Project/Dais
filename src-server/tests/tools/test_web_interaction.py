@@ -103,8 +103,11 @@ class TestFetch:
         assert len(result) == 2
         metadata_block = result[0]
         assert isinstance(metadata_block, TextBlock)
-        assert "Fetched media resource: https://example.com/resource" in metadata_block.text
-        assert "Status: 200 OK" in metadata_block.text
+        metadata = ET.fromstring(metadata_block.text)
+        assert metadata.tag == "fetch"
+        assert metadata.findtext("url") == "https://example.com/resource"
+        assert metadata.findtext("status_code") == "200"
+        assert metadata.findtext("reason_phrase") == "OK"
         block = result[1]
         assert isinstance(block, expected_block_type)
         assert block.source.type == "base64"
@@ -141,12 +144,13 @@ class TestFetch:
             await tool.fetch("https://example.com/resource")
 
     @pytest.mark.asyncio
-    async def test_fetch_media_bytes_with_non_media_content_type_returns_document_xml(
+    async def test_fetch_media_bytes_returns_content_block_when_detected_media(
         self,
         builtin_toolset_context,
         monkeypatch: pytest.MonkeyPatch,
     ):
-        response = make_response(b"fake image", content_type="text/plain")
+        content = b"fake image"
+        response = make_response(content, content_type="text/plain")
         monkeypatch.setattr(
             web_interaction_module.httpx,
             "AsyncClient",
@@ -165,12 +169,23 @@ class TestFetch:
 
         result = await tool.fetch("https://example.com/resource")
 
-        assert isinstance(result, ET.Element)
-        assert result.tag == "document"
-        assert result.findtext("document_content") == "[Binary Data: image/png]"
+        assert isinstance(result, list)
+        assert len(result) == 2
+        metadata_block = result[0]
+        assert isinstance(metadata_block, TextBlock)
+        metadata = ET.fromstring(metadata_block.text)
+        assert metadata.tag == "fetch"
+        assert metadata.findtext("url") == "https://example.com/resource"
+        assert metadata.findtext("status_code") == "200"
+        assert metadata.findtext("reason_phrase") == "OK"
+        block = result[1]
+        assert isinstance(block, ImageBlock)
+        assert block.source.type == "base64"
+        assert block.source.mime_type == "image/png"
+        assert block.source.data == base64.b64encode(content).decode("ascii")
 
     @pytest.mark.asyncio
-    async def test_fetch_text_response_returns_document_xml(
+    async def test_fetch_text_response_returns_fetch_xml(
         self,
         builtin_toolset_context,
         monkeypatch: pytest.MonkeyPatch,
@@ -195,5 +210,5 @@ class TestFetch:
         result = await tool.fetch("https://example.com/resource")
 
         assert isinstance(result, ET.Element)
-        assert result.tag == "document"
+        assert result.tag == "fetch"
         assert result.findtext("document_content") == "hello"
