@@ -10,6 +10,17 @@ archive = "zip"
 algorithm = "sha256"
 digest = "124510b94b6baa3380d051fdf4650eaa80a302c876d611e9dba0b2e18d87493a"
 
+[ripgrep.linux-x64]
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz"
+root = "ripgrep-15.1.0-x86_64-unknown-linux-musl/"
+archive = "tar-gz"
+
+[ripgrep.linux-x64.hash]
+algorithm = "sha256"
+digest = "1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599"
+
+# --- --- --- --- --- ---
+
 [node]
 target = "bin/node/"
 
@@ -22,6 +33,17 @@ archive = "zip"
 algorithm = "sha256"
 digest = "09a5a0dbb2f4cefa800880012810e2dfaac0016a62e75f064c4ab7f3606b2d78"
 
+[node.linux-x64]
+url = "https://nodejs.org/dist/v25.8.1/node-v25.8.1-linux-x64.tar.gz"
+root = "node-v25.8.1-linux-x64/"
+archive = "tar-gz"
+
+[node.linux-x64.hash]
+algorithm = "sha256"
+digest = "6fe3b8fa448579f728f7a0e5bbb3ab6a352d2c6307e13ae37a86106a3e4c9aaf"
+
+# --- --- --- --- --- ---
+
 [uv]
 target = "bin/uv/"
 
@@ -33,3 +55,12 @@ archive = "zip"
 [uv.windows-x64.hash]
 algorithm = "sha256"
 digest = "4c1d55501869b3330d4aabf45ad6024ce2367e0f3af83344395702d272c22e88"
+
+[uv.linux-x64]
+url = "https://releases.astral.sh/github/uv/releases/download/0.10.12/uv-x86_64-unknown-linux-gnu.tar.gz"
+root = "uv-x86_64-unknown-linux-gnu/"
+archive = "tar-gz"
+
+[uv.linux-x64.hash]
+algorithm = "sha256"
+digest = "ec72570c9d1f33021aa80b176d7baba390de2cfeb1abcbefca346d563bf17484"
