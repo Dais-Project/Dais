@@ -88,39 +88,39 @@ type RiskBadgeProps = {
   reason?: string;
 };
 
+export const RISK_MAPPINGS = {
+  safe: {
+    labelKey: "risk.safe",
+    range: [0, 20],
+    className:
+      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
+  },
+  mostly_safe: {
+    labelKey: "risk.mostly_safe",
+    range: [30, 50],
+    className:
+      "bg-lime-50 text-lime-700 dark:bg-lime-950/60 dark:text-lime-400",
+  },
+  risky: {
+    labelKey: "risk.risky",
+    range: [60, 70],
+    className:
+      "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400",
+  },
+  dangerous: {
+    labelKey: "risk.dangerous",
+    range: [80, 100],
+    className: "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400",
+  },
+};
+
 export function RiskBadge({ level, reason }: RiskBadgeProps) {
   const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
-  const normalizedRisk = Math.min(
-    100,
-    Math.max(0, Math.ceil(level / 10) * 10)
-  );
+  const normalizedRisk = Math.min(100, Math.max(0, Math.ceil(level / 10) * 10));
 
-  const configs = [
-    {
-      label: t("risk.safe"),
-      range: [0, 20],
-      className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
-    },
-    {
-      label: t("risk.mostly_safe"),
-      range: [30, 50],
-      className: "bg-lime-50 text-lime-700 dark:bg-lime-950/60 dark:text-lime-400",
-    },
-    {
-      label: t("risk.risky"),
-      range: [60, 70],
-      className: "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400",
-    },
-    {
-      label: t("risk.dangerous"),
-      range: [80, 100],
-      className: "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400",
-    },
-  ] as const;
-
-  const match = configs.find(
+  const match = Object.values(RISK_MAPPINGS).find(
     (config) =>
-      normalizedRisk >= config.range[0] && normalizedRisk <= config.range[1]
+      normalizedRisk >= config.range[0] && normalizedRisk <= config.range[1],
   );
 
   if (!match) {
@@ -129,7 +129,7 @@ export function RiskBadge({ level, reason }: RiskBadgeProps) {
 
   const badge = (
     <Badge className={match.className}>
-      {match.label} {normalizedRisk}
+      {t(match.labelKey)} {normalizedRisk}
     </Badge>
   );
 
@@ -179,7 +179,7 @@ export const ToolHeader = ({
   <CollapsibleTrigger
     className={cn(
       "flex w-full cursor-pointer items-center justify-between gap-4 p-3",
-      className
+      className,
     )}
     {...props}
   >
@@ -189,7 +189,7 @@ export const ToolHeader = ({
       {getStatusBadge(state)}
     </div>
     <div className="flex items-center gap-2">
-      {(typeof riskLevel === "number") && (
+      {typeof riskLevel === "number" && (
         <RiskBadge level={riskLevel} reason={riskReason} />
       )}
       <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
@@ -203,7 +203,7 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     className={cn(
       "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
-      className
+      className,
     )}
     {...props}
   />
@@ -276,10 +276,14 @@ export type ToolErrorProps = ComponentProps<"pre"> & {
 
 export function ToolError({ error, className, ...props }: ToolErrorProps) {
   return (
-    <pre className={cn(
-      "shadcn-scroll-horizontal overflow-x-auto p-4 [&_table]:w-full",
-      "rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs", className,
-    )} {...props}>
+    <pre
+      className={cn(
+        "shadcn-scroll-horizontal overflow-x-auto p-4 [&_table]:w-full",
+        "rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs",
+        className,
+      )}
+      {...props}
+    >
       {error.replace(/\\n/g, "\n")}
     </pre>
   );

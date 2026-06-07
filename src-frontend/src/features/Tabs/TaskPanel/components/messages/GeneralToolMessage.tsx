@@ -152,6 +152,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
         <ToolConfirmation
           state={userApproval}
           disabled={disabled}
+          riskLevel={risk.level}
           onSubmit={markAsSubmitted}
           onAccept={() => reviewTool(message.call_id, "approved")}
           onReject={() => reviewTool(message.call_id, "denied")}

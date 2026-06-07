@@ -1,11 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { Button } from "@/components/ui/button";
-import { UserApprovalStatus } from "@/api/generated/schemas";
+import type { UserApprovalStatus } from "@/api/generated/schemas";
+import { RISK_MAPPINGS } from "@/components/ai-elements/tool";
 
 type ToolConfirmationProps = {
   state: UserApprovalStatus;
   disabled?: boolean;
+  riskLevel?: number;
   onSubmit?: () => void;
   onAccept?: () => void;
   onReject?: () => void;
@@ -14,15 +16,20 @@ type ToolConfirmationProps = {
 export function ToolConfirmation({
   state,
   disabled,
+  riskLevel,
   onSubmit,
   onAccept,
-  onReject
+  onReject,
 }: ToolConfirmationProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
 
   if (state !== "pending") {
     return null;
   }
+
+  const isHighRisk =
+    riskLevel !== undefined &&
+    Math.ceil(riskLevel / 10) * 10 >= RISK_MAPPINGS.risky.range[0];
 
   const handleAccept = () => {
     onSubmit?.();
@@ -46,7 +53,7 @@ export function ToolConfirmation({
         {t("tool.confirmation.reject")}
       </Button>
       <Button
-        variant="default"
+        variant={isHighRisk ? "destructive" : "default"}
         disabled={disabled}
         onClick={handleAccept}
         type="button"
@@ -56,5 +63,4 @@ export function ToolConfirmation({
       </Button>
     </div>
   );
-
 }
