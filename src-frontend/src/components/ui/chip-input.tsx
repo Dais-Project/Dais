@@ -29,7 +29,9 @@ export function ChipInput({
   value: controlledValue,
   defaultValue = [],
   onChange,
-  placeholder = i18n.t("chip_input.placeholder", { ns: COMPONENTS_UI_NAMESPACE }),
+  placeholder = i18n.t("chip_input.placeholder", {
+    ns: COMPONENTS_UI_NAMESPACE,
+  }),
   unique = true,
   disabled = false,
   className,
@@ -37,8 +39,9 @@ export function ChipInput({
 }: ChipInputProps) {
   const { t } = useTranslation(COMPONENTS_UI_NAMESPACE);
   const isControlled = controlledValue !== undefined;
-  const [internalChips, setInternalChips] = React.useState<string[]>(defaultValue);
-  const chips = isControlled ? controlledValue! : internalChips;
+  const [internalChips, setInternalChips] =
+    React.useState<string[]>(defaultValue);
+  const chips = isControlled ? controlledValue : internalChips;
 
   const [draft, setDraft] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -51,7 +54,7 @@ export function ChipInput({
       }
       onChange?.(next);
     },
-    [isControlled, onChange]
+    [isControlled, onChange],
   );
 
   const addChip = React.useCallback(
@@ -66,7 +69,7 @@ export function ChipInput({
       setChips([...chips, val]);
       setDraft("");
     },
-    [chips, unique, max, setChips]
+    [chips, unique, max, setChips],
   );
 
   const removeChip = React.useCallback(
@@ -74,7 +77,7 @@ export function ChipInput({
       const next = chips.filter((_, i) => i !== index);
       setChips(next);
     },
-    [chips, setChips]
+    [chips, setChips],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -101,7 +104,10 @@ export function ChipInput({
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData("text");
     // Support pasting multiple params separated by newlines, spaces, or commas
-    const items = text.split(/[\n\r,]+/).map((s) => s.trim()).filter(Boolean);
+    const items = text
+      .split(/[\n\r,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (items.length > 1) {
       e.preventDefault();
       const deduped = unique
@@ -121,13 +127,13 @@ export function ChipInput({
       onClick={() => inputRef.current?.focus()}
       className={cn(
         // Base
-        "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow]",
+        "flex w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background p-2 text-sm shadow-xs outline-none transition-[color,box-shadow]",
         "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
         {
           "pointer-events-none cursor-not-allowed opacity-50": disabled,
           "cursor-text": !disabled,
         },
-        className
+        className,
       )}
     >
       {/* Chips */}
@@ -153,7 +159,7 @@ export function ChipInput({
           placeholder={chips.length === 0 ? placeholder : undefined}
           className={cn(
             "min-w-40 flex-1 bg-transparent outline-none placeholder:text-muted-foreground",
-            "disabled:cursor-not-allowed font-mono text-xs"
+            "disabled:cursor-not-allowed font-mono text-sm-plus",
           )}
         />
       )}
@@ -177,14 +183,19 @@ interface ChipItemProps {
   removeAriaLabel: string;
 }
 
-function ChipItem({ label, disabled, onRemove, removeAriaLabel }: ChipItemProps) {
+function ChipItem({
+  label,
+  disabled,
+  onRemove,
+  removeAriaLabel,
+}: ChipItemProps) {
   return (
     <Badge
       variant="secondary"
       className={cn(
-        "flex items-center gap-1 rounded-sm px-2 py-0.5 font-mono text-xs font-normal",
+        "flex items-center gap-1 rounded-sm px-2 py-0.5 font-mono text-sm font-normal",
         "select-none transition-colors",
-        !disabled && "pr-1"
+        !disabled && "pr-1",
       )}
     >
       <span className="text-primary">{label}</span>
@@ -199,7 +210,7 @@ function ChipItem({ label, disabled, onRemove, removeAriaLabel }: ChipItemProps)
             "ml-0.5 rounded-sm p-0.5 text-muted-foreground",
             "hover:bg-destructive/20 hover:text-destructive",
             "focus:outline-none focus:ring-1 focus:ring-ring",
-            "transition-colors"
+            "transition-colors",
           )}
           aria-label={removeAriaLabel}
         >
