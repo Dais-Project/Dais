@@ -24,25 +24,11 @@
 
 ## Features
 
-- Powerful Extensibility
-
-  Expand your Agent's capabilities by connecting it to various external tools, enabling it to tackle a much wider range of real-world tasks.
-
-- Flexible Skill Management
-
-  Easily organize and assign specific skills to your Agents, ensuring they always have the perfect toolkit for the job at hand.
-
-- Intuitive Workspace Organization
-
-  Stay organized by switching seamlessly between dedicated workspaces tailored for different projects and scenarios.
-
-- Efficient Multi-Tasking
-
-  Keep things moving by managing and advancing multiple tasks simultaneously without losing track of your progress.
-
-- Secure & Controlled Execution
-
-  Work with peace of mind thanks to robust permission controls that prevent unintended actions and ensure your Agent stays on track.
+- MCP support: Connect more external tools so Agents can handle a wider range of task scenarios
+- Skills management: Centrally manage and assign Agent skills so different tasks can use the right capability combination
+- Workspace management: Freely switch between multiple workspaces to fit different projects and usage scenarios
+- Parallel task handling: Process and manage multiple tasks at the same time for more efficient multitasking
+- Multi-Agent collaboration: Dispatch tasks through subtasks to make more efficient use of context
 
 ## Links
 
