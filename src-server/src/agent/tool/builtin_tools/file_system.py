@@ -653,6 +653,10 @@ class FileSystemToolset(BuiltinToolset):
             "-m", "30", # max 30 matches
             "--path-separator", "/",
             "--smart-case",
+
+            # prevents super long lines (base64, minified js, etc.) and leaves preview and truncated message
+            "--max-columns", "300", "--max-columns-preview",
+
             regex,
             resolved_path,
         ]

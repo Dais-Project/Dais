@@ -69,6 +69,7 @@ class OrchestrationToolset(BuiltinToolset):
         When used in parallel:
             - Use 1 subtask when the goal is narrow and the context is clear. Use multiple subtasks concurrently when the task is broad, requires exploring multiple distinct aspects, or can be broken down into independent subtasks.
             - Quality over quantity, 5 subtasks maximum, but you should try to use the minimum number of subtasks necessary (usually just 1)
+            - IMPORTANT: Never continue the same subtask in parallel. Multiple continue actions targeting the same subtask_id must be issued sequentially, not concurrently.
 
         Preferred scenario:
             - To delegate directly to a specialized agent whose description matches the task at hand
