@@ -60,7 +60,6 @@ class WebInteractionToolset(BuiltinToolset):
         super().__init__(ctx, toolset_ent)
         self._magika = get_magika()
         self._markdown_converter = MarkdownConverter()
-        self._trafilatura_config = use_config()
 
     @property
     @override
@@ -164,9 +163,10 @@ class WebInteractionToolset(BuiltinToolset):
                     trafilatura.extract,
                     res.text,
                     output_format="markdown",
-                    config=self._trafilatura_config)
-                if extracted is not None: return extracted
-                return f"<!-- trafilatura failed to extract content -->\n\n{res.text}"
+                    config=use_config())
+                if extracted is None:
+                    return f"<!-- trafilatura failed to extract content -->\n\n{res.text}"
+                return extracted
             else: return res.text
 
         def format_redirects(redirects: list[httpx.Response]) -> ET.Element:

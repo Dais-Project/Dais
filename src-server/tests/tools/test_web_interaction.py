@@ -5,6 +5,7 @@ import httpx
 import pytest
 import src.agent.tool.builtin_tools.web_interaction as web_interaction_module
 from dais_sdk.types import AudioBlock, ImageBlock, TextBlock, VideoBlock
+from magika.types.content_type_label import ContentTypeLabel
 from src.agent.tool.builtin_tools.web_interaction import (
     MAX_MEDIA_CONTENT_BLOCK_BYTES,
     WebInteractionToolset,
@@ -212,3 +213,101 @@ class TestFetch:
         assert isinstance(result, ET.Element)
         assert result.tag == "fetch"
         assert result.findtext("document_content") == "hello"
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_raw_false_trafilatura_success(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        html_content = (
+            b"<html><body><p>"
+            + b"Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 20
+            + b"</p></body></html>"
+        )
+        response = make_response(html_content, content_type="text/html")
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group="text",
+                mime_type="text/html",
+                is_text=True,
+                label=ContentTypeLabel.HTML,
+            ),
+        )
+
+        result = await tool.fetch("https://example.com/page", raw=False)
+
+        assert isinstance(result, ET.Element)
+        assert result.tag == "fetch"
+        doc_content = result.findtext("document_content")
+        assert doc_content is not None
+        assert "Lorem ipsum" in doc_content
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_raw_false_trafilatura_returns_none(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        html_content = b"<html><body></body></html>"
+        response = make_response(html_content, content_type="text/html")
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group="text",
+                mime_type="text/html",
+                is_text=True,
+                label=ContentTypeLabel.HTML,
+            ),
+        )
+
+        result = await tool.fetch("https://example.com/page", raw=False)
+
+        assert isinstance(result, ET.Element)
+        assert result.tag == "fetch"
+        doc_content = result.findtext("document_content")
+        assert doc_content is not None
+        assert "<!-- trafilatura failed to extract content -->" in doc_content
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_raw_true_returns_raw_html(
+        self,
+        builtin_toolset_context,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        html_content = b"<html><body><p>Raw HTML</p></body></html>"
+        response = make_response(html_content, content_type="text/html")
+        monkeypatch.setattr(
+            web_interaction_module.httpx,
+            "AsyncClient",
+            lambda **_: FakeAsyncClient(response),
+        )
+
+        tool = WebInteractionToolset(builtin_toolset_context)
+        tool._magika = FakeMagika(
+            FakeContentTypeOutput(
+                group="text",
+                mime_type="text/html",
+                is_text=True,
+                label=ContentTypeLabel.HTML,
+            ),
+        )
+
+        result = await tool.fetch("https://example.com/page", raw=True)
+
+        assert isinstance(result, ET.Element)
+        assert result.tag == "fetch"
+        assert result.findtext("document_content") == "<html><body><p>Raw HTML</p></body></html>"
