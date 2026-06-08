@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "dais-sdk"
-version = "0.10.24"
+version = "0.10.25"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
@@ -365,9 +365,9 @@ dependencies = [
     { name = "starlette" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/00/a7/105f4cc5f9e94eaa57e094a37d70370e97f375df307eee1a01b3e6ec6d7a/dais_sdk-0.10.24.tar.gz", hash = "sha256:89b94e9c1d5993ff7ed0a5773c191b878706fa6eb77d5c0c461cbaf7a0b08d2b", size = 28863, upload-time = "2026-06-02T15:06:24.169Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/72/b23a115a2c636cd2cb1f0b129ed7c8ae999722cbebf2219e8674ec133ae7/dais_sdk-0.10.25.tar.gz", hash = "sha256:525dd2819cbdf917f3046b61b98f6d17b789ac18c5a712e37c565beb209fcae7", size = 28875, upload-time = "2026-06-08T06:39:18.986Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/d1/f97962c07f542f049fe84cfaf0277837d5d3385730be8d1ace26a496a7ab/dais_sdk-0.10.24-py3-none-any.whl", hash = "sha256:1399f541c58d91a950c16d70701afe295c5a521afb1bb08ac798daa9c50683d2", size = 44078, upload-time = "2026-06-02T15:06:22.809Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/d4/37befd75305da867eb86553691fadc2c0657a5091e109732380a506f4713/dais_sdk-0.10.25-py3-none-any.whl", hash = "sha256:ddc55340f3cdc37d34003f67addd1bbfbe3636d69f4c85c6c83c36fe9325a21d", size = 44096, upload-time = "2026-06-08T06:39:17.607Z" },
 ]
 
 [[package]]
@@ -426,7 +426,7 @@ requires-dist = [
     { name = "apscheduler", specifier = "==3.11.2" },
     { name = "binaryornot", specifier = "==0.6.0" },
     { name = "dais-scantree", specifier = "==0.2.2" },
-    { name = "dais-sdk", specifier = "==0.10.24" },
+    { name = "dais-sdk", specifier = "==0.10.25" },
     { name = "dais-shell", specifier = "==0.1.9" },
     { name = "fastapi", specifier = "==0.136.1" },
     { name = "fastapi-pagination", specifier = "==0.15.12" },
