@@ -1,5 +1,6 @@
 import asyncio
 import base64
+from copy import deepcopy
 import json
 import httpx
 import trafilatura
@@ -8,7 +9,7 @@ from magika import ContentTypeLabel
 from typing import Annotated, Any, Literal, cast, override
 from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, TextBlock, VideoBlock
 from pydantic import BaseModel, Discriminator, Field, field_validator
-from trafilatura.settings import use_config
+from trafilatura.settings import DEFAULT_CONFIG
 from src.db.models import toolset as toolset_models
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset, BuiltinToolsetContext
@@ -162,8 +163,7 @@ class WebInteractionToolset(BuiltinToolset):
                 extracted = await asyncio.to_thread(
                     trafilatura.extract,
                     res.text,
-                    output_format="markdown",
-                    config=use_config())
+                    output_format="markdown")
                 if extracted is None:
                     return f"<!-- trafilatura failed to extract content -->\n\n{res.text}"
                 return extracted
