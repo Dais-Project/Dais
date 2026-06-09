@@ -104,6 +104,12 @@
       "parse_error": "文本搜索参数解析失败",
       "title": "Dais 想要搜索文本："
     },
+    "shell": {
+      "generating": "参数生成中",
+      "parse_error": "参数解析失败",
+      "executing": "正在执行...",
+      "waiting_approval": "等待确认..."
+    },
     "show_plan": {
       "approve": "批准计划",
       "copy_to_input": "复制到输入框",

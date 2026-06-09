@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Activity, useEffect, useState } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ai-elements/terminal";
 import { CopyButton } from "../ui/copy-button";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+import { activityVisible } from "@/lib/activity-visible";
 
 type ActiveOutputProps = {
   value: "stdout" | "stderr";
@@ -22,11 +23,7 @@ type ActiveOutputProps = {
   onChange?: (value: "stdout" | "stderr") => void;
 };
 
-function ActiveOutputSwitch({
-  value,
-  disabled,
-  onChange,
-}: ActiveOutputProps) {
+function ActiveOutputSwitch({ value, disabled, onChange }: ActiveOutputProps) {
   return (
     <ToggleGroup
       type="single"
@@ -35,8 +32,12 @@ function ActiveOutputSwitch({
       onValueChange={onChange}
       onClick={(e) => e.stopPropagation()}
     >
-      <ToggleGroupItem className="h-7 px-2 text-xs font-normal" value="stdout">stdout</ToggleGroupItem>
-      <ToggleGroupItem className="h-7 px-2 text-xs font-normal" value="stderr">stderr</ToggleGroupItem>
+      <ToggleGroupItem className="h-7 px-2 text-xs font-normal" value="stdout">
+        stdout
+      </ToggleGroupItem>
+      <ToggleGroupItem className="h-7 px-2 text-xs font-normal" value="stderr">
+        stderr
+      </ToggleGroupItem>
     </ToggleGroup>
   );
 }
@@ -74,8 +75,10 @@ export function CollapsibleTerminal({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const open = isControlled ? controlledOpen : uncontrolledOpen;
 
-  const [currentOutput, setCurrentOutput] = useState<"stdout" | "stderr">("stdout");
-  const activeOutput = (currentOutput === "stdout") ? stdout : stderr;
+  const [currentOutput, setCurrentOutput] = useState<"stdout" | "stderr">(
+    "stdout",
+  );
+  const activeOutput = currentOutput === "stdout" ? stdout : stderr;
   const composedOutput = `\u001b[0m$ ${input}\n${activeOutput}`;
 
   useEffect(() => {
@@ -102,11 +105,13 @@ export function CollapsibleTerminal({
         <CollapsibleTrigger asChild>
           <TerminalHeader className="sticky top-0 z-1 cursor-pointer">
             <TerminalTitle>{title}</TerminalTitle>
-            <ActiveOutputSwitch
-              value={currentOutput}
-              disabled={!stdout || !stderr}
-              onChange={setCurrentOutput}
-            />
+            <Activity mode={activityVisible(stdout && stderr)}>
+              <ActiveOutputSwitch
+                value={currentOutput}
+                disabled={!stdout || !stderr}
+                onChange={setCurrentOutput}
+              />
+            </Activity>
             <TerminalActions>
               {actions}
               <CopyButton
@@ -116,10 +121,11 @@ export function CollapsibleTerminal({
                 content={activeOutput ?? ""}
                 onClick={(e) => e.stopPropagation()}
               />
-              <ChevronDownIcon className={cn(
-                "size-4 transition-transform",
-                { "rotate-180": open }
-              )} />
+              <ChevronDownIcon
+                className={cn("size-4 transition-transform", {
+                  "rotate-180": open,
+                })}
+              />
             </TerminalActions>
           </TerminalHeader>
         </CollapsibleTrigger>

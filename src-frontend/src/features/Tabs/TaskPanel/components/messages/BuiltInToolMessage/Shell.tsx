@@ -1,6 +1,8 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { OsInteractionsShell } from "@/api/generated/schemas";
 import { ShellToolSchema } from "@/api/tool-schema";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { CollapsibleTerminal } from "@/components/custom/CollapsibleTerminal";
 import { RiskBadge } from "@/components/ai-elements/tool";
 import type { ToolMessageProps } from ".";
@@ -48,45 +50,67 @@ function parseShellResult(resultText: string): ShellResult {
   }
 }
 
-export function Shell({ message }: ToolMessageProps) {
-  const { reviewTool } = useAgentTaskAction();
+function useShellDisplay(
+  message: ToolMessageProps["message"],
+): [string, ShellResult] {
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const toolArguments = useToolArgument<OsInteractionsShell>(
     message,
     ShellToolSchema,
   );
-  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
-  const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
-  const { userApproval, risk } = getToolMessageMetadata(message);
+  const { userApproval } = getToolMessageMetadata(message);
 
-  const commandInput = (() => {
+  const input = useMemo(() => {
     if (toolArguments === null) {
-      return "参数解析失败";
+      return message.isStreaming
+        ? t("tool.shell.generating")
+        : t("tool.shell.parse_error");
     }
     if (toolArguments.args === null || toolArguments.args === undefined) {
       return toolArguments.command;
     }
     return [toolArguments.command, ...toolArguments.args].join(" ");
-  })();
-  const commandOutput: ShellResult = useMemo(() => {
+  }, [toolArguments, message, t]);
+
+  const output: ShellResult = useMemo(() => {
     if (message.isStreaming) {
-      return { stdout: "生成命令中...", stderr: null };
+      return { stdout: null, stderr: null };
     }
     if (message.error !== null) {
       return { stdout: null, stderr: message.error };
     }
     if (message.result === null) {
       if (userApproval === "pending") {
-        return { stdout: "等待确认...", stderr: null };
+        return {
+          stdout: t("tool.shell.waiting_approval"),
+          stderr: null,
+        };
       }
-      return { stdout: "正在执行...", stderr: null };
+      return { stdout: t("tool.shell.executing"), stderr: null };
     }
     return parseShellResult(message.result as string);
-  }, [message.isStreaming, message.error, message.result, userApproval]);
+  }, [message.isStreaming, message.error, message.result, userApproval, t]);
+
+  return [input, output];
+}
+
+export function Shell({ message }: ToolMessageProps) {
+  const { reviewTool } = useAgentTaskAction();
+  const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
+  const [collapsed, setCollapsed] = useCollapsed(message.call_id, hasResult);
+  const { risk } = getToolMessageMetadata(message);
+  const toolArguments = useToolArgument<OsInteractionsShell>(
+    message,
+    ShellToolSchema,
+  );
+  const { userApproval } = getToolMessageMetadata(message);
+  const [commandInput, commandOutput] = useShellDisplay(message);
 
   return (
     <CollapsibleTerminal
       input={commandInput}
-      {...commandOutput}
+      stdout={commandOutput.stdout}
+      stderr={commandOutput.stderr}
       isStreaming={message.isStreaming}
       autoScroll={true}
       open={!collapsed}

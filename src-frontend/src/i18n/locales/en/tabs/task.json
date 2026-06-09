@@ -104,6 +104,12 @@
       "parse_error": "Failed to parse search text arguments",
       "title": "Dais wants to search text:"
     },
+    "shell": {
+      "generating": "Generating shell arguments...",
+      "parse_error": "Failed to parse shell arguments",
+      "executing": "Executing...",
+      "waiting_approval": "Waiting for approval..."
+    },
     "show_plan": {
       "approve": "Approve plan",
       "copy_to_input": "Copy to input",
