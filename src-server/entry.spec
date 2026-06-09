@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 import platform
-import magika
-import binaryornot
+from PyInstaller.utils.hooks import collect_data_files
+
 
 project_root = SPECPATH
 
@@ -12,20 +12,11 @@ alembic_dir = os.path.join(project_root, "src", "db", "alembic")
 alembic_env_path = os.path.join(alembic_dir, "env.py")
 alembic_migrations_dir = os.path.join(alembic_dir, "versions")
 
-# magika resources
-magika_pkg_dir = os.path.dirname(magika.__file__)
-magika_config_dir = os.path.join(magika_pkg_dir, "config")
-magika_models_dir = os.path.join(magika_pkg_dir, "models")
-
 # ripgrep resources
 if platform.system() == "Windows":
     ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg.exe")
 else:
     ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg")
-
-# binaryornot resources
-binaryornot_pkg_dir = os.path.dirname(binaryornot.__file__)
-binaryornot_data = os.path.join(binaryornot_pkg_dir, "data")
 
 # node resources
 node_dir = os.path.join(project_root, "bin", "node")
@@ -42,14 +33,13 @@ a = Analysis(
         (alembic_env_path, "src/db/alembic"),
         (alembic_migrations_dir, "src/db/alembic/versions"),
 
-        (magika_config_dir, "magika/config"),
-        (magika_models_dir, "magika/models"),
-
-        (binaryornot_data, "binaryornot/data"),
-
         (ripgrep_bin_path, "bin/ripgrep"),
         (node_dir, "bin/node"),
         (uv_dir, "bin/uv"),
+
+        *collect_data_files("magika", includes=["config/**", "models/**"]),
+        *collect_data_files("binaryornot", includes=["data/**"]),
+        *collect_data_files("trafilatura", includes=["settings.cfg"]),
     ],
     hiddenimports=[
         "aiosqlite",
