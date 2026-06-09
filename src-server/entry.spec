@@ -39,7 +39,8 @@ a = Analysis(
 
         *collect_data_files("magika", includes=["config/**", "models/**"]),
         *collect_data_files("binaryornot", includes=["data/**"]),
-        *collect_data_files("trafilatura", includes=["settings.cfg"]),
+        *collect_data_files("trafilatura", includes=["settings.cfg", "data/**"]),
+            *collect_data_files("justext"), # justext is used in trafilatura
     ],
     hiddenimports=[
         "aiosqlite",
