@@ -48,19 +48,34 @@ type SelectDialogContextValue<K> = {
 
 // biome-ignore lint/suspicious/noExplicitAny: use any to allow any key type
 const SelectDialogContext = createContext<SelectDialogContextValue<any> | null>(
-  null
+  null,
 );
 
 function useSelectDialog<V extends Selection>() {
   const ctx = useContext<SelectDialogContextValue<V> | null>(
-    SelectDialogContext
+    SelectDialogContext,
   );
   if (!ctx) {
     throw new Error(
-      "SelectDialog compound components must be used within <SelectDialog>"
+      "SelectDialog compound components must be used within <SelectDialog>",
     );
   }
   return ctx;
+}
+
+// ============================================================
+// Group context (for items to register with their group)
+// ============================================================
+
+type GroupContextValue = {
+  register: (value: Selection) => void;
+  unregister: (value: Selection) => void;
+};
+
+const GroupContext = createContext<GroupContextValue | null>(null);
+
+function useGroupContext() {
+  return useContext(GroupContext);
 }
 
 // ============================================================
@@ -130,7 +145,7 @@ export function SelectDialog<V extends Selection>({
       }
       onOpenChange?.(next);
     },
-    [isControlled, onOpenChange]
+    [isControlled, onOpenChange],
   );
 
   const toggle = useCallback(
@@ -152,7 +167,7 @@ export function SelectDialog<V extends Selection>({
         });
       }
     },
-    [multiple, onValueChange, setOpen]
+    [multiple, onValueChange, setOpen],
   );
 
   const isSelected = useCallback(
@@ -162,7 +177,7 @@ export function SelectDialog<V extends Selection>({
       }
       return draftKeys.has(key);
     },
-    [multiple, externalKeys, draftKeys]
+    [multiple, externalKeys, draftKeys],
   );
 
   // Expose commit / cancel for footer
@@ -175,7 +190,7 @@ export function SelectDialog<V extends Selection>({
       toggle,
       isSelected,
     }),
-    [multiple, open, setOpen, externalKeys, draftKeys, toggle, isSelected]
+    [multiple, open, setOpen, externalKeys, draftKeys, toggle, isSelected],
   );
 
   return (
@@ -248,11 +263,7 @@ export function SelectDialogList({
   children,
   className,
 }: SelectDialogListProps) {
-  return (
-    <CommandList className={className}>
-      {children}
-    </CommandList>
-  );
+  return <CommandList className={className}>{children}</CommandList>;
 }
 
 // ============================================================
@@ -266,6 +277,48 @@ export function SelectDialogEmpty({
 }) {
   const { t } = useTranslation(DIALOG_NAMESPACE);
   return <CommandEmpty>{children ?? t("select.empty")}</CommandEmpty>;
+}
+
+// ============================================================
+// Group heading with select all
+// ============================================================
+
+type SelectDialogGroupHeadingProps = {
+  heading: string;
+  allSelected: boolean;
+  onSelectAll: () => void;
+};
+
+function SelectDialogGroupHeading({
+  heading,
+  allSelected,
+  onSelectAll,
+}: SelectDialogGroupHeadingProps) {
+  const { multiple } = useSelectDialog();
+  const { t } = useTranslation(DIALOG_NAMESPACE);
+
+  if (!multiple) {
+    return heading;
+  }
+
+  return (
+    <div className="flex items-center justify-between">
+      <span>{heading}</span>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-auto px-1.5 py-0.5 text-xs"
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectAll();
+        }}
+      >
+        {allSelected
+          ? t("select.deselect_all", { ns: DIALOG_NAMESPACE })
+          : t("select.select_all", { ns: DIALOG_NAMESPACE })}
+      </Button>
+    </div>
+  );
 }
 
 // ============================================================
@@ -283,8 +336,65 @@ export function SelectDialogGroup({
   value,
   children,
 }: SelectDialogGroupProps) {
+  const { toggle, isSelected } = useSelectDialog();
+  const [itemValues, setItemValues] = useState<Set<Selection>>(new Set());
+
+  const register = useCallback((itemValue: Selection) => {
+    setItemValues((prev) => {
+      const next = new Set(prev);
+      next.add(itemValue);
+      return next;
+    });
+  }, []);
+
+  const unregister = useCallback((itemValue: Selection) => {
+    setItemValues((prev) => {
+      const next = new Set(prev);
+      next.delete(itemValue);
+      return next;
+    });
+  }, []);
+
+  const groupCtx = useMemo(
+    () => ({ register, unregister }),
+    [register, unregister],
+  );
+
+  const allSelected = useMemo(() => {
+    if (itemValues.size === 0) return false;
+    for (const v of itemValues) {
+      if (!isSelected(v)) return false;
+    }
+    return true;
+  }, [itemValues, isSelected]);
+
+  const handleSelectAll = useCallback(() => {
+    for (const v of itemValues) {
+      if (allSelected) {
+        if (isSelected(v)) toggle(v);
+      } else {
+        if (!isSelected(v)) toggle(v);
+      }
+    }
+  }, [itemValues, allSelected, isSelected, toggle]);
+
   return (
-    <CommandGroup heading={heading} value={value}>{children}</CommandGroup>
+    <GroupContext.Provider value={groupCtx}>
+      <CommandGroup
+        heading={
+          heading && (
+            <SelectDialogGroupHeading
+              heading={heading}
+              allSelected={allSelected}
+              onSelectAll={handleSelectAll}
+            />
+          )
+        }
+        value={value}
+      >
+        {children}
+      </CommandGroup>
+    </GroupContext.Provider>
   );
 }
 
@@ -306,7 +416,15 @@ export function SelectDialogItem<V extends Selection>({
   className,
 }: SelectDialogItemProps<V>) {
   const { toggle, isSelected } = useSelectDialog();
+  const groupCtx = useGroupContext();
   const selected = isSelected(value);
+
+  useEffect(() => {
+    groupCtx?.register(value);
+    return () => {
+      groupCtx?.unregister(value);
+    };
+  }, [groupCtx, value]);
 
   return (
     <CommandItem
@@ -386,9 +504,7 @@ export function SelectDialogFooter<V extends Selection>({
 
   return (
     <DialogFooter className="flex justify-between! px-2 py-2">
-      <div className="space-x-2">
-        {children}
-      </div>
+      <div className="space-x-2">{children}</div>
       <div className="space-x-2">
         <Button variant="outline" size="sm" onClick={handleCancel}>
           {resolvedCancelText}

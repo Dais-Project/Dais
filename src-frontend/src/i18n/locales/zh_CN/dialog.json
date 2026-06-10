@@ -30,11 +30,13 @@
     }
   },
   "select": {
+    "deselect_all": "取消全选",
     "empty": "未找到结果。",
     "footer": {
       "cancel": "取消",
       "confirm": "确定"
     },
-    "search_placeholder": "搜索..."
+    "search_placeholder": "搜索...",
+    "select_all": "全选"
   }
 }

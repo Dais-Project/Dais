@@ -30,11 +30,13 @@
     }
   },
   "select": {
+    "deselect_all": "Deselect all",
     "empty": "No results found.",
     "footer": {
       "cancel": "Cancel",
       "confirm": "Confirm"
     },
-    "search_placeholder": "Search..."
+    "search_placeholder": "Search...",
+    "select_all": "Select all"
   }
 }
