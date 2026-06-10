@@ -111,7 +111,7 @@ export function AgentMultiSelectField() {
   return (
     <div>
       <FieldItem label={t("form.usable_agents.label")} fieldState={fieldState}>
-        <SelectDialog<number> mode="multi" value={value}>
+        <SelectDialog<number> multiple value={value}>
           <SelectDialogTrigger>
             <Button type="button" variant="outline">
               {t("form.usable_agents.select")}

@@ -120,7 +120,7 @@ export function SkillMultiSelectField() {
   return (
     <div>
       <FieldItem label={t("form.usable_skills.label")} fieldState={fieldState}>
-        <SelectDialog<number> mode="multi" value={selectedSkillIds}>
+        <SelectDialog<number> multiple value={selectedSkillIds}>
           <SelectDialogTrigger>
             <Button type="button" variant="outline">
               {t("form.usable_skills.select")}

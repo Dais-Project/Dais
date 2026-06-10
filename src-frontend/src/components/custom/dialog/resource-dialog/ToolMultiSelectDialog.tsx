@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { DIALOG_NAMESPACE } from "@/i18n/resources";
-import { ToolsetRead } from "@/api/generated/schemas";
+import type { ToolsetRead } from "@/api/generated/schemas";
 import { useGetToolsetsSuspense } from "@/api/toolset";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
@@ -19,12 +19,16 @@ import {
 } from "@/components/custom/dialog/SelectDialog";
 import { Button } from "@/components/ui/button";
 
-function ToolQueryList({ onFetched }: { onFetched: (toolsets: ToolsetRead[]) => void }) {
+function ToolQueryList({
+  onFetched,
+}: {
+  onFetched: (toolsets: ToolsetRead[]) => void;
+}) {
   const { data: toolsets } = useGetToolsetsSuspense();
 
   useEffect(() => {
     onFetched(toolsets);
-  }, [toolsets]);
+  }, [onFetched, toolsets]);
 
   return (
     <>
@@ -50,27 +54,35 @@ type ToolMultiSelectDialogProps = {
   onChange: (selectedToolIds: number[]) => void;
 };
 
-export function ToolMultiSelectDialog({ value, onChange }: ToolMultiSelectDialogProps) {
+export function ToolMultiSelectDialog({
+  value,
+  onChange,
+}: ToolMultiSelectDialogProps) {
   const { t } = useTranslation(DIALOG_NAMESPACE);
   const allToolsRef = useRef<ToolsetRead[]>([]);
 
-  const handleFetched = (toolsets: ToolsetRead[]) => (allToolsRef.current = toolsets);
+  const handleFetched = (toolsets: ToolsetRead[]) =>
+    (allToolsRef.current = toolsets);
 
   const handleSelectAllBuiltin = () => {
-    onChange(allToolsRef.current
-      .filter((toolset) => toolset.type === "built_in")
-      .flatMap((toolset) => toolset.tools.map((tool) => tool.id)));
+    onChange(
+      allToolsRef.current
+        .filter((toolset) => toolset.type === "built_in")
+        .flatMap((toolset) => toolset.tools.map((tool) => tool.id)),
+    );
   };
 
   return (
-    <SelectDialog<number> mode="multi" value={value}>
+    <SelectDialog<number> multiple value={value}>
       <SelectDialogTrigger>
         <Button type="button" variant="outline">
           {t("resource.tool.trigger.select")}
         </Button>
       </SelectDialogTrigger>
       <SelectDialogContent>
-        <SelectDialogSearch placeholder={t("resource.tool.search_placeholder")} />
+        <SelectDialogSearch
+          placeholder={t("resource.tool.search_placeholder")}
+        />
         <SelectDialogList>
           <SelectDialogEmpty>{t("resource.tool.empty")}</SelectDialogEmpty>
           <AsyncBoundary skeleton={<SelectDialogSkeleton />}>

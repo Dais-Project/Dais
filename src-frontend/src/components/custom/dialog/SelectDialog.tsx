@@ -38,7 +38,7 @@ type Selection = string | number;
 // ============================================================
 
 type SelectDialogContextValue<K> = {
-  mode: "single" | "multi";
+  multiple: boolean;
   open: boolean;
   setOpen: (open: boolean) => void;
   selectedKeys: Set<K>;
@@ -75,12 +75,12 @@ export type SelectDialogProps<V extends Selection> = {
   onOpenChange?: (open: boolean) => void;
 } & (
   | {
-      mode?: "single";
+      multiple?: false;
       value?: V;
       onValueChange?: (value: V) => void;
     }
   | {
-      mode: "multi";
+      multiple: true;
       value?: V[];
       onValueChange?: (value: V[]) => void;
     }
@@ -92,7 +92,7 @@ export function SelectDialog<V extends Selection>({
   children,
   open: controlledOpen,
   onOpenChange,
-  mode = "single",
+  multiple = false,
   value,
   onValueChange,
 }: SelectDialogProps<V>) {
@@ -135,7 +135,7 @@ export function SelectDialog<V extends Selection>({
 
   const toggle = useCallback(
     (key: V) => {
-      if (mode === "single") {
+      if (!multiple) {
         // Single: commit immediately and close
         (onValueChange as ((v: V) => void) | undefined)?.(key);
         setOpen(false);
@@ -152,30 +152,30 @@ export function SelectDialog<V extends Selection>({
         });
       }
     },
-    [mode, onValueChange, setOpen]
+    [multiple, onValueChange, setOpen]
   );
 
   const isSelected = useCallback(
     (key: V) => {
-      if (mode === "single") {
+      if (!multiple) {
         return externalKeys.has(key);
       }
       return draftKeys.has(key);
     },
-    [mode, externalKeys, draftKeys]
+    [multiple, externalKeys, draftKeys]
   );
 
   // Expose commit / cancel for footer
   const ctx = useMemo<SelectDialogContextValue<V>>(
     () => ({
-      mode,
+      multiple,
       open,
       setOpen,
-      selectedKeys: mode === "single" ? externalKeys : draftKeys,
+      selectedKeys: !multiple ? externalKeys : draftKeys,
       toggle,
       isSelected,
     }),
-    [mode, open, setOpen, externalKeys, draftKeys, toggle, isSelected]
+    [multiple, open, setOpen, externalKeys, draftKeys, toggle, isSelected]
   );
 
   return (
@@ -365,9 +365,9 @@ export function SelectDialogFooter<V extends Selection>({
   children,
 }: SelectDialogFooterProps<V>) {
   const { t } = useTranslation(DIALOG_NAMESPACE);
-  const { mode, selectedKeys, setOpen } = useSelectDialog<V>();
+  const { multiple, selectedKeys, setOpen } = useSelectDialog<V>();
 
-  if (mode === "single") {
+  if (!multiple) {
     return null;
   }
 

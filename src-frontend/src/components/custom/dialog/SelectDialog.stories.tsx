@@ -62,7 +62,7 @@ function SingleGroupedSelect() {
 
 function MultiSelect() {
   return (
-    <SelectDialog mode="multi" value={tags} onValueChange={setTags}>
+    <SelectDialog multiple value={tags} onValueChange={setTags}>
       <SelectDialogTrigger>
         <Button variant="outline">Select tags ({tags.length})</Button>
       </SelectDialogTrigger>

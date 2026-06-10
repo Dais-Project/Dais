@@ -66,7 +66,7 @@ export function ModelSelectDialog({
 
   return (
     <SelectDialog<string>
-      mode="multi"
+      multiple
       value={existingModelNames}
       open={open}
       onOpenChange={setOpen}
