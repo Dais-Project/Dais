@@ -99,3 +99,36 @@ class TestOsInteractionsShell:
 
         with pytest.raises(ValueError, match="must be the executable only"):
             await tool.shell(command=command, args=args)
+
+    @pytest.mark.asyncio
+    async def test_shell_xml_special_chars_in_output_should_not_be_escaped(self, builtin_toolset_context):
+        """Execute a command whose stdout and stderr contain XML special characters
+        and verify the output does NOT escape them.  This is a regression test for
+        a known bug: ET.Element serialization currently escapes <, >, & into &lt;,
+        &gt;, &amp; when the framework calls ET.tostring() on the result.
+        """
+        tool = OsInteractionsToolset(builtin_toolset_context)
+
+        result = await tool.shell(
+            command="python",
+            args=["-c", "print('<div>test</div>'); import sys; sys.stderr.write('a & b')"],
+        )
+        root, stdout_el, stderr_el = parse_shell_result(result)
+
+        raw_xml = ET.tostring(result, encoding="unicode")
+        assert "<div>test</div>" in raw_xml, (
+            "BUG: shell output should contain literal '<' and '>' but "
+            "ET.tostring() escapes them to &lt; and &gt;"
+        )
+        assert "a & b" in raw_xml, (
+            "BUG: shell output should contain literal '&' but "
+            "ET.tostring() escapes it to &amp;"
+        )
+        assert "&lt;" not in raw_xml
+        assert "&gt;" not in raw_xml
+        assert "&amp;" not in raw_xml
+
+        # Regardless of the serialization bug, the parsed ET.Element must still
+        # faithfully represent the command output.
+        assert "<div>test</div>" in (stdout_el.text or "")
+        assert "a & b" in (stderr_el.text or "")

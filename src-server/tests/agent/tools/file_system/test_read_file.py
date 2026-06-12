@@ -240,3 +240,36 @@ class TestReadFile:
         with pytest.raises(ValueError) as exc_info:
             await tool.read_file("binary.bin")
         assert "is a binary file" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_read_file_xml_special_chars_should_not_be_escaped(self, builtin_toolset_context, temp_workspace):
+        """Read a file containing XML special characters and verify the output does
+        NOT escape them.  This is a regression test for a known bug: ET.Element
+        serialization currently escapes <, >, & into &lt;, &gt;, &amp; when the
+        framework calls ET.tostring() on the result.  The desired behaviour is that
+        the raw XML output preserves the literal characters (e.g. for LLM consumption).
+        """
+        content = "<div>test</div>\na & b\n"
+        file_path = temp_workspace / "xml_special_chars.txt"
+        file_path.write_text(content, encoding="utf-8")
+
+        tool = FileSystemToolset(builtin_toolset_context)
+        result = await tool.read_file("xml_special_chars.txt")
+
+        raw_xml = ET.tostring(result, encoding="unicode")
+        assert "<div>test</div>" in raw_xml, (
+            "BUG: read_file output should contain literal '<' and '>' but "
+            "ET.tostring() escapes them to &lt; and &gt;"
+        )
+        assert "a & b" in raw_xml, (
+            "BUG: read_file output should contain literal '&' but "
+            "ET.tostring() escapes it to &amp;"
+        )
+        assert "&lt;" not in raw_xml
+        assert "&gt;" not in raw_xml
+        assert "&amp;" not in raw_xml
+
+        # Regardless of the serialization bug, the parsed ET.Element must still
+        # faithfully represent the file content.
+        root, text = parse_file_content_xml(result)
+        assert text == content
