@@ -1,6 +1,5 @@
 import asyncio
 import base64
-from copy import deepcopy
 import json
 import httpx
 import trafilatura
@@ -9,7 +8,6 @@ from magika import ContentTypeLabel
 from typing import Annotated, Any, Literal, cast, override
 from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, TextBlock, VideoBlock
 from pydantic import BaseModel, Discriminator, Field, field_validator
-from trafilatura.settings import DEFAULT_CONFIG
 from src.db.models import toolset as toolset_models
 from src.utils import MarkdownConverter
 from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset, BuiltinToolsetContext
@@ -73,7 +71,7 @@ class WebInteractionToolset(BuiltinToolset):
                     headers: dict[str, str] | None = None,
                     body: FetchBody | None = None,
                     raw: Annotated[bool, "Whether to return the original response body, you can set this to True when the original HTML response is needed."] = False,
-                    ) -> ET.Element | list[ContentBlock]:
+                    ) -> str | list[ContentBlock]:
         """
         Execute HTTP/HTTPS requests to fetch web pages, interact with REST APIs, download source code, or submit data.
         Use this tool when you need to browse the internet, retrieve external documentation, read remote config files/code, or call web services.
@@ -179,16 +177,16 @@ class WebInteractionToolset(BuiltinToolset):
                 })
             return redirects_el
 
-        def format_fetch_error(res: httpx.Response) -> ET.Element:
+        def format_fetch_error(res: httpx.Response) -> str:
             error_root = ET.Element("error")
             ET.SubElement(error_root, "url").text = str(res.url)
             ET.SubElement(error_root, "status_code").text = str(res.status_code)
             ET.SubElement(error_root, "reason_phrase").text = res.reason_phrase
             error_root.append(format_redirects(res.history))
             ET.SubElement(error_root, "text").text = res.text
-            return error_root
+            return ET.tostring(error_root, encoding="unicode")
 
-        async def format_fetch_result(res: httpx.Response, raw: bool) -> ET.Element | list[ContentBlock]:
+        async def format_fetch_result(res: httpx.Response, raw: bool) -> str | list[ContentBlock]:
             fetch_root = ET.Element("fetch")
             ET.SubElement(fetch_root, "url").text = str(res.url)
             ET.SubElement(fetch_root, "status_code").text = str(res.status_code)
@@ -201,9 +199,9 @@ class WebInteractionToolset(BuiltinToolset):
                 media_block = await read_media_content_block(res, media_type, content_type.output.mime_type)
                 return [TextBlock(text=ET.tostring(fetch_root, encoding="unicode")), media_block]
 
-            ET.SubElement(fetch_root, "document_content").text =\
-                await extract_fetch_content(res, raw, content_type)
-            return fetch_root
+            ET.SubElement(fetch_root, "document_content")
+            fetch_xml_str = ET.tostring(fetch_root, encoding="unicode")
+            return fetch_xml_str.replace("<document_content />", await extract_fetch_content(res, raw, content_type))
 
         request_kwargs: dict[str, Any] = {"headers": DEFAULT_HEADER.copy()}
         if body is not None:

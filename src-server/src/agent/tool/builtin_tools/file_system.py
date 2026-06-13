@@ -4,7 +4,6 @@ import contextlib
 import difflib
 import os
 import tempfile
-import xml.etree.ElementTree as ET
 from typing import Annotated, ClassVar, Literal, TypedDict, cast, override
 from pathlib import Path as StdPath
 from string import Template
@@ -123,7 +122,7 @@ class FileSystemToolset(BuiltinToolset):
                             - The goal is to understand, summarize, or extract information from the file
                             NOTE: When the analysis failed, it will fallback to normal reading mode and returns raw file content instead — check the `mode` attribute to know which mode was used.
                             """] = None,
-                        ) -> ET.Element | list[ContentBlock]:
+                        ) -> str | list[ContentBlock]:
         """
         Read the contents of a file at the specified path.
         For image, audio, and video files, this tool will return the file as a ContentBlock array;
@@ -164,7 +163,7 @@ class FileSystemToolset(BuiltinToolset):
                           total_lines: int,
                           mode: Literal["normal", "semantic"],
                           start_line: int | None = None,
-                          end_line: int | None = None) -> ET.Element:
+                          end_line: int | None = None) -> str:
             attributes = {
                 "total_lines": str(total_lines),
                 "mode": mode
@@ -173,9 +172,9 @@ class FileSystemToolset(BuiltinToolset):
                 attributes["start_line"] = str(start_line)
             if end_line is not None:
                 attributes["end_line"] = str(end_line)
-            root = ET.Element("file_content", attrib=attributes)
-            root.text = content
-            return root
+
+            attributes_str = " ".join(f'{k}="{v}"' for k, v in attributes.items())
+            return f"<file_content {attributes_str}>\n{content}\n</file_content>"
 
         async def read_media_content_blocks(path: AnyioPath,
                                             media_type: Literal["image", "audio", "video"],

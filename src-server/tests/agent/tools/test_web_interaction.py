@@ -1,4 +1,5 @@
 import base64
+import re
 import xml.etree.ElementTree as ET
 
 import httpx
@@ -59,6 +60,23 @@ def make_response(
         request=request,
         headers={"content-type": content_type},
     )
+
+
+def parse_fetch_result(result: str) -> tuple[dict[str, str | None], str]:
+    url_match = re.search(r"<url>(.*?)</url>", result)
+    status_match = re.search(r"<status_code>(.*?)</status_code>", result)
+    phrase_match = re.search(r"<reason_phrase>(.*?)</reason_phrase>", result)
+
+    content_match = re.search(r"</redirects>(.*?)</fetch>", result, re.DOTALL)
+    if not content_match:
+        content_match = re.search(r"<redirects\s*/\s*>(.*?)</fetch>", result, re.DOTALL)
+    content = content_match.group(1) if content_match else ""
+
+    return {
+        "url": url_match.group(1) if url_match else None,
+        "status_code": status_match.group(1) if status_match else None,
+        "reason_phrase": phrase_match.group(1) if phrase_match else None,
+    }, content
 
 
 @pytest.mark.tool
@@ -210,9 +228,12 @@ class TestFetch:
 
         result = await tool.fetch("https://example.com/resource")
 
-        assert isinstance(result, ET.Element)
-        assert result.tag == "fetch"
-        assert result.findtext("document_content") == "hello"
+        assert isinstance(result, str)
+        metadata, content = parse_fetch_result(result)
+        assert metadata["url"] == "https://example.com/resource"
+        assert metadata["status_code"] == "200"
+        assert metadata["reason_phrase"] == "OK"
+        assert content == "hello"
 
     @pytest.mark.asyncio
     async def test_fetch_html_raw_false_trafilatura_success(
@@ -244,11 +265,9 @@ class TestFetch:
 
         result = await tool.fetch("https://example.com/page", raw=False)
 
-        assert isinstance(result, ET.Element)
-        assert result.tag == "fetch"
-        doc_content = result.findtext("document_content")
-        assert doc_content is not None
-        assert "Lorem ipsum" in doc_content
+        assert isinstance(result, str)
+        _, content = parse_fetch_result(result)
+        assert "Lorem ipsum" in content
 
     @pytest.mark.asyncio
     async def test_fetch_html_raw_false_trafilatura_returns_none(
@@ -276,11 +295,8 @@ class TestFetch:
 
         result = await tool.fetch("https://example.com/page", raw=False)
 
-        assert isinstance(result, ET.Element)
-        assert result.tag == "fetch"
-        doc_content = result.findtext("document_content")
-        assert doc_content is not None
-        assert "<!-- trafilatura failed to extract content -->" in doc_content
+        assert isinstance(result, str)
+        assert "<!-- trafilatura failed to extract content -->" in result
 
     @pytest.mark.asyncio
     async def test_fetch_html_raw_true_returns_raw_html(
@@ -308,6 +324,5 @@ class TestFetch:
 
         result = await tool.fetch("https://example.com/page", raw=True)
 
-        assert isinstance(result, ET.Element)
-        assert result.tag == "fetch"
-        assert result.findtext("document_content") == "<html><body><p>Raw HTML</p></body></html>"
+        assert isinstance(result, str)
+        assert "Raw HTML" in result

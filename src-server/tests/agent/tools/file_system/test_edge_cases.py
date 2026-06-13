@@ -1,13 +1,19 @@
-import xml.etree.ElementTree as ET
+import re
 
 import pytest
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset
 
 
-def parse_file_content_xml(result: ET.Element) -> tuple[ET.Element, str]:
-    root = result
-    text = root.text or ""
-    return root, text
+def _extract_file_content_text(result: str) -> str:
+    close_tag = "</file_content>"
+    close_pos = result.rindex(close_tag)
+    tag_end = result.index(">")
+    content = result[tag_end + 1:close_pos]
+    if content.startswith("\n"):
+        content = content[1:]
+    if content.endswith("\n"):
+        content = content[:-1]
+    return content
 
 
 @pytest.mark.tool
@@ -21,7 +27,7 @@ class TestEdgeCases:
 
         tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.read_file(filename)
-        _, text = parse_file_content_xml(result)
+        text = _extract_file_content_text(result)
         assert text == content
 
     @pytest.mark.asyncio
@@ -33,7 +39,7 @@ class TestEdgeCases:
 
         tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.read_file(filename)
-        _, text = parse_file_content_xml(result)
+        text = _extract_file_content_text(result)
         assert "<>&\"'" in text
 
     @pytest.mark.asyncio

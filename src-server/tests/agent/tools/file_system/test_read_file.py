@@ -1,5 +1,5 @@
 import base64
-import xml.etree.ElementTree as ET
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -9,10 +9,32 @@ from dais_sdk.types import AudioBlock, ImageBlock, VideoBlock
 from src.agent.tool.builtin_tools.file_system import FileSystemToolset, MAX_MEDIA_CONTENT_BLOCK_BYTES
 
 
-def parse_file_content_xml(result: ET.Element) -> tuple[ET.Element, str]:
-    root = result
-    text = root.text or ""
-    return root, text
+class FileContentResult:
+    tag = "file_content"
+    def __init__(self, attrib: dict[str, str], text: str):
+        self.attrib = attrib
+        self.text = text
+
+
+def parse_file_content_xml(result: str) -> tuple[FileContentResult, str]:
+    tag_end = result.index(">")
+    opening = result[:tag_end + 1]
+
+    attrib: dict[str, str] = {}
+    for m in re.finditer(r'(\w+)="([^"]*)"', opening):
+        attrib[m.group(1)] = m.group(2)
+
+    close_tag = "</file_content>"
+    close_pos = result.rindex(close_tag)
+
+    content = result[tag_end + 1:close_pos]
+    if content.startswith("\n"):
+        content = content[1:]
+    if content.endswith("\n"):
+        content = content[:-1]
+
+    root = FileContentResult(attrib, content)
+    return root, content
 
 
 @pytest.mark.tool
@@ -243,11 +265,8 @@ class TestReadFile:
 
     @pytest.mark.asyncio
     async def test_read_file_xml_special_chars_should_not_be_escaped(self, builtin_toolset_context, temp_workspace):
-        """Read a file containing XML special characters and verify the output does
-        NOT escape them.  This is a regression test for a known bug: ET.Element
-        serialization currently escapes <, >, & into &lt;, &gt;, &amp; when the
-        framework calls ET.tostring() on the result.  The desired behaviour is that
-        the raw XML output preserves the literal characters (e.g. for LLM consumption).
+        """Read a file containing XML special characters and verify the output
+        preserves them literally without XML escaping.
         """
         content = "<div>test</div>\na & b\n"
         file_path = temp_workspace / "xml_special_chars.txt"
@@ -256,20 +275,14 @@ class TestReadFile:
         tool = FileSystemToolset(builtin_toolset_context)
         result = await tool.read_file("xml_special_chars.txt")
 
-        raw_xml = ET.tostring(result, encoding="unicode")
-        assert "<div>test</div>" in raw_xml, (
+        assert "<div>test</div>" in result, (
             "BUG: read_file output should contain literal '<' and '>' but "
-            "ET.tostring() escapes them to &lt; and &gt;"
+            "they were escaped to &lt; and &gt;"
         )
-        assert "a & b" in raw_xml, (
+        assert "a & b" in result, (
             "BUG: read_file output should contain literal '&' but "
-            "ET.tostring() escapes it to &amp;"
+            "it was escaped to &amp;"
         )
-        assert "&lt;" not in raw_xml
-        assert "&gt;" not in raw_xml
-        assert "&amp;" not in raw_xml
-
-        # Regardless of the serialization bug, the parsed ET.Element must still
-        # faithfully represent the file content.
-        root, text = parse_file_content_xml(result)
-        assert text == content
+        assert "&lt;" not in result
+        assert "&gt;" not in result
+        assert "&amp;" not in result

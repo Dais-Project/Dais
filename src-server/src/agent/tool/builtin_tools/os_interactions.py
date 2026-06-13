@@ -1,6 +1,5 @@
 import inspect
 import time
-import xml.etree.ElementTree as ET
 from typing import Annotated, override
 from itertools import islice
 from dais_shell import AgentShell, CommandStep
@@ -40,7 +39,7 @@ class OsInteractionsToolset(BuiltinToolset):
                         "The working directory to execute the command in, relative to the current working directory."] = ".",
                     timeout: Annotated[int,
                         "Timeout for command execution in seconds."] = 30
-                    ) -> ET.Element:
+                    ) -> str:
         """
         Execute a shell command.
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
@@ -105,8 +104,8 @@ class OsInteractionsToolset(BuiltinToolset):
             raise ValueError(
                 inspect.cleandoc(
                 f"""
-                Invalid command "{command}": `command` must be the executable only (e.g., "python"). 
-                Move arguments to the `args` parameter. 
+                Invalid command "{command}": `command` must be the executable only (e.g., "python").
+                Move arguments to the `args` parameter.
                 This tool call should be: shell(command="{command.split()[0]}", args={command.split()[1:]})
                 """
             ))
@@ -122,14 +121,9 @@ class OsInteractionsToolset(BuiltinToolset):
         stdout_truncated, stdout_result = truncate_output(result.stdout_buf, STDOUT_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
         stderr_truncated, stderr_result = truncate_output(result.stderr_buf, STDERR_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
 
-        # format xml result
-        root = ET.Element("shell_result", attrib={
-            "status": result.status,
-            "returncode": str(result.returncode),
-            "duration": f"{duration:.2f}s",
-        })
-        stdout_el = ET.SubElement(root, "stdout", attrib={"truncated": str(stdout_truncated).lower()})
-        stdout_el.text = stdout_result
-        stderr_el = ET.SubElement(root, "stderr", attrib={"truncated": str(stderr_truncated).lower()})
-        stderr_el.text = stderr_result
-        return root
+        return f"""
+<shell_result status="{result.status}" returncode="{result.returncode}" duration="{duration:.2f}">
+<stdout truncated="{str(stdout_truncated).lower()}">{stdout_result}</stdout>
+<stderr truncated="{str(stderr_truncated).lower()}">{stderr_result}</stderr>
+</shell_result>
+""".strip()
