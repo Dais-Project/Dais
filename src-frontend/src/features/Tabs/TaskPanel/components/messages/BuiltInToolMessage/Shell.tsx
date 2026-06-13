@@ -12,6 +12,7 @@ import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useCollapsed } from "../../../hooks/use-collapsible-store";
 import { getToolMessageMetadata } from "@/types/message";
+import { escapeUserContentInXml } from "@/lib/escape-xml";
 
 type ShellResult = {
   stdout: string | null;
@@ -29,7 +30,11 @@ function parseShellResult(resultText: string): ShellResult {
 
   try {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(resultText, "text/html");
+    const escaped = escapeUserContentInXml(
+      escapeUserContentInXml(resultText, "stdout"),
+      "stderr",
+    );
+    const doc = parser.parseFromString(escaped, "application/xml");
     const parserError = doc.querySelector("parsererror");
     if (parserError) {
       return { stdout: resultText, stderr: null };

@@ -30,6 +30,7 @@ import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { getToolMessageMetadata } from "@/types/message";
 import { isTaskResourceMetadataList } from "@/types/message/type-guards";
+import { escapeUserContentInXml } from "@/lib/escape-xml";
 
 type ParsedFetchResult =
   | {
@@ -70,7 +71,8 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
 
   try {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(resultText, "application/xml");
+    const escaped = escapeUserContentInXml(resultText, "document_content");
+    const doc = parser.parseFromString(escaped, "application/xml");
     const parserError = doc.querySelector("parsererror");
     if (parserError) {
       return { kind: "raw", rawText: resultText };
