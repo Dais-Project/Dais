@@ -1,7 +1,9 @@
 import inspect
 import time
+import xml.etree.ElementTree as ET
 from typing import Annotated, override
 from itertools import islice
+from anyxml import AnyXml
 from dais_shell import AgentShell, CommandStep
 from dais_shell.iostream_reader import IOStreamBuffer
 from src.db.models import toolset as toolset_models
@@ -121,9 +123,13 @@ class OsInteractionsToolset(BuiltinToolset):
         stdout_truncated, stdout_result = truncate_output(result.stdout_buf, STDOUT_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
         stderr_truncated, stderr_result = truncate_output(result.stderr_buf, STDERR_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
 
-        return f"""
-<shell_result status="{result.status}" returncode="{result.returncode}" duration="{duration:.2f}">
-<stdout truncated="{str(stdout_truncated).lower()}">{stdout_result}</stdout>
-<stderr truncated="{str(stderr_truncated).lower()}">{stderr_result}</stderr>
-</shell_result>
-""".strip()
+        root = ET.Element("shell_result", attrib={
+            "status": result.status,
+            "returncode": str(result.returncode),
+            "duration": f"{duration:.2f}",
+        })
+        stdout_el = ET.SubElement(root, "stdout", attrib={"truncated": str(stdout_truncated).lower()})
+        stdout_el.text = AnyXml.RawText(stdout_result)
+        stderr_el = ET.SubElement(root, "stderr", attrib={"truncated": str(stderr_truncated).lower()})
+        stderr_el.text = AnyXml.RawText(stderr_result)
+        return AnyXml.tostring(root)

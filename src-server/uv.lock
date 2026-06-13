@@ -88,6 +88,15 @@ wheels = [
 ]
 
 [[package]]
+name = "anyxml"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/cc/5cea09e7969c9171445012d8507a428f38d7d7aaedb81c57aee3ee5a8a7a/anyxml-0.1.0.tar.gz", hash = "sha256:1d39aa376bb770f3f140086f7ab9756e12912b850700428780c3efc5f506fb00", size = 1597, upload-time = "2026-06-13T10:45:58.966Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/c0/3c9df7fc59b6be46a400d7782c614213a53f4e2ff986c279ccc04e0eb57c/anyxml-0.1.0-py3-none-any.whl", hash = "sha256:8c5c99b26cb3d4de91b277fdfdc1a0181376bc387a978390429644c5087d502e", size = 2837, upload-time = "2026-06-13T10:45:57.851Z" },
+]
+
+[[package]]
 name = "apscheduler"
 version = "3.11.2"
 source = { registry = "https://pypi.org/simple" }
@@ -378,6 +387,7 @@ dependencies = [
     { name = "aiosqlite" },
     { name = "alembic" },
     { name = "anyio" },
+    { name = "anyxml" },
     { name = "apscheduler" },
     { name = "binaryornot" },
     { name = "dais-scantree" },
@@ -423,6 +433,7 @@ requires-dist = [
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "alembic", specifier = "==1.18.4" },
     { name = "anyio", specifier = ">=4.12.0" },
+    { name = "anyxml", specifier = "==0.1.0" },
     { name = "apscheduler", specifier = "==3.11.2" },
     { name = "binaryornot", specifier = "==0.6.0" },
     { name = "dais-scantree", specifier = "==0.2.2" },

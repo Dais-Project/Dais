@@ -11,39 +11,84 @@ export function escapeXml(text: string): string {
   );
 }
 
-export function clearXmlInvalidChars(text: string) {
-  return (
-    text
-      // biome-ignore lint/suspicious/noControlCharactersInRegex: cleaning XML invalid controling characters
-      .replace(/\x0C/g, "\n")
-      // biome-ignore lint/suspicious/noControlCharactersInRegex: cleaning XML invalid controling characters
-      .replace(/[\x00-\x08\x0B\x0E-\x1F\uFFFE\uFFFF]/g, "")
-  );
+function encodeBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
 }
 
-export function escapeUserContentInXml(
-  text: string,
-  targetTag: string,
-  strict: boolean = false,
-): string {
-  const openRegex = new RegExp(`<${targetTag}(\\s[^>]*)?>`);
-  const openMatch = openRegex.exec(text);
-  const close = `</${targetTag}>`;
-  const endIdx = text.lastIndexOf(close);
+function decodeBase64(str: string): string {
+  const binary = atob(str);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
 
-  if (openMatch === null || endIdx === -1) {
-    if (strict) {
-      throw new Error(`Tag "${targetTag}" not found.`);
-    } else {
-      return text;
+export class XmlRawContentParseError extends Error {}
+
+export class XmlRawContentParser {
+  private constructor(
+    private parsed: Document,
+    private rawContentTags: string[],
+  ) {}
+
+  static parse(
+    text: string,
+    userContentTags: string[] = [],
+  ): XmlRawContentParser {
+    let processed = text;
+    for (const tagName of userContentTags) {
+      processed = XmlRawContentParser.encodeRawContentTag(processed, tagName);
     }
+
+    const doc = new DOMParser().parseFromString(processed, "text/xml");
+    const parseError = doc.querySelector("parsererror");
+    if (parseError) {
+      throw new XmlRawContentParseError(parseError.textContent);
+    }
+
+    return new XmlRawContentParser(doc, userContentTags);
   }
 
-  const openEndIdx = openMatch.index + openMatch[0].length;
-  const before = text.slice(0, openEndIdx);
-  const content = text.slice(openEndIdx, endIdx);
-  const after = text.slice(endIdx);
+  private static encodeRawContentTag(
+    text: string,
+    tagName: string,
+    strict: boolean = false,
+  ): string {
+    const escapedTagName = tagName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const openRegex = new RegExp(`<${escapedTagName}(\\s[^>]*)?>`);
+    const close = `</${tagName}>`;
 
-  const escapedContent = escapeXml(clearXmlInvalidChars(content));
-  return `${before}${escapedContent}${after}`;
+    const openMatch = openRegex.exec(text);
+    const endIdx = text.lastIndexOf(close);
+
+    if (!openMatch || endIdx === -1) {
+      if (strict) {
+        throw new Error(`Tag "${tagName}" not found.`);
+      } else {
+        return text;
+      }
+    }
+
+    const openEnd = openMatch.index + openMatch[0].length;
+    const before = text.slice(0, openEnd);
+    const content = text.slice(openEnd, endIdx);
+    const after = text.slice(endIdx);
+
+    return `${before}${encodeBase64(content)}${after}`;
+  }
+
+  get doc(): Document {
+    return this.parsed;
+  }
+
+  getRawContent(tagName: string): string | null {
+    if (!this.rawContentTags.includes(tagName)) {
+      throw new Error(`Not a valid raw content tag name ${tagName}`);
+    }
+
+    const el = this.parsed.querySelector(tagName);
+    if (el === null) return null;
+    return decodeBase64(el.textContent);
+  }
 }

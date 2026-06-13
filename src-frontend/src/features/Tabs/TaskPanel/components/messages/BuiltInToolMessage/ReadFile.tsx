@@ -32,7 +32,7 @@ import {
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
-import { escapeUserContentInXml } from "@/lib/escape-xml";
+import { XmlRawContentParser } from "@/lib/escape-xml";
 
 const MARKDOWNED_FILE_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx", "epub"];
 
@@ -93,22 +93,17 @@ function parseReadFileResult(resultText: string): ParsedReadFileResult {
   }
 
   try {
-    const parser = new DOMParser();
-    const escaped = escapeUserContentInXml(resultText, "file_content");
-    const doc = parser.parseFromString(escaped, "application/xml");
-    const parserError = doc.querySelector("parsererror");
-    if (!parserError) {
-      const contentNode = doc.querySelector("file_content");
-      if (contentNode) {
-        const startLineAttribute =
-          contentNode.getAttribute("start_line") ?? "1";
-        const parsedStartLine = Number.parseInt(startLineAttribute, 10);
-        const startLineNumber =
-          Number.isFinite(parsedStartLine) && parsedStartLine > 0
-            ? parsedStartLine
-            : 1;
-        return { fileContent: contentNode.textContent ?? "", startLineNumber };
-      }
+    const parser = XmlRawContentParser.parse(resultText, ["file_content"]);
+    const contentNode = parser.doc.querySelector("file_content");
+    const fileContent = parser.getRawContent("file_content") ?? "";
+    if (contentNode) {
+      const startLineAttribute = contentNode.getAttribute("start_line") ?? "1";
+      const parsedStartLine = Number.parseInt(startLineAttribute, 10);
+      const startLineNumber =
+        Number.isFinite(parsedStartLine) && parsedStartLine > 0
+          ? parsedStartLine
+          : 1;
+      return { fileContent, startLineNumber };
     }
   } catch {
     // Fall through to string-based parsing.

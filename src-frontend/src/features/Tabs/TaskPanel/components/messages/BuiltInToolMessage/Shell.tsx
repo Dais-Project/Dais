@@ -12,7 +12,7 @@ import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useCollapsed } from "../../../hooks/use-collapsible-store";
 import { getToolMessageMetadata } from "@/types/message";
-import { escapeUserContentInXml } from "@/lib/escape-xml";
+import { XmlRawContentParser } from "@/lib/escape-xml";
 
 type ShellResult = {
   stdout: string | null;
@@ -29,26 +29,9 @@ function parseShellResult(resultText: string): ShellResult {
   }
 
   try {
-    const parser = new DOMParser();
-    const escaped = escapeUserContentInXml(
-      escapeUserContentInXml(resultText, "stdout"),
-      "stderr",
-    );
-    const doc = parser.parseFromString(escaped, "application/xml");
-    const parserError = doc.querySelector("parsererror");
-    if (parserError) {
-      return { stdout: resultText, stderr: null };
-    }
-
-    const shellResult = doc.querySelector("shell_result");
-    if (!shellResult) {
-      return { stdout: resultText, stderr: null };
-    }
-
-    const stdoutNode = shellResult.querySelector("stdout");
-    const stderrNode = shellResult.querySelector("stderr");
-    const stdout = stdoutNode?.textContent ?? null;
-    const stderr = stderrNode?.textContent ?? null;
+    const parser = XmlRawContentParser.parse(resultText, ["stdout", "stderr"]);
+    const stdout = parser.getRawContent("stdout");
+    const stderr = parser.getRawContent("stderr");
     return { stdout, stderr };
   } catch {
     return { stdout: resultText, stderr: null };

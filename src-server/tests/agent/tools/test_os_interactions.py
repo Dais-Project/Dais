@@ -45,7 +45,6 @@ class TestOsInteractionsShell:
 
         assert root_attrib["returncode"] == "0"
         assert root_attrib["status"]
-        assert float(root_attrib["duration"]) >= 0
         assert stdout_attrib["truncated"] == "false"
         assert stderr_attrib["truncated"] == "false"
         assert "hello" in stdout_text

@@ -4,10 +4,12 @@ import contextlib
 import difflib
 import os
 import tempfile
+import xml.etree.ElementTree as ET
 from typing import Annotated, ClassVar, Literal, TypedDict, cast, override
 from pathlib import Path as StdPath
 from string import Template
 from anyio import Path as AnyioPath
+from anyxml import AnyXml
 from loguru import logger
 from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, VideoBlock
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
@@ -173,8 +175,9 @@ class FileSystemToolset(BuiltinToolset):
             if end_line is not None:
                 attributes["end_line"] = str(end_line)
 
-            attributes_str = " ".join(f'{k}="{v}"' for k, v in attributes.items())
-            return f"<file_content {attributes_str}>\n{content}\n</file_content>"
+            root = ET.Element("file_content", attrib=attributes)
+            root.text = AnyXml.RawText(content)
+            return AnyXml.tostring(root)
 
         async def read_media_content_blocks(path: AnyioPath,
                                             media_type: Literal["image", "audio", "video"],

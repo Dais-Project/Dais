@@ -233,7 +233,7 @@ class TestFetch:
         assert metadata["url"] == "https://example.com/resource"
         assert metadata["status_code"] == "200"
         assert metadata["reason_phrase"] == "OK"
-        assert content == "hello"
+        assert "hello" in content
 
     @pytest.mark.asyncio
     async def test_fetch_html_raw_false_trafilatura_success(

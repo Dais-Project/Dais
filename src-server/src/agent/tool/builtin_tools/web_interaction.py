@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+from anyxml import AnyXml
 import httpx
 import trafilatura
 import xml.etree.ElementTree as ET
@@ -199,9 +200,9 @@ class WebInteractionToolset(BuiltinToolset):
                 media_block = await read_media_content_block(res, media_type, content_type.output.mime_type)
                 return [TextBlock(text=ET.tostring(fetch_root, encoding="unicode")), media_block]
 
-            ET.SubElement(fetch_root, "document_content")
-            fetch_xml_str = ET.tostring(fetch_root, encoding="unicode")
-            return fetch_xml_str.replace("<document_content />", await extract_fetch_content(res, raw, content_type))
+            fetch_content = await extract_fetch_content(res, raw, content_type)
+            ET.SubElement(fetch_root, "document_content").text = AnyXml.RawText(fetch_content)
+            return AnyXml.tostring(fetch_root)
 
         request_kwargs: dict[str, Any] = {"headers": DEFAULT_HEADER.copy()}
         if body is not None:
