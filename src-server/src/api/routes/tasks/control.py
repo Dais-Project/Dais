@@ -132,7 +132,7 @@ async def approve_pendings(
     task = await create_agent_task(task_type, task_id, body.agent_id)
     replace_events = []
     try:
-        for message in task.messages.tail_tool_messages_iter():
+        for message in task.tool_calls.collect_pendings():
             event = task.tool_calls.approve(message.call_id, True)
             if event is not None:
                 replace_events.append(event)
