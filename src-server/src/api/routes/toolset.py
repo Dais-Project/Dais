@@ -8,6 +8,7 @@ from src.db import toolset_models
 from src.services.toolset import ToolsetService
 from src.schemas import toolset as toolset_schemas
 from src.agent.tool import McpToolset
+from src.agent.tool.toolset_wrapper.mcp_toolset import build_local_server_params
 from src.agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
@@ -76,7 +77,7 @@ async def create_toolset(
             raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.CANNOT_CREATE_BUILTIN_TOOLSET, "Cannot create built-in toolset")
         case toolset_models.ToolsetType.MCP_LOCAL:
             assert isinstance(body.params, LocalServerParams)
-            toolset = LocalMcpToolset(body.name, body.params)
+            toolset = LocalMcpToolset(body.name, build_local_server_params(body.params))
         case toolset_models.ToolsetType.MCP_REMOTE:
             assert isinstance(body.params, RemoteServerParams)
             toolset = RemoteMcpToolset(body.name, body.params)
@@ -111,7 +112,7 @@ async def update_toolset(
             return updated_toolset
         case toolset_models.ToolsetType.MCP_LOCAL:
             assert isinstance(body.params, LocalServerParams)
-            toolset = LocalMcpToolset(updated_toolset.name, body.params)
+            toolset = LocalMcpToolset(updated_toolset.name, build_local_server_params(body.params))
         case toolset_models.ToolsetType.MCP_REMOTE:
             assert isinstance(body.params, RemoteServerParams)
             toolset = RemoteMcpToolset(updated_toolset.name, body.params)

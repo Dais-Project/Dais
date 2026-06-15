@@ -44,6 +44,15 @@ def resolve_local_mcp_env(env: dict[str, str] | None) -> dict[str, str]:
     if env: base_env.update(env)
     return base_env
 
+def build_local_server_params(params: LocalServerParams) -> LocalServerParams:
+    """Apply runtime transformations to LocalServerParams for MCP stdio process spawning."""
+    return params.model_copy(
+        update={
+            "command": resolve_local_mcp_command(params.command),
+            "env": resolve_local_mcp_env(params.env),
+            "cwd": MCP_DATA_DIR,
+        })
+
 class McpToolset(Toolset):
     _logger = logger.bind(name="McpToolset")
     def __init__(self, toolset_ent: toolset_models.Toolset, inner_toolset: SdkMcpToolset | None = None):
@@ -51,12 +60,7 @@ class McpToolset(Toolset):
             match toolset_ent.type:
                 case toolset_models.ToolsetType.MCP_LOCAL:
                     assert isinstance(toolset_ent.params, LocalServerParams)
-                    params = toolset_ent.params.model_copy(
-                        update={
-                            "command": resolve_local_mcp_command(toolset_ent.params.command),
-                            "env": resolve_local_mcp_env(toolset_ent.params.env),
-                            "cwd": MCP_DATA_DIR,
-                        })
+                    params = build_local_server_params(toolset_ent.params)
                     inner_toolset = LocalMcpToolset(toolset_ent.name, params)
                 case toolset_models.ToolsetType.MCP_REMOTE:
                     assert isinstance(toolset_ent.params, RemoteServerParams)
