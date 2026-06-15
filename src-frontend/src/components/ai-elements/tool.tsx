@@ -229,7 +229,7 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => {
 };
 
 export type ToolOutputProps = ComponentProps<"div"> & {
-  output: unknown | null;
+  output: ReactNode | unknown | null;
   errorText: string | null;
 };
 
@@ -237,6 +237,7 @@ export const ToolOutput = ({
   className,
   output,
   errorText,
+  children,
   ...props
 }: ToolOutputProps) => {
   const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
@@ -248,7 +249,9 @@ export const ToolOutput = ({
   const isError = errorText !== null;
 
   const Output = () => {
-    if (typeof output === "object" && !isValidElement(output)) {
+    if (isValidElement(output)) {
+      return output;
+    } else if (typeof output === "object") {
       return (
         <CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
       );

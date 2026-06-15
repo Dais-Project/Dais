@@ -42,7 +42,7 @@ export function ToolConfirmation({
   };
 
   return (
-    <div className="flex items-center justify-end gap-2 px-4 pb-3">
+    <div className="flex items-center justify-end gap-2 px-4 pb-3 bg-card">
       <Button
         variant="outline"
         disabled={disabled}

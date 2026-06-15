@@ -1,4 +1,4 @@
-import { FileTextIcon, LinkIcon } from "lucide-react";
+import { FileTextIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { type BundledLanguage, bundledLanguages } from "shiki";
@@ -7,11 +7,6 @@ import type {
   FileSystemReadFile,
   TaskResourceMetadata,
 } from "@/api/generated/schemas";
-import { createTaskResourceUrl } from "@/api/tasks";
-import {
-  attachmentCategoryIcons,
-  resolveMimetypeCategory,
-} from "@/components/ai-elements/attachments";
 import { ReadFileToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import { MiddleEllipsis } from "@/components/custom/MiddleEllipsis";
@@ -25,14 +20,12 @@ import {
   BuiltInToolHeader,
   BuiltInToolTitle,
 } from "./components/BuiltInTool";
-import {
-  useAgentTaskAction,
-  useAgentTaskState,
-} from "../../../hooks/use-agent-task";
+import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { XmlRawContentParser } from "@/lib/escape-xml";
+import { ContentBlockItem } from "../GeneralToolMessage";
 
 const MARKDOWNED_FILE_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx", "epub"];
 
@@ -151,64 +144,6 @@ function TextFileContent({ path, data }: { path: string; data: string }) {
   );
 }
 
-function ResourceFileContent({ data }: { data: TaskResourceMetadata }) {
-  const { taskId, taskType } = useAgentTaskState();
-
-  if ("text" in data) {
-    return (
-      <CodeBlock
-        code={data.text}
-        className="w-full"
-        language="text"
-        showLineNumbers={true}
-        startingLineNumber={1}
-      />
-    );
-  }
-
-  if ("url" in data) {
-    return (
-      <div className="flex items-center gap-2 w-full rounded-lg bg-muted text-sm">
-        <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
-        <span className="break-all font-mono">{data.url}</span>
-      </div>
-    );
-  }
-
-  const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
-  return (() => {
-    switch (resourceType) {
-      case "image":
-        return (
-          <img
-            alt={data.filename}
-            className="max-h-80 rounded-lg object-contain"
-            src={resourceUrl.toString()}
-          />
-        );
-      case "video":
-        return (
-          // biome-ignore lint: a11y/useMediaCaption
-          <video
-            className="max-h-80 rounded-lg"
-            controls
-            src={resourceUrl.toString()}
-          />
-        );
-      case "audio":
-        return (
-          // biome-ignore lint: a11y/useMediaCaption
-          <audio className="w-full" controls src={resourceUrl.toString()} />
-        );
-      default: {
-        const Icon = attachmentCategoryIcons[resourceType];
-        return <Icon className="size-8 text-muted-foreground" />;
-      }
-    }
-  })();
-}
-
 type ReadFileContentProps = {
   arguments: FileSystemReadFile;
   result: string | TaskResourceMetadata[];
@@ -232,7 +167,7 @@ function ReadFileContent({
   return (
     <div className="flex flex-col justify-center items-center gap-2 px-4 pb-4">
       {result.map((data) => (
-        <ResourceFileContent key={data.resource_id} data={data} />
+        <ContentBlockItem key={data.resource_id} data={data} />
       ))}
     </div>
   );

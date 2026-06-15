@@ -28,6 +28,7 @@ import {
 import { useToolName } from "../../hooks/use-tool-name";
 import { useToolActionable } from "../../hooks/use-tool-actionable";
 import { useCollapsed } from "../../hooks/use-collapsible-store";
+import { cn } from "@/lib/utils";
 
 function getToolState(message: UiToolMessage): ToolState {
   if (message.isStreaming) {
@@ -51,13 +52,14 @@ function getToolState(message: UiToolMessage): ToolState {
   return "input-streaming";
 }
 
-function ContentBlockItem({ data }: { data: TaskResourceMetadata }) {
+export function ContentBlockItem({ data }: { data: TaskResourceMetadata }) {
   const { taskId, taskType } = useAgentTaskState();
 
   if ("text" in data) {
     return (
       <CodeBlock
         code={data.text}
+        className="w-full"
         language="text"
         showLineNumbers={true}
         startingLineNumber={1}
@@ -67,7 +69,7 @@ function ContentBlockItem({ data }: { data: TaskResourceMetadata }) {
 
   if ("url" in data) {
     return (
-      <div className="flex items-center gap-3 rounded-lg bg-muted p-3 text-sm">
+      <div className="flex items-center gap-2 rounded-lg bg-muted p-3 text-sm">
         <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
         <span className="break-all font-mono">{data.url}</span>
       </div>
@@ -124,7 +126,9 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
       className="selectable visibility-auto mb-0"
     >
       <ToolHeader
-        className="sticky top-0 z-10 rounded-md bg-card"
+        className={cn("sticky top-0 z-10 rounded-md bg-card", {
+          "rounded-b-none": !collapsed,
+        })}
         toolName={toolName}
         toolsetName={toolsetName}
         state={toolState}
@@ -134,18 +138,23 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
       <ToolContent className="bg-card">
         <ToolInput input={toolArguments} />
         <Activity mode={activityVisible(hasResult)}>
-          {isTaskResourceMetadataList(message.result) ? (
-            <div className="flex flex-col items-center justify-center gap-2">
-              {message.result.map((item, index) => (
-                <ContentBlockItem
-                  key={`${typeof item.resource_id}:${item.resource_id}:${index}`}
-                  data={item}
-                />
-              ))}
-            </div>
-          ) : (
-            <ToolOutput output={message.result} errorText={message.error} />
-          )}
+          <ToolOutput
+            output={
+              isTaskResourceMetadataList(message.result) ? (
+                <div className="flex flex-col items-center justify-center gap-2">
+                  {message.result.map((item, index) => (
+                    <ContentBlockItem
+                      key={`${typeof item.resource_id}:${item.resource_id}:${index}`}
+                      data={item}
+                    />
+                  ))}
+                </div>
+              ) : (
+                message.result
+              )
+            }
+            errorText={message.error}
+          />
         </Activity>
       </ToolContent>
       {userApproval && (
