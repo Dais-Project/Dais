@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 from dataclasses import asdict
 from typing import Self
+from anyxml import AnyXml
 from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef, ToolFn
@@ -32,6 +33,7 @@ from ..prompts import (
     FAILED_TO_LOAD_NOTES_INDEX,
     NO_AVAILABLE_SKILLS,
     NO_AVAILABLE_AGENTS,
+    NO_AVAILABLE_TOOLSETS,
     NO_WORKSPACE_INSTRUCTION,
     NO_AGENT_INSTRUCTION,
 )
@@ -108,24 +110,31 @@ class AgentContext:
     @staticmethod
     def _format_skills(skills: list[skill_schemas.SkillBrief]) -> str:
         if len(skills) == 0: return NO_AVAILABLE_SKILLS
-        root = ET.Element("available_skills")
+        root = ET.Element("skills")
         for skill in skills:
-            skill_elem = ET.SubElement(root, "skill")
-            ET.SubElement(skill_elem, "id").text = str(skill.id)
-            ET.SubElement(skill_elem, "name").text = skill.name
-            ET.SubElement(skill_elem, "description").text = skill.description
-        return ET.tostring(root, encoding="unicode")
+            skill_elem = ET.SubElement(root, "skill", attrib={"id": str(skill.id), "name": skill.name})
+            skill_elem.text = AnyXml.RawText(skill.description)
+        return AnyXml.tostring(root)
 
     @staticmethod
     def _format_agents(agents: list[agent_schemas.AgentBrief]) -> str:
         if len(agents) == 0: return NO_AVAILABLE_AGENTS
-        root = ET.Element("available_agents")
+        root = ET.Element("agents")
         for agent in agents:
             agent_elem = ET.SubElement(root, "agent", attrib={"id": str(agent.id), "name": agent.name})
             if agent.description:
-                description_elem = ET.SubElement(agent_elem, "description")
-                description_elem.text = agent.description
-        return ET.tostring(root, encoding="unicode")
+                agent_elem.text = AnyXml.RawText(agent.description)
+        return AnyXml.tostring(root)
+
+    @staticmethod
+    def _format_toolsets(toolsets: list[Toolset]) -> str:
+        if len(toolsets) == 0: return NO_AVAILABLE_TOOLSETS
+        root = ET.Element("toolsets")
+        for toolset in toolsets:
+            toolset_elem = ET.Element("toolset", attrib={"name": toolset.name})
+            if toolset.description is not None:
+                toolset_elem.text = AnyXml.RawText(toolset.description)
+        return AnyXml.tostring(root)
 
     ResolvedInstructions = namedtuple("ResolvedInstructions", ["base", "workspace", "agent"])
     def _resolve_instructions(self) -> ResolvedInstructions:
@@ -141,6 +150,10 @@ class AgentContext:
     @property
     def usage(self) -> ContextUsage:
         return self._usage
+
+    @property
+    def skills(self) -> list[skill_schemas.SkillBrief]:
+        return [skill for skill in self._resource.skills if skill.is_enabled]
 
     @property
     def toolsets(self) -> list[Toolset]:
@@ -204,12 +217,12 @@ class AgentContext:
 
     async def compose_system_instruction(self) -> str:
         settings = use_app_setting_manager().settings
-        available_skills = AgentContext._format_skills([
-            skill for skill in self._resource.skills if skill.is_enabled])
+        available_skills = AgentContext._format_skills(self.skills)
+        available_toolsets = AgentContext._format_toolsets(self.toolsets)
         resolved_instructions = self._resolve_instructions()
 
         resolved_agents_appendix = APPENDIX_TEMPLATE.format(
-            id="C",
+            id="D",
             title="Available Agents",
             content=AgentContext._format_agents(self._resource.workspace.usable_agents)
         ) if self.task_type != "subtask" else "" # does not inject agents info under "subtask"
@@ -222,6 +235,7 @@ class AgentContext:
             os_platform=platform.system(),
             user_language=settings.reply_language,
             available_skills=available_skills,
+            available_toolsets=available_toolsets,
             runtime_appendices=resolved_agents_appendix,
             workspace_notes_index=resolved_notes_index,
             workspace_name=self._resource.workspace.name,

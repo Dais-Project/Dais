@@ -209,7 +209,11 @@ Use it as the starting point for note retrieval per Section 8.5.
 
 <workspace_notes_index>
 {workspace_notes_index}
-</workspace_notes_index>{runtime_appendices}
+</workspace_notes_index>
+
+## Appendix C: Available Toolsets
+
+{available_toolsets}{runtime_appendices}
 
 [END OF BASE SYSTEM INSTRUCTIONS]
 
