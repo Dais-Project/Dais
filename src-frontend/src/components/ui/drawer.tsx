@@ -3,16 +3,19 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
-type DrawerContainerContext = React.RefObject<HTMLDivElement | null> | null
-const DrawerContainerContext = React.createContext<DrawerContainerContext>(null);
+type DrawerContainerContext = {
+  container: HTMLDivElement | null
+}
+const DrawerContainerContext = React.createContext<DrawerContainerContext>({ container: null })
 
 function DrawerContainer({ className, ...props }: React.ComponentProps<"div">) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+  const contextValue = React.useMemo(() => ({ container }), [ container ])
   return (
-    <DrawerContainerContext value={containerRef}>
+    <DrawerContainerContext value={contextValue}>
       <div
         className={cn("relative", className)}
-        ref={containerRef}
+        ref={setContainer}
         {...props}
       />
     </DrawerContainerContext>
@@ -20,10 +23,10 @@ function DrawerContainer({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function Drawer({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-  const containerRef = React.useContext(DrawerContainerContext)
+  const { container } = React.useContext(DrawerContainerContext)
   return (
     <DrawerPrimitive.Root data-slot="drawer"
-      container={containerRef?.current ?? undefined}
+      container={container}
       {...props}
     />
   )
