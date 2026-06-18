@@ -39,7 +39,7 @@ class McpToolsetManager(ToolsetManager):
         toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
-    def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):
+    async def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):
         """
         Append a newly connected MCP toolset to the manager.
         """
@@ -47,6 +47,7 @@ class McpToolsetManager(ToolsetManager):
             raise McpToolsetManagerNotInitializedError()
 
         new_toolset = McpToolset(toolset_ent, inner_toolset)
+        await new_toolset.sync()
         self._toolset_map[toolset_ent.id] = new_toolset
 
     async def remove(self, toolset_id: int):

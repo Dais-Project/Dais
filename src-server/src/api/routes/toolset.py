@@ -95,7 +95,7 @@ async def create_toolset(
             description=tool.description)
         for tool in tools
     ])
-    mcp_toolset_manager.append(toolset, new_toolset)
+    await mcp_toolset_manager.append(toolset, new_toolset)
     return new_toolset
 
 @toolset_router.put("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)
@@ -123,7 +123,7 @@ async def update_toolset(
         raise ApiError(status.HTTP_503_SERVICE_UNAVAILABLE, e.error_code, "Failed to connect to MCP server")
 
     await mcp_toolset_manager.remove(toolset_id)
-    mcp_toolset_manager.append(toolset, updated_toolset)
+    await mcp_toolset_manager.append(toolset, updated_toolset)
     return updated_toolset
 
 @toolset_router.post("/{toolset_id}/reconnect", status_code=status.HTTP_204_NO_CONTENT)

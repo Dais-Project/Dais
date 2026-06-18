@@ -64,7 +64,7 @@ A subtask should return a **distilled finding**, not a data dump.
 
 **Code review — always delegate after EXECUTE:**
 - After all edits in a task are applied, spawn a review subtask before calling `${finish_task}`
-- Pass it: the task goal, the list of changed files, and the exact diffs
+- Pass it: the task goal, where is the diff (git staged / unstaged)
 - Do not proceed to CLOSE if the review subtask returns unresolved findings
 
 **Do not delegate:**
