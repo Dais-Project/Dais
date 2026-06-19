@@ -82,17 +82,18 @@ export function ShortcutRecorder({
       <Button
         type="button"
         variant="outline"
-        className="min-w-30 flex-1 cursor-pointer text-left"
         onClick={!isRecording ? startRecording : undefined}
       >
         {displayKeys.length > 0 ? (
           <KbdGroup>
             {displayKeys.map((key, index) => (
-              <Kbd key={`${key}-${index}`}>{key}</Kbd>
+              <Kbd className="text-sm-plus!" key={`${key}-${index}`}>
+                {key}
+              </Kbd>
             ))}
           </KbdGroup>
         ) : (
-          <span className="text-muted-foreground text-sm">
+          <span className="text-sm text-muted-foreground">
             {isRecording
               ? t("shortcut_recorder.recording")
               : (placeholder ?? t("shortcut_recorder.placeholder"))}
@@ -101,7 +102,6 @@ export function ShortcutRecorder({
       </Button>
       <Button
         variant="outline"
-        className="text-muted-foreground hover:text-foreground"
         onClick={!isRecording ? clearShortcut : undefined}
       >
         <XIcon />
