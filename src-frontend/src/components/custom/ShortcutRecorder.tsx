@@ -5,20 +5,18 @@ import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { COMPONENTS_CUSTOM_NAMESPACE } from "@/i18n/resources";
-import { cn } from "@/lib/utils";
+import { ButtonGroup } from "../ui/button-group";
 
 type ShortcutRecorderProps = {
   value?: string[];
   onChange?: (keys: string[]) => void;
   placeholder?: string;
-  className?: string;
 };
 
 export function ShortcutRecorder({
   value = [],
   onChange,
   placeholder,
-  className,
 }: ShortcutRecorderProps) {
   const { t } = useTranslation(COMPONENTS_CUSTOM_NAMESPACE);
   const [recordedKeys, setRecordedKeys] = useState<string[]>(value);
@@ -80,20 +78,12 @@ export function ShortcutRecorder({
   const displayKeys = isRecording ? Array.from(keys) : recordedKeys;
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "inline-flex items-center gap-2 rounded-md border px-3 py-2 transition-colors",
-        isRecording
-          ? "border-primary ring-primary/20 bg-primary/5 ring-2"
-          : "border-input bg-background hover:bg-accent/50",
-        className,
-      )}
-    >
+    <ButtonGroup ref={containerRef}>
       <Button
         type="button"
+        variant="outline"
         className="min-w-30 flex-1 cursor-pointer text-left"
-        onClick={startRecording}
+        onClick={!isRecording ? startRecording : undefined}
       >
         {displayKeys.length > 0 ? (
           <KbdGroup>
@@ -109,24 +99,14 @@ export function ShortcutRecorder({
           </span>
         )}
       </Button>
-
-      {recordedKeys.length > 0 && !isRecording && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground hover:text-foreground h-6 w-6 p-0"
-          onClick={clearShortcut}
-        >
-          <XIcon className="h-3.5 w-3.5" />
-          <span className="sr-only">{t("shortcut_recorder.clear")}</span>
-        </Button>
-      )}
-
-      {isRecording && (
-        <span className="animate-pulse text-primary text-xs">
-          {t("shortcut_recorder.status")}
-        </span>
-      )}
-    </div>
+      <Button
+        variant="outline"
+        className="text-muted-foreground hover:text-foreground"
+        onClick={!isRecording ? clearShortcut : undefined}
+      >
+        <XIcon />
+        <span className="sr-only">{t("shortcut_recorder.clear")}</span>
+      </Button>
+    </ButtonGroup>
   );
 }
