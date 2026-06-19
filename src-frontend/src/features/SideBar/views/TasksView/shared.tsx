@@ -11,11 +11,25 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_NAMESPACE, TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
+import { i18n } from "@/i18n";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTabsStore } from "@/stores/tabs-store";
 import { resolveIconName } from "@/lib/resolve-iconname";
+
+export function openTaskCreateTab(workspaceId: number) {
+  const addTab = useTabsStore.getState().add;
+  addTab({
+    title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
+    type: "task",
+    metadata: {
+      type: "task",
+      isDraft: true,
+      workspace_id: workspaceId,
+    },
+  });
+}
 
 export function openTaskTab(workspaceId: number, task: TaskBrief) {
   const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();

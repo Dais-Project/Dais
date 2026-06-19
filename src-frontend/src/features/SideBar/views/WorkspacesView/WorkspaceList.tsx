@@ -24,11 +24,12 @@ import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE, TABS_TASK_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { isTauri } from "@/lib/tauri";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab } from "@/types/tab";
+import { openTaskCreateTab } from "../TasksView/shared";
 
 function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
   return {
@@ -46,19 +47,6 @@ function createWorkspaceNotesEditTab(workspaceId: number, workspaceName: string)
     icon: "notebook-pen",
     metadata: { mode: "edit-notes", id: workspaceId },
   };
-}
-
-function openTaskCreateTab(workspaceId: number) {
-  const addTab = useTabsStore.getState().add;
-  addTab({
-    title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
-    type: "task",
-    metadata: {
-      type: "task",
-      isDraft: true,
-      workspace_id: workspaceId,
-    },
-  });
 }
 
 type OpenWorkspaceEditTabParams = {

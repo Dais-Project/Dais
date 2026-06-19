@@ -1,7 +1,6 @@
 import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { i18n } from "@/i18n";
-import { TABS_TASK_NAMESPACE, SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   Empty,
@@ -9,27 +8,13 @@ import {
   EmptyContent,
   EmptyDescription,
 } from "@/components/ui/empty";
-import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { TaskList } from "./TaskList";
 import { RecentTaskList } from "./RecentTaskList";
+import { openTaskCreateTab } from "./shared";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
 import { SideBarCollapsibleSection, SideBarPrimarySection, SideBarSplitView } from "../../components/SideBarSplitView";
-
-function openTaskCreateTab(workspaceId: number) {
-  const addTab = useTabsStore.getState().add;
-  addTab({
-    title: i18n.t("tab.default_title", { ns: TABS_TASK_NAMESPACE }),
-    type: "task",
-    metadata: {
-      type: "task",
-      isDraft: true,
-      workspace_id: workspaceId,
-    },
-  });
-}
-
 
 function CurrentWorkspaceTasks({ workspaceId, className }: {
   workspaceId?: number,
