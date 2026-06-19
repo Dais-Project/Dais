@@ -1,9 +1,11 @@
 import { useMemo } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
+import { type HotkeyCallback, useHotkeys } from "react-hotkeys-hook";
 import { isTauri } from "@/lib/tauri";
+import { openTaskCreateTab } from "@/features/SideBar/views/TasksView/shared";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useTabsStore } from "@/stores/tabs-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 
 function isEditableElement(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
@@ -34,15 +36,35 @@ export function useGlobalShortcuts() {
 
   const toggleSidebarHotkey = useHotkey(shortcuts.toggle_sidebar);
   const closeTabHotkey = useHotkey(shortcuts.close_tab);
+  const newTaskHotkey = useHotkey(shortcuts.new_task);
 
-  const handleToggleSidebar = () => {
-    toggleSidebar();
-  };
+  const handleToggleSidebar = () => toggleSidebar();
+
   const handleCloseTab = () => {
     if (activeTabId === null) {
       return;
     }
     removeTab(activeTabId);
+  };
+
+  const handleNewTask = () => {
+    const currentWorkspace = useWorkspaceStore.getState().current;
+    if (!currentWorkspace) {
+      return;
+    }
+    openTaskCreateTab(currentWorkspace.id);
+  };
+
+  const handleSwitchTabByIndex = (_, event: Parameters<HotkeyCallback>[1]) => {
+    const key = event.keys?.[0];
+    if (key === undefined || !/^[1-9]$/.test(key)) {
+      return;
+    }
+    const { tabs, setActive } = useTabsStore.getState();
+    const tab = tabs[Number(key) - 1];
+    if (tab) {
+      setActive(tab.id);
+    }
   };
 
   useHotkeys(toggleSidebarHotkey, handleToggleSidebar, {
@@ -55,4 +77,18 @@ export function useGlobalShortcuts() {
     preventDefault: true,
     ignoreEventWhen,
   });
+  useHotkeys(newTaskHotkey, handleNewTask, {
+    enabled: isTauri && shortcuts.new_task.length > 0,
+    preventDefault: true,
+    ignoreEventWhen,
+  });
+  useHotkeys(
+    "alt+1,alt+2,alt+3,alt+4,alt+5,alt+6,alt+7,alt+8,alt+9",
+    handleSwitchTabByIndex,
+    {
+      enabled: isTauri,
+      preventDefault: true,
+      ignoreEventWhen,
+    },
+  );
 }

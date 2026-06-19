@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   shortcuts: {
     toggle_sidebar: ["ctrl", "b"],
     close_tab: ["ctrl", "w"],
+    new_task: ["ctrl", "n"],
   },
 };
 

@@ -27,8 +27,24 @@ export function ShortcutSettings() {
     });
   };
 
+  const handleNewTaskShortcutChange = (keys: string[]) => {
+    setPartial({
+      shortcuts: {
+        ...shortcuts,
+        new_task: keys,
+      },
+    });
+  };
+
   return (
     <div className="px-4 py-2">
+      <SettingItem title={t("settings.shortcuts.new_task.title")}>
+        <ShortcutRecorder
+          value={shortcuts.new_task}
+          onChange={handleNewTaskShortcutChange}
+        />
+      </SettingItem>
+
       <SettingItem title={t("settings.shortcuts.toggle_sidebar.title")}>
         <ShortcutRecorder
           value={shortcuts.toggle_sidebar}

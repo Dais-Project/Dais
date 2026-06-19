@@ -103,6 +103,7 @@ export function ShortcutRecorder({
       </Button>
       <Button
         variant="outline"
+        className="text-muted-foreground"
         onClick={!isRecording ? clearShortcut : undefined}
       >
         <XIcon />

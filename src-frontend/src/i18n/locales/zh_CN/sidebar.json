@@ -178,6 +178,9 @@
       },
       "close_tab": {
         "title": "关闭当前标签页"
+      },
+      "new_task": {
+        "title": "新建任务"
       }
     },
     "tabs": {

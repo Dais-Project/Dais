@@ -178,6 +178,9 @@
       },
       "close_tab": {
         "title": "Close current tab"
+      },
+      "new_task": {
+        "title": "Create new task"
       }
     },
     "tabs": {
