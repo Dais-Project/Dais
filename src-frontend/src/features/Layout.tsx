@@ -1,7 +1,16 @@
 import { useBoolean, useDebounceFn, useThrottleFn } from "ahooks";
 import { Activity, use, useEffect } from "react";
-import { type PanelSize, useDefaultLayout, useGroupRef, usePanelRef } from "react-resizable-panels";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import {
+  type PanelSize,
+  useDefaultLayout,
+  useGroupRef,
+  usePanelRef,
+} from "react-resizable-panels";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { BackendReadyPromise } from "@/api";
@@ -12,6 +21,7 @@ import { Tabs } from "./Tabs";
 import { TaskSessionViewSkeleton } from "./Tabs/TaskPanel/views/TaskSessionView";
 import { SideBarListSkeleton } from "./SideBar/components/SideBarListSkeleton";
 import { useScheduleNotificationListener } from "./sse-listeners/schedule-notification-listener";
+import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
 
 function SideBarSkeleton() {
   return (
@@ -61,6 +71,7 @@ export function LayoutSkeleton() {
 export function Layout() {
   use(BackendReadyPromise);
 
+  useGlobalShortcuts();
   useScheduleNotificationListener();
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
@@ -68,7 +79,8 @@ export function Layout() {
     storage: localStorage,
   });
   const { isOpen, open: openSidebar, close: closeSidebar } = useSidebarStore();
-  const [isResizing, { setTrue: resizeStart, setFalse: resizeEnd }] = useBoolean(false);
+  const [isResizing, { setTrue: resizeStart, setFalse: resizeEnd }] =
+    useBoolean(false);
   const groupRef = useGroupRef();
   const sideBarPanelRef = usePanelRef();
 
@@ -81,7 +93,7 @@ export function Layout() {
         openSidebar();
       }
     },
-    { wait: 100 }
+    { wait: 100 },
   );
 
   const { run: handleTabsResize } = useDebounceFn(
@@ -89,7 +101,7 @@ export function Layout() {
     (_panelSize: PanelSize, _: string | number | undefined) => {
       resizeEnd();
     },
-    { wait: 300 }
+    { wait: 300 },
   );
 
   useEffect(() => {
