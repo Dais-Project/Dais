@@ -8,50 +8,62 @@ import { ProviderSettings } from "./ProviderSettings";
 import { HelperModelSettings } from "./HelperModelSettings";
 import { AgentSettings } from "./AgentSettings";
 import { RemoteAccessSettings } from "./RemoteAccessSettings";
+import { ShortcutSettings } from "./ShortcutSettings";
 import { DevSettings } from "./DevSettings";
 import { AboutSettings } from "./AboutSettings";
 import { SideBarHeader } from "../../components/SideBarHeader";
 
+type SettingItem = {
+  id: string;
+  titleKey: string;
+  content: React.ReactNode;
+};
+
+const settingItems: SettingItem[] = [
+  {
+    id: "general",
+    titleKey: "settings.tabs.general",
+    content: <GeneralSettings />,
+  },
+  {
+    id: "providers",
+    titleKey: "settings.tabs.providers",
+    content: <ProviderSettings />,
+  },
+  {
+    id: "helper-model",
+    titleKey: "settings.tabs.helper_model",
+    content: <HelperModelSettings />,
+  },
+  {
+    id: "agents",
+    titleKey: "settings.tabs.agents",
+    content: <AgentSettings />,
+  },
+  {
+    id: "remote-access",
+    titleKey: "settings.tabs.remote_access",
+    content: <RemoteAccessSettings />,
+  },
+  {
+    id: "shortcuts",
+    titleKey: "settings.tabs.shortcuts",
+    content: <ShortcutSettings />,
+  },
+  {
+    id: "dev",
+    titleKey: "settings.tabs.dev",
+    content: <DevSettings />,
+  },
+  {
+    id: "about",
+    titleKey: "settings.tabs.about",
+    content: <AboutSettings />,
+  },
+];
+
 export function SettingsView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-
-  const settingItems = [
-    {
-      id: "general",
-      title: t("settings.tabs.general"),
-      content: <GeneralSettings />,
-    },
-    {
-      id: "providers",
-      title: t("settings.tabs.providers"),
-      content: <ProviderSettings />,
-    },
-    {
-      id: "helper-model",
-      title: t("settings.tabs.helper_model"),
-      content: <HelperModelSettings />,
-    },
-    {
-      id: "agents",
-      title: t("settings.tabs.agents"),
-      content: <AgentSettings />,
-    },
-    {
-      id: "remote-access",
-      title: t("settings.tabs.remote_access"),
-      content: <RemoteAccessSettings />,
-    },
-    {
-      id: "dev",
-      title: t("settings.tabs.dev"),
-      content: <DevSettings />,
-    },
-    {
-      id: "about",
-      title: t("settings.tabs.about"),
-      content: <AboutSettings />,
-    },
-  ];
 
   const tabsTriggerClasses = cn(
     "!text-foreground !bg-transparent !border-transparent",
@@ -65,7 +77,7 @@ export function SettingsView() {
         <TabsList className="flex h-full flex-col items-stretch gap-2 rounded-none border-r bg-transparent p-0">
           {settingItems.map((item) => (
             <TabsTrigger key={item.id} value={item.id} className={tabsTriggerClasses}>
-              {item.title}
+              {t(item.titleKey)}
             </TabsTrigger>
           ))}
           <div className="flex-1" />
