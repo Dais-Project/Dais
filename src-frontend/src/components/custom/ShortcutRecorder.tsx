@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRecordHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { COMPONENTS_CUSTOM_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 
 type ShortcutRecorderProps = {
@@ -12,155 +14,70 @@ type ShortcutRecorderProps = {
   className?: string;
 };
 
-function formatKeyName(key: string): string {
-  const keyMap: Record<string, string> = {
-    control: "Ctrl",
-    ctrl: "Ctrl",
-    meta: "⌘",
-    command: "⌘",
-    alt: "Alt",
-    option: "⌥",
-    shift: "Shift",
-    enter: "Enter",
-    return: "Enter",
-    escape: "Esc",
-    esc: "Esc",
-    backspace: "⌫",
-    delete: "Del",
-    tab: "Tab",
-    " ": "Space",
-    space: "Space",
-    arrowup: "↑",
-    arrowdown: "↓",
-    arrowleft: "←",
-    arrowright: "→",
-  };
-
-  const lowerKey = key.toLowerCase();
-  return keyMap[lowerKey] || key.toUpperCase();
-}
-
-function getModifierPriority(key: string): number {
-  const lowerKey = key.toLowerCase();
-  if (lowerKey === "control" || lowerKey === "ctrl") return 1;
-  if (lowerKey === "meta" || lowerKey === "command") return 2;
-  if (lowerKey === "alt" || lowerKey === "option") return 3;
-  if (lowerKey === "shift") return 4;
-  return 5;
-}
-
-function sortKeys(keys: string[]): string[] {
-  return [...keys].sort(
-    (a, b) => getModifierPriority(a) - getModifierPriority(b),
-  );
-}
-
 export function ShortcutRecorder({
   value = [],
   onChange,
-  placeholder = "点击此处录制快捷键",
+  placeholder,
   className,
 }: ShortcutRecorderProps) {
-  const { t } = useTranslation("settings");
-  const [isRecording, setIsRecording] = useState(false);
-  const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+  const { t } = useTranslation(COMPONENTS_CUSTOM_NAMESPACE);
   const [recordedKeys, setRecordedKeys] = useState<string[]>(value);
-  const pressedKeysRef = useRef<Set<string>>(new Set());
+  const [keys, { start, stop, resetKeys, isRecording }] = useRecordHotkeys();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setRecordedKeys(value);
-  }, [value]);
+  const submitRecordedKeys = useCallback(() => {
+    stop();
+    const keysArr = Array.from(keys);
+    setRecordedKeys(keysArr);
+    onChange?.(keysArr);
+    resetKeys();
+  }, [keys, stop, resetKeys, onChange]);
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (!isRecording) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const nextSet = new Set(pressedKeysRef.current);
-      nextSet.add(event.key);
-      pressedKeysRef.current = nextSet;
-      setPressedKeys(nextSet);
-    },
-    [isRecording],
-  );
-
-  const handleKeyUp = useCallback(
-    (event: KeyboardEvent) => {
-      if (!isRecording) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const currentKeys = Array.from(pressedKeysRef.current);
-      if (currentKeys.length === 0) {
-        return;
-      }
-
-      const sortedKeys = sortKeys(currentKeys);
-      setRecordedKeys(sortedKeys);
-      onChange?.(sortedKeys);
-      setIsRecording(false);
-      pressedKeysRef.current = new Set();
-      setPressedKeys(new Set());
-    },
-    [isRecording, onChange],
-  );
+  useEffect(() => setRecordedKeys(value), [value]);
 
   useEffect(() => {
-    if (!isRecording) {
-      return;
-    }
+    const handleKeyUp = () => {
+      if (keys.size === 0) {
+        return;
+      }
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      submitRecordedKeys();
     };
-  }, [isRecording, handleKeyDown, handleKeyUp]);
+    if (isRecording) {
+      document.addEventListener("keyup", handleKeyUp);
+      return () => {
+        document.removeEventListener("keyup", handleKeyUp);
+      };
+    }
+  }, [keys, isRecording, submitRecordedKeys]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
-        setIsRecording(false);
-        pressedKeysRef.current = new Set();
-        setPressedKeys(new Set());
+        submitRecordedKeys();
       }
     };
-
     if (isRecording) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [isRecording]);
+  }, [isRecording, submitRecordedKeys]);
 
   const startRecording = () => {
-    setIsRecording(true);
-    pressedKeysRef.current = new Set();
-    setPressedKeys(new Set());
+    resetKeys();
+    start();
   };
 
   const clearShortcut = () => {
+    stop();
     setRecordedKeys([]);
     onChange?.([]);
-    setIsRecording(false);
-    pressedKeysRef.current = new Set();
-    setPressedKeys(new Set());
+    resetKeys();
   };
 
-  const displayKeys = isRecording
-    ? sortKeys(Array.from(pressedKeys))
-    : recordedKeys;
+  const displayKeys = isRecording ? Array.from(keys) : recordedKeys;
 
   return (
     <div
@@ -173,24 +90,25 @@ export function ShortcutRecorder({
         className,
       )}
     >
-      <div
-        className="min-w-[120px] flex-1 cursor-pointer"
+      <Button
+        type="button"
+        className="min-w-30 flex-1 cursor-pointer text-left"
         onClick={startRecording}
       >
         {displayKeys.length > 0 ? (
           <KbdGroup>
             {displayKeys.map((key, index) => (
-              <Kbd key={`${key}-${index}`}>{formatKeyName(key)}</Kbd>
+              <Kbd key={`${key}-${index}`}>{key}</Kbd>
             ))}
           </KbdGroup>
         ) : (
           <span className="text-muted-foreground text-sm">
             {isRecording
-              ? t("shortcuts.switchShortcuts.recording")
-              : placeholder}
+              ? t("shortcut_recorder.recording")
+              : (placeholder ?? t("shortcut_recorder.placeholder"))}
           </span>
         )}
-      </div>
+      </Button>
 
       {recordedKeys.length > 0 && !isRecording && (
         <Button
@@ -199,16 +117,14 @@ export function ShortcutRecorder({
           className="text-muted-foreground hover:text-foreground h-6 w-6 p-0"
           onClick={clearShortcut}
         >
-          <X className="h-3.5 w-3.5" />
-          <span className="sr-only">
-            {t("shortcuts.switchShortcuts.clear")}
-          </span>
+          <XIcon className="h-3.5 w-3.5" />
+          <span className="sr-only">{t("shortcut_recorder.clear")}</span>
         </Button>
       )}
 
       {isRecording && (
         <span className="animate-pulse text-primary text-xs">
-          {t("shortcuts.switchShortcuts.status")}
+          {t("shortcut_recorder.status")}
         </span>
       )}
     </div>

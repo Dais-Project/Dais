@@ -1,6 +1,12 @@
 {
-  "load_failed": {
+  "loading_failed": {
     "retry": "Retry",
     "title": "Failed to load"
+  },
+  "shortcut_recorder": {
+    "clear": "Clear shortcut",
+    "placeholder": "Click to record shortcut",
+    "recording": "Press shortcut keys",
+    "status": "Recording"
   }
 }

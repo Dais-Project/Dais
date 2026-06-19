@@ -23,7 +23,7 @@ type FailedToLoadProps = {
 
 export function FailedToLoad({
   className,
-  title = i18n.t("load_failed.title", { ns: COMPONENTS_CUSTOM_NAMESPACE }),
+  title = i18n.t("loading_failed.title", { ns: COMPONENTS_CUSTOM_NAMESPACE }),
   description,
   error,
   retry,
@@ -46,7 +46,7 @@ export function FailedToLoad({
         <EmptyContent>
           <Button size="sm" variant="outline" onClick={() => retry?.()}>
             <RefreshCcwIcon />
-            {t("load_failed.retry")}
+            {t("loading_failed.retry")}
           </Button>
         </EmptyContent>
       </EmptyContent>
