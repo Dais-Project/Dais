@@ -6,7 +6,7 @@ dependencies = [
     "anyio>=4.12.0",
     "anyxml==0.1.0",
     "apscheduler==3.11.2",
-    "dais-sdk==0.10.28",
+    "dais-sdk==0.10.29",
     "dais-shell==0.1.10",
     "dais-scantree==0.2.2",
     "alembic==1.18.4",
