@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next";
 import { XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { useGlobalShortcutsContext } from "@/hooks/use-global-shortcuts";
 import { COMPONENTS_CUSTOM_NAMESPACE } from "@/i18n/resources";
 import { ButtonGroup } from "../ui/button-group";
+import { useLatest } from "ahooks";
 
 type ShortcutRecorderProps = {
   value?: string[];
@@ -22,6 +24,17 @@ export function ShortcutRecorder({
   const [recordedKeys, setRecordedKeys] = useState<string[]>(value);
   const [keys, { start, stop, resetKeys, isRecording }] = useRecordHotkeys();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { pause, resume } = useGlobalShortcutsContext();
+  const shortcutsApiRef = useLatest({ pause, resume });
+
+  useEffect(() => {
+    if (!isRecording) {
+      return;
+    }
+    shortcutsApiRef.current.pause();
+    return () => shortcutsApiRef.current.resume();
+  }, [isRecording]);
 
   const submitRecordedKeys = useCallback(() => {
     stop();

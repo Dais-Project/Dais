@@ -21,7 +21,7 @@ import { Tabs } from "./Tabs";
 import { TaskSessionViewSkeleton } from "./Tabs/TaskPanel/views/TaskSessionView";
 import { SideBarListSkeleton } from "./SideBar/components/SideBarListSkeleton";
 import { useScheduleNotificationListener } from "./sse-listeners/schedule-notification-listener";
-import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
+import { GlobalShortcutsProvider } from "@/hooks/use-global-shortcuts";
 
 function SideBarSkeleton() {
   return (
@@ -71,7 +71,6 @@ export function LayoutSkeleton() {
 export function Layout() {
   use(BackendReadyPromise);
 
-  useGlobalShortcuts();
   useScheduleNotificationListener();
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
@@ -122,44 +121,46 @@ export function Layout() {
   }, [isOpen]);
 
   return (
-    <div className="flex h-full">
-      <ActivityBar />
-      <ResizablePanelGroup
-        className="h-full"
-        orientation="horizontal"
-        groupRef={groupRef}
-        onLayoutChange={resizeStart}
-        onLayoutChanged={(layout) => {
-          resizeEnd();
-          onLayoutChanged(layout);
-        }}
-        defaultLayout={defaultLayout}
-        data-is-resizing={isResizing || undefined}
-        data-resizable-group
-      >
-        <ResizablePanel
-          id="sidebar"
-          collapsible
-          minSize={300}
-          maxSize={"60%"}
-          panelRef={sideBarPanelRef}
-          onResize={handleSideBarResize}
+    <GlobalShortcutsProvider>
+      <div className="flex h-full">
+        <ActivityBar />
+        <ResizablePanelGroup
+          className="h-full"
+          orientation="horizontal"
+          groupRef={groupRef}
+          onLayoutChange={resizeStart}
+          onLayoutChanged={(layout) => {
+            resizeEnd();
+            onLayoutChanged(layout);
+          }}
+          defaultLayout={defaultLayout}
+          data-is-resizing={isResizing || undefined}
+          data-resizable-group
         >
-          <SideBar />
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel
-          id="tabs"
-          minSize={300}
-          className="relative"
-          onResize={handleTabsResize}
-        >
-          <Activity mode={activityVisible(isResizing)}>
-            <div className="absolute inset-0 z-50 select-none" />
-          </Activity>
-          <Tabs />
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
+          <ResizablePanel
+            id="sidebar"
+            collapsible
+            minSize={300}
+            maxSize={"60%"}
+            panelRef={sideBarPanelRef}
+            onResize={handleSideBarResize}
+          >
+            <SideBar />
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel
+            id="tabs"
+            minSize={300}
+            className="relative"
+            onResize={handleTabsResize}
+          >
+            <Activity mode={activityVisible(isResizing)}>
+              <div className="absolute inset-0 z-50 select-none" />
+            </Activity>
+            <Tabs />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </GlobalShortcutsProvider>
   );
 }

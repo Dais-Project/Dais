@@ -1,4 +1,10 @@
-import { useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { type HotkeyCallback, useHotkeys } from "react-hotkeys-hook";
 import { isTauri } from "@/lib/tauri";
 import { openTaskCreateTab } from "@/features/SideBar/views/TasksView/shared";
@@ -28,7 +34,34 @@ function useHotkey(keys: string[]): string {
   return useMemo(() => keys.join("+"), [keys]);
 }
 
-export function useGlobalShortcuts() {
+type GlobalShortcutsContextValue = {
+  isPaused: boolean;
+  pause: () => void;
+  resume: () => void;
+};
+
+const GlobalShortcutsContext =
+  createContext<GlobalShortcutsContextValue | null>(null);
+
+export function useGlobalShortcutsContext(): GlobalShortcutsContextValue {
+  const context = useContext(GlobalShortcutsContext);
+  if (!context) {
+    throw new Error(
+      "useGlobalShortcutsContext must be used within GlobalShortcutsProvider",
+    );
+  }
+  return context;
+}
+
+type GlobalShortcutsProviderProps = {
+  children: ReactNode;
+};
+
+export function GlobalShortcutsProvider({
+  children,
+}: GlobalShortcutsProviderProps) {
+  const [isPaused, setIsPaused] = useState(false);
+
   const shortcuts = useSettingsStore((state) => state.current.shortcuts);
   const toggleSidebar = useSidebarStore((state) => state.toggle);
   const activeTabId = useTabsStore((state) => state.activeTabId);
@@ -68,17 +101,17 @@ export function useGlobalShortcuts() {
   };
 
   useHotkeys(toggleSidebarHotkey, handleToggleSidebar, {
-    enabled: isTauri && shortcuts.toggle_sidebar.length > 0,
+    enabled: () => !isPaused && isTauri && shortcuts.toggle_sidebar.length > 0,
     preventDefault: true,
     ignoreEventWhen,
   });
   useHotkeys(closeTabHotkey, handleCloseTab, {
-    enabled: isTauri && shortcuts.close_tab.length > 0,
+    enabled: () => !isPaused && isTauri && shortcuts.close_tab.length > 0,
     preventDefault: true,
     ignoreEventWhen,
   });
   useHotkeys(newTaskHotkey, handleNewTask, {
-    enabled: isTauri && shortcuts.new_task.length > 0,
+    enabled: () => !isPaused && isTauri && shortcuts.new_task.length > 0,
     preventDefault: true,
     ignoreEventWhen,
   });
@@ -86,9 +119,22 @@ export function useGlobalShortcuts() {
     "alt+1,alt+2,alt+3,alt+4,alt+5,alt+6,alt+7,alt+8,alt+9",
     handleSwitchTabByIndex,
     {
-      enabled: isTauri,
+      enabled: () => !isPaused && isTauri,
       preventDefault: true,
       ignoreEventWhen,
     },
+  );
+
+  const value = useMemo<GlobalShortcutsContextValue>(
+    () => ({
+      isPaused,
+      pause: () => setIsPaused(true),
+      resume: () => setIsPaused(false),
+    }),
+    [isPaused],
+  );
+
+  return (
+    <GlobalShortcutsContext value={value}>{children}</GlobalShortcutsContext>
   );
 }
