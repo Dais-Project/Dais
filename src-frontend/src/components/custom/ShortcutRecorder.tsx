@@ -26,9 +26,11 @@ export function ShortcutRecorder({
   const submitRecordedKeys = useCallback(() => {
     stop();
     const keysArr = Array.from(keys);
-    setRecordedKeys(keysArr);
-    onChange?.(keysArr);
     resetKeys();
+    if (keysArr.length > 0) {
+      setRecordedKeys(keysArr);
+      onChange?.(keysArr);
+    }
   }, [keys, stop, resetKeys, onChange]);
 
   useEffect(() => setRecordedKeys(value), [value]);
@@ -38,7 +40,6 @@ export function ShortcutRecorder({
       if (keys.size === 0) {
         return;
       }
-
       submitRecordedKeys();
     };
     if (isRecording) {

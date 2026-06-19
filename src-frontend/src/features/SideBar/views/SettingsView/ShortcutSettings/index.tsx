@@ -29,20 +29,14 @@ export function ShortcutSettings() {
 
   return (
     <div className="px-4 py-2">
-      <SettingItem
-        title={t("settings.shortcuts.toggle_sidebar.title")}
-        align="start"
-      >
+      <SettingItem title={t("settings.shortcuts.toggle_sidebar.title")}>
         <ShortcutRecorder
           value={shortcuts.toggle_sidebar}
           onChange={handleToggleSidebarShortcutChange}
         />
       </SettingItem>
 
-      <SettingItem
-        title={t("settings.shortcuts.close_tab.title")}
-        align="start"
-      >
+      <SettingItem title={t("settings.shortcuts.close_tab.title")}>
         <ShortcutRecorder
           value={shortcuts.close_tab}
           onChange={handleCloseTabShortcutChange}
