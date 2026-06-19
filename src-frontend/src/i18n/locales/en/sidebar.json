@@ -172,6 +172,14 @@
         "title": "Remote access port"
       }
     },
+    "shortcuts": {
+      "toggle_sidebar": {
+        "title": "Toggle sidebar"
+      },
+      "close_tab": {
+        "title": "Close current tab"
+      }
+    },
     "tabs": {
       "about": "About",
       "agents": "Agents",
@@ -179,7 +187,8 @@
       "general": "General",
       "helper_model": "Helper model",
       "providers": "Model providers",
-      "remote_access": "Remote access"
+      "remote_access": "Remote access",
+      "shortcuts": "Shortcuts"
     }
   },
   "schedules": {
