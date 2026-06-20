@@ -14,6 +14,7 @@ const input: InputOptions = {
   filters: {
     mode: "exclude",
     tags: ["static", "stream"],
+    includeUnreferencedSchemas: true,
   },
 };
 
