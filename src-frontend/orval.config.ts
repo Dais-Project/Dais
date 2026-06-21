@@ -40,9 +40,7 @@ export default defineConfig({
         },
         query: {
           version: 5,
-          useQuery: true,
           useInfinite: true,
-          useMutation: true,
           useSuspenseQuery: true,
           useSuspenseInfiniteQuery: true,
           useInfiniteQueryParam: "page",
