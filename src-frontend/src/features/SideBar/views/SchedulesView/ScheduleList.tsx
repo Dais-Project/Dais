@@ -29,8 +29,13 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
@@ -56,7 +61,10 @@ function createScheduleEditTab(scheduleId: number, scheduleName: string): Tab {
   };
 }
 
-function createScheduleRecordsTab(scheduleId: number, scheduleName: string): Tab {
+function createScheduleRecordsTab(
+  scheduleId: number,
+  scheduleName: string,
+): Tab {
   return {
     type: "schedule",
     title: i18n.t("schedules.tab.records_title_with_name", {
@@ -68,7 +76,11 @@ function createScheduleRecordsTab(scheduleId: number, scheduleName: string): Tab
 }
 
 function openScheduleEditTab(scheduleId: number, scheduleName: string) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "schedule" &&
@@ -85,7 +97,11 @@ function openScheduleEditTab(scheduleId: number, scheduleName: string) {
 }
 
 function openScheduleRecordsTab(scheduleId: number, scheduleName: string) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "schedule" &&
@@ -103,10 +119,14 @@ function openScheduleRecordsTab(scheduleId: number, scheduleName: string) {
 
 function getScheduleIcon(schedule: ScheduleBrief) {
   switch (schedule.config.type) {
-    case "cron": return Clock7Icon;
-    case "polling": return RefreshCwIcon;
-    case "delayed": return HourglassIcon;
-    default: return Clock7Icon;
+    case "cron":
+      return Clock7Icon;
+    case "polling":
+      return RefreshCwIcon;
+    case "delayed":
+      return HourglassIcon;
+    default:
+      return Clock7Icon;
   }
 }
 
@@ -115,7 +135,9 @@ function getConfigDescription(schedule: ScheduleBrief) {
 
   switch (schedule.config.type) {
     case "cron":
-      return cronstrue.toString(schedule.config.expression, { locale: CRONSTRUE_LOCALE_MAP[language] });
+      return cronstrue.toString(schedule.config.expression, {
+        locale: CRONSTRUE_LOCALE_MAP[language],
+      });
     case "polling": {
       const totalSeconds = schedule.config.interval_sec;
       const days = Math.floor(totalSeconds / 86400);
@@ -124,13 +146,18 @@ function getConfigDescription(schedule: ScheduleBrief) {
       const seconds = totalSeconds % 60;
       return i18n.t("schedules.list.polling_description_with_duration", {
         ns: SIDEBAR_NAMESPACE,
-        duration: formatDuration({ days, hours, minutes, seconds }, { locale: DATEFNS_LOCALE_MAP[language] }),
+        duration: formatDuration(
+          { days, hours, minutes, seconds },
+          { locale: DATEFNS_LOCALE_MAP[language] },
+        ),
       });
     }
     case "delayed":
       return i18n.t("schedules.list.delayed_description_with_datetime", {
         ns: SIDEBAR_NAMESPACE,
-        datetime: new Date(schedule.config.scheduled_at * 1000).toLocaleString(INTL_LOCALE_MAP[language]),
+        datetime: new Date(schedule.config.scheduled_at * 1000).toLocaleString(
+          INTL_LOCALE_MAP[language],
+        ),
       });
     default:
       return "";
@@ -168,7 +195,11 @@ function ScheduleItem({
       >
         <ActionableItemIcon
           seed={schedule.is_enabled ? schedule.name : undefined}
-          className={schedule.is_enabled ? undefined : "border-muted-foreground/20 bg-muted text-muted-foreground/50"}
+          className={
+            schedule.is_enabled
+              ? undefined
+              : "border-muted-foreground/20 bg-muted text-muted-foreground/50"
+          }
         >
           <ScheduleIcon />
         </ActionableItemIcon>
@@ -191,7 +222,10 @@ function ScheduleItem({
           <HistoryIcon />
           <span>{t("schedules.menu.view_records")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(schedule)}>
+        <ActionableItemMenuItem
+          variant="destructive"
+          onClick={() => onDelete(schedule)}
+        >
           <TrashIcon />
           <span>{t("schedules.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -206,19 +240,24 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
 
   const query = useGetSchedulesSuspenseInfinite(
     { workspace_id: workspaceId },
-    { query: PAGINATED_QUERY_DEFAULT_OPTIONS }
+    {
+      query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
+    },
   );
 
   const triggerScheduleMutation = useTriggerSchedule({
     mutation: {
       async onSuccess(_, variables) {
         await invalidateScheduleRunningJobsQuery();
-        await invalidateScheduleQueries({ workspaceId, scheduleId: variables.scheduleId });
+        await invalidateScheduleQueries({
+          workspaceId,
+          scheduleId: variables.scheduleId,
+        });
         toast.success(t("schedules.toast.run_now_success_title"), {
           description: t("schedules.toast.run_now_success_description"),
         });
-      }
-    }
+      },
+    },
   });
 
   const deleteScheduleMutation = useDeleteSchedule({
@@ -228,11 +267,12 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
           workspaceId,
           scheduleId: variables.scheduleId,
         });
-        removeTabs((tab) => (
-          tab.type === "schedule" &&
-          tab.metadata.mode !== "create" &&
-          tab.metadata.id === variables.scheduleId
-        ));
+        removeTabs(
+          (tab) =>
+            tab.type === "schedule" &&
+            tab.metadata.mode !== "create" &&
+            tab.metadata.id === variables.scheduleId,
+        );
         toast.success(t("schedules.toast.delete_success_title"), {
           description: t("schedules.toast.delete_success_description"),
         });
@@ -263,7 +303,9 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
       <Empty>
         <EmptyContent>
           <EmptyTitle>{t("schedules.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("schedules.empty.description")}</EmptyDescription>
+          <EmptyDescription>
+            {t("schedules.empty.description")}
+          </EmptyDescription>
         </EmptyContent>
       </Empty>
     );

@@ -21,9 +21,12 @@ import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/query-options";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { WorkspaceCreateFormValues, WorkspaceEditFormValues } from "../form-types";
+import type {
+  WorkspaceCreateFormValues,
+  WorkspaceEditFormValues,
+} from "../form-types";
 
 function AgentQueryList() {
   const query = useGetAgentsSuspenseInfinite(undefined, {
@@ -46,8 +49,14 @@ function AgentQueryList() {
   );
 }
 
-function AgentSelectedList({ selectedAgentIds }: { selectedAgentIds: number[] }) {
-  const usableAgents = useWorkspaceStore((state) => state.current?.usable_agents);
+function AgentSelectedList({
+  selectedAgentIds,
+}: {
+  selectedAgentIds: number[];
+}) {
+  const usableAgents = useWorkspaceStore(
+    (state) => state.current?.usable_agents,
+  );
   const { data } = useGetAgentsSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -99,7 +108,9 @@ function AgentSelectedList({ selectedAgentIds }: { selectedAgentIds: number[] })
 
 export function AgentMultiSelectField() {
   const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
-  const { control } = useFormContext<WorkspaceCreateFormValues | WorkspaceEditFormValues>();
+  const { control } = useFormContext<
+    WorkspaceCreateFormValues | WorkspaceEditFormValues
+  >();
   const {
     field: { value, onChange },
     fieldState,
@@ -118,9 +129,13 @@ export function AgentMultiSelectField() {
             </Button>
           </SelectDialogTrigger>
           <SelectDialogContent>
-            <SelectDialogSearch placeholder={t("form.usable_agents.search_placeholder")} />
+            <SelectDialogSearch
+              placeholder={t("form.usable_agents.search_placeholder")}
+            />
             <SelectDialogList>
-              <SelectDialogEmpty>{t("form.usable_agents.empty")}</SelectDialogEmpty>
+              <SelectDialogEmpty>
+                {t("form.usable_agents.empty")}
+              </SelectDialogEmpty>
               <SelectDialogGroup>
                 <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
                   <AgentQueryList />

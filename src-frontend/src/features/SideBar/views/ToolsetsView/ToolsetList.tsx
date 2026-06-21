@@ -19,6 +19,7 @@ import {
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import {
   Tooltip,
   TooltipContent,
@@ -181,7 +182,7 @@ export function ToolsetList() {
   });
 
   const { data: toolsets } = useGetToolsetsBriefSuspense({
-    query: { refetchInterval: 3000 },
+    query: { refetchInterval: 3000, gcTime: SIDEBAR_QUERY_GC_TIME },
   });
 
   const handleReconnectMcpToolset = async (toolset: ToolsetBrief) => {

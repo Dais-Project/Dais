@@ -19,8 +19,13 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/query-options";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { INTL_LOCALE_MAP } from "@/i18n/locale-maps/intl";
 import { TABS_SCHEDULE_NAMESPACE } from "@/i18n/resources";
@@ -29,12 +34,17 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { useMemo } from "react";
 
 function openScheduleRecordTab(schedule: ScheduleRead, record: RunRecordBrief) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
-  const existingTab = tabs.find((tab) => (
-    tab.type === "task" &&
-    tab.metadata.type === "schedule" &&
-    tab.metadata.id === record.id
-  ));
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
+  const existingTab = tabs.find(
+    (tab) =>
+      tab.type === "task" &&
+      tab.metadata.type === "schedule" &&
+      tab.metadata.id === record.id,
+  );
 
   if (existingTab) {
     setActiveTab(existingTab.id);
@@ -77,22 +87,27 @@ function ScheduleRecordItem({
           <HistoryIcon />
         </ActionableItemIcon>
         <ActionableItemInfo
-          title={
-            formatDistanceToNow(new Date(record.run_at * 1000), {
-              addSuffix: true,
-              locale: DATEFNS_LOCALE_MAP[language],
-            })
-          }
-          description={new Date(record.run_at * 1000).toLocaleString(INTL_LOCALE_MAP[language])}
+          title={formatDistanceToNow(new Date(record.run_at * 1000), {
+            addSuffix: true,
+            locale: DATEFNS_LOCALE_MAP[language],
+          })}
+          description={new Date(record.run_at * 1000).toLocaleString(
+            INTL_LOCALE_MAP[language],
+          )}
         />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem onClick={() => openScheduleRecordTab(schedule, record)}>
+        <ActionableItemMenuItem
+          onClick={() => openScheduleRecordTab(schedule, record)}
+        >
           <ArrowUpRightIcon />
           <span>{t("records.view_detail")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(record)}>
+        <ActionableItemMenuItem
+          variant="destructive"
+          onClick={() => onDelete(record)}
+        >
           <TrashIcon />
           <span>{t("records.delete")}</span>
         </ActionableItemMenuItem>
@@ -111,11 +126,14 @@ function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
           scheduleId: schedule.id,
           runRecordId: variables.runRecordId,
         });
-        useTabsStore.getState().remove((tab) => (
-          tab.type === "task" &&
-          tab.metadata.type === "schedule" &&
-          tab.metadata.id === variables.runRecordId
-        ));
+        useTabsStore
+          .getState()
+          .remove(
+            (tab) =>
+              tab.type === "task" &&
+              tab.metadata.type === "schedule" &&
+              tab.metadata.id === variables.runRecordId,
+          );
         toast.success(t("toast.records.delete_success_title"), {
           description: t("toast.records.delete_success_description"),
         });
@@ -127,15 +145,14 @@ function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
     deleteRunRecordMutation.mutate({ runRecordId: record.id });
   };
 
-  const query = useGetScheduleRecordsSuspenseInfinite(
-    schedule.id,
-    undefined,
-    { query: PAGINATED_QUERY_DEFAULT_OPTIONS },
-  );
+  const query = useGetScheduleRecordsSuspenseInfinite(schedule.id, undefined, {
+    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+  });
 
-  const records = useMemo(() =>
-    query.data.pages.flatMap((page) => page.items),
-    [query.data]);
+  const records = useMemo(
+    () => query.data.pages.flatMap((page) => page.items),
+    [query.data],
+  );
 
   if (records.length === 0) {
     return (

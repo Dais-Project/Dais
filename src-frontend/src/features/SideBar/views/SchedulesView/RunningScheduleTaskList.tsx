@@ -16,6 +16,7 @@ import {
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -73,7 +74,7 @@ function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
 
 export function RunningScheduleTaskList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const query = useGetScheduleRunningJobsSuspense();
+  const query = useGetScheduleRunningJobsSuspense({ query: { gcTime: SIDEBAR_QUERY_GC_TIME } });
 
   if (query.data.length === 0) {
     return (

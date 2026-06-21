@@ -12,8 +12,13 @@ import {
 import { invalidateTaskQueries } from "@/api/tasks";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
@@ -31,12 +36,14 @@ export function TaskList({ workspaceId }: TaskListProps) {
       async onSuccess(_, variables) {
         removeTaskTab(variables.taskId);
         await invalidateTaskQueries({ workspaceId, taskId: variables.taskId });
-        queryClient.removeQueries({ queryKey: getGetTaskQueryKey(variables.taskId) });
+        queryClient.removeQueries({
+          queryKey: getGetTaskQueryKey(variables.taskId),
+        });
         toast.success(t("tasks.toast.delete_success_title"), {
           description: t("tasks.toast.delete_success_description"),
         });
-      }
-    }
+      },
+    },
   });
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
     mutation: {
@@ -49,7 +56,7 @@ export function TaskList({ workspaceId }: TaskListProps) {
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
     async onConfirm(task) {
       await deleteTaskMutation.mutateAsync({ taskId: task.id });
-    }
+    },
   });
 
   const handleRegenerateTitle = (task: TaskBrief) => {
@@ -58,7 +65,9 @@ export function TaskList({ workspaceId }: TaskListProps) {
 
   const query = useGetTasksSuspenseInfinite(
     { workspace_id: workspaceId },
-    { query: PAGINATED_QUERY_DEFAULT_OPTIONS }
+    {
+      query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
+    },
   );
 
   if (query.data.pages.length === 0) {

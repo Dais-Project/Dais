@@ -6,6 +6,7 @@ import { invalidateProviderQueries, useDeleteProvider, useGetProvidersBriefSuspe
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
@@ -112,7 +113,7 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
 
 export function ProviderList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const { data } = useGetProvidersBriefSuspense();
+  const { data } = useGetProvidersBriefSuspense({ query: { gcTime: SIDEBAR_QUERY_GC_TIME } });
 
   const deleteProviderMutation = useDeleteProvider({
     mutation: {

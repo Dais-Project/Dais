@@ -12,11 +12,16 @@ import {
 } from "@/api/tasks";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { updateTaskTitle } from "@/features/resource/task-actions";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
 
 export function RecentTaskList() {
@@ -36,12 +41,14 @@ export function RecentTaskList() {
       async onSuccess(_, variables) {
         removeTaskTab(variables.taskId);
         await invalidateTaskQueries({ taskId: variables.taskId });
-        queryClient.removeQueries({ queryKey: getGetTaskQueryKey(variables.taskId) });
+        queryClient.removeQueries({
+          queryKey: getGetTaskQueryKey(variables.taskId),
+        });
         toast.success(t("tasks.toast.delete_success_title"), {
           description: t("tasks.toast.delete_success_description"),
         });
-      }
-    }
+      },
+    },
   });
 
   const asyncConfirm = useAsyncConfirm<TaskBrief>({
@@ -50,9 +57,12 @@ export function RecentTaskList() {
     },
   });
 
-  const query = useGetRecentTasksSuspenseInfinite({ size: 20 }, {
-    query: PAGINATED_QUERY_DEFAULT_OPTIONS
-  });
+  const query = useGetRecentTasksSuspenseInfinite(
+    { size: 20 },
+    {
+      query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
+    },
+  );
   const allItems = query.data.pages.flatMap((page) => page.items);
 
   const handleOpen = async (task: TaskBrief) => {
@@ -69,7 +79,9 @@ export function RecentTaskList() {
       <Empty>
         <EmptyContent>
           <EmptyTitle>{t("tasks.recent.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("tasks.recent.empty.description")}</EmptyDescription>
+          <EmptyDescription>
+            {t("tasks.recent.empty.description")}
+          </EmptyDescription>
         </EmptyContent>
       </Empty>
     );

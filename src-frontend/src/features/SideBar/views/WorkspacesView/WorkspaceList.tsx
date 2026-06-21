@@ -1,5 +1,14 @@
 import { useMemo } from "react";
-import { CircleIcon, Clock3Icon, FolderIcon, FolderOpenIcon, NotebookPenIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import {
+  CircleIcon,
+  Clock3Icon,
+  FolderIcon,
+  FolderOpenIcon,
+  NotebookPenIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { WorkspaceBrief } from "@/api/generated/schemas";
@@ -20,8 +29,13 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
@@ -31,19 +45,31 @@ import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab } from "@/types/tab";
 import { openTaskCreateTab } from "../TasksView/shared";
 
-function createWorkspaceEditTab(workspaceId: number, workspaceName: string): Tab {
+function createWorkspaceEditTab(
+  workspaceId: number,
+  workspaceName: string,
+): Tab {
   return {
     type: "workspace",
-    title: i18n.t("workspaces.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: workspaceName }),
+    title: i18n.t("workspaces.tab.edit_title_with_name", {
+      ns: SIDEBAR_NAMESPACE,
+      name: workspaceName,
+    }),
     icon: "folder-cog",
     metadata: { mode: "edit", id: workspaceId },
   };
 }
 
-function createWorkspaceNotesEditTab(workspaceId: number, workspaceName: string): Tab {
+function createWorkspaceNotesEditTab(
+  workspaceId: number,
+  workspaceName: string,
+): Tab {
   return {
     type: "workspace",
-    title: i18n.t("workspaces.tab.edit_notes_title_with_name", { ns: SIDEBAR_NAMESPACE, name: workspaceName }),
+    title: i18n.t("workspaces.tab.edit_notes_title_with_name", {
+      ns: SIDEBAR_NAMESPACE,
+      name: workspaceName,
+    }),
     icon: "notebook-pen",
     metadata: { mode: "edit-notes", id: workspaceId },
   };
@@ -54,13 +80,20 @@ type OpenWorkspaceEditTabParams = {
   workspaceName: string;
 };
 
-function openWorkspaceEditTab({ workspaceId, workspaceName }: OpenWorkspaceEditTabParams) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+function openWorkspaceEditTab({
+  workspaceId,
+  workspaceName,
+}: OpenWorkspaceEditTabParams) {
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "workspace" &&
       tab.metadata.mode === "edit" &&
-      tab.metadata.id === workspaceId
+      tab.metadata.id === workspaceId,
   );
 
   if (existingTab) {
@@ -71,13 +104,20 @@ function openWorkspaceEditTab({ workspaceId, workspaceName }: OpenWorkspaceEditT
   }
 }
 
-function openWorkspaceNotesEditTab({ workspaceId, workspaceName }: OpenWorkspaceEditTabParams) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+function openWorkspaceNotesEditTab({
+  workspaceId,
+  workspaceName,
+}: OpenWorkspaceEditTabParams) {
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "workspace" &&
       tab.metadata.mode === "edit-notes" &&
-      tab.metadata.id === workspaceId
+      tab.metadata.id === workspaceId,
   );
 
   if (existingTab) {
@@ -163,17 +203,25 @@ function WorkspaceItem({
       <ActionableItemTrigger ref={ref} data-index={index}>
         <ActionableItemIcon
           role="button"
-          className={disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+          className={
+            disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+          }
           onClick={handleSelect}
           aria-disabled={disabled}
         >
           {icon}
         </ActionableItemIcon>
-        <ActionableItemInfo title={workspace.name} description={workspace.directory} />
+        <ActionableItemInfo
+          title={workspace.name}
+          description={workspace.directory}
+        />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem onClick={handleSelect} disabled={variant === "current"}>
+        <ActionableItemMenuItem
+          onClick={handleSelect}
+          disabled={variant === "current"}
+        >
           <CircleIcon />
           <span>{t("workspaces.menu.select")}</span>
         </ActionableItemMenuItem>
@@ -195,7 +243,10 @@ function WorkspaceItem({
             <span>{t("workspaces.menu.open_in_file_manager")}</span>
           </ActionableItemMenuItem>
         )}
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(workspace)}>
+        <ActionableItemMenuItem
+          variant="destructive"
+          onClick={() => onDelete?.(workspace)}
+        >
           <TrashIcon />
           <span>{t("workspaces.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -209,22 +260,32 @@ export function WorkspaceList() {
   const removeTabs = useTabsStore((state) => state.remove);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
-  const isCurrentWorkspaceLoading = useWorkspaceStore((state) => state.isLoading);
+  const isCurrentWorkspaceLoading = useWorkspaceStore(
+    (state) => state.isLoading,
+  );
 
-  const frequentWorkspaces = useGetFrequentWorkspacesSuspense({ limit: 4 });
+  const frequentWorkspaces = useGetFrequentWorkspacesSuspense(
+    { limit: 4 },
+    { query: { gcTime: SIDEBAR_QUERY_GC_TIME } },
+  );
   const allWorkspacesQuery = useGetWorkspacesSuspenseInfinite(undefined, {
-    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+    query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
   });
 
   const deleteWorkspaceMutation = useDeleteWorkspace({
     mutation: {
       async onSuccess(_, variables) {
-        removeTabs((tab) => (tab.type === "workspace" &&
-          (tab.metadata.mode === "edit" || tab.metadata.mode === "edit-notes") &&
-          tab.metadata.id === variables.workspaceId));
+        removeTabs(
+          (tab) =>
+            tab.type === "workspace" &&
+            (tab.metadata.mode === "edit" ||
+              tab.metadata.mode === "edit-notes") &&
+            tab.metadata.id === variables.workspaceId,
+        );
         await invalidateWorkspaceQueries(variables.workspaceId);
 
-        const { current: currentWorkspace, setCurrent: setCurrentWorkspace } = useWorkspaceStore.getState();
+        const { current: currentWorkspace, setCurrent: setCurrentWorkspace } =
+          useWorkspaceStore.getState();
         if (variables.workspaceId === currentWorkspace?.id) {
           await setCurrentWorkspace(null);
         }
@@ -232,13 +293,13 @@ export function WorkspaceList() {
         toast.success(t("workspaces.toast.delete_success_title"), {
           description: t("workspaces.toast.delete_success_description"),
         });
-      }
-    }
+      },
+    },
   });
   const asyncConfirm = useAsyncConfirm<WorkspaceBrief>({
     async onConfirm(workspace) {
       await deleteWorkspaceMutation.mutateAsync({ workspaceId: workspace.id });
-    }
+    },
   });
 
   type WorkspaceListItem = WorkspaceBrief & { variant: WorkspaceItemVariant };
@@ -250,9 +311,13 @@ export function WorkspaceList() {
         ...workspace,
         variant: "frequent",
       }));
-    const frequentWorkspaceIds = new Set(frequentItems.map((workspace) => workspace.id))
+    const frequentWorkspaceIds = new Set(
+      frequentItems.map((workspace) => workspace.id),
+    );
 
-    const allWorkspaces = allWorkspacesQuery.data.pages.flatMap((page) => page.items);
+    const allWorkspaces = allWorkspacesQuery.data.pages.flatMap(
+      (page) => page.items,
+    );
     const otherItems: WorkspaceListItem[] = allWorkspaces
       .filter((workspace) => {
         if (workspace.id === currentWorkspace?.id) {
@@ -265,14 +330,20 @@ export function WorkspaceList() {
         variant: "default",
       }));
     return [...frequentItems, ...otherItems];
-  }, [currentWorkspace?.id, allWorkspacesQuery.data.pages, frequentWorkspaces.data]);
+  }, [
+    currentWorkspace?.id,
+    allWorkspacesQuery.data.pages,
+    frequentWorkspaces.data,
+  ]);
 
   if (workspaceListItems.length === 0 && !currentWorkspace) {
     return (
       <Empty>
         <EmptyContent>
           <EmptyTitle>{t("workspaces.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("workspaces.empty.description")}</EmptyDescription>
+          <EmptyDescription>
+            {t("workspaces.empty.description")}
+          </EmptyDescription>
         </EmptyContent>
       </Empty>
     );

@@ -2,7 +2,11 @@ import { PencilIcon, ScrollTextIcon, TrashIcon } from "lucide-react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { invalidateSkillQueries, useDeleteSkill, useGetSkillsSuspenseInfinite } from "@/api/skill";
+import {
+  invalidateSkillQueries,
+  useDeleteSkill,
+  useGetSkillsSuspenseInfinite,
+} from "@/api/skill";
 import type { SkillBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
@@ -14,7 +18,7 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
@@ -24,14 +28,21 @@ import type { Tab } from "@/types/tab";
 function createSkillEditTab(skillId: number, skillName: string): Tab {
   return {
     type: "skill",
-    title: i18n.t("skills.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: skillName }),
+    title: i18n.t("skills.tab.edit_title_with_name", {
+      ns: SIDEBAR_NAMESPACE,
+      name: skillName,
+    }),
     icon: "scroll-text",
     metadata: { mode: "edit", id: skillId },
   };
 }
 
 function openSkillEditTab(skillId: number, skillName: string) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "skill" &&
@@ -78,7 +89,10 @@ function SkillItem({ skill, index, ref, onDelete }: SkillItemProps) {
           <PencilIcon />
           <span>{t("skills.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(skill)}>
+        <ActionableItemMenuItem
+          variant="destructive"
+          onClick={() => onDelete?.(skill)}
+        >
           <TrashIcon />
           <span>{t("skills.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -92,17 +106,18 @@ export function SkillList() {
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetSkillsSuspenseInfinite(undefined, {
-    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+    query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
   });
 
   const deleteSkillMutation = useDeleteSkill({
     mutation: {
       async onSuccess(_, variables) {
-        removeTabs((tab) => (
-          tab.type === "skill" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === variables.skillId
-        ));
+        removeTabs(
+          (tab) =>
+            tab.type === "skill" &&
+            tab.metadata.mode === "edit" &&
+            tab.metadata.id === variables.skillId,
+        );
         await invalidateSkillQueries(variables.skillId);
         toast.success(t("skills.toast.delete_success_title"), {
           description: t("skills.toast.delete_success_description"),

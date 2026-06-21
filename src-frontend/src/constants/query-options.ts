@@ -8,6 +8,8 @@ type PaginatedData<T> = {
   pages: number;
 };
 
+export const SIDEBAR_QUERY_GC_TIME = 4 * 60 * 60 * 1000;
+
 export const PAGINATED_QUERY_DEFAULT_OPTIONS = {
   initialPageParam: 1,
   getNextPageParam: (lastPage: PaginatedData<unknown>) => {

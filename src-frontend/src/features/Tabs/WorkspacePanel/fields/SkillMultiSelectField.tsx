@@ -21,9 +21,12 @@ import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/query-options";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import type { WorkspaceCreateFormValues, WorkspaceEditFormValues } from "../form-types";
+import type {
+  WorkspaceCreateFormValues,
+  WorkspaceEditFormValues,
+} from "../form-types";
 
 function SkillQueryList() {
   const query = useGetSkillsSuspenseInfinite(undefined, {
@@ -47,8 +50,14 @@ function SkillQueryList() {
   );
 }
 
-function SkillSelectedList({ selectedSkillIds }: { selectedSkillIds: number[] }) {
-  const usableSkills = useWorkspaceStore((state) => state.current?.usable_skills);
+function SkillSelectedList({
+  selectedSkillIds,
+}: {
+  selectedSkillIds: number[];
+}) {
+  const usableSkills = useWorkspaceStore(
+    (state) => state.current?.usable_skills,
+  );
   const { data } = useGetSkillsSuspenseInfinite(undefined, {
     query: PAGINATED_QUERY_DEFAULT_OPTIONS,
   });
@@ -106,7 +115,9 @@ function SkillSelectedList({ selectedSkillIds }: { selectedSkillIds: number[] })
 
 export function SkillMultiSelectField() {
   const { t } = useTranslation(TABS_WORKSPACE_NAMESPACE);
-  const { control } = useFormContext<WorkspaceCreateFormValues | WorkspaceEditFormValues>();
+  const { control } = useFormContext<
+    WorkspaceCreateFormValues | WorkspaceEditFormValues
+  >();
   const {
     field: { value, onChange },
     fieldState,
@@ -127,9 +138,13 @@ export function SkillMultiSelectField() {
             </Button>
           </SelectDialogTrigger>
           <SelectDialogContent>
-            <SelectDialogSearch placeholder={t("form.usable_skills.search_placeholder")} />
+            <SelectDialogSearch
+              placeholder={t("form.usable_skills.search_placeholder")}
+            />
             <SelectDialogList>
-              <SelectDialogEmpty>{t("form.usable_skills.empty")}</SelectDialogEmpty>
+              <SelectDialogEmpty>
+                {t("form.usable_skills.empty")}
+              </SelectDialogEmpty>
               <SelectDialogGroup>
                 <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
                   <SkillQueryList />

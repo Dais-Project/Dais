@@ -18,7 +18,7 @@ import {
 } from "@/components/custom/dialog/SelectDialog";
 import { InfiniteScroll } from "@/components/custom/InfiniteScroll";
 import { Button } from "@/components/ui/button";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/query-options";
 
 type ModelSelectTriggerProps = {
   model_id: number;
@@ -28,12 +28,24 @@ function ModelSelectTrigger({ model_id, ...props }: ModelSelectTriggerProps) {
   const { t } = useTranslation(DIALOG_NAMESPACE);
   const { data, isLoading } = useGetModelById(model_id);
   if (isLoading) {
-    return <Button variant="outline" {...props} disabled>{t("resource.model.trigger.loading")}</Button>;
+    return (
+      <Button variant="outline" {...props} disabled>
+        {t("resource.model.trigger.loading")}
+      </Button>
+    );
   }
   if (!data) {
-    return <Button variant="outline" {...props}>{t("resource.model.trigger.deleted")}</Button>;
+    return (
+      <Button variant="outline" {...props}>
+        {t("resource.model.trigger.deleted")}
+      </Button>
+    );
   }
-  return <Button variant="outline" {...props}>{data.name}</Button>;
+  return (
+    <Button variant="outline" {...props}>
+      {data.name}
+    </Button>
+  );
 }
 
 function ModelQueryList() {
@@ -83,7 +95,10 @@ type ModelSelectDialogProps = {
   onChange: (model_id: number) => void;
 };
 
-export function ModelSelectDialog({ value, onChange: onSelect }: ModelSelectDialogProps) {
+export function ModelSelectDialog({
+  value,
+  onChange: onSelect,
+}: ModelSelectDialogProps) {
   const { t } = useTranslation(DIALOG_NAMESPACE);
 
   return (
@@ -92,12 +107,16 @@ export function ModelSelectDialog({ value, onChange: onSelect }: ModelSelectDial
         {value ? (
           <ModelSelectTrigger model_id={value} />
         ) : (
-          <Button variant="outline">{t("resource.model.trigger.select")}</Button>
+          <Button variant="outline">
+            {t("resource.model.trigger.select")}
+          </Button>
         )}
       </SelectDialogTrigger>
 
       <SelectDialogContent>
-        <SelectDialogSearch placeholder={t("resource.model.search_placeholder")} />
+        <SelectDialogSearch
+          placeholder={t("resource.model.search_placeholder")}
+        />
         <SelectDialogList className="max-h-96">
           <AsyncBoundary skeleton={<SelectDialogSkeleton />}>
             <ModelQueryList />

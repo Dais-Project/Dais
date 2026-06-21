@@ -3,7 +3,11 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { invalidateAgentQueries, useDeleteAgent, useGetAgentsSuspenseInfinite } from "@/api/agent";
+import {
+  invalidateAgentQueries,
+  useDeleteAgent,
+  useGetAgentsSuspenseInfinite,
+} from "@/api/agent";
 import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
@@ -15,7 +19,7 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/paginated-query-options";
+import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
@@ -26,7 +30,10 @@ import type { Tab } from "@/types/tab";
 function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
     type: "agent",
-    title: i18n.t("agents.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: agentName }),
+    title: i18n.t("agents.tab.edit_title_with_name", {
+      ns: SIDEBAR_NAMESPACE,
+      name: agentName,
+    }),
     icon: "bot",
     metadata: { mode: "edit", id: agentId },
   };
@@ -38,12 +45,16 @@ type OpenAgentEditTabParams = {
 };
 
 function openAgentEditTab({ agentId, agentName }: OpenAgentEditTabParams) {
-  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const {
+    tabs,
+    add: addTab,
+    setActive: setActiveTab,
+  } = useTabsStore.getState();
   const existingTab = tabs.find(
     (tab) =>
       tab.type === "agent" &&
       tab.metadata.mode === "edit" &&
-      tab.metadata.id === agentId
+      tab.metadata.id === agentId,
   );
 
   if (existingTab) {
@@ -77,14 +88,20 @@ function AgentItem({ agent, index, ref, onDelete }: AgentItemProps) {
         <ActionableItemIcon seed={agent.name}>
           <DynamicIcon name={resolveIconName(agent.icon_name, "bot")} />
         </ActionableItemIcon>
-        <ActionableItemInfo title={agent.name} description={agent.model?.name ?? t("agents.list.no_model")} />
+        <ActionableItemInfo
+          title={agent.name}
+          description={agent.model?.name ?? t("agents.list.no_model")}
+        />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
           <span>{t("agents.menu.edit")}</span>
         </ActionableItemMenuItem>
-        <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(agent)}>
+        <ActionableItemMenuItem
+          variant="destructive"
+          onClick={() => onDelete?.(agent)}
+        >
           <TrashIcon />
           <span>{t("agents.menu.delete")}</span>
         </ActionableItemMenuItem>
@@ -98,27 +115,30 @@ export function AgentList() {
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetAgentsSuspenseInfinite(undefined, {
-    query: PAGINATED_QUERY_DEFAULT_OPTIONS,
+    query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
   });
 
   const deleteAgentMutation = useDeleteAgent({
     mutation: {
       async onSuccess(_, variables) {
-        removeTabs((tab) => (tab.type === "agent" &&
-          tab.metadata.mode === "edit" &&
-          tab.metadata.id === variables.agentId));
+        removeTabs(
+          (tab) =>
+            tab.type === "agent" &&
+            tab.metadata.mode === "edit" &&
+            tab.metadata.id === variables.agentId,
+        );
         await invalidateAgentQueries(variables.agentId);
         toast.success(t("agents.toast.delete_success_title"), {
           description: t("agents.toast.delete_success_description"),
         });
-      }
+      },
     },
   });
 
   const asyncConfirm = useAsyncConfirm<AgentBrief>({
     async onConfirm(agent) {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
-    }
+    },
   });
 
   return (
