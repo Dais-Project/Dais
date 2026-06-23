@@ -5,11 +5,11 @@ import {
 } from "./tauri";
 
 class WebWakeLock {
-  private sentinel: WakeLockSentinel | null;
+  private sentinel: WakeLockSentinel | null = null;
   private releaseListeners = new Set<() => void>();
 
   get enabled() {
-    return this.sentinel !== undefined;
+    return this.sentinel !== null;
   }
 
   onRelease(listener: () => void) {
@@ -56,6 +56,10 @@ const noop = (): void => undefined;
 
 // --- --- --- --- --- ---
 
+export type WakeLockHandle = {
+  release: () => Promise<void>;
+};
+
 export class WakeLock {
   private referenceCount = 0;
   private wakeLockOperation = Promise.resolve();
@@ -82,6 +86,25 @@ export class WakeLock {
       this.referenceCount += 1;
       return true;
     });
+  }
+
+  async acquireScoped(): Promise<WakeLockHandle | null> {
+    const acquired = await this.acquire();
+    if (!acquired) {
+      return null;
+    }
+
+    let released = false;
+    return {
+      release: async () => {
+        if (released) {
+          return;
+        }
+
+        released = true;
+        await this.release();
+      },
+    };
   }
 
   async release() {
