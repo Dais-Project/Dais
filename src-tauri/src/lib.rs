@@ -66,6 +66,8 @@ pub fn run(args: Args) {
     ])))
     .register_uri_scheme_protocol(protocols::APP_PROTOCOL_NAME, protocols::handle_app_protocol)
     .setup(move |app| {
+      app.manage(commands::keep_awake::KeepAwakeState::new());
+
       if !args.dev {
         // only start sidecar in production mode
         let child = start_sidecar(app.handle().clone(), server_port)?;
@@ -110,7 +112,11 @@ pub fn run(args: Args) {
       window.show()?;
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![commands::devtools::open_devtools])
+    .invoke_handler(tauri::generate_handler![
+      commands::devtools::open_devtools,
+      commands::keep_awake::enable_keep_awake,
+      commands::keep_awake::disable_keep_awake
+    ])
     .build(tauri::generate_context!())
     .expect("error while running tauri application")
     .run(|app_handle, event| match event {

@@ -3,6 +3,7 @@ import { isTauri as _isTauri } from "@tauri-apps/api/core";
 export const isTauri = _isTauri();
 export { getAutostartEnabled, setAutostartEnabled } from "./autostart";
 export { openDevtools } from "./devtool";
+export { disableKeepAwake, enableKeepAwake } from "./keep-awake";
 export { sendNotification } from "./notification";
 export { saveFile } from "./save-file";
 
