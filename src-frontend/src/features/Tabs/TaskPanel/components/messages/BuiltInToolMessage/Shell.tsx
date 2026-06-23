@@ -117,6 +117,7 @@ export function Shell({ message }: ToolMessageProps) {
           state={userApproval}
           disabled={disabled}
           riskLevel={risk.level}
+          className="bg-zinc-950"
           onSubmit={markAsSubmitted}
           onAccept={() => reviewTool(message.call_id, "approved")}
           onReject={() => reviewTool(message.call_id, "denied")}

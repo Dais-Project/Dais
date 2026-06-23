@@ -3,11 +3,13 @@ import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { Button } from "@/components/ui/button";
 import type { UserApprovalStatus } from "@/api/generated/schemas";
 import { RISK_MAPPINGS } from "@/components/ai-elements/tool";
+import { cn } from "@/lib/utils";
 
 type ToolConfirmationProps = {
   state: UserApprovalStatus;
   disabled?: boolean;
   riskLevel?: number;
+  className?: string;
   onSubmit?: () => void;
   onAccept?: () => void;
   onReject?: () => void;
@@ -17,6 +19,7 @@ export function ToolConfirmation({
   state,
   disabled,
   riskLevel,
+  className,
   onSubmit,
   onAccept,
   onReject,
@@ -42,7 +45,12 @@ export function ToolConfirmation({
   };
 
   return (
-    <div className="flex items-center justify-end gap-2 px-4 pb-3 bg-card">
+    <div
+      className={cn(
+        "flex items-center justify-end gap-2 px-4 pb-3 bg-card",
+        className,
+      )}
+    >
       <Button
         variant="outline"
         disabled={disabled}
