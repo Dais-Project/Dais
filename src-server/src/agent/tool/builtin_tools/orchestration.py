@@ -71,6 +71,11 @@ class OrchestrationToolset(BuiltinToolset):
             - Quality over quantity, 5 subtasks maximum, but you should try to use the minimum number of subtasks necessary (usually just 1)
             - IMPORTANT: Never continue the same subtask in parallel. Multiple continue actions targeting the same subtask_id must be issued sequentially, not concurrently.
 
+        On error:
+            - If a subtask returns an error, retry by continuing the *same* subtask_id rather than creating a new one.
+              The subtask retains its accumulated context, so a continue is cheaper and preserves progress.
+            - If the same subtask_id fails repeatedly (3+ consecutive errors), abandon it and open a new subtask.
+
         Preferred scenario:
             - To delegate directly to a specialized agent whose description matches the task at hand
 
