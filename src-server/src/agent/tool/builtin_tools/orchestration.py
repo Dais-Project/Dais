@@ -2,6 +2,7 @@ import asyncio
 import json
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING, Annotated, Literal, override
+from anyxml import AnyXml
 from dais_sdk.types import UserMessage
 from pydantic import BaseModel
 from src.db import db_context
@@ -56,7 +57,7 @@ class OrchestrationToolset(BuiltinToolset):
     def name(self) -> str: return "Orchestration"
 
     @builtin_tool(validate=True)
-    async def subtask(self, action: NewSubtask | ContinueSubtask) -> ET.Element:
+    async def subtask(self, action: NewSubtask | ContinueSubtask) -> str:
         """
         Create a new subtask or continue an existing subtask.
 
@@ -84,19 +85,32 @@ class OrchestrationToolset(BuiltinToolset):
 
         Returns:
             An XML string describing the current subtask result.
+            The root element always has a `subtask_id` and `status` attribute.
+            The `status` can be "finished", "waiting_action", "error", or "interrupted".
 
-            Example:
-                <subtask_result subtask_id="1">
-                    # Title <!-- markdown text -->
-                    some content
-                    <tool_call call_id="xxx" name="ask_user" pending_action="respond">Some question</tool_call>
-                    <tool_call call_id="xxx" name="shell" pending_action="approve">rm -rf ./directory</tool_call>
-                    <error>error messages</error>
+            Example (finished with task progress):
+                <subtask_result subtask_id="1" status="finished">
+                    <progress>
+                        <step status="completed">Research existing codebase</step>
+                        <step status="completed">Implement feature</step>
+                    </progress>
+                    The task has been finished...
                 </subtask_result>
 
-            Tool calls inside the result may require either:
-            - A follow-up answer matched by call_id
-            - An approval decision matched by call_id
+            Example (waiting for action):
+                <subtask_result subtask_id="1" status="waiting_action">
+                    <tool_call call_id="xxx" name="ask_user" pending_action="respond">Some question</tool_call>
+                    <tool_call call_id="xxx" name="shell" pending_action="approve">rm -rf ./directory</tool_call>
+                </subtask_result>
+
+                Tool calls inside the result may require either:
+                - A follow-up answer matched by call_id
+                - An approval decision matched by call_id
+
+            Example (error):
+                <subtask_result subtask_id="1" status="error">
+                    error messages
+                </subtask_result>
         """
         async def resolve_continue_subtask(task: AgentTask, continue_message: str | list[SubtaskToolAnswer | SubtaskToolApprove]):
             if isinstance(continue_message, str):
@@ -110,13 +124,15 @@ class OrchestrationToolset(BuiltinToolset):
                     case SubtaskToolApprove(call_id=call_id, status=status):
                         task.tool_calls.approve(call_id, status == "approved")
 
-        def compose_subtask_result(task_result: TaskError | TaskInterrupted | TaskWaitingAction | TaskFinished) -> ET.Element:
+        def compose_subtask_result(subtask: AgentTask,
+                                   task_result: TaskError | TaskInterrupted | TaskWaitingAction | TaskFinished) -> str:
             root = ET.Element("subtask_result", {"subtask_id": str(subtask.id)})
-
             match task_result:
                 case TaskFinished(summary=summary):
-                    root.text = summary
+                    root.attrib["status"] = "finished"
+                    root.text = AnyXml.RawText(summary)
                 case TaskWaitingAction(messages=messages):
+                    root.attrib["status"] = "waiting_action"
                     for message in messages:
                         assert is_agent_tool_metadata(message.metadata)
                         tool_call_elem = ET.SubElement(root, "tool_call", {
@@ -125,13 +141,20 @@ class OrchestrationToolset(BuiltinToolset):
                         })
                         if pending_action := message.metadata.get("pending_action"):
                             tool_call_elem.attrib["pending_action"] = pending_action
-                        tool_call_elem.text = json.dumps(message.arguments, ensure_ascii=False)
+                        tool_call_elem.text = AnyXml.RawText(json.dumps(message.arguments, ensure_ascii=False))
                 case TaskError(event=event):
-                    ET.SubElement(root, "error").text = event.error
+                    root.attrib["status"] = "error"
+                    root.text = AnyXml.RawText(event.error)
                 case TaskInterrupted():
-                    ET.SubElement(root, "status").text = "interrupted"
+                    root.attrib["status"] = "interrupted"
 
-            return root
+            if todos := subtask.todos:
+                progress_elem = ET.SubElement(root, "progress")
+                for todo in todos:
+                    step_elem = ET.SubElement(progress_elem, "step", {"status": todo.status})
+                    step_elem.text = AnyXml.RawText(todo.description)
+
+            return AnyXml.tostring(root)
 
         async with db_context() as db_session:
             subtask_service = SubtaskService(db_session)
@@ -154,7 +177,7 @@ class OrchestrationToolset(BuiltinToolset):
 
         try:
             task_result = await task.run_until_done()
-            return compose_subtask_result(task_result)
+            return compose_subtask_result(task, task_result)
         except asyncio.CancelledError:
             await task.stop()
             raise

@@ -1,4 +1,5 @@
 import asyncio
+from typing import TYPE_CHECKING
 from loguru import logger
 from dais_sdk.types import ToolMessage, AssistantMessage
 from src.schemas import workspace as workspace_schemas
@@ -14,6 +15,9 @@ from ..types import (
     TaskError, TaskWaitingAction, TaskInterrupted, TaskFinished, TaskStopResult,
     TaskStartEvent, ToolCallEndEvent, MessageEndEvent, TaskInterruptedEvent, TaskDoneEvent, ErrorEvent
 )
+
+if TYPE_CHECKING:
+    from ..tool.builtin_tools.execution_control import TodoItem
 
 
 class AgentTask:
@@ -32,6 +36,10 @@ class AgentTask:
             tool_call_messages is None or len(tool_call_messages) == 0):
             return None
         return tool_call_messages
+
+    @property
+    def id(self) -> int:
+        return self._ctx.task_id
 
     @property
     def messages(self) -> MessageManager:
@@ -143,6 +151,16 @@ class AgentTask:
            tool.executes(ExecutionControlToolset.finish_task)):
             return TaskFinished(summary=last_message.arguments["summary"])
         return TaskInterrupted()
+
+    @property
+    def todos(self) -> list[TodoItem] | None:
+        for message in reversed(self._ctx.messages):
+            if message.role != "tool":
+                continue
+            tool = self._ctx.find_tool(message.name)
+            if tool is not None and tool.executes(ExecutionControlToolset.update_todos):
+                return message.arguments.get("todos")
+        return None
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
         return await self._ctx.persist()
