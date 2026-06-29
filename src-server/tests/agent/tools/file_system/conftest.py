@@ -125,3 +125,23 @@ def file_with_duplicate_content(temp_workspace):
     content = "Duplicate line\nUnique line\nDuplicate line\nAnother unique line"
     file_path.write_text(content, encoding="utf-8")
     return "duplicate.txt", content
+
+
+@pytest.fixture
+def directory_with_mixed_extensions(temp_workspace):
+    base = temp_workspace
+
+    (base / "dir1").mkdir(parents=True, exist_ok=True)
+    (base / "dir1" / "subdir1").mkdir(parents=True, exist_ok=True)
+    (base / "dir2").mkdir(parents=True, exist_ok=True)
+
+    (base / "file1.txt").write_text("Root txt", encoding="utf-8")
+    (base / "file2.md").write_text("Root md", encoding="utf-8")
+    (base / "file3.mdx").write_text("Root mdx", encoding="utf-8")
+    (base / "dir1" / "file4.txt").write_text("Dir1 txt", encoding="utf-8")
+    (base / "dir1" / "file5.md").write_text("Dir1 md", encoding="utf-8")
+    (base / "dir1" / "subdir1" / "file6.mdx").write_text("Subdir1 mdx", encoding="utf-8")
+    (base / "dir2" / "file7.txt").write_text("Dir2 txt", encoding="utf-8")
+    (base / "dir2" / "file8.md").write_text("Dir2 md", encoding="utf-8")
+
+    return temp_workspace

@@ -14,6 +14,7 @@ from loguru import logger
 from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, VideoBlock
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
+from wcmatch import glob as wc_glob
 from src.db import db_context
 from src.db.models import toolset as toolset_models
 from src.services.markdown_cache import MarkdownCacheService
@@ -405,7 +406,7 @@ class FileSystemToolset(BuiltinToolset):
                               This parameter is only effective when recursive=True.
                               """] = None,
                              show_all: Annotated[bool,
-                              "Whether to include hidden files and files ignored by .gitignore."
+                              "Whether to include hidden files and files ignored by .gitignore. "
                               "Use this if you can't find a specific file you're looking for."] = False,
                              ) -> str:
         """
@@ -483,15 +484,14 @@ class FileSystemToolset(BuiltinToolset):
                          show_all: bool,
                          ) -> FindFilesResult:
         def scan_collect(directory: StdPath) -> list[str]:
+            WC_FLAGS = wc_glob.GLOBSTAR | wc_glob.BRACE
             matches = []
             for entry in scantree_bfs(directory, MAX_SCAN_LIMIT, include_hidden, include_gitignored):
-                if len(matches) >= limit:
-                    break
-                if entry.is_symlink():
-                    continue
-                entry_path = StdPath(entry)
-                if entry_path.match(pattern):
-                    matches.append(entry_path.relative_to(abs_path).as_posix())
+                if len(matches) >= limit: break
+                if entry.is_symlink(): continue
+                relative = StdPath(entry).relative_to(abs_path).as_posix()
+                if wc_glob.globmatch(relative, pattern, flags=WC_FLAGS):
+                    matches.append(relative)
             return matches
 
         MAX_SCAN_LIMIT = 200_000
@@ -515,11 +515,13 @@ class FileSystemToolset(BuiltinToolset):
     async def find_files(self,
                          pattern: Annotated[str,
                            """
-                           A glob pattern to match against file NAMES and PATHS.
+                           A glob pattern to match against file paths, relative to the search root.
+                           Supports `**` for recursive matching and `{a,b}` for brace expansion.
                            Pattern examples:
-                           - "*.py"       → files whose name ends with .py
-                           - "main.*"     → files named "main" with any extension
-                           - "docs/*.md"  → .md files inside the "docs/" directory
+                           - "*.py"          → .py files in the root of the search directory only
+                           - "**/*.py"       → .py files in any subdirectory (recursive)
+                           - "src/**/*.ts"   → .ts files anywhere under src/
+                           - "**/*.{ts,tsx}" → all TypeScript files recursively
                            """],
                          path: Annotated[str,
                            "The path of the directory to search in (relative to the current working directory)."] = ".",
@@ -538,7 +540,7 @@ class FileSystemToolset(BuiltinToolset):
 
         Examples:
             # Find all Python files in the src directory
-            >>> find_files(pattern="*.py", path="src")
+            >>> find_files(pattern="**/*.py", path="src")
             {
                 "search_root": "/workspace/src",
                 "total": 3,
