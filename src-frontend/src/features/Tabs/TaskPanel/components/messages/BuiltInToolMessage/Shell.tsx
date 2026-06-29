@@ -3,7 +3,10 @@ import { useTranslation } from "react-i18next";
 import type { OsInteractionsShell } from "@/api/generated/schemas";
 import { ShellToolSchema } from "@/api/tool-schema";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
-import { CollapsibleTerminal } from "@/components/custom/CollapsibleTerminal";
+import {
+  CollapsibleTerminal,
+  DEFAULT_TERMINAL_PROMPT,
+} from "@/components/custom/CollapsibleTerminal";
 import { RiskBadge } from "@/components/ai-elements/tool";
 import type { ToolMessageProps } from ".";
 import { ToolConfirmation } from "./components/ToolConfirmation";
@@ -36,6 +39,15 @@ function parseShellResult(resultText: string): ShellResult {
   } catch {
     return { stdout: resultText, stderr: null };
   }
+}
+
+function truncatePath(path: string, maxLen: number): string {
+  if (path.length <= maxLen) return path;
+  const ellipsis = "...";
+  const available = maxLen - ellipsis.length;
+  const startLen = Math.ceil(available / 2);
+  const endLen = Math.floor(available / 2);
+  return path.slice(0, startLen) + ellipsis + path.slice(path.length - endLen);
 }
 
 function useShellDisplay(
@@ -94,11 +106,18 @@ export function Shell({ message }: ToolMessageProps) {
   const { userApproval } = getToolMessageMetadata(message);
   const [commandInput, commandOutput] = useShellDisplay(message);
 
+  const prompt = useMemo(() => {
+    const cwd = toolArguments?.cwd;
+    if (!cwd) return DEFAULT_TERMINAL_PROMPT;
+    return `${truncatePath(cwd, 32)} $`;
+  }, [toolArguments?.cwd]);
+
   return (
     <CollapsibleTerminal
       input={commandInput}
       stdout={commandOutput.stdout}
       stderr={commandOutput.stderr}
+      prompt={prompt}
       isStreaming={message.isStreaming}
       autoScroll={true}
       open={!collapsed}
