@@ -301,7 +301,6 @@ class FileSystemToolset(BuiltinToolset):
 
     def _list_directory_impl(self,
                              path: str,
-                             recursive: bool,
                              max_depth: int | None,
                              show_all: bool,
                              ) -> str:
@@ -382,29 +381,24 @@ class FileSystemToolset(BuiltinToolset):
             raise NotADirectoryError(f"Path {path} is not a directory")
 
         result_lines = [f"Directory: {abs_path}"]
-        if not recursive and max_depth is not None:
-            result_lines.append("Warning: max_depth is ignored in non-recursive mode.")
-        if recursive:
-            result_lines.extend(format_items_recursive(abs_path, max_depth))
-        else:
+        if max_depth == 1:
             result_lines.extend(format_items_flat(abs_path))
+        else:
+            result_lines.extend(format_items_recursive(abs_path, max_depth))
         return "\n".join(result_lines)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def list_directory(self,
                              path: Annotated[str,
                               "The path of the directory to list contents for (relative to the current working directory)."] = ".",
-                             recursive: Annotated[bool,
-                              "Whether to list files recursively. Use True for recursive listing, False for top-level only."] = False,
                              max_depth: Annotated[int | None,
                               """
-                              Maximum depth for recursive listing.
-                              - Unset: No limit (list all nested directories)
-                              - 1: Only direct children (equivalent to recursive=False)
-                              - 2: List up to 2 levels deep
-                              - n: List up to n levels deep
-                              This parameter is only effective when recursive=True.
-                              """] = None,
+                              Maximum depth for directory listing.
+                              - 1 (default): Only direct children, listed flat with numbering
+                              - 2: List up to 2 levels deep, with indentation
+                              - n: List up to n levels deep, with indentation
+                              - None: No depth limit, list all nested directories
+                              """] = 1,
                              show_all: Annotated[bool,
                               "Whether to include hidden files and files ignored by .gitignore. "
                               "Use this if you can't find a specific file you're looking for."] = False,
@@ -428,7 +422,7 @@ class FileSystemToolset(BuiltinToolset):
             - - -
 
             # Recursive listing with depth limit:
-            >>> list_directory("src", recursive=True, max_depth=2)
+            >>> list_directory("src", max_depth=2)
             Directory: /absolute/path/to/src
             routes/
               endpoint1/
@@ -441,7 +435,7 @@ class FileSystemToolset(BuiltinToolset):
             - - -
 
             # Unlimited recursive listing:
-            >>> list_directory("src", recursive=True)
+            >>> list_directory("src", max_depth=None)
             Directory: /absolute/path/to/src
             routes/
               endpoint1/
@@ -454,10 +448,10 @@ class FileSystemToolset(BuiltinToolset):
         Returns:
             A formatted string containing:
             - Directory header showing the path being listed (absolute path)
-            - Non-recursive mode:
+            - When max_depth=1 (default):
                 - Directories (trailing slash) listed before files, alphabetically within each type
                 - Numbered list (1. 2. 3. ...)
-            - Recursive mode:
+            - When max_depth>1 or max_depth=None:
                 - Indentation (2 spaces per level) represents nesting depth
             - Symlink representation:
                 - Symlinks are shown as: name -> target (with trailing slash if target is a directory)
@@ -467,7 +461,6 @@ class FileSystemToolset(BuiltinToolset):
         return await asyncio.to_thread(
             self._list_directory_impl,
             path,
-            recursive,
             max_depth,
             show_all,
         )

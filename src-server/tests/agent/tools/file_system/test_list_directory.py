@@ -61,7 +61,7 @@ class TestListDirectory:
     @pytest.mark.asyncio
     async def test_list_directory_recursive_unlimited(self, builtin_toolset_context, temp_workspace, nested_directory):
         tool = FileSystemToolset(builtin_toolset_context)
-        result = await tool.list_directory(".", recursive=True)
+        result = await tool.list_directory(".", max_depth=None)
 
         assert "dir1" in result
         assert "  subdir1" in result
@@ -70,7 +70,7 @@ class TestListDirectory:
     @pytest.mark.asyncio
     async def test_list_directory_recursive_with_depth_limit(self, builtin_toolset_context, temp_workspace, nested_directory):
         tool = FileSystemToolset(builtin_toolset_context)
-        result = await tool.list_directory(".", recursive=True, max_depth=2)
+        result = await tool.list_directory(".", max_depth=2)
 
         assert "dir1" in result
         assert "  subdir1/" in result
@@ -94,4 +94,4 @@ class TestListDirectory:
     async def test_list_directory_invalid_max_depth(self, builtin_toolset_context, temp_workspace):
         tool = FileSystemToolset(builtin_toolset_context)
         with pytest.raises(ValueError):
-            await tool.list_directory(".", recursive=True, max_depth=0)
+            await tool.list_directory(".", max_depth=0)
