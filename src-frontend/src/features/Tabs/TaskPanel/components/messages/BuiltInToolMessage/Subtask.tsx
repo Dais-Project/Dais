@@ -1,9 +1,6 @@
 import { GitBranchIcon, PanelRightOpenIcon, XIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type {
-  OrchestrationSubtask,
-  ToolMessageMetadata,
-} from "@/api/generated/schemas";
+import type { OrchestrationSubtask } from "@/api/generated/schemas";
 import { useGetAgent } from "@/api/generated/endpoints/agent/agent";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
@@ -32,11 +29,48 @@ import {
 import { RiskBadge } from "@/components/ai-elements/tool";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
+import { XmlRawContentParser } from "@/lib/escape-xml";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+function parseSubtaskIdFromResult(result: string | null): number | undefined {
+  if (result === null || result.trim().length === 0) return undefined;
+
+  const resultText = result.trim();
+  if (!resultText.startsWith("<")) return undefined;
+
+  try {
+    const parser = XmlRawContentParser.parse(resultText, [
+      "step",
+      "tool_call",
+      "subtask_result",
+    ]);
+    const rootEl = parser.doc.documentElement;
+    if (rootEl !== null && rootEl.tagName === "subtask_result") {
+      const idAttr = rootEl.getAttribute("subtask_id");
+      if (idAttr !== null) {
+        const id = Number.parseInt(idAttr, 10);
+        if (Number.isFinite(id)) return id;
+      }
+    }
+  } catch {
+    // Fall through to regex parsing
+  }
+
+  // Fallback regex for the subtask_id attribute on the root element
+  const match = resultText.match(
+    /<subtask_result[^>]*\bsubtask_id="(\d+)"/,
+  );
+  if (match) {
+    const id = Number.parseInt(match[1], 10);
+    if (Number.isFinite(id)) return id;
+  }
+
+  return undefined;
+}
 
 function SubtaskDrawerContent({ subtaskId }: { subtaskId: number }) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
@@ -76,7 +110,7 @@ export function Subtask({ message }: ToolMessageProps) {
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
   const agentId = toolArguments?.action.agent_id;
-  const subtaskId = (message.metadata as ToolMessageMetadata).subtask_id;
+  const subtaskId = parseSubtaskIdFromResult(message.result as string | null);
 
   return (
     <Drawer direction="right" modal={false}>

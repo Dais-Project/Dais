@@ -100,10 +100,6 @@ class ToolCallDispatcher:
         message.error = error
 
         assert is_agent_tool_metadata(message.metadata)
-        if tool.executes(OrchestrationToolset.subtask):
-            assert isinstance(raw_result, ET.Element)
-            if subtask_id := raw_result.attrib.get("subtask_id"):
-                message.metadata["subtask_id"] = int(subtask_id)
 
         return ToolExecutedEvent(
             call_id=message.call_id,
