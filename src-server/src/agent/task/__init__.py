@@ -1,5 +1,4 @@
 import asyncio
-from typing import TYPE_CHECKING
 from loguru import logger
 from dais_sdk.types import ToolMessage, AssistantMessage
 from src.schemas import workspace as workspace_schemas
@@ -10,14 +9,12 @@ from .llm_request_manager import LlmRequestManager
 from ..notes import NoteWatcher
 from ..context import AgentContext
 from ..tool import ExecutionControlToolset
+from ..tool.builtin_tools.execution_control import TodoItem
 from ..types import (
     AgentGenerator,
     TaskError, TaskWaitingAction, TaskInterrupted, TaskFinished, TaskStopResult,
     TaskStartEvent, ToolCallEndEvent, MessageEndEvent, TaskInterruptedEvent, TaskDoneEvent, ErrorEvent
 )
-
-if TYPE_CHECKING:
-    from ..tool.builtin_tools.execution_control import TodoItem
 
 
 class AgentTask:
@@ -155,11 +152,17 @@ class AgentTask:
     @property
     def todos(self) -> list[TodoItem] | None:
         for message in reversed(self._ctx.messages):
-            if message.role != "tool":
-                continue
+            if message.role != "tool": continue
+
             tool = self._ctx.find_tool(message.name)
             if tool is not None and tool.executes(ExecutionControlToolset.update_todos):
-                return message.arguments.get("todos")
+                try:
+                    todos_raw = message.arguments["todos"]
+                    return [TodoItem(
+                        description=t["description"],
+                        status=t["status"]
+                    ) for t in todos_raw]
+                except KeyError: return None
         return None
 
     async def persist(self) -> task_runtime_schemas.TaskRuntimeContext:
