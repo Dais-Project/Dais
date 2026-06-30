@@ -100,14 +100,17 @@ const TaskMessageItem = memo(
           </TaskConversationItem>
         );
       case "assistant": {
-        const { content } = message;
-        if (content === null || content.trim().length === 0) {
-          return null;
-        }
+        const { content, reasoning_content, isStreaming } = message;
+        const isContentEmpty = content === null || content.trim().length === 0;
+        const isReasoningContentEmpty =
+          reasoning_content === null || reasoning_content.trim().length === 0;
+        if (isContentEmpty && isReasoningContentEmpty) return null;
+        if (isContentEmpty && !isStreaming) return null;
         return (
           <TaskConversationItem isStreaming={message.isStreaming}>
             <AssistantMessage
               text={content}
+              reasoning={reasoning_content}
               isStreaming={message.isStreaming}
             />
           </TaskConversationItem>

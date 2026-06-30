@@ -141,6 +141,7 @@
       "copy": "Copy",
       "save_to_file": "Save to file"
     },
+    "thinking": "Thinking...",
     "toast": {
       "copied": "Copied to clipboard",
       "copy_failed": "Failed to copy",

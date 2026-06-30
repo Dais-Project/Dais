@@ -141,6 +141,7 @@
       "copy": "复制",
       "save_to_file": "保存到文件"
     },
+    "thinking": "思考中...",
     "toast": {
       "copied": "已复制到剪贴板",
       "copy_failed": "复制失败",
