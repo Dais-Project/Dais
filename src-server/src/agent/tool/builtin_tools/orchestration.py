@@ -17,15 +17,15 @@ if TYPE_CHECKING:
     from ...task import AgentTask
 
 
-class SubtaskToolAnswer(BaseModel):
+class SubtaskToolRespond(BaseModel):
     answer: Annotated[str,
                       "The answer to provide for a response-pending tool call."]
     call_id: Annotated[str,
                        "The call_id of the pending tool call, as returned in the subtask result."]
 
 class SubtaskToolApprove(BaseModel):
-    status: Annotated[Literal["approved", "denied"],
-                      "Whether to approve or deny the pending tool call."]
+    decision: Annotated[Literal["approved", "denied"],
+                        "Whether to approve or deny the pending tool call."]
     call_id: Annotated[str,
                        "The call_id of the pending tool call, as returned in the subtask result."]
 
@@ -41,8 +41,16 @@ class ContinueSubtask(BaseModel):
                         The id of target agent to execute the subtask.
                         Sometimes the selected agent may be deleted, can use this parameter to pass a new agent_id.
                         """] = None
-    message: Annotated[str | list[SubtaskToolAnswer | SubtaskToolApprove],
-                       "A follow-up instruction to the subtask (str), or a list of responses to pending tool calls."]
+    message: Annotated[str | list[SubtaskToolRespond | SubtaskToolApprove],
+                       """
+                       Either:
+                       - A follow-up instruction when the subtask status is 'finished'
+                       - Responses to pending tool calls when status is 'waiting_action'.
+                         For each <tool_call> in the subtask result, pick the response type by pending_action:
+                         - pending_action="respond" → SubtaskToolRespond (provide a text answer)
+                         - pending_action="approve" → SubtaskToolApprove (approve or deny execution)
+                       Match each response to its tool call via call_id.
+                       """]
 
 async def create_agent_task_from_subtask(subtask: tasks_models.Subtask) -> AgentTask:
     from ...task import AgentTask
@@ -88,7 +96,8 @@ class OrchestrationToolset(BuiltinToolset):
             The root element always has a `subtask_id` and `status` attribute.
             The `status` can be "finished", "waiting_action", "error", or "interrupted".
 
-            Example (finished with task progress):
+        Examples:
+            When subtask finished with task progress:
                 <subtask_result subtask_id="1" status="finished">
                     <progress>
                         <step status="completed">Research existing codebase</step>
@@ -97,32 +106,37 @@ class OrchestrationToolset(BuiltinToolset):
                     The task has been finished...
                 </subtask_result>
 
-            Example (waiting for action):
+            When subtask is waiting for a response or approval:
                 <subtask_result subtask_id="1" status="waiting_action">
-                    <tool_call call_id="xxx" name="ask_user" pending_action="respond">Some question</tool_call>
-                    <tool_call call_id="xxx" name="shell" pending_action="approve">rm -rf ./directory</tool_call>
+                    <tool_call call_id="aaa" name="ask_user" pending_action="respond">Some question</tool_call>
+                    <tool_call call_id="bbb" name="shell" pending_action="approve">rm -rf ./directory</tool_call>
                 </subtask_result>
 
-                Tool calls inside the result may require either:
-                - A follow-up answer matched by call_id
-                - An approval decision matched by call_id
+                Followup tool call:
+                    ContinueSubtask(
+                        subtask_id=1,
+                        message=[
+                            SubtaskToolRespond(call_id="aaa", answer="Use ..."),
+                            SubtaskToolApprove(call_id="bbb", decision="approved"),
+                        ]
+                    )
 
-            Example (error):
+            When subtask raise an error:
                 <subtask_result subtask_id="1" status="error">
                     error messages
                 </subtask_result>
         """
-        async def resolve_continue_subtask(task: AgentTask, continue_message: str | list[SubtaskToolAnswer | SubtaskToolApprove]):
+        async def resolve_continue_subtask(task: AgentTask, continue_message: str | list[SubtaskToolRespond | SubtaskToolApprove]):
             if isinstance(continue_message, str):
                 task.tool_calls.discard_pendings()
                 task.messages.append(UserMessage(content=continue_message))
                 return
             for message in continue_message:
                 match message:
-                    case SubtaskToolAnswer(call_id=call_id, answer=answer):
+                    case SubtaskToolRespond(call_id=call_id, answer=answer):
                         task.tool_calls.apply_user_response(call_id, answer)
-                    case SubtaskToolApprove(call_id=call_id, status=status):
-                        task.tool_calls.approve(call_id, status == "approved")
+                    case SubtaskToolApprove(call_id=call_id, decision=decision):
+                        task.tool_calls.approve(call_id, decision == "approved")
 
         def compose_subtask_result(subtask: AgentTask,
                                    task_result: TaskError | TaskInterrupted | TaskWaitingAction | TaskFinished) -> str:
@@ -176,6 +190,7 @@ class OrchestrationToolset(BuiltinToolset):
             raise ValueError("The agent_id of this subtask is null, please pass a new agent_id when continuing this subtask.")
 
         try:
+            await task.persist()
             task_result = await task.run_until_done()
             return compose_subtask_result(task, task_result)
         except asyncio.CancelledError:
