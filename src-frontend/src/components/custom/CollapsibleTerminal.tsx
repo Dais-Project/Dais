@@ -17,7 +17,7 @@ import { CopyButton } from "../ui/copy-button";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { activityVisible } from "@/lib/activity-visible";
 
-export const DEFAULT_TERMINAL_PROMPT = "$";
+export const DEFAULT_TERMINAL_PROMPT = "\u001b[1;36m❯\u001b[0m";
 
 type ActiveOutputProps = {
   value: "stdout" | "stderr";
@@ -45,6 +45,7 @@ function ActiveOutputSwitch({ value, disabled, onChange }: ActiveOutputProps) {
 }
 
 export type CollapsibleTerminalProps = {
+  prompt?: string;
   input: string;
   stdout: string | null;
   stderr: string | null;
@@ -57,7 +58,6 @@ export type CollapsibleTerminalProps = {
   defaultOpen?: boolean;
   title?: string;
   className?: string;
-  prompt?: string;
 };
 
 export function CollapsibleTerminal({
@@ -83,7 +83,8 @@ export function CollapsibleTerminal({
     "stdout",
   );
   const activeOutput = currentOutput === "stdout" ? stdout : stderr;
-  const composedOutput = `\u001b[0m${prompt} ${input}\n${activeOutput}`;
+  const ansiInput = `\u001b[1;97m${input}\u001b[0m`;
+  const composedOutput = `\u001b[0m${prompt} ${ansiInput}\n${activeOutput}`;
 
   useEffect(() => {
     if (!stdout && stderr) {

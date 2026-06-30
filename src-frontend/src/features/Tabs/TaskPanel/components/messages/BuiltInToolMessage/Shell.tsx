@@ -109,7 +109,7 @@ export function Shell({ message }: ToolMessageProps) {
   const prompt = useMemo(() => {
     const cwd = toolArguments?.cwd;
     if (!cwd) return DEFAULT_TERMINAL_PROMPT;
-    return `${truncatePath(cwd, 32)} $`;
+    return `\u001b[32m${truncatePath(cwd, 32)} \u001b[1;36m❯\u001b[0m`;
   }, [toolArguments?.cwd]);
 
   return (
