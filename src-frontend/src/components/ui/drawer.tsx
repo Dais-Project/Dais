@@ -24,9 +24,18 @@ function DrawerContainer({ className, ...props }: React.ComponentProps<"div">) {
 
 function Drawer({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
   const { container } = React.useContext(DrawerContainerContext)
+  const lastContainerRef = React.useRef(container)
+  if (container) {
+    lastContainerRef.current = container
+  }
+  const actualContainer = container ?? (
+    lastContainerRef.current?.isConnected
+      ? lastContainerRef.current
+      : null
+  );
   return (
     <DrawerPrimitive.Root data-slot="drawer"
-      container={container}
+      container={actualContainer}
       {...props}
     />
   )
