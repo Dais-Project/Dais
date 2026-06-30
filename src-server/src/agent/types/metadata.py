@@ -8,10 +8,12 @@ class UserApprovalStatus(StrEnum):
 
 class ToolMessageMetadata(TypedDict, total=False):
     user_approval: UserApprovalStatus
-    pending_action: Literal["respond", "approve"] # this field is used to identify if a pending tool message needs respond or approve
 
     risk_level: int
     risk_reason: str
+
+    # this field is used to identify if a pending tool message needs respond or approve
+    pending_action: Literal["respond", "approve"]
 
 def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
     return True

@@ -12,7 +12,7 @@ import {
   arrayMove,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
-import { StoredTab, useTabsStore } from "@/stores/tabs-store";
+import { type StoredTab, useTabsStore } from "@/stores/tabs-store";
 import { TabBar } from "./components/TabBar";
 import { TabPanels } from "./components/TabPanels";
 

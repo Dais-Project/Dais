@@ -124,7 +124,7 @@ class ToolCallReviewer:
 
     def apply_user_approval(self,
                             call_id: str,
-                            metadata: ToolMessageMetadata, 
+                            metadata: ToolMessageMetadata,
                             approved: bool) -> bool:
         """
         Try to apply user approval to the metadata.
@@ -139,7 +139,7 @@ class ToolCallReviewer:
             return False
 
         metadata["user_approval"] = (
-            UserApprovalStatus.APPROVED if approved 
+            UserApprovalStatus.APPROVED if approved
             else UserApprovalStatus.DENIED
         )
         return True
@@ -153,7 +153,7 @@ class ToolCallReviewer:
             message.metadata["pending_action"] = "respond"
             return ToolCallBlocked(event=ToolRequireUserResponseEvent(tool_name=message.name))
 
-        if tool.metadata["auto_approve"] == True:
+        if tool.metadata["auto_approve"]:
             return ToolCallApproved()
 
         # check user_approval state

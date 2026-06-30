@@ -25,4 +25,3 @@ class AgentContextPersistence(Protocol):
                       messages: list[Message],
                       usage: task_models.TaskUsage
                       ) -> task_runtime_schemas.TaskRuntimeContext: ...
-
