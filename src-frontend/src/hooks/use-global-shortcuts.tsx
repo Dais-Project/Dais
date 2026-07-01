@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { type HotkeyCallback, useHotkeys } from "react-hotkeys-hook";
-import { isTauri } from "@/lib/tauri";
+import { isTauri, toggleFullscreen } from "@/lib/tauri";
 import { openTaskCreateTab } from "@/features/SideBar/views/TasksView/shared";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useSidebarStore } from "@/stores/sidebar-store";
@@ -60,6 +60,8 @@ type GlobalShortcutsProviderProps = {
 export function GlobalShortcutsProvider({
   children,
 }: GlobalShortcutsProviderProps) {
+  // useTauriFullscreenShortcuts();
+
   const [isPaused, setIsPaused] = useState(false);
 
   const shortcuts = useSettingsStore((state) => state.current.shortcuts);
@@ -114,6 +116,12 @@ export function GlobalShortcutsProvider({
     enabled: () => !isPaused && isTauri && shortcuts.new_task.length > 0,
     preventDefault: true,
     ignoreEventWhen,
+  });
+
+  useHotkeys("f11", () => toggleFullscreen(), {
+    enabled: () => !isPaused && isTauri,
+    preventDefault: true,
+    eventListenerOptions: { capture: true },
   });
   useHotkeys(
     "alt+1,alt+2,alt+3,alt+4,alt+5,alt+6,alt+7,alt+8,alt+9",
