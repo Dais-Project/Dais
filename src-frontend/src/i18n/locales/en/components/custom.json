@@ -6,7 +6,6 @@
   "shortcut_recorder": {
     "clear": "Clear shortcut",
     "placeholder": "Click to record shortcut",
-    "recording": "Press shortcut keys",
-    "status": "Recording"
+    "recording": "Press shortcut keys"
   }
 }

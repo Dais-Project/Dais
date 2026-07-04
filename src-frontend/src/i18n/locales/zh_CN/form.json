@@ -1,5 +1,12 @@
 {
   "fields": {
+    "datetime": {
+      "label": "日期和时间",
+      "placeholder": "选择日期",
+      "validation": {
+        "required": "请选择日期和时间"
+      }
+    },
     "directory": {
       "choose_button": "选择",
       "choose_error": "选择目录失败",
@@ -13,13 +20,6 @@
       "placeholder": "请输入目录路径",
       "validation": {
         "required": "目录路径为必填项"
-      }
-    },
-    "datetime": {
-      "label": "日期和时间",
-      "placeholder": "选择日期",
-      "validation": {
-        "required": "请选择日期和时间"
       }
     },
     "enabled": {

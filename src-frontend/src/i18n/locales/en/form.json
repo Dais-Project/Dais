@@ -1,5 +1,12 @@
 {
   "fields": {
+    "datetime": {
+      "label": "Date and time",
+      "placeholder": "Select date",
+      "validation": {
+        "required": "Please select date and time"
+      }
+    },
     "directory": {
       "choose_button": "Choose",
       "choose_error": "Failed to choose directory",
@@ -13,13 +20,6 @@
       "placeholder": "Enter directory path",
       "validation": {
         "required": "Directory path is required"
-      }
-    },
-    "datetime": {
-      "label": "Date and time",
-      "placeholder": "Select date",
-      "validation": {
-        "required": "Please select date and time"
       }
     },
     "enabled": {

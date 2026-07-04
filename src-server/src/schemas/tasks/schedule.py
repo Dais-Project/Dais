@@ -45,6 +45,11 @@ class RunRecordBrief(RunRecordBase):
     id: int
     run_at: int
 
+class RunRecordAllBrief(RunRecordBrief):
+    schedule_name: str
+    workspace_id: int
+    workspace_name: str
+
 class RunRecordRead(RunRecordBase):
     id: int
     run_at: int

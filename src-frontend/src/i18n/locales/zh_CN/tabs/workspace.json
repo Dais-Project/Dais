@@ -7,14 +7,14 @@
       "label": "名称",
       "placeholder": "请输入工作区名称"
     },
+    "notes": {
+      "label": "工作区笔记"
+    },
     "submit": {
       "create": "创建",
       "creating": "创建中...",
       "save": "保存",
       "saving": "保存中..."
-    },
-    "notes": {
-      "label": "工作区笔记"
     },
     "usable_agents": {
       "cancel": "取消",
@@ -24,9 +24,6 @@
       "search_placeholder": "搜索 Agent...",
       "select": "选择"
     },
-    "usable_tools": {
-      "label": "可用的工具"
-    },
     "usable_skills": {
       "cancel": "取消",
       "confirm": "确定",
@@ -34,6 +31,9 @@
       "label": "可用的技能",
       "search_placeholder": "搜索技能...",
       "select": "选择"
+    },
+    "usable_tools": {
+      "label": "可用的工具"
     }
   },
   "toast": {

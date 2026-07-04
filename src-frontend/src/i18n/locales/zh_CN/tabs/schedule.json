@@ -1,14 +1,22 @@
 {
+  "all_records": {
+    "empty": "暂无执行记录",
+    "title": "执行历史"
+  },
   "form": {
     "agent_id": {
       "label": "Agent"
     },
     "config": {
       "builder": {
-        "title": "计划构建器",
-        "toggle": "切换计划构建器",
+        "execution_minute": "执行分钟",
+        "execution_time": "执行时间",
         "repeat_every": "重复间隔",
-        "weekdays": "每周执行于",
+        "unit": {
+          "day": "天",
+          "hour": "小时",
+          "week": "周"
+        },
         "weekday": {
           "mon": "周一",
           "tue": "周二",
@@ -18,13 +26,7 @@
           "sat": "周六",
           "sun": "周日"
         },
-        "execution_minute": "执行分钟",
-        "execution_time": "执行时间",
-        "unit": {
-          "hour": "小时",
-          "day": "天",
-          "week": "周"
-        }
+        "weekdays": "每周执行于"
       },
       "expression": {
         "label": "Cron 表达式",
@@ -49,24 +51,42 @@
       "label": "名称",
       "placeholder": "请输入计划任务名称"
     },
-    "task": {
-      "label": "任务",
-      "placeholder": "请输入任务内容",
-      "required": "请输入任务内容"
-    },
     "submit": {
       "create": "创建",
       "creating": "创建中...",
       "save": "保存",
       "saving": "保存中..."
     },
+    "task": {
+      "label": "任务",
+      "placeholder": "请输入任务内容",
+      "required": "请输入任务内容"
+    },
     "type": {
       "label": "计划类型",
       "option": {
         "cron": "定期执行",
-        "polling": "循环执行",
-        "delayed": "延时执行"
+        "delayed": "延时执行",
+        "polling": "循环执行"
       }
+    }
+  },
+  "notification": {
+    "error": {
+      "body_with_name": "计划任务 {{name}} 在执行过程中失败。",
+      "title": "计划任务执行失败"
+    },
+    "finished": {
+      "body_with_name": "计划任务 {{name}} 已成功执行完成。",
+      "title": "计划任务已完成"
+    },
+    "interrupted": {
+      "body_with_name": "计划任务 {{name}} 在完成前被中断。",
+      "title": "计划任务被中断"
+    },
+    "waiting_action": {
+      "body_with_name": "计划任务 {{name}} 正在等待你的操作后继续。",
+      "title": "计划任务等待你的操作"
     }
   },
   "records": {
@@ -74,24 +94,6 @@
     "empty": "暂无运行记录",
     "title_with_name": "运行记录：{{name}}",
     "view_detail": "查看运行记录详情"
-  },
-  "notification": {
-    "finished": {
-      "title": "计划任务已完成",
-      "body_with_name": "计划任务 {{name}} 已成功执行完成。"
-    },
-    "error": {
-      "title": "计划任务执行失败",
-      "body_with_name": "计划任务 {{name}} 在执行过程中失败。"
-    },
-    "interrupted": {
-      "title": "计划任务被中断",
-      "body_with_name": "计划任务 {{name}} 在完成前被中断。"
-    },
-    "waiting_action": {
-      "title": "计划任务等待你的操作",
-      "body_with_name": "计划任务 {{name}} 正在等待你的操作后继续。"
-    }
   },
   "toast": {
     "create": {

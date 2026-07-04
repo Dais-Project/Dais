@@ -35,40 +35,64 @@
     "skills": "技能",
     "settings": "设置"
   },
-  "skills": {
+  "schedules": {
     "dialog": {
-      "delete_description_with_name": "确定要删除技能 \"{{name}}\" 吗？此操作无法撤销。"
+      "delete_description_with_name": "确定要删除计划任务 \"{{name}}\" 吗？此操作无法撤销。"
+    },
+    "empty": {
+      "description": "您还没有创建任何计划任务。",
+      "no_workspace": {
+        "description": "请先选择一个工作区以查看计划任务。",
+        "title": "未选择工作区"
+      },
+      "title": "暂无计划任务"
     },
     "header": {
-      "create_tooltip": "创建技能",
-      "upload_tooltip": "上传技能归档",
-      "title": "技能"
+      "create_tooltip": "创建计划任务",
+      "history_tooltip": "查看所有执行历史",
+      "title": "计划任务"
     },
     "list": {
-      "no_description": "无描述"
+      "delayed_description_with_datetime": "将在 {{datetime}} 执行",
+      "polling_description_with_duration": "每隔 {{duration}} 执行一次"
     },
     "menu": {
       "delete": "删除",
-      "edit": "编辑技能"
+      "edit": "编辑计划任务",
+      "run_now": "立即执行",
+      "view_records": "查看运行记录"
+    },
+    "running": {
+      "cancel": "取消",
+      "description_with_created_at": "开始于 {{time}}",
+      "empty": {
+        "description": "当前没有正在运行的计划任务。",
+        "title": "没有运行中的任务"
+      },
+      "title": "运行中"
     },
     "tab": {
-      "create_title": "创建技能",
-      "edit_title_with_name": "编辑：{{name}}"
+      "all_records_title": "执行历史",
+      "create_title": "创建计划任务",
+      "edit_title_with_name": "编辑：{{name}}",
+      "records_title_with_name": "运行记录：{{name}}"
     },
     "toast": {
-      "delete_success_description": "已成功删除技能。",
+      "cancel_run_success_description": "计划任务执行已取消。",
+      "cancel_run_success_title": "已取消",
+      "delete_success_description": "已成功删除计划任务。",
       "delete_success_title": "删除成功",
-      "upload_success_description": "技能归档已上传并导入。",
-      "upload_success_title": "上传成功"
+      "run_now_success_description": "计划任务已触发执行。",
+      "run_now_success_title": "已触发"
     }
   },
   "settings": {
     "about": {
-      "version": {
-        "title": "版本"
-      },
       "author": {
         "title": "作者"
+      },
+      "version": {
+        "title": "版本"
       }
     },
     "agents": {
@@ -89,30 +113,13 @@
       }
     },
     "general": {
-      "language": {
-        "placeholder": "选择语言",
-        "title": "语言"
-      },
-      "reply_language": {
-        "placeholder": "选择语言",
-        "title": "模型回复语言"
-      },
       "auto_delete": {
         "placeholder": "选择保留时长",
-        "task": {
-          "title": "自动删除旧任务"
-        },
         "schedule_run_record": {
           "title": "自动删除计划任务执行记录"
         },
-        "options": {
-          "disabled": "关闭",
-          "days_7": "7 天",
-          "days_14": "14 天",
-          "days_30": "30 天",
-          "days_60": "60 天",
-          "days_180": "180 天",
-          "days_360": "360 天"
+        "task": {
+          "title": "自动删除旧任务"
         }
       },
       "autostart": {
@@ -121,6 +128,14 @@
           "load_error": "加载开机自启状态失败。",
           "update_error": "更新开机自启状态失败。"
         }
+      },
+      "language": {
+        "placeholder": "选择语言",
+        "title": "语言"
+      },
+      "reply_language": {
+        "placeholder": "选择语言",
+        "title": "模型回复语言"
       },
       "theme": {
         "dark": "深色",
@@ -173,14 +188,14 @@
       }
     },
     "shortcuts": {
-      "toggle_sidebar": {
-        "title": "切换侧边栏"
-      },
       "close_tab": {
         "title": "关闭当前标签页"
       },
       "new_task": {
         "title": "新建任务"
+      },
+      "toggle_sidebar": {
+        "title": "切换侧边栏"
       }
     },
     "tabs": {
@@ -194,60 +209,31 @@
       "shortcuts": "快捷键"
     }
   },
-  "schedules": {
+  "skills": {
     "dialog": {
-      "delete_description_with_name": "确定要删除计划任务 \"{{name}}\" 吗？此操作无法撤销。"
-    },
-    "empty": {
-      "description": "您还没有创建任何计划任务。",
-      "no_workspace": {
-        "description": "请先选择一个工作区以查看计划任务。",
-        "title": "未选择工作区"
-      },
-      "title": "暂无计划任务"
+      "delete_description_with_name": "确定要删除技能 \"{{name}}\" 吗？此操作无法撤销。"
     },
     "header": {
-      "create_tooltip": "创建计划任务",
-      "title": "计划任务"
-    },
-    "running": {
-      "cancel": "取消",
-      "description_with_created_at": "开始于 {{time}}",
-      "empty": {
-        "description": "当前没有正在运行的计划任务。",
-        "title": "没有运行中的任务"
-      },
-      "open": "打开",
-      "title": "运行中"
-    },
-    "tab": {
-      "create_title": "创建计划任务",
-      "edit_title_with_name": "编辑：{{name}}",
-      "records_title_with_name": "运行记录：{{name}}"
+      "create_tooltip": "创建技能",
+      "title": "技能",
+      "upload_tooltip": "上传技能归档"
     },
     "list": {
-      "delayed_description_with_datetime": "将在 {{datetime}} 执行",
-      "polling_description_with_duration": "每隔 {{duration}} 执行一次"
+      "no_description": "无描述"
     },
     "menu": {
       "delete": "删除",
-      "disable": "禁用",
-      "edit": "编辑计划任务",
-      "enable": "启用",
-      "run_now": "立即执行",
-      "view_records": "查看运行记录"
+      "edit": "编辑技能"
+    },
+    "tab": {
+      "create_title": "创建技能",
+      "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
-      "cancel_run_success_description": "计划任务执行已取消。",
-      "cancel_run_success_title": "已取消",
-      "delete_success_description": "已成功删除计划任务。",
+      "delete_success_description": "已成功删除技能。",
       "delete_success_title": "删除成功",
-      "disable_success_description": "计划任务已禁用。",
-      "disable_success_title": "禁用成功",
-      "enable_success_description": "计划任务已启用。",
-      "enable_success_title": "启用成功",
-      "run_now_success_description": "计划任务已触发执行。",
-      "run_now_success_title": "已触发"
+      "upload_success_description": "技能归档已上传并导入。",
+      "upload_success_title": "上传成功"
     }
   },
   "tasks": {
@@ -269,6 +255,12 @@
     "menu": {
       "delete": "删除",
       "regenerate_title": "重新生成标题"
+    },
+    "recent": {
+      "empty": {
+        "description": "你最近的任务会显示在这里。",
+        "title": "暂无最近任务"
+      }
     },
     "toast": {
       "delete_success_description": "已成功删除任务。",
@@ -318,17 +310,17 @@
       "title": "工作区"
     },
     "menu": {
+      "create_task": "在此工作区中创建任务",
       "delete": "删除",
       "edit": "编辑工作区",
       "edit_notes": "编辑工作区笔记",
-      "create_task": "在此工作区中创建任务",
       "open_in_file_manager": "在文件管理器中打开",
       "select": "设为当前工作区"
     },
     "tab": {
       "create_title": "创建工作区",
-      "edit_title_with_name": "编辑：{{name}}",
-      "edit_notes_title_with_name": "笔记：{{name}}"
+      "edit_notes_title_with_name": "笔记：{{name}}",
+      "edit_title_with_name": "编辑：{{name}}"
     },
     "toast": {
       "delete_success_description": "已成功删除工作区。",

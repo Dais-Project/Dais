@@ -1,36 +1,36 @@
 {
-    "form": {
-        "content": {
-            "label": "Content"
-        },
-        "description": {
-            "label": "Description",
-            "placeholder": "When should the agent use this skill"
-        },
-        "is_enabled": {
-            "label": "Enabled"
-        },
-        "name": {
-            "label": "Name"
-        },
-        "resources": {
-            "label": "Resources"
-        },
-        "submit": {
-            "create": "Create",
-            "creating": "Creating...",
-            "save": "Save",
-            "saving": "Saving..."
-        }
+  "form": {
+    "content": {
+      "label": "Content"
     },
-    "toast": {
-        "create": {
-            "success_title": "Create success",
-            "success_description_with_name": "Skill \"{{name}}\" has been created successfully."
-        },
-        "update": {
-            "success_title": "Update success",
-            "success_description_with_name": "Skill \"{{name}}\" has been updated successfully."
-        }
+    "description": {
+      "label": "Description",
+      "placeholder": "When should the agent use this skill"
+    },
+    "is_enabled": {
+      "label": "Enabled"
+    },
+    "name": {
+      "label": "Name"
+    },
+    "resources": {
+      "label": "Resources"
+    },
+    "submit": {
+      "create": "Create",
+      "creating": "Creating...",
+      "save": "Save",
+      "saving": "Saving..."
     }
+  },
+  "toast": {
+    "create": {
+      "success_description_with_name": "Skill \"{{name}}\" has been created successfully.",
+      "success_title": "Create success"
+    },
+    "update": {
+      "success_description_with_name": "Skill \"{{name}}\" has been updated successfully.",
+      "success_title": "Update success"
+    }
+  }
 }

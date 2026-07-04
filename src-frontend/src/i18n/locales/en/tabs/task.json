@@ -5,6 +5,19 @@
       "title": "Actions pending approval"
     }
   },
+  "assistant_message": {
+    "context_menu": {
+      "copy": "Copy",
+      "save_to_file": "Save to file"
+    },
+    "thinking": "Thinking...",
+    "toast": {
+      "copied": "Copied to clipboard",
+      "copy_failed": "Failed to copy",
+      "file_saved": "File saved successfully",
+      "save_failed": "Failed to save file"
+    }
+  },
   "continue": {
     "banner": {
       "action": "Continue task",
@@ -29,15 +42,14 @@
     "responded": "Dais responded: {{response}}",
     "task_done": "Dais has finished the task",
     "task_failed": {
-      "title": "Dais failed to execute the task",
-      "description": "Please open the task panel to view the detailed error information."
+      "description": "Please open the task panel to view the detailed error information.",
+      "title": "Dais failed to execute the task"
     }
   },
   "prompt": {
     "agent": {
       "empty": "No agent found.",
       "loading": "Loading...",
-      "no_workspace": "No workspace opened",
       "search_placeholder": "Search agent...",
       "select": "Select agent",
       "workspace_load_failed": "Failed to load workspace"
@@ -105,9 +117,9 @@
       "title": "Dais wants to search text:"
     },
     "shell": {
+      "executing": "Executing...",
       "generating": "Generating shell arguments...",
       "parse_error": "Failed to parse shell arguments",
-      "executing": "Executing...",
       "waiting_approval": "Waiting for approval..."
     },
     "show_plan": {
@@ -120,8 +132,8 @@
       "title": "Dais wants to show you a plan:"
     },
     "subtask": {
-      "title": "Dais wants to start a subtask",
       "detail_title": "Subtask details",
+      "title": "Dais wants to start a subtask",
       "view_detail": "View subtask details"
     },
     "update_todos": {
@@ -134,19 +146,6 @@
       "generating": "Generating write file arguments...",
       "parse_error": "Failed to parse write file arguments",
       "title": "Dais wants to write a file:"
-    }
-  },
-  "assistant_message": {
-    "context_menu": {
-      "copy": "Copy",
-      "save_to_file": "Save to file"
-    },
-    "thinking": "Thinking...",
-    "toast": {
-      "copied": "Copied to clipboard",
-      "copy_failed": "Failed to copy",
-      "file_saved": "File saved successfully",
-      "save_failed": "Failed to save file"
     }
   }
 }

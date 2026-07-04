@@ -5,6 +5,19 @@
       "title": "有待批准的操作"
     }
   },
+  "assistant_message": {
+    "context_menu": {
+      "copy": "复制",
+      "save_to_file": "保存到文件"
+    },
+    "thinking": "思考中...",
+    "toast": {
+      "copied": "已复制到剪贴板",
+      "copy_failed": "复制失败",
+      "file_saved": "文件保存成功",
+      "save_failed": "文件保存失败"
+    }
+  },
   "continue": {
     "banner": {
       "action": "继续任务",
@@ -29,15 +42,14 @@
     "responded": "Dais 回复了：{{response}}",
     "task_done": "Dais 已完成任务",
     "task_failed": {
-      "title": "Dais 执行任务失败",
-      "description": "请打开任务面板查看详细错误信息。"
+      "description": "请打开任务面板查看详细错误信息。",
+      "title": "Dais 执行任务失败"
     }
   },
   "prompt": {
     "agent": {
       "empty": "未找到 Agent",
       "loading": "加载中...",
-      "no_workspace": "当前未打开工作区",
       "search_placeholder": "搜索 Agent...",
       "select": "选择 Agent",
       "workspace_load_failed": "工作区加载失败"
@@ -105,9 +117,9 @@
       "title": "Dais 想要搜索文本："
     },
     "shell": {
+      "executing": "正在执行...",
       "generating": "参数生成中",
       "parse_error": "参数解析失败",
-      "executing": "正在执行...",
       "waiting_approval": "等待确认..."
     },
     "show_plan": {
@@ -120,8 +132,8 @@
       "title": "Dais 想要向你展示计划："
     },
     "subtask": {
-      "title": "Dais 想要运行子任务",
       "detail_title": "子任务详情",
+      "title": "Dais 想要运行子任务",
       "view_detail": "查看子任务详情"
     },
     "update_todos": {
@@ -134,19 +146,6 @@
       "generating": "文件写入参数生成中...",
       "parse_error": "文件写入参数解析失败",
       "title": "Dais 想要写入文件："
-    }
-  },
-  "assistant_message": {
-    "context_menu": {
-      "copy": "复制",
-      "save_to_file": "保存到文件"
-    },
-    "thinking": "思考中...",
-    "toast": {
-      "copied": "已复制到剪贴板",
-      "copy_failed": "复制失败",
-      "file_saved": "文件保存成功",
-      "save_failed": "文件保存失败"
     }
   }
 }

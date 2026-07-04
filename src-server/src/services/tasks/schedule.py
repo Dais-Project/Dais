@@ -98,6 +98,15 @@ class RunRecordService(ServiceBase[task_models.RunRecord]):
             .order_by(task_models.RunRecord.id.desc())
         )
 
+    def get_all_run_records_query(self):
+        return (
+            select(task_models.RunRecord)
+            .order_by(
+                task_models.RunRecord.run_at.desc(),
+                task_models.RunRecord.id.desc(),
+            )
+        )
+
     async def get_run_record_by_id(self, id: int) -> task_models.RunRecord:
         run_record = await self._db_session.get(
             task_models.RunRecord,

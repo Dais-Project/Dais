@@ -7,14 +7,14 @@
       "label": "Name",
       "placeholder": "Enter workspace name"
     },
+    "notes": {
+      "label": "Workspace notes"
+    },
     "submit": {
       "create": "Create",
       "creating": "Creating...",
       "save": "Save",
       "saving": "Saving..."
-    },
-    "notes": {
-      "label": "Workspace notes"
     },
     "usable_agents": {
       "cancel": "Cancel",
@@ -24,9 +24,6 @@
       "search_placeholder": "Search agents...",
       "select": "Select"
     },
-    "usable_tools": {
-      "label": "Available tools"
-    },
     "usable_skills": {
       "cancel": "Cancel",
       "confirm": "Confirm",
@@ -34,6 +31,9 @@
       "label": "Available skills",
       "search_placeholder": "Search skills...",
       "select": "Select"
+    },
+    "usable_tools": {
+      "label": "Available tools"
     }
   },
   "toast": {

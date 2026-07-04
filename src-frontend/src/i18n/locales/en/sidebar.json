@@ -35,40 +35,64 @@
     "skills": "Skills",
     "settings": "Settings"
   },
-  "skills": {
+  "schedules": {
     "dialog": {
-      "delete_description_with_name": "Are you sure you want to delete skill \"{{name}}\"? This action cannot be undone."
+      "delete_description_with_name": "Are you sure you want to delete schedule \"{{name}}\"? This action cannot be undone."
+    },
+    "empty": {
+      "description": "You haven't created any schedules yet.",
+      "no_workspace": {
+        "description": "Please select a workspace first to view schedules.",
+        "title": "No workspace selected"
+      },
+      "title": "No schedules"
     },
     "header": {
-      "create_tooltip": "Create new skill",
-      "upload_tooltip": "Upload skill archive",
-      "title": "Skills"
+      "create_tooltip": "Create new schedule",
+      "history_tooltip": "View all execution histories",
+      "title": "Schedules"
     },
     "list": {
-      "no_description": "No description"
+      "delayed_description_with_datetime": "Run at {{datetime}}",
+      "polling_description_with_duration": "Run every {{duration}}"
     },
     "menu": {
       "delete": "Delete",
-      "edit": "Edit skill"
+      "edit": "Edit schedule",
+      "run_now": "Run now",
+      "view_records": "View records"
+    },
+    "running": {
+      "cancel": "Cancel",
+      "description_with_created_at": "Started {{time}}",
+      "empty": {
+        "description": "There are no running schedule tasks right now.",
+        "title": "No running tasks"
+      },
+      "title": "Running"
     },
     "tab": {
-      "create_title": "Create skill",
-      "edit_title_with_name": "Edit: {{name}}"
+      "all_records_title": "Execution history",
+      "create_title": "Create schedule",
+      "edit_title_with_name": "Edit: {{name}}",
+      "records_title_with_name": "Run records: {{name}}"
     },
     "toast": {
-      "delete_success_description": "Skill deleted successfully.",
+      "cancel_run_success_description": "Schedule execution cancelled successfully.",
+      "cancel_run_success_title": "Cancelled",
+      "delete_success_description": "Schedule deleted successfully.",
       "delete_success_title": "Delete success",
-      "upload_success_description": "Skill archive uploaded and imported successfully.",
-      "upload_success_title": "Upload success"
+      "run_now_success_description": "Schedule run has been triggered.",
+      "run_now_success_title": "Triggered"
     }
   },
   "settings": {
     "about": {
-      "version": {
-        "title": "Version"
-      },
       "author": {
         "title": "Author"
+      },
+      "version": {
+        "title": "Version"
       }
     },
     "agents": {
@@ -89,30 +113,13 @@
       }
     },
     "general": {
-      "language": {
-        "placeholder": "Select language",
-        "title": "Language"
-      },
-      "reply_language": {
-        "placeholder": "Select language",
-        "title": "Model reply language"
-      },
       "auto_delete": {
         "placeholder": "Select retention period",
-        "task": {
-          "title": "Auto-delete old tasks"
-        },
         "schedule_run_record": {
           "title": "Auto-delete scheduled task records"
         },
-        "options": {
-          "disabled": "Disabled",
-          "days_7": "7 days",
-          "days_14": "14 days",
-          "days_30": "30 days",
-          "days_60": "60 days",
-          "days_180": "180 days",
-          "days_360": "360 days"
+        "task": {
+          "title": "Auto-delete old tasks"
         }
       },
       "autostart": {
@@ -121,6 +128,14 @@
           "load_error": "Failed to load launch at startup status.",
           "update_error": "Failed to update launch at startup status."
         }
+      },
+      "language": {
+        "placeholder": "Select language",
+        "title": "Language"
+      },
+      "reply_language": {
+        "placeholder": "Select language",
+        "title": "Model reply language"
       },
       "theme": {
         "dark": "Dark",
@@ -173,14 +188,14 @@
       }
     },
     "shortcuts": {
-      "toggle_sidebar": {
-        "title": "Toggle sidebar"
-      },
       "close_tab": {
         "title": "Close current tab"
       },
       "new_task": {
         "title": "Create new task"
+      },
+      "toggle_sidebar": {
+        "title": "Toggle sidebar"
       }
     },
     "tabs": {
@@ -194,60 +209,31 @@
       "shortcuts": "Shortcuts"
     }
   },
-  "schedules": {
+  "skills": {
     "dialog": {
-      "delete_description_with_name": "Are you sure you want to delete schedule \"{{name}}\"? This action cannot be undone."
-    },
-    "empty": {
-      "description": "You haven't created any schedules yet.",
-      "no_workspace": {
-        "description": "Please select a workspace first to view schedules.",
-        "title": "No workspace selected"
-      },
-      "title": "No schedules"
+      "delete_description_with_name": "Are you sure you want to delete skill \"{{name}}\"? This action cannot be undone."
     },
     "header": {
-      "create_tooltip": "Create new schedule",
-      "title": "Schedules"
-    },
-    "running": {
-      "cancel": "Cancel",
-      "description_with_created_at": "Started {{time}}",
-      "empty": {
-        "description": "There are no running schedule tasks right now.",
-        "title": "No running tasks"
-      },
-      "open": "Open",
-      "title": "Running"
-    },
-    "tab": {
-      "create_title": "Create schedule",
-      "edit_title_with_name": "Edit: {{name}}",
-      "records_title_with_name": "Run records: {{name}}"
+      "create_tooltip": "Create new skill",
+      "title": "Skills",
+      "upload_tooltip": "Upload skill archive"
     },
     "list": {
-      "delayed_description_with_datetime": "Run at {{datetime}}",
-      "polling_description_with_duration": "Run every {{duration}}"
+      "no_description": "No description"
     },
     "menu": {
       "delete": "Delete",
-      "disable": "Disable",
-      "edit": "Edit schedule",
-      "enable": "Enable",
-      "run_now": "Run now",
-      "view_records": "View records"
+      "edit": "Edit skill"
+    },
+    "tab": {
+      "create_title": "Create skill",
+      "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
-      "cancel_run_success_description": "Schedule execution cancelled successfully.",
-      "cancel_run_success_title": "Cancelled",
-      "delete_success_description": "Schedule deleted successfully.",
+      "delete_success_description": "Skill deleted successfully.",
       "delete_success_title": "Delete success",
-      "disable_success_description": "Schedule disabled successfully.",
-      "disable_success_title": "Disable success",
-      "enable_success_description": "Schedule enabled successfully.",
-      "enable_success_title": "Enable success",
-      "run_now_success_description": "Schedule run has been triggered.",
-      "run_now_success_title": "Triggered"
+      "upload_success_description": "Skill archive uploaded and imported successfully.",
+      "upload_success_title": "Upload success"
     }
   },
   "tasks": {
@@ -269,6 +255,12 @@
     "menu": {
       "delete": "Delete",
       "regenerate_title": "Regenerate title"
+    },
+    "recent": {
+      "empty": {
+        "description": "Your recent tasks will appear here.",
+        "title": "No recent tasks"
+      }
     },
     "toast": {
       "delete_success_description": "Task deleted successfully.",
@@ -318,17 +310,17 @@
       "title": "Workspaces"
     },
     "menu": {
+      "create_task": "Create task in workspace",
       "delete": "Delete",
       "edit": "Edit workspace",
       "edit_notes": "Edit workspace notes",
-      "create_task": "Create task in workspace",
       "open_in_file_manager": "Open in file manager",
       "select": "Set as current"
     },
     "tab": {
       "create_title": "Create workspace",
-      "edit_title_with_name": "Edit: {{name}}",
-      "edit_notes_title_with_name": "Notes: {{name}}"
+      "edit_notes_title_with_name": "Notes: {{name}}",
+      "edit_title_with_name": "Edit: {{name}}"
     },
     "toast": {
       "delete_success_description": "Workspace deleted successfully.",

@@ -1,4 +1,4 @@
-import { PlusIcon } from "lucide-react";
+import { HistoryIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
@@ -28,6 +28,24 @@ function openScheduleCreateTab() {
     type: "schedule",
     title: i18n.t("schedules.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
     metadata: { mode: "create" },
+  });
+}
+
+function openScheduleAllRecordsTab() {
+  const { tabs, add: addTab, setActive: setActiveTab } = useTabsStore.getState();
+  const existingTab = tabs.find(
+    (tab) => tab.type === "schedule" && tab.metadata.mode === "all-records",
+  );
+  if (existingTab) {
+    setActiveTab(existingTab.id);
+    return;
+  }
+
+  addTab({
+    type: "schedule",
+    title: i18n.t("schedules.tab.all_records_title", { ns: SIDEBAR_NAMESPACE }),
+    icon: "history",
+    metadata: { mode: "all-records" },
   });
 }
 
@@ -77,6 +95,11 @@ export function SchedulesView() {
   return (
     <div className="flex h-full flex-col">
       <SideBarHeader title={t("schedules.header.title")}>
+        <SideBarHeaderAction
+          Icon={HistoryIcon}
+          tooltip={t("schedules.header.history_tooltip")}
+          onClick={openScheduleAllRecordsTab}
+        />
         <SideBarHeaderAction
           Icon={PlusIcon}
           tooltip={t("schedules.header.create_tooltip")}

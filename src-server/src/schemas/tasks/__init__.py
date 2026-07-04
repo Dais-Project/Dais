@@ -4,5 +4,5 @@ from .task import TaskBrief, TaskRead, TaskCreate, TaskUpdate
 from .subtask import SubtaskRead, SubtaskCreate
 from .schedule import (
     ScheduleBrief, ScheduleRead, ScheduleCreate, ScheduleUpdate,
-    RunRecordBrief, RunRecordRead, RunRecordCreate, RunRecordUpdate,
+    RunRecordBrief, RunRecordAllBrief, RunRecordRead, RunRecordCreate, RunRecordUpdate,
 )

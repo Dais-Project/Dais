@@ -2,6 +2,8 @@ from fastapi import APIRouter, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.agent.task.schedule_runner import use_schedule_runner
+from src.db.models import tasks as task_models
+from src.db.models import workspace as workspace_models
 from src.schemas.tasks import schedule as schedule_schemas
 from src.services.tasks import RunRecordService, ScheduleService
 from ...dependencies import DbSessionDep
@@ -17,6 +19,31 @@ async def get_schedule_running_jobs():
 async def get_schedules(db_session: DbSessionDep, workspace_id: int = Query(...)):
     query = ScheduleService(db_session).get_schedules_query(workspace_id)
     return await apaginate(db_session, query)
+
+@schedule_manage_router.get("/records", response_model=Page[schedule_schemas.RunRecordAllBrief])
+async def get_all_run_records(db_session: DbSessionDep):
+    records_query = RunRecordService(db_session).get_all_run_records_query()
+    final_query = (
+        records_query
+        .add_columns(
+            task_models.Schedule.name,
+            task_models.Schedule._workspace_id,
+            workspace_models.Workspace.name,
+        )
+        .outerjoin(task_models.RunRecord.schedule)
+        .outerjoin(workspace_models.Workspace, task_models.Schedule._workspace_id == workspace_models.Workspace.id)
+    )
+    def transformer(rows):
+        return [
+            schedule_schemas.RunRecordAllBrief.model_validate({
+                **record.__dict__,
+                "schedule_name": schedule_name,
+                "workspace_id": workspace_id,
+                "workspace_name": workspace_name,
+            })
+            for record, schedule_name, workspace_id, workspace_name in rows
+        ]
+    return await apaginate(db_session, final_query, transformer=transformer)
 
 @schedule_manage_router.get("/{schedule_id}", response_model=schedule_schemas.ScheduleRead)
 async def get_schedule(schedule_id: int, db_session: DbSessionDep):

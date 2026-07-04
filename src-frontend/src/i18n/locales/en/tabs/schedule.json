@@ -1,14 +1,22 @@
 {
+  "all_records": {
+    "empty": "No execution records",
+    "title": "Execution history"
+  },
   "form": {
     "agent_id": {
       "label": "Agent"
     },
     "config": {
       "builder": {
-        "title": "Schedule builder",
-        "toggle": "Toggle schedule builder",
+        "execution_minute": "Execution minute",
+        "execution_time": "Execution time",
         "repeat_every": "Repeat every",
-        "weekdays": "Execute every week on",
+        "unit": {
+          "day": "Day",
+          "hour": "Hour",
+          "week": "Week"
+        },
         "weekday": {
           "mon": "Mon",
           "tue": "Tue",
@@ -18,13 +26,7 @@
           "sat": "Sat",
           "sun": "Sun"
         },
-        "execution_minute": "Execution minute",
-        "execution_time": "Execution time",
-        "unit": {
-          "hour": "Hour",
-          "day": "Day",
-          "week": "Week"
-        }
+        "weekdays": "Execute every week on"
       },
       "expression": {
         "label": "Cron expression",
@@ -49,24 +51,42 @@
       "label": "Name",
       "placeholder": "Enter schedule name"
     },
-    "task": {
-      "label": "Task",
-      "placeholder": "Enter task content",
-      "required": "Please enter task content"
-    },
     "submit": {
       "create": "Create",
       "creating": "Creating...",
       "save": "Save",
       "saving": "Saving..."
     },
+    "task": {
+      "label": "Task",
+      "placeholder": "Enter task content",
+      "required": "Please enter task content"
+    },
     "type": {
       "label": "Type",
       "option": {
         "cron": "Scheduled",
-        "polling": "Recurring",
-        "delayed": "Delayed"
+        "delayed": "Delayed",
+        "polling": "Recurring"
       }
+    }
+  },
+  "notification": {
+    "error": {
+      "body_with_name": "Schedule {{name}} failed during execution.",
+      "title": "Schedule failed"
+    },
+    "finished": {
+      "body_with_name": "Schedule {{name}} completed successfully.",
+      "title": "Schedule finished"
+    },
+    "interrupted": {
+      "body_with_name": "Schedule {{name}} was interrupted before completion.",
+      "title": "Schedule interrupted"
+    },
+    "waiting_action": {
+      "body_with_name": "Schedule {{name}} is waiting for your action to continue.",
+      "title": "Schedule waiting for your action"
     }
   },
   "records": {
@@ -74,24 +94,6 @@
     "empty": "No run records",
     "title_with_name": "Run records: {{name}}",
     "view_detail": "View record details"
-  },
-  "notification": {
-    "finished": {
-      "title": "Schedule finished",
-      "body_with_name": "Schedule {{name}} completed successfully."
-    },
-    "error": {
-      "title": "Schedule failed",
-      "body_with_name": "Schedule {{name}} failed during execution."
-    },
-    "interrupted": {
-      "title": "Schedule interrupted",
-      "body_with_name": "Schedule {{name}} was interrupted before completion."
-    },
-    "waiting_action": {
-      "title": "Schedule waiting for your action",
-      "body_with_name": "Schedule {{name}} is waiting for your action to continue."
-    }
   },
   "toast": {
     "create": {

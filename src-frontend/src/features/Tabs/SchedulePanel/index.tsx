@@ -9,6 +9,7 @@ import { TabPanelFrame } from "../components/TabPanelFrame";
 import { ScheduleCreateForm } from "./ScheduleCreateForm";
 import { ScheduleEditForm } from "./ScheduleEditForm";
 import { ScheduleRecordsPanel } from "./ScheduleRecordsPanel";
+import { AllScheduleRecordsPanel } from "./AllScheduleRecordsPanel";
 
 function ScheduleCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);
@@ -70,6 +71,12 @@ export function SchedulePanel({
       return (
         <TabPanelFrame>
           <ScheduleRecordsPanel scheduleId={metadata.id} />
+        </TabPanelFrame>
+      );
+    case "all-records":
+      return (
+        <TabPanelFrame>
+          <AllScheduleRecordsPanel />
         </TabPanelFrame>
       );
   }
