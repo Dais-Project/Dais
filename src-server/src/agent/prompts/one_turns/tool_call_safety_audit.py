@@ -63,13 +63,13 @@ Output a single JSON object array, with each:
 ### Output format
 
 ```
-{
+{{
     "results": [
-        {"call_id": "tool_call_id1", "risk_level": 10, "reason": "read-only, local, no side effects"},
-        {"call_id": "tool_call_id2", "risk_level": 70, "reason": "deletes files, irreversible, path contains ../"},
+        {{"call_id": "tool_call_id1", "risk_level": 10, "reason": "read-only, local, no side effects"}},
+        {{"call_id": "tool_call_id2", "risk_level": 70, "reason": "deletes files, irreversible, path contains ../"}},
         ...
     ]
-}
+}}
 ```
 
 > Output the raw JSON object only. Do not wrap it in markdown code fences or add any text outside the JSON.
