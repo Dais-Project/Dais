@@ -1,15 +1,17 @@
 import { useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGetScheduleSuspense } from "@/api/tasks/schedule";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { ScheduleTabMetadata } from "@/types/tab";
 import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../components/TabPanelFrame";
+import { AllScheduleRecordsPanel } from "./AllScheduleRecordsPanel";
 import { ScheduleCreateForm } from "./ScheduleCreateForm";
 import { ScheduleEditForm } from "./ScheduleEditForm";
 import { ScheduleRecordsPanel } from "./ScheduleRecordsPanel";
-import { AllScheduleRecordsPanel } from "./AllScheduleRecordsPanel";
 
 function ScheduleCreatePanel({ tabId }: { tabId: string }) {
   const removeTab = useTabsStore((state) => state.remove);
@@ -50,6 +52,34 @@ function ScheduleEditPanel({
   return <ScheduleEditForm schedule={schedule} onConfirm={handleComplete} />;
 }
 
+function ScheduleRecordsPanelSkeleton() {
+  return (
+    <div className="flex h-full min-h-0 flex-col px-8 py-4">
+      <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col">
+        <div className="pb-4">
+          <Skeleton className="h-7 w-56" />
+        </div>
+
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={`schedule-record-skeleton-${index}`}
+              className="flex items-center gap-3 border-b pb-2"
+            >
+              <Skeleton className="size-9 rounded-md" />
+              <div className="flex-1 space-y-2 py-1">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SchedulePanel({
   id,
   metadata,
@@ -68,8 +98,20 @@ export function SchedulePanel({
         </TabPanelFrame>
       );
     case "records":
-      return <ScheduleRecordsPanel scheduleId={metadata.id} />;
+      return (
+        <AsyncBoundary skeleton={<ScheduleRecordsPanelSkeleton />}>
+          <ScrollArea className="h-full px-8">
+            <ScheduleRecordsPanel scheduleId={metadata.id} />
+          </ScrollArea>
+        </AsyncBoundary>
+      );
     case "all-records":
-      return <AllScheduleRecordsPanel />;
+      return (
+        <AsyncBoundary skeleton={<ScheduleRecordsPanelSkeleton />}>
+          <ScrollArea className="h-full px-8">
+            <AllScheduleRecordsPanel />
+          </ScrollArea>
+        </AsyncBoundary>
+      );
   }
 }
