@@ -80,7 +80,7 @@ function ScheduleRecordItem({
   return (
     <ActionableItem>
       <ActionableItemTrigger
-        className="cursor-pointer"
+        className="cursor-pointer border-none"
         onClick={() => openScheduleRecordTab(schedule, record)}
       >
         <ActionableItemIcon>
@@ -116,8 +116,9 @@ function ScheduleRecordItem({
   );
 }
 
-function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
+export function ScheduleRecordsPanel({ scheduleId }: { scheduleId: number }) {
   const { t } = useTranslation(TABS_SCHEDULE_NAMESPACE);
+  const { data: schedule } = useGetScheduleSuspense(scheduleId);
 
   const deleteRunRecordMutation = useDeleteRunRecord({
     mutation: {
@@ -175,11 +176,12 @@ function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
 
       <InfiniteVirtualScroll
         className="h-full min-h-0 flex-1"
+        listClassName="divide-y"
         query={query}
         selectItems={(page) => page.items}
         getItemKey={(record) => record.id}
         itemHeight={65}
-        paddingEnd={2}
+        paddingEnd={16}
         itemRender={({ item, index, key, ref }) => (
           <div ref={ref} key={key} className="pb-2" data-index={index}>
             <ScheduleRecordItem
@@ -192,10 +194,4 @@ function ScheduleRecordsList({ schedule }: { schedule: ScheduleRead }) {
       />
     </div>
   );
-}
-
-export function ScheduleRecordsPanel({ scheduleId }: { scheduleId: number }) {
-  const { data: schedule } = useGetScheduleSuspense(scheduleId);
-
-  return <ScheduleRecordsList schedule={schedule} />;
 }

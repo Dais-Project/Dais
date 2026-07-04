@@ -51,6 +51,7 @@ type InfiniteVirtualScrollProps<TItem, TPage> = {
   paddingStart?: number;
   paddingEnd?: number;
   className?: string;
+  listClassName?: string;
   itemRender: (props: {
     item: TItem,
     index: number,
@@ -71,7 +72,7 @@ type InfiniteVirtualScrollProps<TItem, TPage> = {
   );
 
 export function InfiniteVirtualScroll<T, P>(props: InfiniteVirtualScrollProps<T, P>) {
-  const { getItemKey, itemHeight, overscan = 3, paddingStart, paddingEnd, className, itemRender } = props;
+  const { getItemKey, itemHeight, overscan = 3, paddingStart, paddingEnd, className, listClassName, itemRender } = props;
   const { dataItems, fetchNextPage, hasNextPage, isFetchingNextPage } = useMemo(() => {
     if ("query" in props) {
       const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = props.query;
@@ -134,6 +135,7 @@ export function InfiniteVirtualScroll<T, P>(props: InfiniteVirtualScrollProps<T,
         data-virtual-relative
       >
         <div
+          className={listClassName}
           style={{
             position: "absolute",
             top: 0,

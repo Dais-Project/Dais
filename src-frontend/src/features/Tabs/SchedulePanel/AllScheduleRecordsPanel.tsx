@@ -19,11 +19,7 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import {
-  Empty,
-  EmptyContent,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyTitle } from "@/components/ui/empty";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS } from "@/constants/query-options";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { TABS_SCHEDULE_NAMESPACE } from "@/i18n/resources";
@@ -75,7 +71,7 @@ function AllScheduleRecordItem({
   return (
     <ActionableItem>
       <ActionableItemTrigger
-        className="cursor-pointer"
+        className="cursor-pointer border-none"
         onClick={() => openScheduleRecordTab(record)}
       >
         <ActionableItemIcon>
@@ -83,17 +79,18 @@ function AllScheduleRecordItem({
         </ActionableItemIcon>
         <ActionableItemInfo
           title={record.schedule_name}
-          description={`${record.workspace_name} · ${formatDistanceToNow(new Date(record.run_at * 1000), {
-            addSuffix: true,
-            locale: DATEFNS_LOCALE_MAP[language],
-          })}`}
+          description={`${record.workspace_name} · ${formatDistanceToNow(
+            new Date(record.run_at * 1000),
+            {
+              addSuffix: true,
+              locale: DATEFNS_LOCALE_MAP[language],
+            },
+          )}`}
         />
       </ActionableItemTrigger>
 
       <ActionableItemMenu>
-        <ActionableItemMenuItem
-          onClick={() => openScheduleRecordTab(record)}
-        >
+        <ActionableItemMenuItem onClick={() => openScheduleRecordTab(record)}>
           <ArrowUpRightIcon />
           <span>{t("records.view_detail")}</span>
         </ActionableItemMenuItem>
@@ -157,26 +154,22 @@ export function AllScheduleRecordsPanel() {
   }
 
   return (
-    <div className="flex max-w-3xl mx-auto h-full min-h-0 flex-col py-4">
+    <div className="flex max-w-3xl mx-auto h-full min-h-0 flex-col pt-4">
       <div className="pb-4">
-        <h2 className="font-semibold text-lg">
-          {t("all_records.title")}
-        </h2>
+        <h2 className="font-semibold text-lg">{t("all_records.title")}</h2>
       </div>
 
       <InfiniteVirtualScroll
         className="h-full min-h-0 flex-1"
+        listClassName="divide-y"
         query={query}
         selectItems={(page) => page.items}
         getItemKey={(record) => record.id}
         itemHeight={65}
-        paddingEnd={2}
+        paddingEnd={16}
         itemRender={({ item, index, key, ref }) => (
-          <div ref={ref} key={key} className="pb-2" data-index={index}>
-            <AllScheduleRecordItem
-              record={item}
-              onDelete={handleDelete}
-            />
+          <div ref={ref} key={key} data-index={index}>
+            <AllScheduleRecordItem record={item} onDelete={handleDelete} />
           </div>
         )}
       />

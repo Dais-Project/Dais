@@ -57,9 +57,9 @@ export function SchedulePanel({
   switch (metadata.mode) {
     case "create":
       return (
-        <ScrollArea className="h-full px-8">
+        <TabPanelFrame>
           <ScheduleCreatePanel tabId={id} />
-        </ScrollArea>
+        </TabPanelFrame>
       );
     case "edit":
       return (
@@ -68,16 +68,8 @@ export function SchedulePanel({
         </TabPanelFrame>
       );
     case "records":
-      return (
-        <TabPanelFrame>
-          <ScheduleRecordsPanel scheduleId={metadata.id} />
-        </TabPanelFrame>
-      );
+      return <ScheduleRecordsPanel scheduleId={metadata.id} />;
     case "all-records":
-      return (
-        <TabPanelFrame>
-          <AllScheduleRecordsPanel />
-        </TabPanelFrame>
-      );
+      return <AllScheduleRecordsPanel />;
   }
 }
