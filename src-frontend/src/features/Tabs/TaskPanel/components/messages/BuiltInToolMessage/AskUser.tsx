@@ -70,7 +70,7 @@ export function AskUser({ message }: ToolMessageProps) {
             <Input
               type="text"
               value={answer}
-              className="flex-1"
+              className="flex-1 z-10"
               disabled={disabled}
               onChange={(e) => setAnswer(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendAnswer()}

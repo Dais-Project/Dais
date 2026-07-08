@@ -114,6 +114,15 @@
     },
     "general": {
       "auto_delete": {
+        "options": {
+          "days_7": "7 天",
+          "days_14": "14 天",
+          "days_30": "30 天",
+          "days_60": "60 天",
+          "days_180": "180 天",
+          "days_360": "360 天",
+          "disabled": "禁用"
+        },
         "placeholder": "选择保留时长",
         "schedule_run_record": {
           "title": "自动删除计划任务执行记录"

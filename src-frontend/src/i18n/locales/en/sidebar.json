@@ -114,6 +114,15 @@
     },
     "general": {
       "auto_delete": {
+        "options": {
+          "days_7": "7 days",
+          "days_14": "14 days",
+          "days_30": "30 days",
+          "days_60": "60 days",
+          "days_180": "180 days",
+          "days_360": "360 days",
+          "disabled": "Disabled"
+        },
         "placeholder": "Select retention period",
         "schedule_run_record": {
           "title": "Auto-delete scheduled task records"
