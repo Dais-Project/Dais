@@ -402,6 +402,7 @@ dependencies = [
     { name = "dais-scantree" },
     { name = "dais-sdk" },
     { name = "dais-shell" },
+    { name = "dais-skills" },
     { name = "fastapi" },
     { name = "fastapi-pagination" },
     { name = "httpx" },
@@ -449,6 +450,7 @@ requires-dist = [
     { name = "dais-scantree", specifier = "==0.2.2" },
     { name = "dais-sdk", specifier = "==0.10.29" },
     { name = "dais-shell", specifier = "==0.1.10" },
+    { name = "dais-skills", specifier = "==0.1.5" },
     { name = "fastapi", specifier = "==0.136.1" },
     { name = "fastapi-pagination", specifier = "==0.15.12" },
     { name = "httpx", specifier = ">=0.28.0" },
@@ -492,6 +494,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fe/13/310a7cfadbba5f35a69a0d60c8ddfc176c797eb76f176ecea43a7334d00d/dais_shell-0.1.10.tar.gz", hash = "sha256:68ef3802b3f9cf1aa36cfe6aee4ba3330d3e4058bf12500e27824410ab503b78", size = 6053, upload-time = "2026-06-11T05:40:42.698Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/48/1b/bbb9d5c0ba75271e519b3075acf85e70cf229d90f4c61a104f58851c8f78/dais_shell-0.1.10-py3-none-any.whl", hash = "sha256:183442940a1349505074abbef4253ac6cdcff6a942ba85de4b72e9bc785c7a50", size = 10764, upload-time = "2026-06-11T05:40:41.579Z" },
+]
+
+[[package]]
+name = "dais-skills"
+version = "0.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "binaryornot" },
+    { name = "httpx" },
+    { name = "python-frontmatter" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/98/5a2db0b73066f2e2747ed94f5dffa99d51dda9f6e7541a754a541ca1c30b/dais_skills-0.1.5.tar.gz", hash = "sha256:2b080507e421ab04732fdec81da67230aaa5e967009a4dfca3816639f1ae8970", size = 8051, upload-time = "2026-07-12T05:31:33.821Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/54/ad87dd4378f20caeed3dab1fd593441b8267934e318536fee2ccae7656f9/dais_skills-0.1.5-py3-none-any.whl", hash = "sha256:1de2b0a2341b20111d91e922b4f0d62ecb35006259b6502bc627ef0b4017b8fc", size = 13442, upload-time = "2026-07-12T05:31:32.662Z" },
 ]
 
 [[package]]

@@ -27,6 +27,7 @@ dependencies = [
     "magika>=0.6.2",
     "watchfiles==1.1.1",
     "wcmatch==10.1",
+    "dais-skills==0.1.5",
 ]
 
 [dependency-groups]

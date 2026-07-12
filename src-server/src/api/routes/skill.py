@@ -4,9 +4,7 @@ from typing import IO
 from fastapi import APIRouter, BackgroundTasks, status, File, UploadFile
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
-from dais_sdk.types import InvalidSkillArchiveError
-from dais_sdk.skill import Skill
-from dais_sdk.skill.resource import TextResource
+from dais_skills import Skill, InvalidSkillArchiveError
 from src.agent.skills import SkillMaterializer
 from src.db.models import skill as skill_models
 from src.services.skill import SkillService
@@ -34,7 +32,7 @@ def process_archive(file_obj: IO[bytes]) -> skill_schemas.SkillCreate:
                 content=res.content,
             )
             for res in skill.resources
-            if isinstance(res, TextResource)
+            if res.type == "text"
         ],
     )
 
