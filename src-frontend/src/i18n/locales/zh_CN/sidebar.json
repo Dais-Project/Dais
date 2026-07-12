@@ -220,10 +220,27 @@
   },
   "skills": {
     "dialog": {
-      "delete_description_with_name": "确定要删除技能 \"{{name}}\" 吗？此操作无法撤销。"
+      "delete_description_with_name": "确定要删除技能 \"{{name}}\" 吗？此操作无法撤销。",
+      "install_github": {
+        "back": "返回",
+        "empty": "该仓库中未找到技能。",
+        "install": "安装",
+        "installing": "安装中...",
+        "repo_url_placeholder": "https://github.com/owner/repo",
+        "scan": "扫描仓库",
+        "scanning": "扫描中...",
+        "deselect_all": "取消全选",
+        "select_all": "全选",
+        "step1_description": "输入公开 GitHub 仓库 URL 以扫描可用技能。",
+        "step1_title": "从 GitHub 安装",
+        "step2_title": "选择技能",
+        "selected_count_one": "已选择 {{count}} 个",
+        "selected_count_other": "已选择 {{count}} 个"
+      }
     },
     "header": {
       "create_tooltip": "创建技能",
+      "install_github_tooltip": "从 GitHub 安装",
       "title": "技能",
       "upload_tooltip": "上传技能归档"
     },
@@ -241,6 +258,9 @@
     "toast": {
       "delete_success_description": "已成功删除技能。",
       "delete_success_title": "删除成功",
+      "install_github_success_description_one": "已成功安装 {{count}} 个技能。",
+      "install_github_success_description_other": "已成功安装 {{count}} 个技能。",
+      "install_github_success_title": "安装成功",
       "upload_success_description": "技能归档已上传并导入。",
       "upload_success_title": "上传成功"
     }

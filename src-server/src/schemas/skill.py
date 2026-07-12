@@ -1,3 +1,5 @@
+from pydantic import Field
+
 from . import DTOBase
 
 
@@ -33,3 +35,15 @@ class SkillUpdate(DTOBase):
     is_enabled: bool | None = None
     content: str | None = None
     resources: list[SkillResourceBase] | None = None
+
+class ScannedSkillRead(DTOBase):
+    path: str
+    name: str
+    description: str
+
+class ScanRepoRequest(DTOBase):
+    repo_url: str
+
+class InstallFromGithubRequest(DTOBase):
+    repo_url: str
+    skill_paths: list[str] = Field(min_length=1)

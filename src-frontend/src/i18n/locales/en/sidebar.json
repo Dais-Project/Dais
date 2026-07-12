@@ -220,10 +220,27 @@
   },
   "skills": {
     "dialog": {
-      "delete_description_with_name": "Are you sure you want to delete skill \"{{name}}\"? This action cannot be undone."
+      "delete_description_with_name": "Are you sure you want to delete skill \"{{name}}\"? This action cannot be undone.",
+      "install_github": {
+        "back": "Back",
+        "empty": "No skills found in this repository.",
+        "install": "Install",
+        "installing": "Installing...",
+        "repo_url_placeholder": "https://github.com/owner/repo",
+        "scan": "Scan repository",
+        "scanning": "Scanning...",
+        "deselect_all": "Deselect all",
+        "select_all": "Select all",
+        "step1_description": "Enter a public GitHub repository URL to scan for skills.",
+        "step1_title": "Install from GitHub",
+        "step2_title": "Select skills",
+        "selected_count_one": "{{count}} selected",
+        "selected_count_other": "{{count}} selected"
+      }
     },
     "header": {
       "create_tooltip": "Create new skill",
+      "install_github_tooltip": "Install from GitHub",
       "title": "Skills",
       "upload_tooltip": "Upload skill archive"
     },
@@ -241,6 +258,9 @@
     "toast": {
       "delete_success_description": "Skill deleted successfully.",
       "delete_success_title": "Delete success",
+      "install_github_success_description_one": "{{count}} skill installed successfully.",
+      "install_github_success_description_other": "{{count}} skills installed successfully.",
+      "install_github_success_title": "Install success",
       "upload_success_description": "Skill archive uploaded and imported successfully.",
       "upload_success_title": "Upload success"
     }

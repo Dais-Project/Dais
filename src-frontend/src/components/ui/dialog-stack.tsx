@@ -70,12 +70,6 @@ export const DialogStack = ({
     onChange: onOpenChange,
   });
 
-  useEffect(() => {
-    if (onOpenChange && isOpen !== undefined) {
-      onOpenChange(isOpen);
-    }
-  }, [isOpen, onOpenChange]);
-
   return (
     <DialogStackContext.Provider
       value={{
@@ -176,7 +170,7 @@ export const DialogStackOverlay = ({
     // biome-ignore lint/a11y/useKeyWithClickEvents: "This is a clickable overlay"
     <div
       className={cn(
-        "fixed inset-0 z-50 bg-black/80",
+        "fixed inset-0 z-50 bg-black/50",
         "data-[state=closed]:animate-out data-[state=open]:animate-in",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className
