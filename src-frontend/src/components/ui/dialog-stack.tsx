@@ -22,6 +22,7 @@ import {
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
+import { useHotkeys } from "react-hotkeys-hook";
 
 type DialogStackContextType = {
   activeIndex: number;
@@ -70,6 +71,18 @@ export const DialogStack = ({
     onChange: onOpenChange,
   });
 
+  const hotkeyScopeRef = useHotkeys("esc", (e) => {
+    e.stopPropagation();
+    if (activeIndex > 0) {
+      setActiveIndex((index) => index - 1);
+      return;
+    }
+    setIsOpen(false);
+  }, {
+    enabled: isOpen,
+    preventDefault: true,
+  }, [activeIndex, setActiveIndex, setIsOpen])
+
   return (
     <DialogStackContext.Provider
       value={{
@@ -82,7 +95,7 @@ export const DialogStack = ({
         clickable,
       }}
     >
-      <div className={className} {...props}>
+      <div className={className} ref={hotkeyScopeRef} {...props}>
         {children}
       </div>
     </DialogStackContext.Provider>
