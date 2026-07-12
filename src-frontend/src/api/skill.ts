@@ -5,6 +5,8 @@ export {
   useDeleteSkill,
   useGetSkillSuspense,
   useGetSkillsSuspenseInfinite,
+  useInstallFromGithub,
+  useScanRepoSkills,
   useUpdateSkill,
   useUploadArchive,
 } from "./generated/endpoints/skill/skill";

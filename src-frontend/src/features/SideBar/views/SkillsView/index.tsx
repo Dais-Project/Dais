@@ -7,6 +7,7 @@ import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useFileSelect } from "@/hooks/use-file-select";
+import { InstallFromGithubDialog } from "./InstallFromGithubDialog";
 import { SkillList } from "./SkillList";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
@@ -60,6 +61,7 @@ export function SkillsView() {
           tooltip={t("skills.header.create_tooltip")}
           onClick={openSkillCreateTab}
         />
+        <InstallFromGithubDialog />
         <SideBarHeaderAction
           Icon={FileUpIcon}
           tooltip={t("skills.header.upload_tooltip")}
