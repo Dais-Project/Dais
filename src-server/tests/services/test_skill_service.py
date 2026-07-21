@@ -238,3 +238,164 @@ class TestSkillService:
         assert [len(skill.resources) for skill in skills] == [1, 1]
         assert skills[0].resources[0].relative == "a.md"
         assert skills[1].resources[0].relative == "b.md"
+
+    @pytest.mark.asyncio
+    async def test_get_skills_query_without_query_returns_all_ordered_by_id(
+        self,
+        skill_service: SkillService,
+        db_session: AsyncSession,
+    ):
+        first = await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Alpha Skill",
+                description="first skill",
+                is_enabled=True,
+                content="content-a",
+                resources=[],
+            )
+        )
+        second = await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Beta Skill",
+                description="second skill",
+                is_enabled=True,
+                content="content-b",
+                resources=[],
+            )
+        )
+
+        db_session.expunge_all()
+
+        rows = await skill_service._db_session.scalars(
+            skill_service.get_skills_query()
+        )
+        skills = list(rows.all())
+
+        assert [skill.id for skill in skills] == [first.id, second.id]
+
+    @pytest.mark.asyncio
+    async def test_get_skills_query_filters_by_name_case_insensitive(
+        self,
+        skill_service: SkillService,
+        db_session: AsyncSession,
+    ):
+        matched = await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Pytest Helper",
+                description="unrelated description",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+        await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Other Skill",
+                description="nothing here",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+
+        db_session.expunge_all()
+
+        rows = await skill_service._db_session.scalars(
+            skill_service.get_skills_query("pytest")
+        )
+        skills = list(rows.all())
+
+        assert [skill.id for skill in skills] == [matched.id]
+
+    @pytest.mark.asyncio
+    async def test_get_skills_query_filters_by_description(
+        self,
+        skill_service: SkillService,
+        db_session: AsyncSession,
+    ):
+        matched = await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Generic Name",
+                description="handles alembic migrations",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+        await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Another Skill",
+                description="frontend styling",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+
+        db_session.expunge_all()
+
+        rows = await skill_service._db_session.scalars(
+            skill_service.get_skills_query("alembic")
+        )
+        skills = list(rows.all())
+
+        assert [skill.id for skill in skills] == [matched.id]
+
+    @pytest.mark.asyncio
+    async def test_get_skills_query_returns_empty_when_no_match(
+        self,
+        skill_service: SkillService,
+        db_session: AsyncSession,
+    ):
+        await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Existing Skill",
+                description="existing description",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+
+        db_session.expunge_all()
+
+        rows = await skill_service._db_session.scalars(
+            skill_service.get_skills_query("nonexistent-term")
+        )
+        skills = list(rows.all())
+
+        assert skills == []
+
+    @pytest.mark.asyncio
+    async def test_get_skills_query_empty_string_does_not_filter(
+        self,
+        skill_service: SkillService,
+        db_session: AsyncSession,
+    ):
+        first = await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Skill A",
+                description="desc a",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+        second = await skill_service.create_skill(
+            skill_schemas.SkillCreate(
+                name="Skill B",
+                description="desc b",
+                is_enabled=True,
+                content="content",
+                resources=[],
+            )
+        )
+
+        db_session.expunge_all()
+
+        rows = await skill_service._db_session.scalars(
+            skill_service.get_skills_query("")
+        )
+        skills = list(rows.all())
+
+        assert [skill.id for skill in skills] == [first.id, second.id]

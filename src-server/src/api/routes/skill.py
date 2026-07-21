@@ -19,7 +19,7 @@ from dais_skills.scanner import ScannerError
 from dais_skills.scanner.exceptions import (
     InvalidRepoUrlError as ScannerInvalidRepoUrlError,
 )
-from fastapi import APIRouter, BackgroundTasks, File, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, File, Query, UploadFile, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 
@@ -75,9 +75,12 @@ def start_materializing_background_task(
     background_tasks.add_task(clear_and_rematerialize, skill_data)
 
 @skills_router.get("/", response_model=Page[skill_schemas.SkillBrief])
-async def get_skills(db_session: DbSessionDep):
-    query = SkillService(db_session).get_skills_query()
-    return await apaginate(db_session, query)
+async def get_skills(
+    db_session: DbSessionDep,
+    query: str | None = Query(default=None),
+):
+    db_query = SkillService(db_session).get_skills_query(query)
+    return await apaginate(db_session, db_query)
 
 @skills_router.post(
     "/scan-repo",
