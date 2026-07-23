@@ -101,13 +101,24 @@ function SkillItem({ skill, index, ref, onDelete }: SkillItemProps) {
   );
 }
 
-export function SkillList() {
+type SkillListProps = {
+  searchQuery?: string;
+};
+
+export function SkillList({ searchQuery }: SkillListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
-  const query = useGetSkillsSuspenseInfinite(undefined, {
-    query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
-  });
+  const trimmedQuery = searchQuery?.trim();
+  const query = useGetSkillsSuspenseInfinite(
+    trimmedQuery ? { query: trimmedQuery } : undefined,
+    {
+      query: {
+        ...PAGINATED_QUERY_DEFAULT_OPTIONS,
+        gcTime: SIDEBAR_QUERY_GC_TIME,
+      },
+    },
+  );
 
   const deleteSkillMutation = useDeleteSkill({
     mutation: {

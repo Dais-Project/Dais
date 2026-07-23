@@ -241,6 +241,7 @@
     "header": {
       "create_tooltip": "创建技能",
       "install_github_tooltip": "从 GitHub 安装",
+      "search_placeholder": "搜索技能...",
       "title": "技能",
       "upload_tooltip": "上传技能归档"
     },

@@ -241,6 +241,7 @@
     "header": {
       "create_tooltip": "Create new skill",
       "install_github_tooltip": "Install from GitHub",
+      "search_placeholder": "Search skills...",
       "title": "Skills",
       "upload_tooltip": "Upload skill archive"
     },

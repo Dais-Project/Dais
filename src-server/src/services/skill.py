@@ -24,12 +24,19 @@ class SkillService(ServiceBase[skill_models.Skill]):
             selectinload(skill_models.Skill.resources)
         ]
 
-    def get_skills_query(self):
-        return (
+    def get_skills_query(self, query: str | None = None):
+        stmt = (
             select(skill_models.Skill)
             .order_by(skill_models.Skill.id.asc())
             .options(selectinload(skill_models.Skill.resources))
         )
+        if query:
+            search_term = f"%{query}%"
+            stmt = stmt.where(
+                skill_models.Skill.name.ilike(search_term)
+                | skill_models.Skill.description.ilike(search_term)
+            )
+        return stmt
 
     async def get_all_skills(self) -> list[skill_models.Skill]:
         stmt = (
