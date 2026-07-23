@@ -11,17 +11,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type SideBarHeaderProps = {
   title: string;
   children?: React.ReactNode;
+  actionsClass?: string;
 };
 
-export function SideBarHeader({ title, children }: SideBarHeaderProps) {
+export function SideBarHeader({ title, children, actionsClass }: SideBarHeaderProps) {
   return (
     <div className="flex items-center justify-between border-b py-2 pr-3 pl-4">
       <span className="h-8 font-medium text-sm leading-8">{title}</span>
-      <div className="flex gap-2">{children}</div>
+      <div className={cn("flex gap-2", actionsClass)}>{children}</div>
     </div>
   );
 }
