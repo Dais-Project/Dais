@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -91,10 +90,7 @@ function DirectorySelectDialog({
             >
               <FileTreeSuspense
                 selectedPath={draftPath}
-                onSelect={(path) => {
-                  console.log(path);
-                  setDraftPath(path);
-                }}
+                onSelect={setDraftPath}
               />
             </AsyncBoundary>
           </div>
