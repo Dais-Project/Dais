@@ -25,7 +25,6 @@ import {
   DialogStackTrigger,
 } from "@/components/ui/dialog-stack";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
@@ -66,10 +65,15 @@ function InstallableSkill({ checked, onCheckedChange, skill }: InstallableSkillP
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   return (
-    <div className={cn("flex cursor-pointer items-start gap-3 p-3 hover:bg-accent/50")}>
+    <div
+      className={cn("flex cursor-pointer items-start gap-3 p-3 hover:bg-accent/50")}
+      onClick={() => onCheckedChange(!checked)}
+      role="button"
+    >
       <Checkbox
         checked={checked}
-        onCheckedChange={onCheckedChange}
+        onCheckedChange={(val) => onCheckedChange(val === true)}
+        onClick={(e) => e.stopPropagation()}
         className="mt-0.5"
       />
       <div className="min-w-0 flex-1 space-y-1">
@@ -312,7 +316,7 @@ export function InstallFromGithubDialog() {
                         key={skill.path}
                         checked={checked}
                         skill={skill}
-                        onCheckedChange={() => handleTogglePath(skill.path, value === true)}
+                        onCheckedChange={(nextChecked) => handleTogglePath(skill.path, nextChecked)}
                       />
                     );
                   })}
