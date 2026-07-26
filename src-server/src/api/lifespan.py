@@ -1,7 +1,6 @@
 import asyncio
-import inspect
-from collections.abc import AsyncGenerator, Callable
-from contextlib import AsyncExitStack, asynccontextmanager
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Coroutine, TypedDict
 from fastapi import FastAPI
