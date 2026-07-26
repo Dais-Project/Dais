@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from loguru import logger
 from dais_sdk.types import ToolDef, ToolMessage
 from dais_sdk.tool.prepare import prepare_tools
+from pydantic import ValidationError
 from src.settings import use_app_setting_manager
 from ...tool.types import is_tool_metadata
 from ...prompts import (
@@ -150,6 +151,14 @@ class ToolCallReviewer:
         assert is_agent_tool_metadata(message.metadata)
 
         if tool.metadata["needs_user_interaction"]:
+            try:
+                # assume the tool that needs user interaction has an empty function body
+                # so that can be called safely and will throw ValidationError if the input is invalid.
+                tool.execute()
+            except ValidationError as e:
+                message.error = str(e)
+                return ToolCallApproved()
+
             message.metadata["pending_action"] = "respond"
             return ToolCallBlocked(event=ToolRequireUserResponseEvent(tool_name=message.name))
 

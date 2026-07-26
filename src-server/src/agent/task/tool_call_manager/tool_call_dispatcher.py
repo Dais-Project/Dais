@@ -2,7 +2,6 @@ import asyncio
 import base64
 import uuid
 import mimetypes
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from collections.abc import AsyncGenerator
 from loguru import logger
@@ -29,7 +28,7 @@ from ...types import (
     ToolRequirePermissionEvent,
     TaskResourceMetadata, TextResourceMetadata, UrlResourceMetadata, FileResourceMetadata,
 )
-from ...tool import ExecutionControlToolset, OrchestrationToolset
+from ...tool import ExecutionControlToolset
 from ...types.metadata import UserApprovalStatus, is_agent_tool_metadata
 
 
