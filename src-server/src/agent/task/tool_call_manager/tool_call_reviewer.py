@@ -154,7 +154,7 @@ class ToolCallReviewer:
             try:
                 # assume the tool that needs user interaction has an empty function body
                 # so that can be called safely and will throw ValidationError if the input is invalid.
-                tool.execute()
+                tool.execute(**message.arguments)
             except ValidationError as e:
                 message.error = str(e)
                 return ToolCallApproved()
