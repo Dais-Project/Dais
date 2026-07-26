@@ -53,6 +53,7 @@ function isValidGithubRepoUrl(value: string): boolean {
 
 type InstallableSkillProps = {
   checked: boolean;
+  disabled: boolean;
   onCheckedChange: (value: boolean) => void;
   skill: {
     name: string;
@@ -61,7 +62,7 @@ type InstallableSkillProps = {
   }
 }
 
-function InstallableSkill({ checked, onCheckedChange, skill }: InstallableSkillProps) {
+function InstallableSkill({ checked, disabled, onCheckedChange, skill }: InstallableSkillProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
 
   return (
@@ -72,6 +73,7 @@ function InstallableSkill({ checked, onCheckedChange, skill }: InstallableSkillP
     >
       <Checkbox
         checked={checked}
+        disabled={disabled}
         onCheckedChange={(val) => onCheckedChange(val === true)}
         onClick={(e) => e.stopPropagation()}
         className="mt-0.5"
@@ -81,8 +83,7 @@ function InstallableSkill({ checked, onCheckedChange, skill }: InstallableSkillP
           {skill.name}
         </div>
         <div className="line-clamp-2 text-muted-foreground text-xs">
-          {skill.description ||
-            t("skills.list.no_description")}
+          {skill.description || t("skills.list.no_description")}
         </div>
       </div>
     </div>
@@ -316,6 +317,7 @@ export function InstallFromGithubDialog() {
                         key={skill.path}
                         checked={checked}
                         skill={skill}
+                        disabled={installMutation.isPending}
                         onCheckedChange={(nextChecked) => handleTogglePath(skill.path, nextChecked)}
                       />
                     );
