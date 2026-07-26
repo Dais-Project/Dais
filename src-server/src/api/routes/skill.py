@@ -26,7 +26,7 @@ from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.agent.skills import SkillMaterializer
 from src.db.models import skill as skill_models
 from src.schemas import skill as skill_schemas
-from src.services.skill import SkillService
+from src.services.skill import SkillNameAlreadyExistsError, SkillService
 
 from ..dependencies import DbSessionDep
 from ..exceptions import ApiError, ApiErrorCode
@@ -34,7 +34,8 @@ from ..exceptions import ApiError, ApiErrorCode
 
 skills_router = APIRouter(tags=["skill"])
 
-def process_archive(file_obj: IO[bytes]) -> skill_schemas.SkillCreate:
+def process_archive(file: bytes | IO[bytes]) -> skill_schemas.SkillCreate:
+    file_obj = io.BytesIO(file) if isinstance(file, bytes) else file
     file_obj.seek(0)
     with zipfile.ZipFile(file_obj, "r") as zip_file:
         try:
@@ -58,9 +59,6 @@ def process_archive(file_obj: IO[bytes]) -> skill_schemas.SkillCreate:
             if res.type == "text"
         ],
     )
-
-def process_archive_bytes(data: bytes) -> skill_schemas.SkillCreate:
-    return process_archive(io.BytesIO(data))
 
 def start_materializing_background_task(
     background_tasks: BackgroundTasks,
@@ -121,41 +119,41 @@ async def install_from_github(
     db_session: DbSessionDep,
     background_tasks: BackgroundTasks,
 ):
-    skill_creates: list[skill_schemas.SkillCreate] = []
+    async def download_task(repo_url: str, skill_path: str) -> skill_schemas.SkillCreate:
+        nonlocal sem
+        async with sem:
+            try:
+                zip_bytes = await download_skill_zip(repo_url, skill_path)
+            except (ScannerInvalidRepoUrlError, DownloaderInvalidRepoUrlError) as e:
+                raise ApiError(
+                    status.HTTP_400_BAD_REQUEST,
+                    ApiErrorCode.INVALID_GITHUB_REPO_URL,
+                    str(e) or "Invalid GitHub repository URL",
+                )
+            except (InvalidSkillPathError, SkillPathNotFoundError) as e:
+                raise ApiError(
+                    status.HTTP_404_NOT_FOUND,
+                    ApiErrorCode.SKILL_PATH_NOT_FOUND,
+                    str(e) or f"Skill path not found: {skill_path}",
+                )
+            except DownloaderError as e:
+                raise ApiError(
+                    status.HTTP_502_BAD_GATEWAY,
+                    ApiErrorCode.SKILL_DOWNLOAD_FAILED,
+                    str(e) or f"Failed to download skill: {skill_path}",
+                )
+            return await asyncio.to_thread(process_archive, zip_bytes)
 
-    for skill_path in body.skill_paths:
-        try:
-            zip_bytes = await download_skill_zip(body.repo_url, skill_path)
-        except (
-            ScannerInvalidRepoUrlError,
-            DownloaderInvalidRepoUrlError,
-        ) as e:
-            raise ApiError(
-                status.HTTP_400_BAD_REQUEST,
-                ApiErrorCode.INVALID_GITHUB_REPO_URL,
-                str(e) or "Invalid GitHub repository URL",
-            )
-        except (InvalidSkillPathError, SkillPathNotFoundError) as e:
-            raise ApiError(
-                status.HTTP_404_NOT_FOUND,
-                ApiErrorCode.SKILL_PATH_NOT_FOUND,
-                str(e) or f"Skill path not found: {skill_path}",
-            )
-        except DownloaderError as e:
-            raise ApiError(
-                status.HTTP_502_BAD_GATEWAY,
-                ApiErrorCode.SKILL_DOWNLOAD_FAILED,
-                str(e) or f"Failed to download skill: {skill_path}",
-            )
-
-        skill_creates.append(
-            await asyncio.to_thread(process_archive_bytes, zip_bytes)
-        )
+    sem = asyncio.Semaphore(5)
+    download_tasks = [download_task(body.repo_url, skill_path) for skill_path in body.skill_paths]
+    skill_creates = await asyncio.gather(*download_tasks)
 
     service = SkillService(db_session)
     created_skills: list[skill_models.Skill] = []
     for skill_create in skill_creates:
-        created_skill = await service.create_skill(skill_create)
+        try:
+            created_skill = await service.create_skill(skill_create)
+        except SkillNameAlreadyExistsError: continue
         created_skills.append(created_skill)
 
     for created_skill in created_skills:
