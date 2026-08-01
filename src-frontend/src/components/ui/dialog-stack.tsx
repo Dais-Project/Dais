@@ -18,7 +18,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
@@ -28,7 +27,6 @@ type DialogStackContextType = {
   activeIndex: number;
   setActiveIndex: Dispatch<SetStateAction<number>>;
   totalDialogs: number;
-  setTotalDialogs: Dispatch<SetStateAction<number>>;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   clickable: boolean;
@@ -36,11 +34,10 @@ type DialogStackContextType = {
 
 const DialogStackContext = createContext<DialogStackContextType>({
   activeIndex: 0,
-  setActiveIndex: () => {},
+  setActiveIndex: () => { },
   totalDialogs: 0,
-  setTotalDialogs: () => {},
   isOpen: false,
-  setIsOpen: () => {},
+  setIsOpen: () => { },
   clickable: false,
 });
 
@@ -48,7 +45,16 @@ type DialogStackChildProps = {
   index?: number;
 };
 
+export function useDialogStack() {
+  const context = useContext(DialogStackContext);
+  if (!context) {
+    throw new Error("useDialogStack must be used within a DialogStack");
+  }
+  return context;
+}
+
 export type DialogStackProps = HTMLAttributes<HTMLDivElement> & {
+  totalDialogs: number;
   open?: boolean;
   clickable?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -59,6 +65,7 @@ export const DialogStack = ({
   children,
   className,
   open,
+  totalDialogs,
   defaultOpen = false,
   onOpenChange,
   clickable = false,
@@ -71,31 +78,18 @@ export const DialogStack = ({
     onChange: onOpenChange,
   });
 
-  const hotkeyScopeRef = useHotkeys("esc", (e) => {
-    e.stopPropagation();
-    if (activeIndex > 0) {
-      setActiveIndex((index) => index - 1);
-      return;
-    }
-    setIsOpen(false);
-  }, {
-    enabled: isOpen,
-    preventDefault: true,
-  }, [activeIndex, setActiveIndex, setIsOpen])
-
   return (
     <DialogStackContext.Provider
       value={{
         activeIndex,
         setActiveIndex,
-        totalDialogs: 0,
-        setTotalDialogs: () => {},
+        totalDialogs,
         isOpen: isOpen ?? false,
         setIsOpen: (value) => setIsOpen(Boolean(value)),
         clickable,
       }}
     >
-      <div className={className} ref={hotkeyScopeRef} {...props}>
+      <div className={className} {...props}>
         {children}
       </div>
     </DialogStackContext.Provider>
@@ -114,14 +108,10 @@ export const DialogStackTrigger = ({
   asChild,
   ...props
 }: DialogStackTriggerProps) => {
-  const context = useContext(DialogStackContext);
-
-  if (!context) {
-    throw new Error("DialogStackTrigger must be used within a DialogStack");
-  }
+  const { setIsOpen } = useDialogStack();
 
   const handleClick: MouseEventHandler<HTMLButtonElement> = (e) => {
-    context.setIsOpen(true);
+    setIsOpen(true);
     onClick?.(e);
   };
 
@@ -164,19 +154,13 @@ export const DialogStackOverlay = ({
   className,
   ...props
 }: DialogStackOverlayProps) => {
-  const context = useContext(DialogStackContext);
-
-  if (!context) {
-    throw new Error("DialogStackOverlay must be used within a DialogStack");
-  }
+  const { isOpen, setIsOpen } = useDialogStack();
 
   const handleClick = useCallback(() => {
-    context.setIsOpen(false);
-  }, [context.setIsOpen]);
+    setIsOpen(false);
+  }, [setIsOpen]);
 
-  if (!context.isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: "This is a clickable overlay"
@@ -196,8 +180,8 @@ export const DialogStackOverlay = ({
 
 export type DialogStackBodyProps = HTMLAttributes<HTMLDivElement> & {
   children:
-    | ReactElement<DialogStackChildProps>[]
-    | ReactElement<DialogStackChildProps>;
+  | ReactElement<DialogStackChildProps>[]
+  | ReactElement<DialogStackChildProps>;
 };
 
 export const DialogStackBody = ({
@@ -205,50 +189,48 @@ export const DialogStackBody = ({
   className,
   ...props
 }: DialogStackBodyProps) => {
-  const context = useContext(DialogStackContext);
-  const [totalDialogs, setTotalDialogs] = useState(Children.count(children));
+  const { activeIndex, setActiveIndex, setIsOpen, isOpen } = useDialogStack();
 
-  if (!context) {
-    throw new Error("DialogStackBody must be used within a DialogStack");
-  }
+  const hotkeyScopeRef = useHotkeys("esc", (e) => {
+    e.stopPropagation();
+    if (activeIndex > 0) {
+      setActiveIndex((index) => index - 1);
+      return;
+    }
+    setIsOpen(false);
+  }, {
+    enabled: isOpen,
+    preventDefault: true,
+  }, [activeIndex, setActiveIndex, setIsOpen])
 
-  if (!context.isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
-    <DialogStackContext.Provider
-      value={{
-        ...context,
-        totalDialogs,
-        setTotalDialogs,
-      }}
-    >
-      <Portal.Root>
-        <div
-          className={cn(
-            "pointer-events-none fixed inset-0 z-50 mx-auto flex w-full max-w-lg flex-col items-center justify-center",
-            className
-          )}
-          {...props}
-        >
-          <div className="pointer-events-auto relative flex w-full flex-col items-center justify-center">
-            {Children.map(children, (child, index) => {
-              const childElement = child as ReactElement<{
-                index: number;
-                onClick: MouseEventHandler<HTMLButtonElement>;
-                className?: string;
-              }>;
+    <Portal.Root>
+      <div
+        className={cn(
+          "pointer-events-none fixed inset-0 z-50 mx-auto flex w-full max-w-lg flex-col items-center justify-center",
+          className
+        )}
+        ref={hotkeyScopeRef}
+        {...props}
+      >
+        <div className="pointer-events-auto relative flex w-full flex-col items-center justify-center">
+          {Children.map(children, (child, index) => {
+            const childElement = child as ReactElement<{
+              index: number;
+              onClick: MouseEventHandler<HTMLButtonElement>;
+              className?: string;
+            }>;
 
-              return cloneElement(childElement, {
-                ...childElement.props,
-                index,
-              });
-            })}
-          </div>
+            return cloneElement(childElement, {
+              ...childElement.props,
+              index,
+            });
+          })}
         </div>
-      </Portal.Root>
-    </DialogStackContext.Provider>
+      </div>
+    </Portal.Root>
   );
 };
 
@@ -264,23 +246,17 @@ export const DialogStackContent = ({
   offset = 10,
   ...props
 }: DialogStackContentProps) => {
-  const context = useContext(DialogStackContext);
+  const { activeIndex, setActiveIndex, isOpen, clickable } = useDialogStack();
 
-  if (!context) {
-    throw new Error("DialogStackContent must be used within a DialogStack");
-  }
-
-  if (!context.isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   const handleClick = () => {
-    if (context.clickable && context.activeIndex > index) {
-      context.setActiveIndex(index ?? 0);
+    if (clickable && activeIndex > index) {
+      setActiveIndex(index ?? 0);
     }
   };
 
-  const distanceFromActive = index - context.activeIndex;
+  const distanceFromActive = index - activeIndex;
   const translateY =
     distanceFromActive < 0
       ? `-${Math.abs(distanceFromActive) * offset}px`
@@ -292,6 +268,7 @@ export const DialogStackContent = ({
     <div
       className={cn(
         "h-auto w-full rounded-lg border bg-background p-6 shadow-lg transition-all duration-300",
+        { "pointer-events-none select-none opacity-0": activeIndex !== index },
         className
       )}
       onClick={handleClick}
@@ -299,23 +276,17 @@ export const DialogStackContent = ({
         top: 0,
         transform: `translateY(${translateY})`,
         width: `calc(100% - ${Math.abs(distanceFromActive) * 10}px)`,
-        zIndex: 50 - Math.abs(context.activeIndex - (index ?? 0)),
+        zIndex: 50 - Math.abs(activeIndex - (index ?? 0)),
         position: distanceFromActive ? "absolute" : "relative",
         opacity: distanceFromActive > 0 ? 0 : 1,
         cursor:
-          context.clickable && context.activeIndex > index
+          clickable && activeIndex > index
             ? "pointer"
             : "default",
       }}
       {...props}
     >
-      <div
-        className={cn(
-          "h-full w-full transition-all duration-300",
-          context.activeIndex !== index &&
-            "pointer-events-none select-none opacity-0"
-        )}
-      >
+      <div className="h-full w-full transition-all duration-300">
         {children}
       </div>
     </div>
@@ -392,15 +363,11 @@ export const DialogStackNext = ({
   asChild,
   ...props
 }: DialogStackNextProps) => {
-  const context = useContext(DialogStackContext);
-
-  if (!context) {
-    throw new Error("DialogStackNext must be used within a DialogStack");
-  }
+  const { activeIndex, setActiveIndex, totalDialogs } = useDialogStack();
 
   const handleNext = () => {
-    if (context.activeIndex < context.totalDialogs - 1) {
-      context.setActiveIndex(context.activeIndex + 1);
+    if (activeIndex < totalDialogs - 1) {
+      setActiveIndex(activeIndex + 1);
     }
   };
 
@@ -426,7 +393,7 @@ export const DialogStackNext = ({
         "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         className
       )}
-      disabled={context.activeIndex >= context.totalDialogs - 1}
+      disabled={activeIndex >= totalDialogs - 1}
       onClick={handleNext}
       type="button"
       {...props}
@@ -447,15 +414,11 @@ export const DialogStackPrevious = ({
   asChild,
   ...props
 }: DialogStackPreviousProps) => {
-  const context = useContext(DialogStackContext);
-
-  if (!context) {
-    throw new Error("DialogStackPrevious must be used within a DialogStack");
-  }
+  const { activeIndex, setActiveIndex } = useDialogStack();
 
   const handlePrevious = () => {
-    if (context.activeIndex > 0) {
-      context.setActiveIndex(context.activeIndex - 1);
+    if (activeIndex > 0) {
+      setActiveIndex(activeIndex - 1);
     }
   };
 
@@ -481,7 +444,7 @@ export const DialogStackPrevious = ({
         "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         className
       )}
-      disabled={context.activeIndex <= 0}
+      disabled={activeIndex <= 0}
       onClick={handlePrevious}
       type="button"
       {...props}

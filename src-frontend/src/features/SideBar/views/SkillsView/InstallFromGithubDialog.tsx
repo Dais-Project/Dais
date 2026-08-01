@@ -98,7 +98,6 @@ export function InstallFromGithubDialog() {
   const installRequestIdRef = useRef(0);
 
   const [open, setOpen] = useState(false);
-  const [stackKey, setStackKey] = useState(0);
   const [repoUrl, setRepoUrl] = useState("");
   const [scannedSkills, setScannedSkills] = useState<ScannedSkillRead[]>([]);
   const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
@@ -114,7 +113,6 @@ export function InstallFromGithubDialog() {
       setRepoUrl("");
       setScannedSkills([]);
       setSelectedPaths([]);
-      setStackKey((key) => key + 1);
     }
   }, []);
 
@@ -210,7 +208,7 @@ export function InstallFromGithubDialog() {
 
   return (
     <DialogStack
-      key={stackKey}
+      totalDialogs={1}
       open={open}
       onOpenChange={handleOpenChange}
       clickable
