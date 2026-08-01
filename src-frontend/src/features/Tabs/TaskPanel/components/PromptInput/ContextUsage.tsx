@@ -18,7 +18,9 @@ function createUiUsage(usage: TaskUsage): ContextProps["usage"] {
   return {
     inputTokens: usage.accumulated_input_tokens,
     outputTokens: usage.accumulated_output_tokens,
-    totalTokens: usage.accumulated_input_tokens + usage.accumulated_output_tokens,
+    totalTokens:
+      (usage.accumulated_input_tokens ?? 0) +
+      (usage.accumulated_output_tokens ?? 0),
     inputTokenDetails: {
       noCacheTokens: undefined,
       cacheReadTokens: undefined,
@@ -35,8 +37,8 @@ export function ContextUsage() {
   const { usage } = useAgentTaskState();
   const uiUsage = useMemo(() => createUiUsage(usage), [usage]);
   if (usage.max_tokens === 0
-   || usage.accumulated_input_tokens === 0
-   || usage.accumulated_output_tokens === 0
+    || usage.accumulated_input_tokens === 0
+    || usage.accumulated_output_tokens === 0
   ) {
     return null;
   }
