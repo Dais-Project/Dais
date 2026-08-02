@@ -66,7 +66,7 @@ export const SubtaskToolSchema: z.ZodType<OrchestrationSubtask> = z.object({
               call_id: z.string(),
             }),
             z.object({
-              status: z.enum(["approved", "denied"]),
+              decision: z.enum(["approved", "denied"]),
               call_id: z.string(),
             }),
           ])
@@ -82,7 +82,7 @@ export const SubtaskToolSchema: z.ZodType<OrchestrationSubtask> = z.object({
 
 export const ShellToolSchema: z.ZodType<OsInteractionsShell> = z.object({
   command: z.string(),
-  args: z.array(z.string()).nullish(),
+  args: z.string().nullish(),
   cwd: z.string().optional(),
   timeout: z.number().int().optional(),
 });

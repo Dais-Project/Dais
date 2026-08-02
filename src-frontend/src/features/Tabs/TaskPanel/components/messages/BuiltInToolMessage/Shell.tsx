@@ -69,7 +69,7 @@ function useShellDisplay(
     if (toolArguments.args === null || toolArguments.args === undefined) {
       return toolArguments.command;
     }
-    return [toolArguments.command, ...toolArguments.args].join(" ");
+    return `${toolArguments.command} ${toolArguments.args}`;
   }, [toolArguments, message, t]);
 
   const output: ShellResult = useMemo(() => {
