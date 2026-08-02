@@ -1,39 +1,57 @@
 import { useEffect } from "react";
+import { FormProvider, useController, useForm, useFormContext, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { FormProvider, useForm } from "react-hook-form";
-import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
-import type { LlmModelCreate, LlmModelRead } from "@/api/generated/schemas";
+import type { LlmModelCreate, LlmModelRead, LlmProviders } from "@/api/generated/schemas";
+import { CheckboxField, NameField } from "@/components/custom/form/fields";
 import { FieldItem } from "@/components/custom/item/FieldItem";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { DEFAULT_LLM_MODEL } from "@/constants/provider";
-import { CheckboxField, NameField } from "@/components/custom/form/fields";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DEFAULT_LLM_MODEL, PROVIDER_REASONING_EFFORTS } from "@/constants/provider";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
 
 type ModelEditDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   model: LlmModelCreate | null;
   onConfirm: (model: LlmModelCreate) => void;
+  providerType: LlmProviders;
 };
 
-export function ModelEditDialog({
-  open,
-  onOpenChange,
-  model,
-  onConfirm,
-}: ModelEditDialogProps) {
+function ReasoningEffortField({ providerType }: { providerType: LlmProviders }) {
+  const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
+  const { control } = useFormContext<LlmModelCreate | LlmModelRead>();
+  const { field } = useController({
+    name: "capability.reasoning_effort",
+    control,
+  });
+  const efforts = PROVIDER_REASONING_EFFORTS[providerType] ?? [];
+
+  return (
+    <Select value={field.value ?? undefined} onValueChange={field.onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder={t("models.edit_dialog.capability.reasoning_effort.placeholder")} />
+      </SelectTrigger>
+      <SelectContent>
+        {efforts.map((effort) => (
+          <SelectItem key={effort} value={effort}>
+            {t(`models.edit_dialog.capability.reasoning_effort.options.${effort}`)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+export function ModelEditDialog({ open, onOpenChange, model, onConfirm, providerType }: ModelEditDialogProps) {
   const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
   const dialogForm = useForm<LlmModelCreate | LlmModelRead>({ defaultValues: DEFAULT_LLM_MODEL });
-  const { reset, handleSubmit, register, getFieldState, formState } = dialogForm;
+  const { reset, handleSubmit, register, getFieldState, formState, control, setValue } = dialogForm;
+
+  const isReasoningEnabled = useWatch({ control, name: "capability.reasoning" });
 
   useEffect(() => {
     if (model) {
@@ -41,13 +59,22 @@ export function ModelEditDialog({
     }
   }, [model, reset]);
 
+  useEffect(() => {
+    if (!isReasoningEnabled) {
+      setValue("capability.reasoning_effort", undefined);
+    }
+  }, [isReasoningEnabled, setValue]);
+
   return (
-    <Dialog open={open} onOpenChange={(open_) => {
-      if (!open_) {
-        reset();
-      }
-      onOpenChange(open_);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(open_) => {
+        if (!open_) {
+          reset();
+        }
+        onOpenChange(open_);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("models.edit_dialog.title")}</DialogTitle>
@@ -87,34 +114,38 @@ export function ModelEditDialog({
               <Field className="mt-4 flex flex-row justify-between">
                 <FieldLabel className="self-start">{t("models.edit_dialog.capability.label")}</FieldLabel>
                 <div className="flex w-max flex-col items-end gap-y-1 pr-2">
-                  {[
-                    {
-                      name: "capability.vision" as const,
+                  <CheckboxField
+                    fieldName="capability.vision"
+                    fieldProps={{
                       label: t("models.edit_dialog.capability.vision"),
-                    },
-                    {
-                      name: "capability.reasoning" as const,
-                      label: t("models.edit_dialog.capability.reasoning"),
-                    },
-                    {
-                      name: "capability.tool_use" as const,
+                      className: "w-fit",
+                      contentClassName: "w-auto",
+                    }}
+                  />
+                  <CheckboxField
+                    fieldName="capability.tool_use"
+                    fieldProps={{
                       label: t("models.edit_dialog.capability.tool_use"),
-                    },
-                  ].map((capability) => (
+                      className: "w-fit",
+                      contentClassName: "w-auto",
+                    }}
+                  />
+                  <Collapsible open={isReasoningEnabled} className="flex w-full flex-col items-end gap-y-1">
                     <CheckboxField
-                      key={capability.name}
-                      fieldName={capability.name}
+                      fieldName="capability.reasoning"
                       fieldProps={{
-                        label: capability.label,
+                        label: t("models.edit_dialog.capability.reasoning"),
                         className: "w-fit",
                         contentClassName: "w-auto",
                       }}
                     />
-                  ))}
+                    <CollapsibleContent className="data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 data-[state=closed]:animate-out data-[state=open]:animate-in">
+                      <ReasoningEffortField providerType={providerType} />
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               </Field>
             </FieldGroup>
-
 
             <DialogFooter className="mt-8">
               <DialogClose asChild>

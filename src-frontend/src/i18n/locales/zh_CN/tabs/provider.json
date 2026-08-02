@@ -32,6 +32,18 @@
       "capability": {
         "label": "模型能力",
         "reasoning": "推理能力",
+        "reasoning_effort": {
+          "placeholder": "推理强度",
+          "options": {
+            "none": "禁用",
+            "minimal": "极低",
+            "low": "低",
+            "medium": "中",
+            "high": "高",
+            "xhigh": "极高",
+            "max": "最高"
+          }
+        },
         "tool_use": "工具调用",
         "vision": "视觉能力"
       },

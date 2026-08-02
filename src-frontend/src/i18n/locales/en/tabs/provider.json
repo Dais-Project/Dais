@@ -32,6 +32,18 @@
       "capability": {
         "label": "Model capabilities",
         "reasoning": "Reasoning capability",
+        "reasoning_effort": {
+          "placeholder": "Reasoning effort",
+          "options": {
+            "none": "None",
+            "minimal": "Minimal",
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High",
+            "xhigh": "Extra high",
+            "max": "Maximum"
+          }
+        },
         "tool_use": "Tool use",
         "vision": "Vision capability"
       },
