@@ -35,7 +35,7 @@ class OsInteractionsToolset(BuiltinToolset):
     async def shell(self,
                     command: Annotated[str,
                         "The command to execute. Do not pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd)."],
-                    args: Annotated[list[str] | None,
+                    args: Annotated[str | None,
                         "The arguments for the command."] = None,
                     cwd: Annotated[str,
                         "The working directory to execute the command in, relative to the current working directory."] = ".",
@@ -53,10 +53,10 @@ class OsInteractionsToolset(BuiltinToolset):
 
         Examples:
             # Run: python script.py --verbose --output /tmp/out.txt
-            shell(command="python", args=["script.py", "--verbose", "--output", "/tmp/out.txt"])
+            shell(command="python", args="script.py --verbose --output /tmp/out.txt")
 
             # Run: ls -la /tmp
-            shell(command="ls", args=["-la", "/tmp"])
+            shell(command="ls", args="-la /tmp")
 
         Returns:
             A XML string with the command result and metadata as attributes:
@@ -113,7 +113,7 @@ class OsInteractionsToolset(BuiltinToolset):
             ))
 
         step = CommandStep(command=command,
-                           args=args or [],
+                           args=args or "",
                            cwd=self._ctx.cwd / cwd,
                            timeout=timeout)
         start_time = time.monotonic()
