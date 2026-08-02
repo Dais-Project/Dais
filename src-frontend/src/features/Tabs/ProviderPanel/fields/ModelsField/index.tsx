@@ -1,31 +1,25 @@
 import { DownloadIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useFormContext, useWatch } from "react-hook-form";
-import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
+import { useTranslation } from "react-i18next";
+import type { LlmModelCreate, LlmModelRead } from "@/api/generated/schemas";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { LlmModelCreate, LlmModelRead } from "@/api/generated/schemas";
-import type {
-  ProviderCreateFormValues,
-  ProviderEditFormValues,
-} from "../../form-types";
+import { TABS_PROVIDER_NAMESPACE } from "@/i18n/resources";
+import type { ProviderCreateFormValues, ProviderEditFormValues } from "../../form-types";
+import { ModelEditDialog } from "./ModelEditDialog";
 import { ModelItem } from "./ModelItem";
 import { ModelSelectDialog } from "./ModelSelectDialog";
 import { useModelManagement } from "./use-model-management";
-import { ModelEditDialog } from "./ModelEditDialog";
 
 export function ModelsField() {
   const { t } = useTranslation(TABS_PROVIDER_NAMESPACE);
-  const { control, trigger } = useFormContext<
-    ProviderCreateFormValues | ProviderEditFormValues
-  >();
+  const { control, trigger } = useFormContext<ProviderCreateFormValues | ProviderEditFormValues>();
   const [providerType, baseUrl, apiKey] = useWatch({
     control,
     name: ["type", "base_url", "api_key"],
   });
-  const { models, handleDeleteModel, handleEditModel, handleSelectModels } =
-    useModelManagement({ control });
+  const { models, handleDeleteModel, handleEditModel, handleSelectModels } = useModelManagement({ control });
 
   const existingModelNames = useMemo(() => {
     return models.map((model) => model.name);
@@ -60,12 +54,7 @@ export function ModelsField() {
           existingModelNames={existingModelNames}
           onConfirm={handleSelectModels}
         >
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleValidateProvider}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={handleValidateProvider}>
             <DownloadIcon className="mr-1 h-4 w-4" />
             {t("form.models.fetch_button")}
           </Button>
@@ -89,6 +78,7 @@ export function ModelsField() {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         model={editingModel}
+        providerType={providerType}
         onConfirm={(updatedModel) => {
           handleEditModel(updatedModel);
           setIsEditDialogOpen(false);
