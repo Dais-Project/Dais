@@ -1,19 +1,18 @@
 import dataclasses
-from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
-from dais_sdk.providers import LlmProviders
+from dais_sdk.providers import LlmProviders, ReasoningEffort
 from . import Base, relationship
 from .utils import DataClassJSON
-
 
 @dataclasses.dataclass
 class LlmModelCapability:
     vision: bool = False
-    reasoning: bool = False
     tool_use: bool = False
+    reasoning: bool = False
+    reasoning_effort: ReasoningEffort | None = None
 
 class LlmModel(Base):
     __tablename__ = "llm_models"

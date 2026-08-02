@@ -58,7 +58,7 @@ wheels = [
 
 [[package]]
 name = "anthropic"
-version = "0.85.0"
+version = "0.120.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -70,9 +70,9 @@ dependencies = [
     { name = "sniffio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c5/08/c620a0eb8625539a8ea9f5a6e06f13d131be0bc8b5b714c235d4b25dd1b5/anthropic-0.85.0.tar.gz", hash = "sha256:d45b2f38a1efb1a5d15515a426b272179a0d18783efa2bb4c3925fa773eb50b9", size = 542034, upload-time = "2026-03-16T17:00:44.324Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/10/4ca013cb166f226bd89e0aeb0fcaff94f45ddf716d4925ce89475d3c587b/anthropic-0.120.2.tar.gz", hash = "sha256:9722efc10c27a30a69f5338ddacdb35bc6a64297a4e4ba729bf83af873d5fb3a", size = 1008421, upload-time = "2026-07-28T17:38:26.986Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/5a/9d85b85686d5cdd79f5488c8667e668d7920d06a0a1a1beb454a5b77b2db/anthropic-0.85.0-py3-none-any.whl", hash = "sha256:b4f54d632877ed7b7b29c6d9ba7299d5e21c4c92ae8de38947e9d862bff74adf", size = 458237, upload-time = "2026-03-16T17:00:45.877Z" },
+    { url = "https://files.pythonhosted.org/packages/63/af/0f5db57b9397a0f3b7fc204cbef143401a7cadaf982330f97f1ce3d39f34/anthropic-0.120.2-py3-none-any.whl", hash = "sha256:0f0bc2b381dc0eb41c8d886b815d79c2041cd2374f83aed36f574b6dc9c579c1", size = 1022851, upload-time = "2026-07-28T17:38:25.466Z" },
 ]
 
 [[package]]
@@ -370,22 +370,20 @@ wheels = [
 
 [[package]]
 name = "dais-sdk"
-version = "0.10.29"
+version = "0.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
-    { name = "binaryornot" },
     { name = "httpx" },
     { name = "mcp" },
     { name = "openai" },
     { name = "pydantic" },
-    { name = "python-frontmatter" },
     { name = "starlette" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f3/7e/366b11832485f8ac80e5e3f33913e68cbb9ffcf872304927eddad628a5ce/dais_sdk-0.10.29.tar.gz", hash = "sha256:72c57166837ea74c90ff2e696d312fd6c9cc954b851f3dab739af86678ec4365", size = 29109, upload-time = "2026-06-19T17:36:15.845Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/9c/689c5bd1cecc675de1a5e82fd48d0d175c8f2abd44de835c1bbf3c49dc3e/dais_sdk-0.11.1.tar.gz", hash = "sha256:878953bddd8a15d5ccae38e81d00ae6ea55d54c235fc79a13a608718beddbce5", size = 28129, upload-time = "2026-08-01T13:53:10.59Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/76/51/9a1147d8d6df7c7bcfd5d7a74987c45a63683b61991a6c83108f41168fde/dais_sdk-0.10.29-py3-none-any.whl", hash = "sha256:b9de3854936a7b712933fd80374ce74000be4992bc9ed4c0e0ddd6ac8b34aae8", size = 44433, upload-time = "2026-06-19T17:36:14.661Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/c4/e60601313dd56487293bfa9102428b7cf62459cb8a77521ecc8b976d1f59/dais_sdk-0.11.1-py3-none-any.whl", hash = "sha256:9170823e9710381a70af0add015d61451a4d333305979a81b4bc05a81214f747", size = 42968, upload-time = "2026-08-01T13:53:08.995Z" },
 ]
 
 [[package]]
@@ -448,7 +446,7 @@ requires-dist = [
     { name = "apscheduler", specifier = "==3.11.2" },
     { name = "binaryornot", specifier = "==0.6.0" },
     { name = "dais-scantree", specifier = "==0.2.2" },
-    { name = "dais-sdk", specifier = "==0.10.29" },
+    { name = "dais-sdk", specifier = "==0.11.1" },
     { name = "dais-shell", specifier = "==0.2.0" },
     { name = "dais-skills", specifier = "==0.1.5" },
     { name = "fastapi", specifier = "==0.136.1" },
@@ -1130,7 +1128,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "2.24.0"
+version = "2.52.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1142,9 +1140,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/55/13/17e87641b89b74552ed408a92b231283786523edddc95f3545809fab673c/openai-2.24.0.tar.gz", hash = "sha256:1e5769f540dbd01cb33bc4716a23e67b9d695161a734aff9c5f925e2bf99a673", size = 658717, upload-time = "2026-02-24T20:02:07.958Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/5a/c45fa035cd72c70ebe67c6e079e3adf871492382634f69e3dff62c43597d/openai-2.52.0.tar.gz", hash = "sha256:7c736d592f81471ce1f734838390983c4d8c8aecff23dcd36e600a58e5032d9c", size = 1098876, upload-time = "2026-07-31T15:13:03.228Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/30/844dc675ee6902579b8eef01ed23917cc9319a1c9c0c14ec6e39340c96d0/openai-2.24.0-py3-none-any.whl", hash = "sha256:fed30480d7d6c884303287bde864980a4b137b60553ffbcf9ab4a233b7a73d94", size = 1120122, upload-time = "2026-02-24T20:02:05.669Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/ac/ceb40c995df49533ad4dcff6c37f0d85cf14446a212363fc9d2f927e60b4/openai-2.52.0-py3-none-any.whl", hash = "sha256:f97e231d9a8fa69ab55897df1080f02d99913fb0a30e3ee56ea16a1eb6c2d434", size = 1659569, upload-time = "2026-07-31T15:13:01.145Z" },
 ]
 
 [[package]]
