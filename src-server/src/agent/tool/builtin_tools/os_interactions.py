@@ -102,16 +102,6 @@ class OsInteractionsToolset(BuiltinToolset):
         HEAD_LINES = 200
         TAIL_LINES = 200
 
-        if " " in command:
-            raise ValueError(
-                inspect.cleandoc(
-                f"""
-                Invalid command "{command}": `command` must be the executable only (e.g., "python").
-                Move arguments to the `args` parameter.
-                This tool call should be: shell(command="{command.split()[0]}", args={command.split()[1:]})
-                """
-            ))
-
         step = CommandStep(command=command,
                            args=args or "",
                            cwd=self._ctx.cwd / cwd,
