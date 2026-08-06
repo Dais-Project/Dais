@@ -9,6 +9,7 @@ from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
 from src.services.tasks import TaskService
 from src.schemas.tasks import task as task_schemas
+from src.utils.text import get_visual_length
 from ...dependencies import DbSessionDep
 from ...exceptions import ApiError, ApiErrorCode
 
@@ -74,6 +75,9 @@ async def summarize_task_title(task_id: int, db_session: DbSessionDep):
 
     if len(title) == 0:
         raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, "Generated empty content")
+
+    if get_visual_length(title) > 20:
+        raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, "Generated title too long.")
 
     update_data = task_schemas.TaskUpdate(
         title=title,
