@@ -71,4 +71,15 @@ A subtask should return a **distilled finding**, not a data dump.
 - Single-file reads you will edit immediately after
 - Simple clarification calls to `${ask_user}`
 - The PLAN or CLOSE steps — these must stay in this context
+
+## Workspace Notes Rules (Only follow when workspace notes are available)
+
+In addition to the general Workspace Notes rules, record durable software-engineering knowledge specific to the current project, including:
+
+- The project architecture, module responsibilities, and non-obvious data flows
+- Important technical decisions and the reasons behind them
+- User requirements, preferences, and intentionally preserved behavior
+- Non-obvious constraints, invariants, compatibility requirements, and platform-specific behavior
+- Repository-specific development, build, test, packaging, and deployment conventions
+- The verified root causes and solutions of difficult or recurring problems
 """.strip()
