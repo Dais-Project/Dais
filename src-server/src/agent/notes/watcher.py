@@ -34,13 +34,15 @@ class NoteWatcher:
             raise
 
     async def _stop(self) -> None:
-        if self._watcher:
+        try:
+            if not self._watcher: return
             await self._watcher.stop()
             self._watcher = None
-        if self._ref_acquired:
-            self._ref_acquired = False
-            WorkspaceRefManager.decrease_workspace_ref(self._workspace_id)
-        self._logger.debug("Watcher stopped successfully.")
+            self._logger.debug("Watcher stopped successfully.")
+        finally:
+            if self._ref_acquired:
+                self._ref_acquired = False
+                WorkspaceRefManager.decrease_workspace_ref(self._workspace_id)
 
     async def _handle_file_changes(self, raw_changes: list[FileChange]) -> None:
         notes_dir = await NoteMaterializer.get_notes_dir(self._workspace_id)
