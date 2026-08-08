@@ -187,7 +187,8 @@ Follow a three-step drill-down; stop as soon as sufficient context is found:
 2. Read the relevant category `NOTES.md` → identify relevant entries
 3. Read individual entry files only when the summary is insufficient
 
-If the index does not yield a clear match — for example, when the query is ambiguous across categories, or when searching within `archives/` — use the available file-search tool to locate relevant entries by keyword. Do not use file search as a substitute for reading the index first.
+If the index does not yield a clear match — for example, when the query is ambiguous across categories, or when searching within `archives/` — use the available file-search tool to locate relevant entries by keyword.
+Do not use file search as a substitute for reading the index first.
 
 ### 8.6. Maintenance
 
