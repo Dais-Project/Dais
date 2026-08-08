@@ -69,14 +69,17 @@ async def summarize_task_title(task_id: int, db_session: DbSessionDep):
         llm = await create_one_turn_llm(settings.flash_model)
         summarizer = TitleSummarization(llm, settings.reply_language)
         title = await summarizer(task.messages)
+        _logger.info(f"Generated title: {title}")
     except Exception as e:
         _logger.exception("Failed to request title summarization")
         raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, str(e))
 
     if len(title) == 0:
+        _logger.error("Generated empty content")
         raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, "Generated empty content")
 
-    if get_visual_length(title) > 20:
+    if get_visual_length(title) > 40:
+        _logger.error("Generated title too long")
         raise ApiError(status.HTTP_500_INTERNAL_SERVER_ERROR, ApiErrorCode.SUMMARIZE_TITLE_FAILED, "Generated title too long.")
 
     update_data = task_schemas.TaskUpdate(
