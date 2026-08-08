@@ -325,6 +325,7 @@ export type PromptInputProps = Omit<
   HTMLAttributes<HTMLFormElement>,
   "onSubmit" | "onError"
 > & {
+  ref?: RefObject<HTMLFormElement | null>;
   // e.g., "image/*" or leave undefined for any
   accept?: string;
   multiple?: boolean;
@@ -347,6 +348,7 @@ export type PromptInputProps = Omit<
 };
 
 export const PromptInput = ({
+  ref,
   className,
   accept,
   multiple,
@@ -709,7 +711,10 @@ export const PromptInput = ({
       <form
         className={cn("w-full", className)}
         onSubmit={handleSubmit}
-        ref={formRef}
+        ref={(node) => {
+          formRef.current = node;
+          if (ref) (ref.current = node)
+        }}
         {...props}
       >
         <InputGroup className="overflow-hidden">{children}</InputGroup>

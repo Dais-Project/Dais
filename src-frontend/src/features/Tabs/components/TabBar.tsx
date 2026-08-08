@@ -9,8 +9,9 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
-import { StoredTab, type TabIndicator, useTabsStore } from "@/stores/tabs-store";
+import { StoredTab, useTabsStore } from "@/stores/tabs-store";
 import { Tab } from "@/types/tab";
+import { TabIndicator } from "./TabIndicator";
 
 const TAB_ICON_MAP: Record<Tab["type"], LucideIcon> = {
   task: BotIcon,
@@ -20,13 +21,6 @@ const TAB_ICON_MAP: Record<Tab["type"], LucideIcon> = {
   provider: PlugIcon,
   toolset: ToolCaseIcon,
   skill: ScrollTextIcon,
-};
-
-const TAB_INDICATOR_CLASS_MAP: Record<TabIndicator, string> = {
-  "in-progress": "bg-info animate-pulse",
-  success: "bg-success",
-  warning: "bg-warning",
-  destructive: "bg-destructive",
 };
 
 function SortableTab({ tab }: { tab: StoredTab }) {
@@ -82,15 +76,7 @@ function SortableTab({ tab }: { tab: StoredTab }) {
       >
         <div className="relative text-base">
           {tabIcon}
-          {indicator !== null && (
-            <span
-              aria-hidden
-              className={cn(
-                "absolute right-0 bottom-0 size-2 rounded-full border border-background translate-x-1/4 translate-y-1/4",
-                TAB_INDICATOR_CLASS_MAP[indicator]
-              )}
-            />
-          )}
+          {indicator !== null && <TabIndicator indicator={indicator} />}
         </div>
         <span>{tab.title}</span>
         <XIcon

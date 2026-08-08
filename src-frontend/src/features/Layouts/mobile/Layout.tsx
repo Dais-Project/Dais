@@ -10,7 +10,7 @@ import {
 import { SIDEBAR_NAMESPACE, TABS_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import { TabPanelDispatcher } from "../../Tabs/components/TabPanels";
-import { MobileNavigationDrawer } from "./NavigationDrawer";
+import { NavigationDrawer } from "./NavigationDrawer";
 
 function MobileTaskPanels() {
   const { t } = useTranslation(TABS_NAMESPACE);
@@ -102,7 +102,7 @@ export function Layout() {
             <MobileTaskPanels />
           </main>
         </div>
-        <MobileNavigationDrawer />
+        <NavigationDrawer />
       </Drawer>
     </DrawerContainer>
   );

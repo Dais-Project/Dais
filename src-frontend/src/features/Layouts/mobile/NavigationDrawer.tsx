@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
+  DrawerContainer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
@@ -38,28 +39,19 @@ import {
   SIDEBAR_QUERY_GC_TIME,
 } from "@/constants/query-options";
 import { openTaskTab } from "@/features/SideBar/views/TasksView/shared";
+import { TabIndicator } from "@/features/Tabs/components/TabIndicator";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { SIDEBAR_NAMESPACE, TABS_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 import { resolveIconName } from "@/lib/resolve-iconname";
 import { useSettingsStore } from "@/stores/settings-store";
-import {
-  type StoredTab,
-  type TabIndicator,
-  useTabsStore,
-} from "@/stores/tabs-store";
+import { type StoredTab, useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { Separator } from "@/components/ui/separator";
 
 type NavigationView = "open" | "workspace-tasks";
 type WorkspaceItemVariant = "current" | "frequent" | "default";
 type WorkspaceListItem = WorkspaceBrief & { variant: WorkspaceItemVariant };
-
-const TAB_INDICATOR_CLASS_MAP: Record<TabIndicator, string> = {
-  "in-progress": "bg-info animate-pulse",
-  success: "bg-success",
-  warning: "bg-warning",
-  destructive: "bg-destructive",
-};
 
 function MobileListSkeleton() {
   return (
@@ -129,13 +121,7 @@ function OpenTaskTabs() {
               <span className="relative shrink-0">
                 <TaskTabIcon tab={tab} />
                 {indicator !== null && (
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "absolute right-0 bottom-0 size-2 translate-x-1/4 translate-y-1/4 rounded-full border border-background",
-                      TAB_INDICATOR_CLASS_MAP[indicator],
-                    )}
-                  />
+                  <TabIndicator indicator={indicator} />
                 )}
               </span>
               <span className="min-w-0 flex-1 truncate font-medium">
@@ -149,7 +135,7 @@ function OpenTaskTabs() {
   );
 }
 
-function MobileTaskItem({
+function TaskItem({
   task,
   index,
   ref,
@@ -248,7 +234,7 @@ function WorkspaceTaskList({ workspaceId }: { workspaceId: number }) {
             tab.metadata.id === item.id,
         );
         return (
-          <MobileTaskItem
+          <TaskItem
             key={key}
             ref={ref}
             task={item}
@@ -450,49 +436,50 @@ function WorkspaceSelector() {
   );
 }
 
-export function MobileNavigationDrawer() {
+export function NavigationDrawer() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const [view, setView] = useState<NavigationView>("open");
 
   return (
-    <DrawerContent className="w-[min(88vw,360px)]! max-w-[360px]!">
-      <DrawerHeader className="sr-only">
-        <DrawerTitle>{t("mobile.navigation")}</DrawerTitle>
-      </DrawerHeader>
-      <div className="grid shrink-0 grid-cols-2 border-b pt-[env(safe-area-inset-top)]">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => setView("open")}
-          className={cn(
-            "min-h-11 rounded-none border-r",
-            view === "open" && "bg-accent text-accent-foreground",
+    <DrawerContent className="border-none w-[min(88vw,360px)]! max-w-[360px]!">
+      <DrawerContainer className="flex h-full flex-col overflow-hidden">
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>{t("mobile.navigation")}</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex items-center justify-center border-b pt-[env(safe-area-inset-top)]">
+          <Button
+            variant="ghost"
+            onClick={() => setView("open")}
+            className={cn(
+              "flex-1 min-h-10 rounded-none",
+              view === "open" && "bg-accent text-accent-foreground",
+            )}
+          >
+            {t("mobile.opened")}
+          </Button>
+          <Separator orientation="vertical" />
+          <Button
+            variant="ghost"
+            onClick={() => setView("workspace-tasks")}
+            className={cn(
+              "flex-1 min-h-10 rounded-none",
+              view === "workspace-tasks" && "bg-accent text-accent-foreground",
+            )}
+          >
+            {t("mobile.workspace_tasks")}
+          </Button>
+        </div>
+        <div className="min-h-0 flex-1">
+          {view === "open" ? (
+            <OpenTaskTabs />
+          ) : (
+            <AsyncBoundary skeleton={<MobileListSkeleton />}>
+              <WorkspaceTasks />
+            </AsyncBoundary>
           )}
-        >
-          {t("mobile.opened")}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => setView("workspace-tasks")}
-          className={cn(
-            "min-h-11 rounded-none",
-            view === "workspace-tasks" && "bg-accent text-accent-foreground",
-          )}
-        >
-          {t("mobile.workspace_tasks")}
-        </Button>
-      </div>
-      <div className="min-h-0 flex-1">
-        {view === "open" ? (
-          <OpenTaskTabs />
-        ) : (
-          <AsyncBoundary skeleton={<MobileListSkeleton />}>
-            <WorkspaceTasks />
-          </AsyncBoundary>
-        )}
-      </div>
-      <WorkspaceSelector />
+        </div>
+        <WorkspaceSelector />
+      </DrawerContainer>
     </DrawerContent>
   );
 }

@@ -2,6 +2,7 @@ import type { ChatStatus } from "ai";
 import { Suspense, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
+import { useSize } from "ahooks";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   PromptInput as BasePromptInput,
@@ -255,8 +256,13 @@ export function PromptInput({ workspaceId, className }: PromptInputProps) {
   } = usePromptInputHandlers();
   const ableToSubmit = text.length && state === "idle" && agentId !== null;
 
+  const containerRef = useRef<HTMLFormElement>(null);
+  const size = useSize(containerRef);
+  const shouldShowProgress = size ? size.width > 576 : true;
+
   return (
     <BasePromptInput
+      ref={containerRef}
       className={cn("rounded-md bg-background", className)}
       {...PROMPTINPUT_FILE_DROP_OPTIONS}
       onSubmit={(message) => {
@@ -303,7 +309,9 @@ export function PromptInput({ workspaceId, className }: PromptInputProps) {
             onChange={setAgentId}
           />
           <ContextUsage />
-          <TaskProgress className="min-w-0 flex-1" />
+          {shouldShowProgress && (
+            <TaskProgress className="min-w-0 flex-1" />
+          )}
         </PromptInputTools>
         <div className="flex gap-2">
           <PromptInputActionAddAttachmentsButton />
