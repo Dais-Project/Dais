@@ -11,7 +11,7 @@ import { TaskPanel } from "../TaskPanel";
 import { ToolsetPanel } from "../ToolsetPanel";
 import { WorkspacePanel } from "../WorkspacePanel";
 
-function TabPanelDispatcher({
+export function TabPanelDispatcher({
   tab,
   isActive,
 }: {

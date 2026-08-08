@@ -23,6 +23,14 @@
       "delete_success_title": "删除成功"
     }
   },
+  "mobile": {
+    "navigation": "导航",
+    "open_navigation": "打开导航",
+    "opened": "已打开",
+    "select_workspace": "选择工作区",
+    "workspace_select_error": "选择工作区失败。",
+    "workspace_tasks": "工作区任务"
+  },
   "plugins": {
     "placeholder": "插件视图"
   },
