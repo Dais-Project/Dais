@@ -196,11 +196,21 @@ class AgentContext:
             return None
 
         if self.task_type == "subtask":
-            # remove "subtask" tool when the current task_type is "subtask"
-            subtask_tool_id = find_builtin_tool_id(OrchestrationToolset, OrchestrationToolset.subtask)
-            if subtask_tool_id is not None:
-                if subtask_tool_id in workspace_usable_tool_ids: workspace_usable_tool_ids.remove(subtask_tool_id)
-                if subtask_tool_id in agent_usable_tool_ids: agent_usable_tool_ids.remove(subtask_tool_id)
+            # remove orchestration tools when the current task_type is "subtask"
+            for orchestration_tool in (
+                OrchestrationToolset.create_subtask,
+                OrchestrationToolset.followup_subtask,
+            ):
+                orchestration_tool_id = find_builtin_tool_id(
+                    OrchestrationToolset,
+                    orchestration_tool,
+                )
+                if orchestration_tool_id is None:
+                    continue
+                if orchestration_tool_id in workspace_usable_tool_ids:
+                    workspace_usable_tool_ids.remove(orchestration_tool_id)
+                if orchestration_tool_id in agent_usable_tool_ids:
+                    agent_usable_tool_ids.remove(orchestration_tool_id)
 
         if self.task_type == "schedule":
             # remove "show_plan" tool when the current task_type is "schedule"

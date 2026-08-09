@@ -46,7 +46,7 @@ For any complex task (requiring more than one file modification), follow this se
     If verification fails, diagnose the root cause before retrying - do not blindly re-apply the same fix.
 5. **CLOSE**: Call `${finish_task}` with a concise summary of what was changed and why. Do not suggest follow-up improvements unless the user asks.
 
-## Subtask Rules (Only follow when `${subtask}` tool available)
+## Subtask Rules (Only follow when `${create_subtask}` and `${followup_subtask}` tools are available)
 
 ### Principle
 

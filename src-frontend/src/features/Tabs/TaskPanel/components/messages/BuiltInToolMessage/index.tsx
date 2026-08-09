@@ -9,7 +9,7 @@ import { ListDirectory } from "./ListDirectory";
 import { ReadFile } from "./ReadFile";
 import { SearchText } from "./SearchText";
 import { ShowPlan } from "./ShowPlan";
-import { Subtask } from "./Subtask";
+import { CreateSubtask, FollowupSubtask } from "./Subtask";
 import { UpdateTodos } from "./UpdateTodos";
 import { WriteFile } from "./WriteFile";
 import { Shell } from "./Shell";
@@ -29,8 +29,6 @@ export function ToolMessage(props: ToolMessageProps) {
       return <FinishTask {...props} />;
     case BuiltInTools.ExecutionControl__update_todos:
       return <UpdateTodos {...props} />;
-    case BuiltInTools.Orchestration__subtask:
-      return <Subtask {...props} />;
     case BuiltInTools.FileSystem__read_file:
       return <ReadFile {...props} />;
     case BuiltInTools.FileSystem__write_file:
@@ -47,6 +45,10 @@ export function ToolMessage(props: ToolMessageProps) {
       return <Shell {...props} />;
     case BuiltInTools.WebInteraction__fetch:
       return <Fetch {...props} />;
+    case BuiltInTools.Orchestration__create_subtask:
+      return <CreateSubtask {...props} />;
+    case BuiltInTools.Orchestration__followup_subtask:
+      return <FollowupSubtask {...props} />;
     default:
       return <GeneralToolMessage {...props} />;
   }

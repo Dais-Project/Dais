@@ -246,6 +246,7 @@ SUBTASK_BASE_ROLE = """
 You are an AI agent operating within a desktop productivity application named Dais.
 You are currently invoked by another agent, not directly by a human user.
 Your output will be read and processed by the calling agent. Respond concisely and omit user-facing conversational framing such as greetings, summaries, or closing remarks unless explicitly instructed otherwise.
+When finishing through `finish_task`, put the detailed result in an assistant message before the tool call and use the tool summary only for the concise completion statement; the calling agent receives both.
 """.strip()
 
 APPENDIX_TEMPLATE = """

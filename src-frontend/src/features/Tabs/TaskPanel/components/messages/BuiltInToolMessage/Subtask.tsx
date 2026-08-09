@@ -1,6 +1,9 @@
 import { GitBranchIcon, PanelRightOpenIcon, XIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { OrchestrationSubtask } from "@/api/generated/schemas";
+import type {
+  OrchestrationCreateSubtask,
+  OrchestrationFollowupSubtask,
+} from "@/api/generated/schemas";
 import { useGetAgent } from "@/api/generated/endpoints/agent/agent";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
@@ -12,7 +15,10 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { SubtaskToolSchema } from "@/api/tool-schema";
+import {
+  CreateSubtaskToolSchema,
+  FollowupSubtaskToolSchema,
+} from "@/api/tool-schema";
 import { Badge } from "@/components/ui/badge";
 import { getToolMessageMetadata } from "@/types/message";
 import { ToolConfirmation } from "./components/ToolConfirmation";
@@ -44,7 +50,9 @@ function parseSubtaskIdFromResult(result: string | null): number | undefined {
 
   try {
     const parser = XmlRawContentParser.parse(resultText, [
+      "detail",
       "step",
+      "summary",
       "tool_call",
       "subtask_result",
     ]);
@@ -60,7 +68,6 @@ function parseSubtaskIdFromResult(result: string | null): number | undefined {
     // Fall through to regex parsing
   }
 
-  // Fallback regex for the subtask_id attribute on the root element
   const match = resultText.match(
     /<subtask_result[^>]*\bsubtask_id="(\d+)"/,
   );
@@ -100,16 +107,15 @@ function SubtaskAgentName({ agentId }: { agentId: number }) {
   return <Badge>{data.name}</Badge>;
 }
 
-export function Subtask({ message }: ToolMessageProps) {
+type SubtaskProps = ToolMessageProps & {
+  agentId?: number | null;
+};
+
+function Subtask({ message, agentId }: SubtaskProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { reviewTool } = useAgentTaskAction();
-  const toolArguments = useToolArgument<OrchestrationSubtask>(
-    message,
-    SubtaskToolSchema,
-  );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
-  const agentId = toolArguments?.action.agent_id;
   const subtaskId = parseSubtaskIdFromResult(message.result as string | null);
 
   return (
@@ -162,4 +168,22 @@ export function Subtask({ message }: ToolMessageProps) {
       {subtaskId && <SubtaskDrawerContent subtaskId={subtaskId} />}
     </Drawer>
   );
+}
+
+export function CreateSubtask({ message }: ToolMessageProps) {
+  const toolArguments = useToolArgument<OrchestrationCreateSubtask>(
+    message,
+    CreateSubtaskToolSchema,
+  );
+
+  return <Subtask message={message} agentId={toolArguments?.agent_id} />;
+}
+
+export function FollowupSubtask({ message }: ToolMessageProps) {
+  const toolArguments = useToolArgument<OrchestrationFollowupSubtask>(
+    message,
+    FollowupSubtaskToolSchema,
+  );
+
+  return <Subtask message={message} agentId={toolArguments?.agent_id} />;
 }

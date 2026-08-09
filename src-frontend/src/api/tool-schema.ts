@@ -8,7 +8,8 @@ import type {
   FileSystemReadFile,
   FileSystemSearchText,
   FileSystemWriteFile,
-  OrchestrationSubtask,
+  OrchestrationCreateSubtask,
+  OrchestrationFollowupSubtask,
   OsInteractionsShell,
   UserInteractionAskUser,
   UserInteractionShowPlan,
@@ -48,33 +49,32 @@ export const FinishTaskSchema: z.ZodType<ExecutionControlFinishTask> = z.object(
 
 /* --- Orchestration Tools --- */
 
-export const SubtaskToolSchema: z.ZodType<OrchestrationSubtask> = z.object({
-  action: z.union([
-    z.object({
-      instruction: z.string(),
-      agent_id: z.number().int(),
-    }),
-    z.object({
-      subtask_id: z.number().int(),
-      agent_id: z.number().int().nullish(),
-      message: z.union([
-        z.string(),
-        z.array(
-          z.union([
-            z.object({
-              answer: z.string(),
-              call_id: z.string(),
-            }),
-            z.object({
-              decision: z.enum(["approved", "denied"]),
-              call_id: z.string(),
-            }),
-          ])
-        ),
-      ]),
-    }),
-  ]),
-});
+export const CreateSubtaskToolSchema: z.ZodType<OrchestrationCreateSubtask> =
+  z.object({
+    agent_id: z.number().int(),
+    instruction: z.string(),
+  });
+
+export const FollowupSubtaskToolSchema: z.ZodType<OrchestrationFollowupSubtask> =
+  z.object({
+    subtask_id: z.number().int(),
+    message: z.union([
+      z.string(),
+      z.array(
+        z.union([
+          z.object({
+            answer: z.string(),
+            call_id: z.string(),
+          }),
+          z.object({
+            decision: z.enum(["approved", "denied"]),
+            call_id: z.string(),
+          }),
+        ]),
+      ),
+    ]),
+    agent_id: z.number().int().nullish(),
+  });
 
 /* --- Orchestration Tools --- */
 

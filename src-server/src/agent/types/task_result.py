@@ -25,6 +25,7 @@ class TaskWaitingAction(BaseModel):
 class TaskFinished(BaseModel):
     reason: Literal[StopReason.FINISHED] = StopReason.FINISHED
     summary: str
+    detail: str | None = None
 
 type TaskStopResult = Annotated[
     TaskError | TaskInterrupted | TaskWaitingAction | TaskFinished,
