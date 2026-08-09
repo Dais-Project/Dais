@@ -67,7 +67,7 @@ export function NavigationDrawer({ onClose }: { onClose: () => void }) {
   return (
     <NavigationDrawerProvider onClose={onClose}>
       <DrawerContent className="border-none w-[min(88vw,360px)]! max-w-[360px]!">
-        <DrawerContainer className="flex h-full flex-col overflow-hidden">
+        <DrawerContainer className="flex h-full flex-col overflow-hidden [&_[data-slot=drawer-overlay]]:bg-black/70">
           <DrawerHeader className="sr-only">
             <DrawerTitle>{t("mobile.navigation")}</DrawerTitle>
           </DrawerHeader>
