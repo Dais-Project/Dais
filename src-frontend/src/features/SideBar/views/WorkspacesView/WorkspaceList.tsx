@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   CircleIcon,
   Clock3Icon,
@@ -44,6 +44,10 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { Tab } from "@/types/tab";
 import { openTaskCreateTab } from "../TasksView/shared";
+import { WorkspaceItemVariant } from "./types";
+import { WorkspaceIcon } from "./WorkspaceIcon";
+
+type WorkspaceListItem = WorkspaceBrief & { variant: WorkspaceItemVariant };
 
 function createWorkspaceEditTab(
   workspaceId: number,
@@ -128,8 +132,6 @@ function openWorkspaceNotesEditTab({
   }
 }
 
-type WorkspaceItemVariant = "current" | "frequent" | "default";
-
 type WorkspaceItemProps = {
   workspace: WorkspaceBrief;
   disabled: boolean;
@@ -187,17 +189,6 @@ function WorkspaceItem({
     }
   };
 
-  const icon = (() => {
-    switch (variant) {
-      case "current":
-        return <FolderIcon fill="currentColor" className="size-4" />;
-      case "frequent":
-        return <Clock3Icon className="size-4" />;
-      default:
-        return <FolderIcon className="size-4" />;
-    }
-  })();
-
   return (
     <ActionableItem>
       <ActionableItemTrigger ref={ref} data-index={index}>
@@ -209,7 +200,7 @@ function WorkspaceItem({
           onClick={handleSelect}
           aria-disabled={disabled}
         >
-          {icon}
+          <WorkspaceIcon variant={variant} />
         </ActionableItemIcon>
         <ActionableItemInfo
           title={workspace.name}
@@ -302,7 +293,6 @@ export function WorkspaceList() {
     },
   });
 
-  type WorkspaceListItem = WorkspaceBrief & { variant: WorkspaceItemVariant };
   const workspaceListItems = useMemo<WorkspaceListItem[]>(() => {
     const frequentItems: WorkspaceListItem[] = frequentWorkspaces.data
       .filter((workspace) => workspace.id !== currentWorkspace?.id)

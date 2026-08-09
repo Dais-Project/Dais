@@ -7,10 +7,12 @@ import { LayoutSkeleton as MobileSkeleton } from "./mobile/Skeleton";
 import { Layout as DesktopLayout } from "./desktop/Layout";
 import { LayoutSkeleton as DesktopSkeleton } from "./desktop/Skeleton";
 
+const isMobile = (responsive: ReturnType<typeof useResponsive>) =>
+  (responsive.xs || responsive.sm) && !responsive.md;
+
 export function LayoutSkeleton() {
   const responsive = useResponsive();
-  const isMobile = responsive.sm && !responsive.md;
-  if (isMobile) {
+  if (isMobile(responsive)) {
     return <MobileSkeleton />;
   } else {
     return <DesktopSkeleton />;
@@ -22,8 +24,8 @@ export function Layout() {
   useScheduleNotificationListener();
 
   const responsive = useResponsive();
-  const isMobile = responsive.sm && !responsive.md;
-  if (isMobile) {
+  console.log(responsive);
+  if (isMobile(responsive)) {
     return <MobileLayout />;
   } else {
     return <DesktopLayout />;
