@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-import textwrap
 
 import pytest
 from src.agent.tool.builtin_tools.os_interactions import OsInteractionsToolset
@@ -38,8 +37,7 @@ class TestOsInteractionsShell:
         tool = OsInteractionsToolset(builtin_toolset_context)
 
         result = await tool.shell(
-            command="python",
-            args=["-c", "print('hello'); import sys; sys.stderr.write('oops')"],
+            script="python -c \"print('hello'); import sys; sys.stderr.write('oops')\"",
         )
         root_attrib, stdout_attrib, stdout_text, stderr_attrib, stderr_text = parse_shell_result(result)
 
@@ -58,8 +56,7 @@ class TestOsInteractionsShell:
 
         tool = OsInteractionsToolset(builtin_toolset_context)
         result = await tool.shell(
-            command="python",
-            args=["-c", "from pathlib import Path; print(Path('cwd.txt').read_text())"],
+            script="python -c \"from pathlib import Path; print(Path('cwd.txt').read_text())\"",
             cwd=str(target_dir),
         )
         _, _, stdout_text, _, _ = parse_shell_result(result)
@@ -68,17 +65,14 @@ class TestOsInteractionsShell:
     @pytest.mark.asyncio
     async def test_shell_truncates_stdout_and_stderr(self, builtin_toolset_context):
         tool = OsInteractionsToolset(builtin_toolset_context)
-        script = textwrap.dedent(
-            """
-            import sys
-            for i in range(1200):
-                print(f"line {i}")
-            for i in range(600):
-                print(f"err {i}", file=sys.stderr)
-            """
-        ).strip()
 
-        result = await tool.shell(command="python", args=["-c", script])
+        result = await tool.shell(
+            script=(
+                "python -c \"import sys; "
+                "[print(f'line {i}') for i in range(1200)]; "
+                "[print(f'err {i}', file=sys.stderr) for i in range(600)]\""
+            ),
+        )
         _, stdout_attrib, stdout_text, stderr_attrib, stderr_text = parse_shell_result(result)
 
         assert stdout_attrib["truncated"] == "true"
@@ -91,24 +85,20 @@ class TestOsInteractionsShell:
         assert "[... " in stderr_text
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        "command,args",
-        [
-            ("python -c", ["print('x')"]),
-            ("cmd /c dir", []),
-        ],
-        ids=["python-inline-args", "cmd-inline-args"],
-    )
-    async def test_shell_rejects_command_with_inline_arguments(
-        self,
-        builtin_toolset_context,
-        command: str,
-        args: list[str],
-    ):
+    async def test_shell_supports_shell_operators(self, builtin_toolset_context):
         tool = OsInteractionsToolset(builtin_toolset_context)
 
-        with pytest.raises(ValueError, match="must be the executable only"):
-            await tool.shell(command=command, args=args)
+        result = await tool.shell(
+            script=(
+                "python -c \"print('first')\"; "
+                "python -c \"print('second')\""
+            ),
+        )
+        root_attrib, _, stdout_text, _, _ = parse_shell_result(result)
+
+        assert root_attrib["returncode"] == "0"
+        assert "first" in stdout_text
+        assert "second" in stdout_text
 
     @pytest.mark.asyncio
     async def test_shell_xml_special_chars_in_output_should_not_be_escaped(self, builtin_toolset_context):
@@ -118,8 +108,7 @@ class TestOsInteractionsShell:
         tool = OsInteractionsToolset(builtin_toolset_context)
 
         result = await tool.shell(
-            command="python",
-            args=["-c", "print('<div>test</div>'); import sys; sys.stderr.write('a & b')"],
+            script="python -c \"print('<div>test</div>'); import sys; sys.stderr.write('a & b')\"",
         )
 
         assert "<div>test</div>" in result, (

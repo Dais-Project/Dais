@@ -66,10 +66,7 @@ function useShellDisplay(
         ? t("tool.shell.generating")
         : t("tool.shell.parse_error");
     }
-    if (toolArguments.args === null || toolArguments.args === undefined) {
-      return toolArguments.command;
-    }
-    return `${toolArguments.command} ${toolArguments.args}`;
+    return toolArguments.script;
   }, [toolArguments, message, t]);
 
   const output: ShellResult = useMemo(() => {
@@ -124,7 +121,7 @@ export function Shell({ message }: ToolMessageProps) {
       onOpenChange={(open) => setCollapsed(!open)}
       defaultOpen={true}
       className="visibility-auto"
-      title={toolArguments?.command ?? "Shell"}
+      title="Shell"
       actions={
         risk.level !== undefined ? (
           <RiskBadge level={risk.level} reason={risk.reason} />

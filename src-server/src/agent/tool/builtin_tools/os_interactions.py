@@ -1,10 +1,9 @@
-import inspect
 import time
 import xml.etree.ElementTree as ET
 from typing import Annotated, override
 from itertools import islice
 from anyxml import AnyXml
-from dais_shell import AgentShell, CommandStep
+from dais_shell import AgentShell, ShellScript
 from dais_shell.iostream_reader import IOStreamBuffer
 from src.db.models import toolset as toolset_models
 from src.binaries import UV_PATH, NODE_PATH
@@ -33,10 +32,8 @@ class OsInteractionsToolset(BuiltinToolset):
 
     @builtin_tool(validate=True)
     async def shell(self,
-                    command: Annotated[str,
-                        "The command to execute. Do not pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd)."],
-                    args: Annotated[str | None,
-                        "The arguments for the command."] = None,
+                    script: Annotated[str,
+                        "The shell script to execute."],
                     cwd: Annotated[str,
                         "The working directory to execute the command in, relative to the current working directory."] = ".",
                     timeout: Annotated[int,
@@ -47,16 +44,12 @@ class OsInteractionsToolset(BuiltinToolset):
         This tool receives PowerShell commands on Windows and bash commands on Linux and MacOS.
         This is a LOW PRIORITY tool — only use this tool when no suitable specialized tool is available.
 
-        IMPORTANTS:
-            - DO NOT pass shell executables (e.g., powershell, pwsh, bash, sh, zsh, cmd) as the command. If passed, the tool will reject the request for security reasons
-            - DO NOT use shell operators such as `&&`, `||`, `|`, `;`, `>`, `>>`, `<`, `2>&1`
-
         Examples:
-            # Run: python script.py --verbose --output /tmp/out.txt
-            shell(command="python", args="script.py --verbose --output /tmp/out.txt")
+            # Run a Python script
+            shell(script="python script.py")
 
-            # Run: ls -la /tmp
-            shell(command="ls", args="-la /tmp")
+            # Pipe command output to another command
+            shell(script="python --version | python -c 'import sys; print(sys.stdin.read().upper())'")
 
         Returns:
             A XML string with the command result and metadata as attributes:
@@ -102,10 +95,11 @@ class OsInteractionsToolset(BuiltinToolset):
         HEAD_LINES = 200
         TAIL_LINES = 200
 
-        step = CommandStep(command=command,
-                           args=args or "",
-                           cwd=self._ctx.cwd / cwd,
-                           timeout=timeout)
+        step = ShellScript(
+            script=script,
+            cwd=self._ctx.cwd / cwd,
+            timeout=timeout,
+        )
         start_time = time.monotonic()
         result = await self._shell.run(step)
         duration = time.monotonic() - start_time

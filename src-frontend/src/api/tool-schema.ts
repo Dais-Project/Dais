@@ -81,8 +81,7 @@ export const FollowupSubtaskToolSchema: z.ZodType<OrchestrationFollowupSubtask> 
 /* --- OS Interaction Tools --- */
 
 export const ShellToolSchema: z.ZodType<OsInteractionsShell> = z.object({
-  command: z.string(),
-  args: z.string().nullish(),
+  script: z.string(),
   cwd: z.string().optional(),
   timeout: z.number().int().optional(),
 });
