@@ -1,7 +1,7 @@
 {
   "name": "dais",
   "private": true,
-  "version": "0.13.8",
+  "version": "0.13.9",
   "type": "module",
   "scripts": {
     "postinstall": "nx run-many -t install",
