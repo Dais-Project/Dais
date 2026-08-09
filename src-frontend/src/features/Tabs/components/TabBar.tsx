@@ -4,30 +4,13 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BotIcon, CalendarPlusIcon, FolderCogIcon, type LucideIcon, PlugIcon, ScrollTextIcon, ToolCaseIcon, XIcon } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
+import { XIcon } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
 import { cn } from "@/lib/utils";
-import { StoredTab, type TabIndicator, useTabsStore } from "@/stores/tabs-store";
-import { Tab } from "@/types/tab";
-
-const TAB_ICON_MAP: Record<Tab["type"], LucideIcon> = {
-  task: BotIcon,
-  schedule: CalendarPlusIcon,
-  workspace: FolderCogIcon,
-  agent: BotIcon,
-  provider: PlugIcon,
-  toolset: ToolCaseIcon,
-  skill: ScrollTextIcon,
-};
-
-const TAB_INDICATOR_CLASS_MAP: Record<TabIndicator, string> = {
-  "in-progress": "bg-info animate-pulse",
-  success: "bg-success",
-  warning: "bg-warning",
-  destructive: "bg-destructive",
-};
+import { StoredTab, useTabsStore } from "@/stores/tabs-store";
+import { TabIcon } from "./TabIcon";
+import { TabIndicator } from "./TabIndicator";
 
 function SortableTab({ tab }: { tab: StoredTab }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tab.id });
@@ -51,14 +34,6 @@ function SortableTab({ tab }: { tab: StoredTab }) {
     }
   };
 
-  const tabIcon = (() => {
-    if (tab.icon) {
-      return <DynamicIcon name={tab.icon} size="1em" />;
-    }
-    const TargetIcon = TAB_ICON_MAP[tab.type];
-    return <TargetIcon size="1em" />;
-  })();
-
   return (
     <div
       ref={setNodeRef}
@@ -81,16 +56,8 @@ function SortableTab({ tab }: { tab: StoredTab }) {
         )}
       >
         <div className="relative text-base">
-          {tabIcon}
-          {indicator !== null && (
-            <span
-              aria-hidden
-              className={cn(
-                "absolute right-0 bottom-0 size-2 rounded-full border border-background translate-x-1/4 translate-y-1/4",
-                TAB_INDICATOR_CLASS_MAP[indicator]
-              )}
-            />
-          )}
+          <TabIcon tab={tab} size="1em" />
+          {indicator !== null && <TabIndicator indicator={indicator} />}
         </div>
         <span>{tab.title}</span>
         <XIcon

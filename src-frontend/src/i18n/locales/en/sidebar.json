@@ -23,6 +23,14 @@
       "delete_success_title": "Delete success"
     }
   },
+  "mobile": {
+    "navigation": "Navigation",
+    "open_navigation": "Open navigation",
+    "opened": "Opened",
+    "select_workspace": "Select workspace",
+    "workspace_select_error": "Failed to select workspace.",
+    "workspace_tasks": "Workspace tasks"
+  },
   "plugins": {
     "placeholder": "Plugins view"
   },

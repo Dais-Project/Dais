@@ -1,8 +1,9 @@
+import { Activity, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { Empty, EmptyContent, EmptyTitle } from "@/components/ui/empty";
 import { TABS_NAMESPACE } from "@/i18n/resources";
 import { activityVisible } from "@/lib/activity-visible";
 import { StoredTab, useTabsStore } from "@/stores/tabs-store";
-import { Activity, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { AgentPanel } from "../AgentPanel";
 import { ProviderPanel } from "../ProviderPanel";
 import { SchedulePanel } from "../SchedulePanel";
@@ -11,7 +12,7 @@ import { TaskPanel } from "../TaskPanel";
 import { ToolsetPanel } from "../ToolsetPanel";
 import { WorkspacePanel } from "../WorkspacePanel";
 
-function TabPanelDispatcher({
+export function TabPanelDispatcher({
   tab,
   isActive,
 }: {
@@ -70,11 +71,14 @@ export function TabPanels() {
 
   if (activeTabId === null || sortedTabs.length === 0) {
     return (
-      <div className="flex flex-1 h-full items-center justify-center">
-        <p className="mb-16">{t("tabs.empty.no_tabs_open")}</p>
-      </div>
+      <Empty className="h-full rounded-none">
+        <EmptyContent className="mb-16">
+          <EmptyTitle>{t("tabs.empty.no_tabs_open")}</EmptyTitle>
+        </EmptyContent>
+      </Empty>
     );
   }
+
   return (
     <div className="flex-1 overflow-hidden bg-layout-tabs-content">
       {sortedTabs.map((tab) => {
