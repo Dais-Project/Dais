@@ -108,7 +108,7 @@ class OsInteractionsToolset(BuiltinToolset):
         stderr_truncated, stderr_result = truncate_output(result.stderr_buf, STDERR_MAX_OUTPUT_LINES, HEAD_LINES, TAIL_LINES)
 
         root = ET.Element("shell_result", attrib={
-            "status": result.status,
+            "status": result.status.value,
             "returncode": str(result.returncode),
             "duration": f"{duration:.2f}",
         })
