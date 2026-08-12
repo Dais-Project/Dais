@@ -89,6 +89,40 @@ class TestScheduleService:
         assert [item.id for item in schedules] == [second.id, first.id]
 
     @pytest.mark.asyncio
+    async def test_get_schedules_query_filters_by_name_case_insensitive(
+        self,
+        schedule_service: ScheduleService,
+        workspace_factory,
+    ):
+        workspace = await workspace_factory(name="Workspace A")
+        matching = await schedule_service.create_schedule(
+            schedule_schemas.ScheduleCreate(
+                name="Morning Sync",
+                task="First task",
+                is_enabled=True,
+                config=PollingConfig(type="polling", interval_sec=60),
+                agent_id=None,
+                workspace_id=workspace.id,
+            )
+        )
+        await schedule_service.create_schedule(
+            schedule_schemas.ScheduleCreate(
+                name="Evening report",
+                task="Second task",
+                is_enabled=True,
+                config=PollingConfig(type="polling", interval_sec=60),
+                agent_id=None,
+                workspace_id=workspace.id,
+            )
+        )
+
+        rows = await schedule_service._db_session.scalars(
+            schedule_service.get_schedules_query(workspace.id, "morning")
+        )
+
+        assert [schedule.id for schedule in rows.all()] == [matching.id]
+
+    @pytest.mark.asyncio
     async def test_update_schedule(
         self,
         schedule_service: ScheduleService,

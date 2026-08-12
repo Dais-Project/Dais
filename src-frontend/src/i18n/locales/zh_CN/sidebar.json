@@ -3,8 +3,13 @@
     "dialog": {
       "delete_description_with_name": "确定要删除 Agent \"{{name}}\" 吗？此操作无法撤销。"
     },
+    "empty": {
+      "description": "您还没有创建任何 Agent。",
+      "title": "暂无 Agent"
+    },
     "header": {
       "create_tooltip": "创建 Agent",
+      "search_placeholder": "搜索 Agent...",
       "title": "Agents"
     },
     "list": {
@@ -58,6 +63,7 @@
     "header": {
       "create_tooltip": "创建计划任务",
       "history_tooltip": "查看所有执行历史",
+      "search_placeholder": "搜索计划任务...",
       "title": "计划任务"
     },
     "list": {
@@ -92,6 +98,12 @@
       "delete_success_title": "删除成功",
       "run_now_success_description": "计划任务已触发执行。",
       "run_now_success_title": "已触发"
+    }
+  },
+  "search": {
+    "empty": {
+      "description": "没有与「{{query}}」匹配的资源，请尝试其他关键词。",
+      "title": "未找到匹配结果"
     }
   },
   "settings": {
@@ -246,6 +258,10 @@
         "selected_count_other": "已选择 {{count}} 个"
       }
     },
+    "empty": {
+      "description": "您还没有创建任何技能。",
+      "title": "暂无技能"
+    },
     "header": {
       "create_tooltip": "创建技能",
       "install_github_tooltip": "从 GitHub 安装",
@@ -288,6 +304,7 @@
     },
     "header": {
       "create_tooltip": "创建任务",
+      "search_placeholder": "搜索任务...",
       "title": "任务"
     },
     "menu": {
@@ -311,6 +328,7 @@
     },
     "header": {
       "create_tooltip": "连接到 MCP 服务",
+      "search_placeholder": "搜索工具集...",
       "title": "工具集"
     },
     "menu": {
@@ -345,6 +363,7 @@
     },
     "header": {
       "create_tooltip": "创建工作区",
+      "search_placeholder": "搜索工作区...",
       "title": "工作区"
     },
     "menu": {

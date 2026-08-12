@@ -59,6 +59,31 @@ class TestWorkspaceService:
         assert {t.id for t in workspace.usable_tools} == {tool.id}
 
     @pytest.mark.asyncio
+    async def test_get_workspaces_query_filters_by_name_or_directory(
+        self,
+        workspace_service: WorkspaceService,
+        workspace_factory,
+    ):
+        name_match = await workspace_factory(
+            name="Release Workspace",
+            directory="/tmp/general",
+        )
+        directory_match = await workspace_factory(
+            name="General",
+            directory="/tmp/release-notes",
+        )
+        await workspace_factory(name="Other", directory="/tmp/other")
+
+        rows = await workspace_service._db_session.scalars(
+            workspace_service.get_workspaces_query("release")
+        )
+
+        assert [workspace.id for workspace in rows.unique().all()] == [
+            name_match.id,
+            directory_match.id,
+        ]
+
+    @pytest.mark.asyncio
     async def test_update_workspace_updates_fields_and_relations(
         self,
         workspace_service: WorkspaceService,

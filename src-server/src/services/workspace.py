@@ -26,12 +26,19 @@ class WorkspaceService(ServiceBase[workspace_models.Workspace]):
             selectinload(workspace_models.Workspace.notes),
         ]
 
-    def get_workspaces_query(self):
-        return (
+    def get_workspaces_query(self, query: str | None = None):
+        stmt = (
             select(workspace_models.Workspace)
             .order_by(workspace_models.Workspace.id.asc())
             .options(*self.relations())
         )
+        if query:
+            search_term = f"%{query}%"
+            stmt = stmt.where(
+                workspace_models.Workspace.name.ilike(search_term)
+                | workspace_models.Workspace.directory.ilike(search_term)
+            )
+        return stmt
 
     async def _update_relations(
         self,

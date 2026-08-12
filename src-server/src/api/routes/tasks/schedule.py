@@ -16,9 +16,13 @@ async def get_schedule_running_jobs():
     return await use_schedule_runner().list_job_snapshots()
 
 @schedule_manage_router.get("/", response_model=Page[schedule_schemas.ScheduleBrief])
-async def get_schedules(db_session: DbSessionDep, workspace_id: int = Query(...)):
-    query = ScheduleService(db_session).get_schedules_query(workspace_id)
-    return await apaginate(db_session, query)
+async def get_schedules(
+    db_session: DbSessionDep,
+    workspace_id: int = Query(...),
+    query: str | None = Query(default=None),
+):
+    db_query = ScheduleService(db_session).get_schedules_query(workspace_id, query)
+    return await apaginate(db_session, db_query)
 
 @schedule_manage_router.get("/records", response_model=Page[schedule_schemas.RunRecordAllBrief])
 async def get_all_run_records(db_session: DbSessionDep):

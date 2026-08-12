@@ -18,8 +18,12 @@ task_manage_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskManageRoute")
 
 @task_manage_router.get("/", response_model=Page[task_schemas.TaskBrief])
-async def get_tasks(db_session: DbSessionDep, workspace_id: int = Query(...)):
-    tasks_query = TaskService(db_session).get_tasks_query(workspace_id)
+async def get_tasks(
+    db_session: DbSessionDep,
+    workspace_id: int = Query(...),
+    query: str | None = Query(default=None),
+):
+    tasks_query = TaskService(db_session).get_tasks_query(workspace_id, query)
     final_query = (
         tasks_query
         .add_columns(agent_models.Agent.icon_name)

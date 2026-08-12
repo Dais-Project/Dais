@@ -19,12 +19,19 @@ class AgentService(ServiceBase[agent_models.Agent]):
             selectinload(agent_models.Agent.usable_tools),
         ]
 
-    def get_agents_query(self):
-        return (
+    def get_agents_query(self, query: str | None = None):
+        stmt = (
             select(agent_models.Agent)
             .order_by(agent_models.Agent.id.asc())
             .options(selectinload(agent_models.Agent.model))
         )
+        if query:
+            search_term = f"%{query}%"
+            stmt = stmt.where(
+                agent_models.Agent.name.ilike(search_term)
+                | agent_models.Agent.description.ilike(search_term)
+            )
+        return stmt
 
     async def get_agent_by_id(self, id: int) -> agent_models.Agent:
         agent = await self._db_session.get(

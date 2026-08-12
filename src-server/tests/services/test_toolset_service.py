@@ -52,6 +52,26 @@ class TestToolsetService:
         assert created.tools[0].description == "Tool A description"
 
     @pytest.mark.asyncio
+    async def test_get_toolsets_filters_by_name_case_insensitive(
+        self,
+        toolset_service: ToolsetService,
+        toolset_factory,
+    ):
+        builtin_match = await toolset_factory(name="Release Tools")
+        mcp_match = await toolset_factory(
+            name="Release MCP",
+            type=toolset_models.ToolsetType.MCP_LOCAL,
+            params={"command": "echo", "args": [], "env": {}},
+        )
+        await toolset_factory(name="Other tools")
+
+        builtin_toolsets = await toolset_service.get_all_builtin_toolsets("release")
+        mcp_toolsets = await toolset_service.get_all_mcp_toolsets("release")
+
+        assert [toolset.id for toolset in builtin_toolsets] == [builtin_match.id]
+        assert [toolset.id for toolset in mcp_toolsets] == [mcp_match.id]
+
+    @pytest.mark.asyncio
     async def test_delete_toolset_removes_entity_and_tool_children(
         self,
         toolset_service: ToolsetService,

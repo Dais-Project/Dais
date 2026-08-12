@@ -21,12 +21,15 @@ class TaskService(ServiceBase[task_models.Task]):
             selectinload(task_models.Task.workspace),
         ]
 
-    def get_tasks_query(self, workspace_id: int):
-        return (
+    def get_tasks_query(self, workspace_id: int, query: str | None = None):
+        stmt = (
             select(task_models.Task)
             .where(task_models.Task.workspace_id == workspace_id)
             .order_by(task_models.Task.id.desc())
         )
+        if query:
+            stmt = stmt.where(task_models.Task.title.ilike(f"%{query}%"))
+        return stmt
 
     def get_recent_tasks_query(self):
         return (

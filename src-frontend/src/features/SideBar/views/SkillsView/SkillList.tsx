@@ -11,6 +11,12 @@ import type { SkillBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
   ActionableItem,
   ActionableItemIcon,
   ActionableItemInfo,
@@ -24,6 +30,7 @@ import { i18n } from "@/i18n";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
+import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 function createSkillEditTab(skillId: number, skillName: string): Tab {
   return {
@@ -102,16 +109,15 @@ function SkillItem({ skill, index, ref, onDelete }: SkillItemProps) {
 }
 
 type SkillListProps = {
-  searchQuery?: string;
+  searchQuery: string | null;
 };
 
 export function SkillList({ searchQuery }: SkillListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
-  const trimmedQuery = searchQuery?.trim();
   const query = useGetSkillsSuspenseInfinite(
-    trimmedQuery ? { query: trimmedQuery } : undefined,
+    searchQuery ? { query: searchQuery } : undefined,
     {
       query: {
         ...PAGINATED_QUERY_DEFAULT_OPTIONS,
@@ -142,6 +148,22 @@ export function SkillList({ searchQuery }: SkillListProps) {
       await deleteSkillMutation.mutateAsync({ skillId: skill.id });
     },
   });
+  const hasItems = query.data.pages.some((page) => page.items.length > 0);
+
+  if (!hasItems) {
+    if (searchQuery) {
+      return <SideBarSearchEmpty query={searchQuery} />;
+    }
+
+    return (
+      <Empty>
+        <EmptyContent>
+          <EmptyTitle>{t("skills.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("skills.empty.description")}</EmptyDescription>
+        </EmptyContent>
+      </Empty>
+    );
+  }
 
   return (
     <>

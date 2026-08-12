@@ -12,6 +12,12 @@ import type { AgentBrief } from "@/api/generated/schemas";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { InfiniteVirtualScroll } from "@/components/custom/InfiniteScroll";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
   ActionableItem,
   ActionableItemIcon,
   ActionableItemInfo,
@@ -26,6 +32,7 @@ import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { resolveIconName } from "@/lib/resolve-iconname";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
+import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
@@ -110,13 +117,23 @@ function AgentItem({ agent, index, ref, onDelete }: AgentItemProps) {
   );
 }
 
-export function AgentList() {
+type AgentListProps = {
+  searchQuery: string | null;
+};
+
+export function AgentList({ searchQuery }: AgentListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
-  const query = useGetAgentsSuspenseInfinite(undefined, {
-    query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
-  });
+  const query = useGetAgentsSuspenseInfinite(
+    searchQuery ? { query: searchQuery } : undefined,
+    {
+      query: {
+        ...PAGINATED_QUERY_DEFAULT_OPTIONS,
+        gcTime: SIDEBAR_QUERY_GC_TIME,
+      },
+    },
+  );
 
   const deleteAgentMutation = useDeleteAgent({
     mutation: {
@@ -140,6 +157,22 @@ export function AgentList() {
       await deleteAgentMutation.mutateAsync({ agentId: agent.id });
     },
   });
+  const hasItems = query.data.pages.some((page) => page.items.length > 0);
+
+  if (!hasItems) {
+    if (searchQuery) {
+      return <SideBarSearchEmpty query={searchQuery} />;
+    }
+
+    return (
+      <Empty>
+        <EmptyContent>
+          <EmptyTitle>{t("agents.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("agents.empty.description")}</EmptyDescription>
+        </EmptyContent>
+      </Empty>
+    );
+  }
 
   return (
     <>

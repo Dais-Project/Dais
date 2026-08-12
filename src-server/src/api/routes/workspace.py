@@ -12,9 +12,12 @@ from ..exceptions import ApiError, ApiErrorCode
 workspaces_router = APIRouter(tags=["workspace"])
 
 @workspaces_router.get("/", response_model=Page[workspace_schemas.WorkspaceBrief])
-async def get_workspaces(db_session: DbSessionDep):
-    query = WorkspaceService(db_session).get_workspaces_query()
-    return await apaginate(db_session, query)
+async def get_workspaces(
+    db_session: DbSessionDep,
+    query: str | None = Query(default=None),
+):
+    db_query = WorkspaceService(db_session).get_workspaces_query(query)
+    return await apaginate(db_session, db_query)
 
 @workspaces_router.get("/frequents/", response_model=list[workspace_schemas.WorkspaceBrief])
 async def get_frequent_workspaces(

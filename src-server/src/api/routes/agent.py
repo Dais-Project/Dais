@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from src.services.agent import AgentService
@@ -9,9 +9,12 @@ from ..dependencies import DbSessionDep
 agents_router = APIRouter(tags=["agent"])
 
 @agents_router.get("/", response_model=Page[agent_schemas.AgentBrief])
-async def get_agents(db_session: DbSessionDep):
-    query = AgentService(db_session).get_agents_query()
-    return await apaginate(db_session, query)
+async def get_agents(
+    db_session: DbSessionDep,
+    query: str | None = Query(default=None),
+):
+    db_query = AgentService(db_session).get_agents_query(query)
+    return await apaginate(db_session, db_query)
 
 @agents_router.get("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def get_agent(agent_id: int, db_session: DbSessionDep):

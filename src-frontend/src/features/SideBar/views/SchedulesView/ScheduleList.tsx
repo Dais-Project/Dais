@@ -45,9 +45,11 @@ import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { CRONSTRUE_LOCALE_MAP } from "@/i18n/locale-maps/cronstrue";
 import { INTL_LOCALE_MAP } from "@/i18n/locale-maps/intl";
+import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 type ScheduleListProps = {
   workspaceId: number;
+  searchQuery: string | null;
 };
 
 function createScheduleEditTab(scheduleId: number, scheduleName: string): Tab {
@@ -234,12 +236,15 @@ function ScheduleItem({
   );
 }
 
-export function ScheduleList({ workspaceId }: ScheduleListProps) {
+export function ScheduleList({ workspaceId, searchQuery }: ScheduleListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetSchedulesSuspenseInfinite(
-    { workspace_id: workspaceId },
+    {
+      workspace_id: workspaceId,
+      ...(searchQuery ? { query: searchQuery } : {}),
+    },
     {
       query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
     },
@@ -298,7 +303,13 @@ export function ScheduleList({ workspaceId }: ScheduleListProps) {
     openScheduleRecordsTab(schedule.id, schedule.name);
   };
 
-  if (query.data.pages.length === 0) {
+  const hasItems = query.data.pages.some((page) => page.items.length > 0);
+
+  if (!hasItems) {
+    if (searchQuery) {
+      return <SideBarSearchEmpty query={searchQuery} />;
+    }
+
     return (
       <Empty>
         <EmptyContent>

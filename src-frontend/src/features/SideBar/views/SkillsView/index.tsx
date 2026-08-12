@@ -1,5 +1,4 @@
 import { FileUpIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { invalidateSkillQueries, useUploadArchive } from "@/api/skill";
@@ -14,6 +13,7 @@ import { InstallFromGithubDialog } from "./InstallFromGithubDialog";
 import { SkillList } from "./SkillList";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
+import { SideBarSearchProvider } from "../../components/SideBarSearchContext";
 
 function openSkillCreateTab() {
   const addTab = useTabsStore.getState().add;
@@ -27,7 +27,6 @@ function openSkillCreateTab() {
 
 export function SkillsView() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const [searchValue, setSearchValue] = useState("");
 
   const { inputProps, open: openFileDialog } = useFileSelect({
     accept: ".zip,application/zip",
@@ -58,36 +57,40 @@ export function SkillsView() {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <input {...inputProps} className="hidden" />
-      <SideBarHeader title={t("skills.header.title")} actionsClass="flex-1 ml-4">
-        <ExpandableSearchBar
-          className="flex-1"
-          expandDirection="left"
-          placeholder={t("skills.header.search_placeholder")}
-          onValueChange={setSearchValue}
-        />
-        <ButtonGroup>
-          <SideBarHeaderAction
-            Icon={PlusIcon}
-            tooltip={t("skills.header.create_tooltip")}
-            onClick={openSkillCreateTab}
-          />
-          <InstallFromGithubDialog />
-          <SideBarHeaderAction
-            Icon={FileUpIcon}
-            tooltip={t("skills.header.upload_tooltip")}
-            onClick={handleUploadClick}
-            disabled={uploadArchiveMutation.isPending}
-          />
-        </ButtonGroup>
-      </SideBarHeader>
-      <div className="flex-1 min-h-0">
-        <AsyncBoundary skeleton={<SideBarListSkeleton />}>
-          <SkillList searchQuery={searchValue} />
-        </AsyncBoundary>
-      </div>
-    </div>
+    <SideBarSearchProvider>
+      {({ normalizedQuery, setQuery }) => (
+        <div className="flex h-full flex-col">
+          <input {...inputProps} className="hidden" />
+          <SideBarHeader title={t("skills.header.title")} actionsClass="flex-1 ml-4">
+            <ExpandableSearchBar
+              className="flex-1"
+              expandDirection="left"
+              placeholder={t("skills.header.search_placeholder")}
+              onValueChange={setQuery}
+            />
+            <ButtonGroup>
+              <SideBarHeaderAction
+                Icon={PlusIcon}
+                tooltip={t("skills.header.create_tooltip")}
+                onClick={openSkillCreateTab}
+              />
+              <InstallFromGithubDialog />
+              <SideBarHeaderAction
+                Icon={FileUpIcon}
+                tooltip={t("skills.header.upload_tooltip")}
+                onClick={handleUploadClick}
+                disabled={uploadArchiveMutation.isPending}
+              />
+            </ButtonGroup>
+          </SideBarHeader>
+          <div className="flex-1 min-h-0">
+            <AsyncBoundary skeleton={<SideBarListSkeleton />}>
+              <SkillList searchQuery={normalizedQuery} />
+            </AsyncBoundary>
+          </div>
+        </div>
+      )}
+    </SideBarSearchProvider>
   );
 }
 SkillsView.componentId = "skills";

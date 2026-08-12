@@ -1,6 +1,7 @@
 import { HistoryIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { ExpandableSearchBar } from "@/components/custom/form/ExtendableSearchInput";
 import {
   Empty,
   EmptyContent,
@@ -13,6 +14,7 @@ import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
+import { SideBarSearchProvider } from "../../components/SideBarSearchContext";
 import { RunningScheduleTaskList } from "./RunningScheduleTaskList";
 import { ScheduleList } from "./ScheduleList";
 import { SideBarSplitView, SideBarCollapsibleSection, SideBarPrimarySection } from "../../components/SideBarSplitView";
@@ -51,9 +53,11 @@ function openScheduleAllRecordsTab() {
 
 function CurrentWorkspaceSchedules({
   workspaceId,
+  searchQuery,
   className,
 }: {
   workspaceId?: number;
+  searchQuery: string | null;
   className?: string;
 }) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
@@ -72,7 +76,7 @@ function CurrentWorkspaceSchedules({
   return (
     <div className={className}>
       <AsyncBoundary skeleton={<SideBarListSkeleton />}>
-        <ScheduleList workspaceId={workspaceId} />
+        <ScheduleList workspaceId={workspaceId} searchQuery={searchQuery} />
       </AsyncBoundary>
     </div>
   );
@@ -93,33 +97,47 @@ export function SchedulesView() {
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   return (
-    <div className="flex h-full flex-col">
-      <SideBarHeader title={t("schedules.header.title")}>
-        <SideBarHeaderAction
-          Icon={HistoryIcon}
-          tooltip={t("schedules.header.history_tooltip")}
-          onClick={openScheduleAllRecordsTab}
-        />
-        <SideBarHeaderAction
-          Icon={PlusIcon}
-          tooltip={t("schedules.header.create_tooltip")}
-          onClick={openScheduleCreateTab}
-          disabled={!currentWorkspace}
-        />
-      </SideBarHeader>
+    <SideBarSearchProvider>
+      {({ normalizedQuery, setQuery }) => (
+        <div className="flex h-full flex-col">
+          <SideBarHeader title={t("schedules.header.title")} actionsClass="flex-1 ml-4">
+            <ExpandableSearchBar
+              className="flex-1"
+              expandDirection="left"
+              placeholder={t("schedules.header.search_placeholder")}
+              onValueChange={setQuery}
+            />
+            <SideBarHeaderAction
+              Icon={HistoryIcon}
+              tooltip={t("schedules.header.history_tooltip")}
+              onClick={openScheduleAllRecordsTab}
+            />
+            <SideBarHeaderAction
+              Icon={PlusIcon}
+              tooltip={t("schedules.header.create_tooltip")}
+              onClick={openScheduleCreateTab}
+              disabled={!currentWorkspace}
+            />
+          </SideBarHeader>
 
-      <SideBarSplitView>
-        <SideBarPrimarySection>
-          <CurrentWorkspaceSchedules className="h-full" workspaceId={currentWorkspace?.id} />
-        </SideBarPrimarySection>
-        <SideBarCollapsibleSection
-          title={t("schedules.running.title")}
-          collapsedStateKey="is-running-schedule-tasks-collapsed"
-        >
-          <RunningScheduleTasks className="h-full" />
-        </SideBarCollapsibleSection>
-      </SideBarSplitView>
-    </div>
+          <SideBarSplitView>
+            <SideBarPrimarySection>
+              <CurrentWorkspaceSchedules
+                className="h-full"
+                workspaceId={currentWorkspace?.id}
+                searchQuery={normalizedQuery}
+              />
+            </SideBarPrimarySection>
+            <SideBarCollapsibleSection
+              title={t("schedules.running.title")}
+              collapsedStateKey="is-running-schedule-tasks-collapsed"
+            >
+              <RunningScheduleTasks className="h-full" />
+            </SideBarCollapsibleSection>
+          </SideBarSplitView>
+        </div>
+      )}
+    </SideBarSearchProvider>
   );
 }
 

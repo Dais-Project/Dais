@@ -25,12 +25,15 @@ class ScheduleService(ServiceBase[task_models.Schedule]):
     def get_all_schedules_query(self):
         return select(task_models.Schedule).order_by(task_models.Schedule.id.desc())
 
-    def get_schedules_query(self, workspace_id: int):
-        return (
+    def get_schedules_query(self, workspace_id: int, query: str | None = None):
+        stmt = (
             select(task_models.Schedule)
             .where(task_models.Schedule.workspace_id == workspace_id)
             .order_by(task_models.Schedule.id.desc())
         )
+        if query:
+            stmt = stmt.where(task_models.Schedule.name.ilike(f"%{query}%"))
+        return stmt
 
     async def get_all_schedules(self) -> list[task_models.Schedule]:
         stmt = self.get_all_schedules_query()

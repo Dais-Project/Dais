@@ -42,6 +42,23 @@ class TestTaskService:
         assert exc_info.value.error_code == ServiceErrorCode.TASK_NOT_FOUND
 
     @pytest.mark.asyncio
+    async def test_get_tasks_query_filters_by_title_case_insensitive(
+        self,
+        task_service: TaskService,
+        workspace_factory,
+        task_factory,
+    ):
+        workspace = await workspace_factory(name="Workspace A")
+        matching = await task_factory(workspace=workspace, title="Release Checklist")
+        await task_factory(workspace=workspace, title="Daily notes")
+
+        rows = await task_service._db_session.scalars(
+            task_service.get_tasks_query(workspace.id, "release")
+        )
+
+        assert [task.id for task in rows.all()] == [matching.id]
+
+    @pytest.mark.asyncio
     async def test_create_task(
         self,
         task_service: TaskService,

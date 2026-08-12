@@ -3,8 +3,13 @@
     "dialog": {
       "delete_description_with_name": "Are you sure you want to delete agent \"{{name}}\"? This action cannot be undone."
     },
+    "empty": {
+      "description": "You haven't created any agents yet.",
+      "title": "No agents"
+    },
     "header": {
       "create_tooltip": "Create new agent",
+      "search_placeholder": "Search agents...",
       "title": "Agents"
     },
     "list": {
@@ -58,6 +63,7 @@
     "header": {
       "create_tooltip": "Create new schedule",
       "history_tooltip": "View all execution histories",
+      "search_placeholder": "Search schedules...",
       "title": "Schedules"
     },
     "list": {
@@ -92,6 +98,12 @@
       "delete_success_title": "Delete success",
       "run_now_success_description": "Schedule run has been triggered.",
       "run_now_success_title": "Triggered"
+    }
+  },
+  "search": {
+    "empty": {
+      "description": "No resources match \"{{query}}\". Try a different search term.",
+      "title": "No matching results"
     }
   },
   "settings": {
@@ -246,6 +258,10 @@
         "selected_count_other": "{{count}} selected"
       }
     },
+    "empty": {
+      "description": "You haven't created any skills yet.",
+      "title": "No skills"
+    },
     "header": {
       "create_tooltip": "Create new skill",
       "install_github_tooltip": "Install from GitHub",
@@ -288,6 +304,7 @@
     },
     "header": {
       "create_tooltip": "Create new task",
+      "search_placeholder": "Search tasks...",
       "title": "Tasks"
     },
     "menu": {
@@ -311,6 +328,7 @@
     },
     "header": {
       "create_tooltip": "Connect to MCP server",
+      "search_placeholder": "Search toolsets...",
       "title": "Toolsets"
     },
     "menu": {
@@ -345,6 +363,7 @@
     },
     "header": {
       "create_tooltip": "Create new workspace",
+      "search_placeholder": "Search workspaces...",
       "title": "Workspaces"
     },
     "menu": {

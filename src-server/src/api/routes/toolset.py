@@ -2,7 +2,7 @@ from typing import Annotated, cast
 from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from dais_sdk.tool import LocalMcpToolset, RemoteMcpToolset
 from dais_sdk.types import McpConnectionError
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from loguru import logger
 from src.db import toolset_models
 from src.services.toolset import ToolsetService
@@ -25,9 +25,10 @@ type McpToolsetManagerDep = Annotated[McpToolsetManager, Depends(get_mcp_toolset
 async def get_toolsets_brief(
     db_session: DbSessionDep,
     mcp_toolset_manager: McpToolsetManagerDep,
+    query: str | None = Query(default=None),
 ):
     service = ToolsetService(db_session)
-    builtin_toolsets = await service.get_all_builtin_toolsets()
+    builtin_toolsets = await service.get_all_builtin_toolsets(query)
 
     builtin_toolset_briefs = [
         toolset_schemas.ToolsetBrief(id=toolset.id,
@@ -38,7 +39,7 @@ async def get_toolsets_brief(
         for toolset in builtin_toolsets
     ]
 
-    mcp_toolsets = await service.get_all_mcp_toolsets()
+    mcp_toolsets = await service.get_all_mcp_toolsets(query)
     mcp_toolset_map = {toolset.id: toolset for toolset in mcp_toolsets}
     mcp_toolset_briefs: list[toolset_schemas.ToolsetBrief] = []
     for toolset in cast(list[McpToolset], mcp_toolset_manager.toolsets):

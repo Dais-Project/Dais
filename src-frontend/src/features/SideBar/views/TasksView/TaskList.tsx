@@ -22,12 +22,14 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/consta
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
+import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 type TaskListProps = {
   workspaceId: number;
+  searchQuery: string | null;
 };
 
-export function TaskList({ workspaceId }: TaskListProps) {
+export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const queryClient = useQueryClient();
 
@@ -64,13 +66,22 @@ export function TaskList({ workspaceId }: TaskListProps) {
   };
 
   const query = useGetTasksSuspenseInfinite(
-    { workspace_id: workspaceId },
+    {
+      workspace_id: workspaceId,
+      ...(searchQuery ? { query: searchQuery } : {}),
+    },
     {
       query: { ...PAGINATED_QUERY_DEFAULT_OPTIONS, gcTime: SIDEBAR_QUERY_GC_TIME },
     },
   );
 
-  if (query.data.pages.length === 0) {
+  const hasItems = query.data.pages.some((page) => page.items.length > 0);
+
+  if (!hasItems) {
+    if (searchQuery) {
+      return <SideBarSearchEmpty query={searchQuery} />;
+    }
+
     return (
       <Empty>
         <EmptyContent>

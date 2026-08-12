@@ -34,6 +34,7 @@ import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { getErrorMessage } from "@/i18n/error-message";
 import { ToolsetIcon } from "./ToolsetIcon";
+import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 
 function getStatusColor(status: McpToolsetStatus): string {
@@ -150,7 +151,11 @@ function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
   );
 }
 
-export function ToolsetList() {
+type ToolsetListProps = {
+  searchQuery: string | null;
+};
+
+export function ToolsetList({ searchQuery }: ToolsetListProps) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
@@ -181,13 +186,20 @@ export function ToolsetList() {
     }
   });
 
-  const { data: toolsets } = useGetToolsetsBriefSuspense({
-    query: { refetchInterval: 3000, gcTime: SIDEBAR_QUERY_GC_TIME },
-  });
+  const { data: toolsets } = useGetToolsetsBriefSuspense(
+    searchQuery ? { query: searchQuery } : undefined,
+    {
+      query: { refetchInterval: 3000, gcTime: SIDEBAR_QUERY_GC_TIME },
+    },
+  );
 
   const handleReconnectMcpToolset = async (toolset: ToolsetBrief) => {
     await reconnectMcpToolsetMutation.mutateAsync({ toolsetId: toolset.id });
   };
+
+  if (searchQuery && toolsets.length === 0) {
+    return <SideBarSearchEmpty query={searchQuery} />;
+  }
 
   return (
     <>

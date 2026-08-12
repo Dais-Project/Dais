@@ -2,6 +2,7 @@ import { PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { ExpandableSearchBar } from "@/components/custom/form/ExtendableSearchInput";
 import {
   Empty,
   EmptyTitle,
@@ -14,10 +15,12 @@ import { RecentTaskList } from "./RecentTaskList";
 import { openTaskCreateTab } from "./shared";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
 import { SideBarListSkeleton } from "../../components/SideBarListSkeleton";
+import { SideBarSearchProvider } from "../../components/SideBarSearchContext";
 import { SideBarCollapsibleSection, SideBarPrimarySection, SideBarSplitView } from "../../components/SideBarSplitView";
 
-function CurrentWorkspaceTasks({ workspaceId, className }: {
+function CurrentWorkspaceTasks({ workspaceId, searchQuery, className }: {
   workspaceId?: number,
+  searchQuery: string | null,
   className?: string,
 }) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
@@ -35,7 +38,7 @@ function CurrentWorkspaceTasks({ workspaceId, className }: {
   return (
     <div className={className}>
       <AsyncBoundary skeleton={<SideBarListSkeleton />}>
-        <TaskList workspaceId={workspaceId} />
+        <TaskList workspaceId={workspaceId} searchQuery={searchQuery} />
       </AsyncBoundary>
     </div>
   );
@@ -56,27 +59,41 @@ export function TasksView() {
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   return (
-    <div className="flex h-full flex-col">
-      <SideBarHeader title={t("tasks.header.title")}>
-        <SideBarHeaderAction
-          Icon={PlusIcon}
-          tooltip={t("tasks.header.create_tooltip")}
-          onClick={() => currentWorkspace && openTaskCreateTab(currentWorkspace.id)}
-          disabled={currentWorkspace === null}
-        />
-      </SideBarHeader>
-      <SideBarSplitView>
-        <SideBarPrimarySection>
-          <CurrentWorkspaceTasks className="h-full" workspaceId={currentWorkspace?.id} />
-        </SideBarPrimarySection>
-        <SideBarCollapsibleSection
-          title="最近任务"
-          collapsedStateKey="is-recent-tasks-collapsed"
-        >
-          <RecentTasks className="h-full" />
-        </SideBarCollapsibleSection>
-      </SideBarSplitView>
-    </div>
+    <SideBarSearchProvider>
+      {({ normalizedQuery, setQuery }) => (
+        <div className="flex h-full flex-col">
+          <SideBarHeader title={t("tasks.header.title")} actionsClass="flex-1 ml-4">
+            <ExpandableSearchBar
+              className="flex-1"
+              expandDirection="left"
+              placeholder={t("tasks.header.search_placeholder")}
+              onValueChange={setQuery}
+            />
+            <SideBarHeaderAction
+              Icon={PlusIcon}
+              tooltip={t("tasks.header.create_tooltip")}
+              onClick={() => currentWorkspace && openTaskCreateTab(currentWorkspace.id)}
+              disabled={currentWorkspace === null}
+            />
+          </SideBarHeader>
+          <SideBarSplitView>
+            <SideBarPrimarySection>
+              <CurrentWorkspaceTasks
+                className="h-full"
+                workspaceId={currentWorkspace?.id}
+                searchQuery={normalizedQuery}
+              />
+            </SideBarPrimarySection>
+            <SideBarCollapsibleSection
+              title="最近任务"
+              collapsedStateKey="is-recent-tasks-collapsed"
+            >
+              <RecentTasks className="h-full" />
+            </SideBarCollapsibleSection>
+          </SideBarSplitView>
+        </div>
+      )}
+    </SideBarSearchProvider>
   );
 }
 TasksView.componentId = "tasks";

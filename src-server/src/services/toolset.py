@@ -33,7 +33,10 @@ class ToolsetService(ServiceBase):
             selectinload(toolset_models.Toolset.tools),
         ]
 
-    async def get_all_mcp_toolsets(self) -> list[toolset_models.Toolset]:
+    async def get_all_mcp_toolsets(
+        self,
+        query: str | None = None,
+    ) -> list[toolset_models.Toolset]:
         stmt = (
             select(toolset_models.Toolset)
             .where(
@@ -46,15 +49,22 @@ class ToolsetService(ServiceBase):
             )
             .options(*self.relations())
         )
+        if query:
+            stmt = stmt.where(toolset_models.Toolset.name.ilike(f"%{query}%"))
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
 
-    async def get_all_builtin_toolsets(self) -> list[toolset_models.Toolset]:
+    async def get_all_builtin_toolsets(
+        self,
+        query: str | None = None,
+    ) -> list[toolset_models.Toolset]:
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.type == toolset_models.ToolsetType.BUILT_IN)
             .options(*self.relations())
         )
+        if query:
+            stmt = stmt.where(toolset_models.Toolset.name.ilike(f"%{query}%"))
         toolsets = (await self._db_session.scalars(stmt)).all()
         return list(toolsets)
 
