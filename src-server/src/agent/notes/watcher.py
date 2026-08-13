@@ -60,7 +60,7 @@ class NoteWatcher:
             await self._handle_note_changes(notes_dir, markdown_changes)
 
     async def _handle_note_changes(self, base: AnyioPath, changes: list[NoteChange]):
-        from src.services.workspace import WorkspaceService
+        from src.repositories.workspace import WorkspaceRepository
         from src.db.models import workspace as workspace_models
 
         if len(changes) == 0: return
@@ -87,7 +87,11 @@ class NoteWatcher:
         normalized_path: Callable[[AnyioPath], str] = lambda path: path.relative_to(base).as_posix()
 
         async with db_context() as db_session:
-            workspace = await WorkspaceService(db_session).get_workspace_by_id(self._workspace_id)
+            workspace = await WorkspaceRepository(db_session).get_by_id(
+                self._workspace_id
+            )
+            if workspace is None: return
+
             existing_notes: dict[str, workspace_models.WorkspaceNote] = {
                 note.relative: note for note in workspace.notes
             }

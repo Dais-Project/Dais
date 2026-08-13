@@ -153,7 +153,10 @@ class TestNoteMaterializer:
         ])
         to_thread_mock = AsyncMock()
 
-        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+        with patch(
+            "src.services.workspace.WorkspaceService",
+            return_value=mock_service,
+        ):
             with patch("src.agent.notes.materializer.db_context") as mock_db_context:
                 mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)

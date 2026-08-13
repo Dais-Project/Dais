@@ -15,6 +15,7 @@ from src.schemas import (
     skill as skill_schemas,
 )
 from src.schemas.tasks import runtime as task_runtime_schemas
+from src.repositories.workspace import WorkspaceRepository
 from src.services.agent import AgentService
 from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
@@ -70,7 +71,9 @@ class AgentContext:
 
         async with db_context() as db_session:
             agent = await AgentService(db_session).get_agent_by_id(task.agent_id)
-            workspace = await WorkspaceService(db_session).get_workspace_by_id(task.workspace_id)
+            workspace = await WorkspaceService(
+                WorkspaceRepository(db_session)
+            ).get_workspace_by_id(task.workspace_id)
             skills = workspace.usable_skills
 
             assert agent.model_id is not None

@@ -13,8 +13,8 @@ from src.db.models import provider as provider_models
 from src.db.models import skill as skill_models
 from src.db.models import toolset as toolset_models
 from src.db.models import workspace as workspace_models
+from src.repositories.workspace import WorkspaceRepository
 from src.services.agent import AgentService
-from src.services.workspace import WorkspaceService
 
 
 @pytest_asyncio.fixture
@@ -72,7 +72,7 @@ class TestInitInitialData:
                 await session.scalars(
                     select(workspace_models.Workspace)
                     .order_by(workspace_models.Workspace.id.asc())
-                    .options(*WorkspaceService.relations())
+                    .options(*WorkspaceRepository.relations())
                 )
             ).all()
             skills = (await session.scalars(select(skill_models.Skill).order_by(skill_models.Skill.id.asc()))).all()

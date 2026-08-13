@@ -9,6 +9,7 @@ from src.agent.notes import NoteMaterializer
 from src.agent.task.schedule_runner import init_schedule_runner
 from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
+from src.repositories.workspace import WorkspaceRepository
 from src.services.markdown_cache import MarkdownCacheService
 from src.services.tasks import RunRecordService, TaskService
 from src.services.workspace import WorkspaceService
@@ -97,8 +98,8 @@ class LifespanManager:
 
     async def _clear_unused_cache(self):
         async with db_context() as db_session:
-            # clear unused markdown cache
-            stmt = WorkspaceService(db_session).get_workspaces_query()
-            workspaces = (await db_session.scalars(stmt)).all()
+            workspaces = await WorkspaceService(
+                WorkspaceRepository(db_session)
+            ).get_all_workspaces()
             for workspace in workspaces:
                 await MarkdownCacheService(db_session, workspace.id, Path(workspace.directory)).clear_unused()

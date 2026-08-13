@@ -3,6 +3,9 @@ from pathlib import Path
 import pytest
 
 
+pytest_plugins = ["tests.services.conftest"]
+
+
 @pytest.fixture
 def temp_workspace(tmp_path: Path):
     workspace = tmp_path / "workspace"

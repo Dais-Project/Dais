@@ -153,10 +153,13 @@ class TestNoteWatcher:
             workspace_models.WorkspaceNote(relative="deleted.md", content="Delete me"),
         ]
 
-        mock_service = AsyncMock()
-        mock_service.get_workspace_by_id.return_value = workspace
+        mock_repository = AsyncMock()
+        mock_repository.get_by_id.return_value = workspace
 
-        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+        with patch(
+            "src.repositories.workspace.WorkspaceRepository",
+            return_value=mock_repository,
+        ):
             with patch("src.agent.notes.watcher.db_context") as mock_db_context:
                 mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
@@ -186,10 +189,13 @@ class TestNoteWatcher:
         workspace.id = 1
         workspace.notes = []
 
-        mock_service = AsyncMock()
-        mock_service.get_workspace_by_id.return_value = workspace
+        mock_repository = AsyncMock()
+        mock_repository.get_by_id.return_value = workspace
 
-        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+        with patch(
+            "src.repositories.workspace.WorkspaceRepository",
+            return_value=mock_repository,
+        ):
             with patch("src.agent.notes.watcher.db_context") as mock_db_context:
                 mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
