@@ -9,7 +9,6 @@ pub use args::Args;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::Manager;
-use tauri_plugin_prevent_default::Flags as PreventDefaultFlags;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_window_state::{StateFlags, WindowExt};
