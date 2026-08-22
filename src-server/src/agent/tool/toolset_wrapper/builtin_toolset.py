@@ -6,6 +6,9 @@ from dais_sdk.tool import PythonToolset, python_tool
 from dais_sdk.types import ToolDef
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.services.toolset import ToolsetService
+from src.repositories.toolset import ToolsetRepository
+
 from ..types import ToolMetadata
 
 
@@ -60,14 +63,12 @@ class BuiltinToolset(PythonToolset):
 
     @classmethod
     async def sync(cls, db_session: AsyncSession):
-        from src.services.toolset import ToolsetService
-
         temp_instance = cls(BuiltinToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
         toolset_service = ToolsetService.from_db_session(db_session)
         toolset_ent = await toolset_service.get_toolset_by_internal_key(cls.internal_key())
         await toolset_service.sync_toolset(toolset_ent.id,
-                                            [ToolsetService.ToolLike(
+                                            [ToolsetRepository.ToolLike(
                                                 name=tool.name,
                                                 internal_key=temp_instance.format_tool_name(tool.name),
                                                 description=tool.description,

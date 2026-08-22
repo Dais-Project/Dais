@@ -45,12 +45,10 @@ class TaskResourceService:
         if not await resource_path.exists(): return None
         return resource_path
 
-    async def save_task_resource(
-        self,
-        task_id: int,
-        filename: str,
-        file_bytes: bytes,
-    ) -> task_models.TaskResource:
+    async def save_task_resource(self,
+                                 task_id: int,
+                                 filename: str,
+                                 file_bytes: bytes) -> task_models.TaskResource:
         checksum = (await asyncio.to_thread(hashlib.sha256, file_bytes)).hexdigest()
         owner_type = self._task_type.to_resource_owner_type()
         existing = await self._repository.get_by_checksum_and_owner(

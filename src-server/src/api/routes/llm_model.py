@@ -7,7 +7,6 @@ from ..dependencies import LlmModelServiceDep
 
 llm_models_router = APIRouter(tags=["llm-model"])
 
-
 @llm_models_router.get(
     "/{model_id}",
     response_model=provider_schemas.LlmModelRead,

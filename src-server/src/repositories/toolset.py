@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -10,15 +11,19 @@ from .repository_base import RepositoryBase
 
 
 class ToolsetRepository(RepositoryBase[toolset_models.Toolset]):
+    class ToolLike(NamedTuple):
+        name: str
+        internal_key: str
+        description: str
+        auto_approve: bool = False
+
     @staticmethod
     def relations():
         return [selectinload(toolset_models.Toolset.tools)]
 
-    async def get_by_types(
-        self,
-        types: Sequence[toolset_models.ToolsetType],
-        query: str | None = None,
-    ) -> list[toolset_models.Toolset]:
+    async def get_by_types(self,
+                           types: Sequence[toolset_models.ToolsetType],
+                           query: str | None = None) -> list[toolset_models.Toolset]:
         stmt = (
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.type.in_(types))
@@ -36,21 +41,16 @@ class ToolsetRepository(RepositoryBase[toolset_models.Toolset]):
             options=self.relations(),
         )
 
-    async def get_by_internal_key(
-        self,
-        internal_key: str,
-    ) -> toolset_models.Toolset | None:
+    async def get_by_internal_key(self, internal_key: str) -> toolset_models.Toolset | None:
         return await self._db_session.scalar(
             select(toolset_models.Toolset)
             .where(toolset_models.Toolset.internal_key == internal_key)
             .options(*self.relations())
         )
 
-    async def create(
-        self,
-        data: toolset_schemas.ToolsetCreate,
-        tools,
-    ) -> toolset_models.Toolset:
+    async def create(self,
+                     data: toolset_schemas.ToolsetCreate,
+                     tools: list[ToolLike]) -> toolset_models.Toolset:
         toolset = toolset_models.Toolset(
             **data.model_dump(exclude={"params"}),
             params=data.params,
@@ -71,11 +71,9 @@ class ToolsetRepository(RepositoryBase[toolset_models.Toolset]):
         assert created is not None
         return created
 
-    async def update(
-        self,
-        toolset: toolset_models.Toolset,
-        data: toolset_schemas.ToolsetUpdate,
-    ) -> toolset_models.Toolset:
+    async def update(self,
+                     toolset: toolset_models.Toolset,
+                     data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
         if data.tools is not None:
             for tool_data in data.tools:
                 tool = next(

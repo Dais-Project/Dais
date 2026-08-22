@@ -64,11 +64,9 @@ class SkillRepository(RepositoryBase[skill_models.Skill]):
         assert created is not None
         return created
 
-    async def update(
-        self,
-        skill: skill_models.Skill,
-        data: skill_schemas.SkillUpdate,
-    ) -> skill_models.Skill:
+    async def update(self,
+                     skill: skill_models.Skill,
+                     data: skill_schemas.SkillUpdate) -> skill_models.Skill:
         self.apply_fields(skill, data, exclude={"resources"})
         if data.resources is not None:
             resources = self._create_resources(data.resources)
@@ -84,9 +82,7 @@ class SkillRepository(RepositoryBase[skill_models.Skill]):
         await self._db_session.flush()
 
     @staticmethod
-    def _create_resources(
-        resources: list[skill_schemas.SkillResourceBase],
-    ) -> list[skill_models.SkillResource]:
+    def _create_resources(resources: list[skill_schemas.SkillResourceBase]) -> list[skill_models.SkillResource]:
         return [
             skill_models.SkillResource(
                 relative=resource.relative,

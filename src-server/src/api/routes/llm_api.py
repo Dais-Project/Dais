@@ -14,7 +14,6 @@ class FetchModelsParams(BaseModel):
 class FetchModelsResponse(BaseModel):
     models: list[str]
 
-
 @llm_api_router.get("/models", response_model=FetchModelsResponse)
 async def fetch_models(params: FetchModelsParams = Depends(FetchModelsParams)):
     provider = LLM.create_provider(params.type, params.base_url, api_key=params.api_key)

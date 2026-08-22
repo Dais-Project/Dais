@@ -64,10 +64,7 @@ async def get_skills(
 ):
     return await service.get_skills_page(query)
 
-@skills_router.post(
-    "/scan-repo",
-    response_model=list[skill_schemas.ScannedSkillRead],
-)
+@skills_router.post("/scan-repo", response_model=list[skill_schemas.ScannedSkillRead])
 async def scan_repo_skills(body: skill_schemas.ScanRepoRequest):
     try:
         scanned = await scan_repo(body.repo_url)

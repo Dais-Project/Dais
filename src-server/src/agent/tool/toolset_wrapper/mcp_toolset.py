@@ -14,6 +14,8 @@ from src.common import DATA_DIR
 from src.db import db_context
 from src.db.models import toolset as toolset_models
 from src.shell_config import EMBEDDED_BINARIES_ENV
+from src.services.toolset import ToolsetService
+from src.repositories.toolset import ToolsetRepository
 
 from ..types import ToolMetadata
 
@@ -98,11 +100,9 @@ class McpToolset(Toolset):
         return self._error
 
     async def _merge_tools(self, latest_tool_list: list[ToolDef]) -> list[toolset_models.Tool]:
-        from src.services.toolset import ToolsetService
-
         async with db_context() as db_session:
             toolset_service = ToolsetService.from_db_session(db_session)
-            tools = [ToolsetService.ToolLike(
+            tools = [ToolsetRepository.ToolLike(
                         name=tool.name,
                         internal_key=self.format_tool_name(tool.name),
                         description=tool.description)

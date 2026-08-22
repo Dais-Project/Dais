@@ -47,11 +47,9 @@ class AgentRepository(RepositoryBase[agent_models.Agent]):
         )
         return list(tools.all())
 
-    async def create(
-        self,
-        data: agent_schemas.AgentCreate,
-        tools: list[toolset_models.Tool],
-    ) -> agent_models.Agent:
+    async def create(self,
+                     data: agent_schemas.AgentCreate,
+                     tools: list[toolset_models.Tool]) -> agent_models.Agent:
         agent = agent_models.Agent(
             **data.model_dump(exclude={"usable_tool_ids"}),
             usable_tools=tools,
@@ -62,12 +60,10 @@ class AgentRepository(RepositoryBase[agent_models.Agent]):
         assert created is not None
         return created
 
-    async def update(
-        self,
-        agent: agent_models.Agent,
-        data: agent_schemas.AgentUpdate,
-        tools: list[toolset_models.Tool] | None,
-    ) -> agent_models.Agent:
+    async def update(self,
+                     agent: agent_models.Agent,
+                     data: agent_schemas.AgentUpdate,
+                     tools: list[toolset_models.Tool] | None) -> agent_models.Agent:
         self.apply_fields(agent, data, exclude={"usable_tool_ids"})
         if tools is not None:
             agent.usable_tools = tools

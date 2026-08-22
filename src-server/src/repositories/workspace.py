@@ -186,11 +186,9 @@ class WorkspaceRepository(RepositoryBase[workspace_models.Workspace]):
         assert updated_workspace is not None
         return updated_workspace
 
-    async def replace_notes(
-        self,
-        workspace: workspace_models.Workspace,
-        notes: list[workspace_schemas.WorkspaceNoteBase],
-    ) -> workspace_models.Workspace:
+    async def replace_notes(self,
+                            workspace: workspace_models.Workspace,
+                            notes: list[workspace_schemas.WorkspaceNoteBase]) -> workspace_models.Workspace:
         workspace.notes = self._create_notes(notes)
         workspace_id = await self.flush_and_expunge(workspace)
         updated_workspace = await self.get_by_id(workspace_id)

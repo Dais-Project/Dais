@@ -8,8 +8,9 @@ from src.agent.tool import McpToolset
 from src.agent.tool.toolset_manager.mcp_toolset_manager import McpToolsetManager
 from src.agent.tool.toolset_wrapper.mcp_toolset import create_local_server_params
 from src.db.models import toolset as toolset_models
+from src.repositories.toolset import ToolsetRepository
 
-from .toolset import ToolsetService, ToolsetNotFoundError
+from .toolset import ToolsetNotFoundError
 
 
 class McpToolsetService:
@@ -31,9 +32,9 @@ class McpToolsetService:
         return toolset
 
     @staticmethod
-    def get_tools(toolset: LocalMcpToolset | RemoteMcpToolset) -> list[ToolsetService.ToolLike]:
+    def get_tools(toolset: LocalMcpToolset | RemoteMcpToolset) -> list[ToolsetRepository.ToolLike]:
         return [
-            ToolsetService.ToolLike(
+            ToolsetRepository.ToolLike(
                 name=tool.name,
                 internal_key=toolset.format_tool_name(tool.name),
                 description=tool.description,

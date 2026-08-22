@@ -32,12 +32,6 @@ class ToolNotFoundError(NotFoundError):
 
 
 class ToolsetService:
-    class ToolLike(NamedTuple):
-        name: str
-        internal_key: str
-        description: str
-        auto_approve: bool = False
-
     def __init__(self, repository: ToolsetRepository):
         self._repository = repository
 
@@ -77,7 +71,7 @@ class ToolsetService:
 
     async def create_toolset(self,
                              data: toolset_schemas.ToolsetCreate,
-                             tools: list[ToolLike]) -> toolset_models.Toolset:
+                             tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
         if await self._repository.get_by_internal_key(data.name) is not None:
             raise ToolsetInternalKeyAlreadyExistsError(data.name)
         return await self._repository.create(data, tools)
@@ -95,7 +89,7 @@ class ToolsetService:
 
     async def sync_toolset(self,
                            toolset_id: int,
-                           latest_tools: list[ToolLike]) -> toolset_models.Toolset:
+                           latest_tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
         toolset = await self.get_toolset_by_id(toolset_id)
         return await self._repository.sync(toolset, latest_tools)
 

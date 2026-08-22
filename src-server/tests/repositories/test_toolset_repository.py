@@ -55,7 +55,7 @@ class TestToolsetRepository:
                 params=LocalServerParams(command="echo", args=[], env={}),
             ),
             [
-                ToolsetService.ToolLike(
+                ToolsetRepository.ToolLike(
                     name="Tool A",
                     internal_key="tool-a",
                     description="Tool A",
@@ -87,7 +87,7 @@ class TestToolsetRepository:
         synced = await toolset_repository.sync(
             updated,
             [
-                ToolsetService.ToolLike(
+                ToolsetRepository.ToolLike(
                     name="Tool B",
                     internal_key="tool-b",
                     description="Tool B",

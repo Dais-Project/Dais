@@ -10,7 +10,6 @@ from ..dependencies import AgentServiceDep
 
 agents_router = APIRouter(tags=["agent"])
 
-
 @agents_router.get("/", response_model=Page[agent_schemas.AgentBrief])
 async def get_agents(
     service: AgentServiceDep,
@@ -18,11 +17,9 @@ async def get_agents(
 ):
     return await service.get_agents_page(query)
 
-
 @agents_router.get("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def get_agent(service: AgentServiceDep, agent_id: int):
     return await service.get_agent_by_id(agent_id)
-
 
 @agents_router.post(
     "/",
@@ -32,7 +29,6 @@ async def get_agent(service: AgentServiceDep, agent_id: int):
 async def create_agent(service: AgentServiceDep, body: agent_schemas.AgentCreate):
     return await service.create_agent(body)
 
-
 @agents_router.put("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def update_agent(
     service: AgentServiceDep,
@@ -40,7 +36,6 @@ async def update_agent(
     body: agent_schemas.AgentUpdate,
 ):
     return await service.update_agent(agent_id, body)
-
 
 @agents_router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_agent(service: AgentServiceDep, agent_id: int):

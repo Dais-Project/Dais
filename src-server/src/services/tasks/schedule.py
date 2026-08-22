@@ -47,11 +47,9 @@ class ScheduleService:
         )
         return created
 
-    async def update_schedule(
-        self,
-        schedule_id: int,
-        data: schedule_schemas.ScheduleUpdate,
-    ) -> task_models.Schedule:
+    async def update_schedule(self,
+                              schedule_id: int,
+                              data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
         from src.agent.task.schedule_runner import use_schedule_runner
 
         schedule = await self.get_schedule_by_id(schedule_id)
@@ -110,11 +108,9 @@ class RunRecordService:
     async def create_run_record(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
         return await self._repository.create(data)
 
-    async def update_run_record(
-        self,
-        record_id: int,
-        data: schedule_schemas.RunRecordUpdate,
-    ) -> task_models.RunRecord:
+    async def update_run_record(self,
+                                record_id: int,
+                                data: schedule_schemas.RunRecordUpdate) -> task_models.RunRecord:
         record = await self.get_run_record_by_id(record_id)
         return await self._repository.update(record, data)
 

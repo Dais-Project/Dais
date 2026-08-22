@@ -34,19 +34,13 @@ class WorkspaceService:
     def from_db_session(cls, db_session: AsyncSession) -> WorkspaceService:
         return cls(WorkspaceRepository(db_session))
 
-    async def get_workspaces_page(
-        self,
-        query: str | None = None,
-    ):
+    async def get_workspaces_page(self, query: str | None = None):
         return await self._repository.get_page(query)
 
     async def get_all_workspaces(self) -> list[workspace_models.Workspace]:
         return await self._repository.get_all()
 
-    async def get_workspace_by_id(
-        self,
-        workspace_id: int,
-    ) -> workspace_models.Workspace:
+    async def get_workspace_by_id(self, workspace_id: int) -> workspace_models.Workspace:
         workspace = await self._repository.get_by_id(workspace_id)
         if workspace is None:
             raise WorkspaceNotFoundError(workspace_id)
@@ -63,10 +57,7 @@ class WorkspaceService:
             recent_task_limit=recent_task_limit,
         )
 
-    async def create_workspace(
-        self,
-        data: workspace_schemas.WorkspaceCreate,
-    ) -> workspace_models.Workspace:
+    async def create_workspace(self, data: workspace_schemas.WorkspaceCreate) -> workspace_models.Workspace:
         agents = await self._repository.get_agents_by_ids(data.usable_agent_ids)
         tools = await self._repository.get_tools_by_ids(data.usable_tool_ids)
         skills = await self._repository.get_skills_by_ids(data.usable_skill_ids)
@@ -113,10 +104,7 @@ class WorkspaceService:
             raise WorkspaceNotesLockedError()
 
         workspace = await self.get_workspace_by_id(workspace_id)
-        updated_workspace = await self._repository.replace_notes(
-            workspace,
-            data.notes,
-        )
+        updated_workspace = await self._repository.replace_notes(workspace, data.notes)
         workspace_read = workspace_schemas.WorkspaceRead.model_validate(
             updated_workspace
         )

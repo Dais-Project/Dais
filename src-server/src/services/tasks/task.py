@@ -58,11 +58,9 @@ class TaskService:
     async def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
         return await self._repository.create(data)
 
-    async def update_task(
-        self,
-        task_id: int,
-        data: task_schemas.TaskUpdate,
-    ) -> task_models.Task:
+    async def update_task(self,
+                          task_id: int,
+                          data: task_schemas.TaskUpdate) -> task_models.Task:
         task = await self.get_task_by_id(task_id)
         return await self._repository.update(task, data)
 

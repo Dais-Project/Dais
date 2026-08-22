@@ -39,10 +39,7 @@ class ProviderRepository(RepositoryBase[provider_models.Provider]):
             options=self.relations(),
         )
 
-    async def create(
-        self,
-        data: provider_schemas.ProviderCreate,
-    ) -> provider_models.Provider:
+    async def create(self, data: provider_schemas.ProviderCreate) -> provider_models.Provider:
         provider = provider_models.Provider(
             name=data.name,
             type=data.type,
@@ -63,11 +60,9 @@ class ProviderRepository(RepositoryBase[provider_models.Provider]):
         assert created is not None
         return created
 
-    async def update(
-        self,
-        provider: provider_models.Provider,
-        data: provider_schemas.ProviderUpdate,
-    ) -> provider_models.Provider:
+    async def update(self,
+                     provider: provider_models.Provider,
+                     data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
         if data.models is not None:
             provider.models = self._merge_models(provider.models, data.models)
         self.apply_fields(provider, data, exclude={"models"})
