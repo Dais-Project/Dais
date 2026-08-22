@@ -9,9 +9,7 @@ export { sendNotification } from "./notification";
 export { saveFile } from "./save-file";
 
 (() => {
-  if (!isTauri) {
-    return;
-  }
+  if (!isTauri) return;
 
   // ignore side mouse buttons
   window.addEventListener("mousedown", (e) => {
@@ -25,22 +23,6 @@ export { saveFile } from "./save-file";
     if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
       return;
-    }
-  });
-
-  // ignore devtools keydown under production for tauri
-  if (globalThis.__INJECTED__?.dev === "true") {
-    return;
-  }
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "F12") {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (e.ctrlKey && e.shiftKey && e.key === "I") {
-      e.preventDefault();
-      e.stopPropagation();
     }
   });
 })();

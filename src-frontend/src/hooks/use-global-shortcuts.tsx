@@ -60,8 +60,6 @@ type GlobalShortcutsProviderProps = {
 export function GlobalShortcutsProvider({
   children,
 }: GlobalShortcutsProviderProps) {
-  // useTauriFullscreenShortcuts();
-
   const [isPaused, setIsPaused] = useState(false);
 
   const shortcuts = useSettingsStore((state) => state.current.shortcuts);

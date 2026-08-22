@@ -26,6 +26,9 @@
     },
     "type-check": {
       "command": "cargo check"
+    },
+    "outdated": {
+      "command": "cargo outdated -v --root-deps-only"
     }
   }
 }

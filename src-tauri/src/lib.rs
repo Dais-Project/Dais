@@ -9,6 +9,7 @@ pub use args::Args;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::Manager;
+use tauri_plugin_prevent_default::Flags as PreventDefaultFlags;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_window_state::{StateFlags, WindowExt};
@@ -60,6 +61,7 @@ pub fn run(args: Args) {
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
+    .plugin(plugins::prevent_default::init())
     .plugin(plugins::inject_vars::init(HashMap::from([
       ("dev", args.dev.to_string()),
       ("server_port", server_port.to_string()),
