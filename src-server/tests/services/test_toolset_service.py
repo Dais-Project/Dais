@@ -19,6 +19,6 @@ class TestToolsetService:
     @pytest.mark.asyncio
     async def test_get_toolset_by_id_not_found(self, toolset_service: ToolsetService):
         with pytest.raises(ToolsetNotFoundError, match="Toolset '999' not found") as exc_info:
-            await toolset_service.get_toolset_by_id(999)
+            await toolset_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.TOOLSET_NOT_FOUND

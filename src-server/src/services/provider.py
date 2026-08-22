@@ -20,25 +20,25 @@ class ProviderService:
     def from_db_session(cls, db_session: AsyncSession) -> ProviderService:
         return cls(ProviderRepository(db_session))
 
-    async def get_providers_page(self):
+    async def get_page(self):
         return await self._repository.get_page()
 
-    async def get_providers(self) -> list[provider_models.Provider]:
+    async def get_all(self) -> list[provider_models.Provider]:
         return await self._repository.get_all()
 
-    async def get_provider_by_id(self, provider_id: int) -> provider_models.Provider:
+    async def get_by_id(self, provider_id: int) -> provider_models.Provider:
         provider = await self._repository.get_by_id(provider_id)
         if provider is None:
             raise ProviderNotFoundError(provider_id)
         return provider
 
-    async def create_provider(self, data: provider_schemas.ProviderCreate) -> provider_models.Provider:
+    async def create(self, data: provider_schemas.ProviderCreate) -> provider_models.Provider:
         return await self._repository.create(data)
 
-    async def update_provider(self, provider_id: int, data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
-        provider = await self.get_provider_by_id(provider_id)
+    async def update(self, provider_id: int, data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
+        provider = await self.get_by_id(provider_id)
         return await self._repository.update(provider, data)
 
-    async def delete_provider(self, provider_id: int):
-        provider = await self.get_provider_by_id(provider_id)
+    async def delete(self, provider_id: int):
+        provider = await self.get_by_id(provider_id)
         await self._repository.delete(provider)

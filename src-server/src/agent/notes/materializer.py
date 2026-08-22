@@ -56,7 +56,7 @@ class NoteMaterializer:
         from src.services.workspace import WorkspaceService
 
         async with db_context() as db_session:
-            workspaces = await WorkspaceService.from_db_session(db_session).get_all_workspaces()
+            workspaces = await WorkspaceService.from_db_session(db_session).get_all()
 
         sem = asyncio.Semaphore(12)
         async def sem_materialize(workspace: workspace_models.Workspace):

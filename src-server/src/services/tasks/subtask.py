@@ -21,17 +21,17 @@ class SubtaskService:
     def from_db_session(cls, db_session: AsyncSession) -> SubtaskService:
         return cls(SubtaskRepository(db_session))
 
-    async def get_subtask_by_id(self, subtask_id: int) -> task_models.Subtask:
+    async def get_by_id(self, subtask_id: int) -> task_models.Subtask:
         subtask = await self._repository.get_by_id(subtask_id)
         if subtask is None:
             raise SubtaskNotFoundError(subtask_id)
         return subtask
 
-    async def create_subtask(self, data: subtask_schemas.SubtaskCreate) -> task_models.Subtask:
+    async def create(self, data: subtask_schemas.SubtaskCreate) -> task_models.Subtask:
         return await self._repository.create(data)
 
-    async def update_subtask(self,
+    async def update(self,
                              subtask_id: int,
                              data: subtask_schemas.SubtaskUpdate) -> task_models.Subtask:
-        subtask = await self.get_subtask_by_id(subtask_id)
+        subtask = await self.get_by_id(subtask_id)
         return await self._repository.update(subtask, data)

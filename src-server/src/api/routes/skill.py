@@ -58,11 +58,9 @@ def process_archive(file: bytes | IO[bytes]) -> skill_schemas.SkillCreate:
 
 
 @skills_router.get("/", response_model=Page[skill_schemas.SkillBrief])
-async def get_skills(
-    service: SkillServiceDep,
-    query: str | None = Query(default=None),
-):
-    return await service.get_skills_page(query)
+async def get_skills(service: SkillServiceDep,
+                     query: str | None = Query(default=None)):
+    return await service.get_page(query)
 
 @skills_router.post("/scan-repo", response_model=list[skill_schemas.ScannedSkillRead])
 async def scan_repo_skills(body: skill_schemas.ScanRepoRequest):
@@ -125,11 +123,11 @@ async def install_from_github(service: SkillServiceDep, body: skill_schemas.Inst
     download_tasks = [download_task(body.repo_url, skill_path) for skill_path in body.skill_paths]
     skill_creates = await asyncio.gather(*download_tasks)
 
-    return await service.create_skills_ignoring_duplicates(skill_creates)
+    return await service.create_ignoring_duplicates(skill_creates)
 
 @skills_router.get("/{skill_id}", response_model=skill_schemas.SkillRead)
 async def get_skill(service: SkillServiceDep, skill_id: int):
-    return await service.get_skill_by_id(skill_id)
+    return await service.get_by_id(skill_id)
 
 @skills_router.post(
     "/",
@@ -137,7 +135,7 @@ async def get_skill(service: SkillServiceDep, skill_id: int):
     response_model=skill_schemas.SkillRead,
 )
 async def create_skill(service: SkillServiceDep, body: skill_schemas.SkillCreate):
-    return await service.create_skill(body)
+    return await service.create(body)
 
 @skills_router.post(
     "/upload",
@@ -155,16 +153,14 @@ async def upload_archive(service: SkillServiceDep, file: UploadFile = File(...))
         )
 
     skill_create = await asyncio.to_thread(process_archive, file_obj)
-    return await service.create_skill(skill_create)
+    return await service.create(skill_create)
 
 @skills_router.put("/{skill_id}", response_model=skill_schemas.SkillRead)
-async def update_skill(
-    service: SkillServiceDep,
-    skill_id: int,
-    body: skill_schemas.SkillUpdate,
-):
-    return await service.update_skill(skill_id, body)
+async def update_skill(service: SkillServiceDep,
+                       skill_id: int,
+                       body: skill_schemas.SkillUpdate):
+    return await service.update(skill_id, body)
 
 @skills_router.delete("/{skill_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_skill(service: SkillServiceDep, skill_id: int):
-    await service.delete_skill(skill_id)
+    await service.delete(skill_id)

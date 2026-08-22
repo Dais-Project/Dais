@@ -72,13 +72,13 @@ class AgentContext:
         assert task.agent_id is not None
 
         async with db_context() as db_session:
-            agent = await AgentService.from_db_session(db_session).get_agent_by_id(task.agent_id)
-            workspace = await WorkspaceService.from_db_session(db_session).get_workspace_by_id(task.workspace_id)
+            agent = await AgentService.from_db_session(db_session).get_by_id(task.agent_id)
+            workspace = await WorkspaceService.from_db_session(db_session).get_by_id(task.workspace_id)
             skills = workspace.usable_skills
 
             assert agent.model_id is not None
-            model = await LlmModelService.from_db_session(db_session).get_model_by_id(agent.model_id)
-            provider = await ProviderService.from_db_session(db_session).get_provider_by_id(model.provider_id)
+            model = await LlmModelService.from_db_session(db_session).get_by_id(agent.model_id)
+            provider = await ProviderService.from_db_session(db_session).get_by_id(model.provider_id)
 
         usage = task.usage
         usage.max_tokens = model.context_size

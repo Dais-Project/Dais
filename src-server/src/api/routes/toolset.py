@@ -22,7 +22,7 @@ async def get_toolsets_brief(
     mcp_toolset_service: McpToolsetServiceDep,
     query: str | None = Query(default=None),
 ):
-    builtins = await toolset_service.get_all_builtin_toolsets(query)
+    builtins = await toolset_service.get_all_builtin(query)
     briefs = [
         toolset_schemas.ToolsetBrief(
             id=toolset.id,
@@ -35,7 +35,7 @@ async def get_toolsets_brief(
     ]
     mcp_entities = {
         toolset.id: toolset
-        for toolset in await toolset_service.get_all_mcp_toolsets(query)
+        for toolset in await toolset_service.get_all_mcp(query)
     }
     mcp_briefs = []
     for runtime_toolset in mcp_toolset_service.toolsets:
@@ -56,22 +56,20 @@ async def get_toolsets_brief(
 
 @toolset_router.get("/", response_model=list[toolset_schemas.ToolsetRead])
 async def get_toolsets(service: ToolsetServiceDep):
-    return await service.get_toolsets()
+    return await service.get_all_builtin() + await service.get_all_mcp()
 
 @toolset_router.get("/{toolset_id}", response_model=toolset_schemas.ToolsetRead)
 async def get_toolset(service: ToolsetServiceDep, toolset_id: int):
-    return await service.get_toolset_by_id(toolset_id)
+    return await service.get_by_id(toolset_id)
 
 @toolset_router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
     response_model=toolset_schemas.ToolsetRead,
 )
-async def create_toolset(
-    toolset_service: ToolsetServiceDep,
-    mcp_toolset_service: McpToolsetServiceDep,
-    body: toolset_schemas.ToolsetCreate,
-):
+async def create_toolset(toolset_service: ToolsetServiceDep,
+                         mcp_toolset_service: McpToolsetServiceDep,
+                         body: toolset_schemas.ToolsetCreate):
     if body.type == toolset_models.ToolsetType.BUILT_IN:
         raise ApiError(
             status.HTTP_400_BAD_REQUEST,
@@ -79,14 +77,14 @@ async def create_toolset(
             "Cannot create built-in toolset",
         )
     try:
-        toolset = await mcp_toolset_service.connect_toolset(
+        toolset = await mcp_toolset_service.connect(
             body.name,
             body.type,
             body.params,
         )
         tools = mcp_toolset_service.get_tools(toolset)
-        created = await toolset_service.create_toolset(body, tools)
-        await mcp_toolset_service.append_toolset(toolset, created)
+        created = await toolset_service.create(body, tools)
+        await mcp_toolset_service.append(toolset, created)
         return created
     except McpConnectionError as error:
         raise ApiError(
@@ -102,11 +100,11 @@ async def update_toolset(
     toolset_id: int,
     body: toolset_schemas.ToolsetUpdate,
 ):
-    updated = await toolset_service.update_toolset(toolset_id, body)
+    updated = await toolset_service.update(toolset_id, body)
     if updated.type == toolset_models.ToolsetType.BUILT_IN:
         return updated
     try:
-        await mcp_toolset_service.replace_toolset(updated)
+        await mcp_toolset_service.replace(updated)
         return updated
     except McpConnectionError as error:
         raise ApiError(
@@ -118,7 +116,7 @@ async def update_toolset(
 @toolset_router.post("/{toolset_id}/reconnect", status_code=status.HTTP_204_NO_CONTENT)
 async def reconnect_mcp_toolset(service: McpToolsetServiceDep, toolset_id: int):
     try:
-        await service.reconnect_toolset(toolset_id)
+        await service.reconnect(toolset_id)
     except McpConnectionError as error:
         raise ApiError(
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -132,5 +130,5 @@ async def delete_toolset(
     mcp_toolset_service: McpToolsetServiceDep,
     toolset_id: int,
 ):
-    await toolset_service.delete_toolset(toolset_id)
-    await mcp_toolset_service.remove_toolset(toolset_id)
+    await toolset_service.delete(toolset_id)
+    await mcp_toolset_service.remove(toolset_id)

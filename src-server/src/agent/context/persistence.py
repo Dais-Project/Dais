@@ -31,7 +31,7 @@ class TaskPersistence:
             last_run_at=int(time.time()),
         )
         async with db_context() as db_session:
-            task = await TaskService.from_db_session(db_session).update_task(runtime_id, update)
+            task = await TaskService.from_db_session(db_session).update(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_task(task)
 
 class SubaskPersistence:
@@ -48,7 +48,7 @@ class SubaskPersistence:
             agent_id=None,
         )
         async with db_context() as db_session:
-            subtask = await SubtaskService.from_db_session(db_session).update_subtask(runtime_id, update)
+            subtask = await SubtaskService.from_db_session(db_session).update(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
 
 class SchedulePersistence:
@@ -65,7 +65,7 @@ class SchedulePersistence:
             schedule_id=None,
         )
         async with db_context() as db_session:
-            record = await RunRecordService.from_db_session(db_session).update_run_record(runtime_id, update)
+            record = await RunRecordService.from_db_session(db_session).update(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_schedule_record(record)
 
 def create_agent_context_persistence(

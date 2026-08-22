@@ -95,11 +95,11 @@ class LifespanManager:
         async with db_context() as db_session:
             task_service = TaskService.from_db_session(db_session)
             run_record_service = RunRecordService.from_db_session(db_session)
-            await task_service.cleanup_outdated_tasks(settings.task_retention_days)
-            await run_record_service.cleanup_outdated_run_records(settings.schedule_run_record_retention_days)
+            await task_service.cleanup_outdated(settings.task_retention_days)
+            await run_record_service.cleanup_outdated(settings.schedule_run_record_retention_days)
 
     async def _clear_unused_cache(self):
         async with db_context() as db_session:
-            workspaces = await WorkspaceService.from_db_session(db_session).get_all_workspaces()
+            workspaces = await WorkspaceService.from_db_session(db_session).get_all()
             for workspace in workspaces:
                 await MarkdownCacheService.from_db_session(db_session, workspace.id, Path(workspace.directory)).clear_unused()

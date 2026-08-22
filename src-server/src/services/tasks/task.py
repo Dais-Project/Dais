@@ -43,29 +43,29 @@ class TaskService:
         )
         return cls(TaskRepository(db_session), resource_service)
 
-    async def get_tasks_page(self, workspace_id: int, query: str | None = None):
+    async def get_page(self, workspace_id: int, query: str | None = None):
         return await self._repository.get_page(workspace_id, query)
 
-    async def get_recent_tasks_page(self):
+    async def get_recent_page(self):
         return await self._repository.get_recent_page()
 
-    async def get_task_by_id(self, task_id: int) -> task_models.Task:
+    async def get_by_id(self, task_id: int) -> task_models.Task:
         task = await self._repository.get_by_id(task_id)
         if task is None:
             raise TaskNotFoundError(task_id)
         return task
 
-    async def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
+    async def create(self, data: task_schemas.TaskCreate) -> task_models.Task:
         return await self._repository.create(data)
 
-    async def update_task(self,
+    async def update(self,
                           task_id: int,
                           data: task_schemas.TaskUpdate) -> task_models.Task:
-        task = await self.get_task_by_id(task_id)
+        task = await self.get_by_id(task_id)
         return await self._repository.update(task, data)
 
-    async def summarize_task_title(self, task_id: int) -> task_models.Task:
-        task = await self.get_task_by_id(task_id)
+    async def summarize_title(self, task_id: int) -> task_models.Task:
+        task = await self.get_by_id(task_id)
         settings = use_app_setting_manager().settings
         if settings.flash_model is None or len(task.messages) == 0:
             raise InternalError(
@@ -87,7 +87,7 @@ class TaskService:
                 ServiceErrorCode.SUMMARIZE_TITLE_FAILED,
                 "Failed to summarize task title",
             )
-        return await self.update_task(
+        return await self.update(
             task_id,
             task_schemas.TaskUpdate(
                 title=title,
@@ -98,15 +98,15 @@ class TaskService:
             ),
         )
 
-    async def delete_task(self, task_id: int):
-        task = await self.get_task_by_id(task_id)
+    async def delete(self, task_id: int):
+        task = await self.get_by_id(task_id)
         await self._repository.delete(task)
         if self._resource_service is not None:
             await self._resource_service.delete_task_resources(task_id)
 
-    async def cleanup_outdated_tasks(self, retention: RetentionOption):
+    async def cleanup_outdated(self, retention: RetentionOption):
         cutoff = get_retention_cutoff(retention)
         if cutoff is None:
             return
         for task_id in await self._repository.get_ids_before(cutoff):
-            await self.delete_task(task_id)
+            await self.delete(task_id)

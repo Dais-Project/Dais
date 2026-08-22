@@ -23,7 +23,7 @@ class TestSkillService:
     @pytest.mark.asyncio
     async def test_get_skill_by_id_not_found(self, skill_service: SkillService):
         with pytest.raises(SkillNotFoundError, match="Skill '999' not found") as exc_info:
-            await skill_service.get_skill_by_id(999)
+            await skill_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.SKILL_NOT_FOUND
 
@@ -55,7 +55,7 @@ class TestSkillService:
         skill_service: SkillService,
         resources: list[skill_schemas.SkillResourceBase],
     ):
-        created = await skill_service.create_skill(
+        created = await skill_service.create(
             skill_schemas.SkillCreate(
                 name="Skill A",
                 description="Description A",
@@ -81,19 +81,19 @@ class TestSkillService:
             resources=[],
         )
 
-        await skill_service.create_skill(create_data)
+        await skill_service.create(create_data)
 
         with pytest.raises(
             SkillNameAlreadyExistsError,
             match="Skill 'Duplicated Skill' already exists",
         ) as exc_info:
-            await skill_service.create_skill(create_data)
+            await skill_service.create(create_data)
 
         assert exc_info.value.error_code == ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS
 
     @pytest.mark.asyncio
     async def test_update_skill_updates_fields_and_resources(self, skill_service: SkillService):
-        created = await skill_service.create_skill(
+        created = await skill_service.create(
             skill_schemas.SkillCreate(
                 name="Skill A",
                 description="Description A",
@@ -109,7 +109,7 @@ class TestSkillService:
         )
         old_hash = created.hash
 
-        updated = await skill_service.update_skill(
+        updated = await skill_service.update(
             created.id,
             skill_schemas.SkillUpdate(
                 name="Skill B",
@@ -155,7 +155,7 @@ class TestSkillService:
             SkillNameAlreadyExistsError,
             match="Skill 'Skill A' already exists",
         ) as exc_info:
-            await skill_service.update_skill(
+            await skill_service.update(
                 skill_b.id,
                 skill_schemas.SkillUpdate(name=skill_a.name),
             )

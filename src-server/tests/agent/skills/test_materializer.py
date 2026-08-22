@@ -22,7 +22,7 @@ class TestSkillMaterializer:
         skill_b.id = 2
 
         skill_service = AsyncMock()
-        skill_service.get_all_skills.return_value = [skill_a, skill_b]
+        skill_service.get_all.return_value = [skill_a, skill_b]
 
         materialize_mock = AsyncMock()
         skill_read_mock = MagicMock(side_effect=[

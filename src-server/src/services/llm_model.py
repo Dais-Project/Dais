@@ -19,7 +19,7 @@ class LlmModelService:
     def from_db_session(cls, db_session: AsyncSession) -> LlmModelService:
         return cls(LlmModelRepository(db_session))
 
-    async def get_model_by_id(self, model_id: int) -> provider_models.LlmModel:
+    async def get_by_id(self, model_id: int) -> provider_models.LlmModel:
         model = await self._repository.get_by_id(model_id)
         if model is None:
             raise ModelNotFoundError(model_id)

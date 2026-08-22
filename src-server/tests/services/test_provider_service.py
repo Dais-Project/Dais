@@ -20,6 +20,6 @@ class TestProviderService:
     @pytest.mark.asyncio
     async def test_get_provider_by_id_not_found(self, provider_service: ProviderService):
         with pytest.raises(ProviderNotFoundError, match="Provider '999' not found") as exc_info:
-            await provider_service.get_provider_by_id(999)
+            await provider_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.PROVIDER_NOT_FOUND

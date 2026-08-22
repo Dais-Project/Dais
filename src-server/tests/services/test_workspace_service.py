@@ -46,7 +46,7 @@ class TestWorkspaceService:
     @pytest.mark.asyncio
     async def test_get_workspace_by_id_not_found(self, workspace_service: WorkspaceService):
         with pytest.raises(WorkspaceNotFoundError, match="Workspace '999' not found") as exc_info:
-            await workspace_service.get_workspace_by_id(999)
+            await workspace_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.WORKSPACE_NOT_FOUND
 
@@ -60,7 +60,7 @@ class TestWorkspaceService:
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
 
-        workspace = await workspace_service.create_workspace(
+        workspace = await workspace_service.create(
             workspace_schemas.WorkspaceCreate(
                 name="Workspace A",
                 directory="/tmp/workspace-a",
@@ -87,7 +87,7 @@ class TestWorkspaceService:
     ):
         initial_tool = await tool_factory(name="Echo", internal_key="echo")
         initial_agent = await agent_factory(name="Agent A", usable_tools=[initial_tool])
-        initial = await workspace_service.create_workspace(
+        initial = await workspace_service.create(
             workspace_schemas.WorkspaceCreate(
                 name="Workspace A",
                 directory="/tmp/workspace-a",
@@ -102,7 +102,7 @@ class TestWorkspaceService:
         new_tool = await tool_factory(name="Echo 2", internal_key="echo-2")
         new_agent = await agent_factory(name="Agent B", usable_tools=[new_tool])
 
-        updated = await workspace_service.update_workspace(
+        updated = await workspace_service.update(
             initial.id,
             workspace_schemas.WorkspaceUpdate(
                 name="Workspace B",
@@ -130,7 +130,7 @@ class TestWorkspaceService:
         WorkspaceRefManager.increase_workspace_ref(workspace.id)
         try:
             with pytest.raises(WorkspaceNotesLockedError) as exc_info:
-                await workspace_service.update_workspace_notes(
+                await workspace_service.update_notes(
                     workspace.id,
                     workspace_schemas.WorkspaceNotesUpdate(notes=[]),
                 )
@@ -155,7 +155,7 @@ class TestWorkspaceService:
         db_session.expunge(workspace)
         materialize, clear_materialized = mock_note_materializer
 
-        updated = await workspace_service.update_workspace_notes(
+        updated = await workspace_service.update_notes(
             workspace_id,
             workspace_schemas.WorkspaceNotesUpdate(
                 notes=[
@@ -189,7 +189,7 @@ class TestWorkspaceService:
             autospec=True,
         )
 
-        await workspace_service.open_workspace(workspace.id)
+        await workspace_service.open_in_file_manager(workspace.id)
 
         open_file_manager.assert_awaited_once_with("/tmp/workspace-a")
 
@@ -204,7 +204,7 @@ class TestWorkspaceService:
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
-        workspace = await workspace_service.create_workspace(
+        workspace = await workspace_service.create(
             workspace_schemas.WorkspaceCreate(
                 name="Workspace A",
                 directory="/tmp/workspace-a",
@@ -241,12 +241,12 @@ class TestWorkspaceService:
         await db_session.flush()
         schedule_id = schedule.id
 
-        await workspace_service.delete_workspace(workspace.id)
+        await workspace_service.delete(workspace.id)
         await db_session.flush()
         db_session.expunge_all()
 
         with pytest.raises(WorkspaceNotFoundError, match=f"Workspace '{workspace.id}' not found"):
-            await workspace_service.get_workspace_by_id(workspace.id)
+            await workspace_service.get_by_id(workspace.id)
 
         note_in_db = await db_session.scalar(
             select(workspace_models.WorkspaceNote).where(workspace_models.WorkspaceNote.id == note_id)

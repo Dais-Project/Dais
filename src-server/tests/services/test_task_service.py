@@ -36,7 +36,7 @@ class TestTaskService:
     @pytest.mark.asyncio
     async def test_get_task_by_id_not_found(self, task_service: TaskService):
         with pytest.raises(TaskNotFoundError, match="Task '999' not found") as exc_info:
-            await task_service.get_task_by_id(999)
+            await task_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.TASK_NOT_FOUND
 
@@ -51,7 +51,7 @@ class TestTaskService:
     ):
         agent = await agent_factory(name="Agent A")
         workspace = await workspace_factory(name="Workspace A")
-        task = await task_service.create_task(
+        task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Task A",
                 agent_id=agent.id,
@@ -91,7 +91,7 @@ class TestTaskService:
     ):
         agent = await agent_factory(name="Agent A")
         workspace = await workspace_factory(name="Workspace A")
-        task = await task_service.create_task(
+        task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Task A",
                 agent_id=agent.id,
@@ -130,7 +130,7 @@ class TestTaskService:
     ):
         agent = await agent_factory(name="Agent A")
         workspace = await workspace_factory(name="Workspace A")
-        task = await task_service.create_task(
+        task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Task A",
                 agent_id=agent.id,
@@ -164,7 +164,7 @@ class TestTaskService:
     ):
         agent = await agent_factory(name="Agent A")
         workspace = await workspace_factory(name="Workspace A")
-        task = await task_service.create_task(
+        task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Task A",
                 agent_id=agent.id,
@@ -208,14 +208,14 @@ class TestTaskService:
         workspace = await workspace_factory(name="Workspace A")
         now = int(time.time())
 
-        expired_task = await task_service.create_task(
+        expired_task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Expired task",
                 agent_id=agent.id,
                 workspace_id=workspace.id,
             )
         )
-        retained_task = await task_service.create_task(
+        retained_task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Retained task",
                 agent_id=agent.id,
@@ -252,14 +252,14 @@ class TestTaskService:
         assert expired_resource_dir.exists()
         assert retained_resource_dir.exists()
 
-        await task_service.cleanup_outdated_tasks(30)
+        await task_service.cleanup_outdated(30)
         await db_session.flush()
         db_session.expunge_all()
 
         with pytest.raises(TaskNotFoundError, match=f"Task '{expired_task.id}' not found"):
-            await task_service.get_task_by_id(expired_task.id)
+            await task_service.get_by_id(expired_task.id)
 
-        retained = await task_service.get_task_by_id(retained_task.id)
+        retained = await task_service.get_by_id(retained_task.id)
         assert retained.id == retained_task.id
 
         expired_resource_in_db = await db_session.scalar(
@@ -298,7 +298,7 @@ class TestTaskService:
             usable_agents=[agent],
             usable_tools=[tool],
         )
-        task = await task_service.create_task(
+        task = await task_service.create(
             task_schemas.TaskCreate(
                 title="Task A",
                 agent_id=agent.id,
@@ -314,12 +314,12 @@ class TestTaskService:
 
         assert resource_dir.exists()
 
-        await task_service.delete_task(task.id)
+        await task_service.delete(task.id)
         await db_session.flush()
         db_session.expunge_all()
 
         with pytest.raises(TaskNotFoundError, match=f"Task '{task.id}' not found"):
-            await task_service.get_task_by_id(task.id)
+            await task_service.get_by_id(task.id)
 
         resource_in_db = await db_session.scalar(
             select(task_models.TaskResource).where(task_models.TaskResource.id == resource.id)

@@ -35,7 +35,7 @@ class TestRunRecordService:
     @pytest.mark.asyncio
     async def test_get_run_record_by_id_not_found(self, run_record_service: RunRecordService):
         with pytest.raises(RunRecordNotFoundError, match="RunRecord '999' not found") as exc_info:
-            await run_record_service.get_run_record_by_id(999)
+            await run_record_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.RUN_RECORD_NOT_FOUND
     async def test_cleanup_outdated_run_records_removes_only_older_records_and_resources(
@@ -97,16 +97,16 @@ class TestRunRecordService:
         assert expired_resource_dir.exists()
         assert retained_resource_dir.exists()
 
-        await run_record_service.cleanup_outdated_run_records(30)
+        await run_record_service.cleanup_outdated(30)
         await db_session.flush()
 
         with pytest.raises(
             RunRecordNotFoundError,
             match=f"RunRecord '{expired_record.id}' not found",
         ):
-            await run_record_service.get_run_record_by_id(expired_record.id)
+            await run_record_service.get_by_id(expired_record.id)
 
-        retained = await run_record_service.get_run_record_by_id(retained_record.id)
+        retained = await run_record_service.get_by_id(retained_record.id)
         assert retained.id == retained_record.id
 
         expired_record_in_db = await db_session.get(task_models.RunRecord, expired_record.id)
@@ -159,14 +159,14 @@ class TestRunRecordService:
             / str(run_record.id)
         )
 
-        await run_record_service.delete_run_record(run_record.id)
+        await run_record_service.delete(run_record.id)
         await db_session.flush()
 
         with pytest.raises(
             RunRecordNotFoundError,
             match=f"RunRecord '{run_record.id}' not found",
         ):
-            await run_record_service.get_run_record_by_id(run_record.id)
+            await run_record_service.get_by_id(run_record.id)
 
         run_record_in_db = await db_session.get(task_models.RunRecord, run_record.id)
         resource_in_db = await db_session.get(task_models.TaskResource, resource.id)

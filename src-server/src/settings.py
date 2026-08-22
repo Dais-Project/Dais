@@ -91,7 +91,7 @@ class AppSettings(JsonSettings):
             async with db_context() as db_session:
                 service = LlmModelService.from_db_session(db_session)
                 try:
-                    await service.get_model_by_id(self.flash_model)
+                    await service.get_by_id(self.flash_model)
                 except Exception:
                     self.flash_model = None
 

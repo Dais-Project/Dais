@@ -39,7 +39,7 @@ class BuiltinToolsetManager(ToolsetManager):
         from src.services.toolset import ToolsetService
 
         async with db_context() as db_session:
-            toolset_ents = await ToolsetService.from_db_session(db_session).get_all_builtin_toolsets()
+            toolset_ents = await ToolsetService.from_db_session(db_session).get_all_builtin()
         self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
 
         self._toolsets = []

@@ -39,7 +39,7 @@ class ToolsetService:
     def from_db_session(cls, db_session: AsyncSession) -> ToolsetService:
         return cls(ToolsetRepository(db_session))
 
-    async def get_all_mcp_toolsets(self, query: str | None = None) -> list[toolset_models.Toolset]:
+    async def get_all_mcp(self, query: str | None = None) -> list[toolset_models.Toolset]:
         return await self._repository.get_by_types(
             [
                 toolset_models.ToolsetType.MCP_LOCAL,
@@ -48,38 +48,35 @@ class ToolsetService:
             query,
         )
 
-    async def get_all_builtin_toolsets(self, query: str | None = None) -> list[toolset_models.Toolset]:
+    async def get_all_builtin(self, query: str | None = None) -> list[toolset_models.Toolset]:
         return await self._repository.get_by_types(
             [toolset_models.ToolsetType.BUILT_IN],
             query,
         )
 
-    async def get_toolsets(self) -> list[toolset_models.Toolset]:
-        return await self.get_all_builtin_toolsets() + await self.get_all_mcp_toolsets()
-
-    async def get_toolset_by_id(self, toolset_id: int) -> toolset_models.Toolset:
+    async def get_by_id(self, toolset_id: int) -> toolset_models.Toolset:
         toolset = await self._repository.get_by_id(toolset_id)
         if toolset is None:
             raise ToolsetNotFoundError(toolset_id)
         return toolset
 
-    async def get_toolset_by_internal_key(self, internal_key: str) -> toolset_models.Toolset:
+    async def get_by_internal_key(self, internal_key: str) -> toolset_models.Toolset:
         toolset = await self._repository.get_by_internal_key(internal_key)
         if toolset is None:
             raise ToolsetNotFoundError(internal_key)
         return toolset
 
-    async def create_toolset(self,
-                             data: toolset_schemas.ToolsetCreate,
-                             tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
+    async def create(self,
+                     data: toolset_schemas.ToolsetCreate,
+                     tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
         if await self._repository.get_by_internal_key(data.name) is not None:
             raise ToolsetInternalKeyAlreadyExistsError(data.name)
         return await self._repository.create(data, tools)
 
-    async def update_toolset(self,
-                             toolset_id: int,
-                             data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
-        toolset = await self.get_toolset_by_id(toolset_id)
+    async def update(self,
+                     toolset_id: int,
+                     data: toolset_schemas.ToolsetUpdate) -> toolset_models.Toolset:
+        toolset = await self.get_by_id(toolset_id)
         if data.tools is not None:
             existing_ids = {tool.id for tool in toolset.tools}
             for tool_data in data.tools:
@@ -87,12 +84,12 @@ class ToolsetService:
                     raise ToolNotFoundError(tool_data.id)
         return await self._repository.update(toolset, data)
 
-    async def sync_toolset(self,
-                           toolset_id: int,
-                           latest_tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
-        toolset = await self.get_toolset_by_id(toolset_id)
+    async def sync(self,
+                   toolset_id: int,
+                   latest_tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
+        toolset = await self.get_by_id(toolset_id)
         return await self._repository.sync(toolset, latest_tools)
 
-    async def delete_toolset(self, toolset_id: int):
-        toolset = await self.get_toolset_by_id(toolset_id)
+    async def delete(self, toolset_id: int):
+        toolset = await self.get_by_id(toolset_id)
         await self._repository.delete(toolset)

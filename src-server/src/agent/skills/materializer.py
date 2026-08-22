@@ -61,7 +61,7 @@ class SkillMaterializer:
     @classmethod
     async def materialize_all(cls):
         async with db_context() as db_session:
-            skills = await SkillService.from_db_session(db_session).get_all_skills()
+            skills = await SkillService.from_db_session(db_session).get_all()
 
         sem = asyncio.Semaphore(12)
         async def sem_materialize(skill: skill_models.Skill):

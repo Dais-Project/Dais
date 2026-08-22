@@ -99,7 +99,7 @@ async def list_directory(
     workspace_id: int = Query(...),
     path: str = Query(default="."),
 ):
-    workspace = await workspace_service.get_workspace_by_id(workspace_id)
+    workspace = await workspace_service.get_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
     list_directory_result = await asyncio.to_thread(_list_directory, workspace_root, path)
     return ListDirectoryResult(items=list_directory_result)
@@ -111,7 +111,7 @@ async def search_file(
     query: str = Query(...),
     match_limit: int = Query(default=20, ge=1, le=100),
 ) -> SearchFileResult:
-    workspace = await workspace_service.get_workspace_by_id(workspace_id)
+    workspace = await workspace_service.get_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
     search_file_result = await asyncio.to_thread(_search_file, query, workspace_root, match_limit)
     return SearchFileResult(items=search_file_result, total=len(search_file_result))

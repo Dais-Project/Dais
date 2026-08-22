@@ -17,7 +17,7 @@ class TestAgentService:
     @pytest.mark.asyncio
     async def test_get_agent_by_id_not_found(self, agent_service: AgentService):
         with pytest.raises(AgentNotFoundError, match="Agent '999' not found") as exc_info:
-            await agent_service.get_agent_by_id(999)
+            await agent_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.AGENT_NOT_FOUND
 
@@ -29,7 +29,7 @@ class TestAgentService:
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
 
-        agent = await agent_service.create_agent(
+        agent = await agent_service.create(
             agent_schemas.AgentCreate(
                 name="Agent A",
                 description="Agent A description",
@@ -53,7 +53,7 @@ class TestAgentService:
         tool_factory,
     ):
         initial_tool = await tool_factory(name="Echo", internal_key="echo")
-        initial = await agent_service.create_agent(
+        initial = await agent_service.create(
             agent_schemas.AgentCreate(
                 name="Agent A",
                 description="Agent A description",
@@ -65,7 +65,7 @@ class TestAgentService:
         )
         new_tool = await tool_factory(name="Echo 2", internal_key="echo-2")
 
-        updated = await agent_service.update_agent(
+        updated = await agent_service.update(
             initial.id,
             agent_schemas.AgentUpdate(
                 name="Agent B",
@@ -92,7 +92,7 @@ class TestAgentService:
         tool_factory,
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
-        agent = await agent_service.create_agent(
+        agent = await agent_service.create(
             agent_schemas.AgentCreate(
                 name="Agent A",
                 description="Agent A description",
@@ -103,9 +103,9 @@ class TestAgentService:
             )
         )
 
-        await agent_service.delete_agent(agent.id)
+        await agent_service.delete(agent.id)
         await db_session.flush()
         db_session.expunge_all()
 
         with pytest.raises(AgentNotFoundError, match=f"Agent '{agent.id}' not found"):
-            await agent_service.get_agent_by_id(agent.id)
+            await agent_service.get_by_id(agent.id)

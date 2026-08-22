@@ -30,7 +30,7 @@ class TestMcpToolsetService:
         manager.remove = mocker.AsyncMock()
         service = McpToolsetService(manager)
 
-        await service.remove_toolset(42)
+        await service.remove(42)
 
         manager.remove.assert_awaited_once_with(42)
 
@@ -54,10 +54,10 @@ class TestToolsetRouteOrchestration:
         )
         runtime = SimpleNamespace(id=2, status="connected", error=None)
         toolset_service = mocker.Mock(spec=ToolsetService)
-        toolset_service.get_all_builtin_toolsets = mocker.AsyncMock(
+        toolset_service.get_all_builtin = mocker.AsyncMock(
             return_value=[builtin]
         )
-        toolset_service.get_all_mcp_toolsets = mocker.AsyncMock(
+        toolset_service.get_all_mcp = mocker.AsyncMock(
             return_value=[mcp_entity]
         )
         mcp_toolset_service = mocker.Mock(spec=McpToolsetService)
@@ -73,8 +73,8 @@ class TestToolsetRouteOrchestration:
             (1, "connected"),
             (2, "connected"),
         ]
-        toolset_service.get_all_builtin_toolsets.assert_awaited_once_with("mcp")
-        toolset_service.get_all_mcp_toolsets.assert_awaited_once_with("mcp")
+        toolset_service.get_all_builtin.assert_awaited_once_with("mcp")
+        toolset_service.get_all_mcp.assert_awaited_once_with("mcp")
 
     @pytest.mark.asyncio
     async def test_create_toolset_combines_persistence_and_runtime(self, mocker):
@@ -87,11 +87,11 @@ class TestToolsetRouteOrchestration:
         tools = [SimpleNamespace(name="Tool")]
         created = SimpleNamespace(id=7)
         toolset_service = mocker.Mock(spec=ToolsetService)
-        toolset_service.create_toolset = mocker.AsyncMock(return_value=created)
+        toolset_service.create = mocker.AsyncMock(return_value=created)
         mcp_toolset_service = mocker.Mock(spec=McpToolsetService)
-        mcp_toolset_service.connect_toolset = mocker.AsyncMock(return_value=runtime)
+        mcp_toolset_service.connect = mocker.AsyncMock(return_value=runtime)
         mcp_toolset_service.get_tools.return_value = tools
-        mcp_toolset_service.append_toolset = mocker.AsyncMock()
+        mcp_toolset_service.append = mocker.AsyncMock()
 
         result = await create_toolset(
             toolset_service,
@@ -100,14 +100,14 @@ class TestToolsetRouteOrchestration:
         )
 
         assert result is created
-        mcp_toolset_service.connect_toolset.assert_awaited_once_with(
+        mcp_toolset_service.connect.assert_awaited_once_with(
             body.name,
             body.type,
             body.params,
         )
         mcp_toolset_service.get_tools.assert_called_once_with(runtime)
-        toolset_service.create_toolset.assert_awaited_once_with(body, tools)
-        mcp_toolset_service.append_toolset.assert_awaited_once_with(runtime, created)
+        toolset_service.create.assert_awaited_once_with(body, tools)
+        mcp_toolset_service.append.assert_awaited_once_with(runtime, created)
 
     @pytest.mark.asyncio
     async def test_update_builtin_toolset_skips_runtime_replacement(self, mocker):
@@ -123,9 +123,9 @@ class TestToolsetRouteOrchestration:
             tools=None,
         )
         toolset_service = mocker.Mock(spec=ToolsetService)
-        toolset_service.update_toolset = mocker.AsyncMock(return_value=updated)
+        toolset_service.update = mocker.AsyncMock(return_value=updated)
         mcp_toolset_service = mocker.Mock(spec=McpToolsetService)
-        mcp_toolset_service.replace_toolset = mocker.AsyncMock()
+        mcp_toolset_service.replace = mocker.AsyncMock()
 
         result = await update_toolset(
             toolset_service,
@@ -135,8 +135,8 @@ class TestToolsetRouteOrchestration:
         )
 
         assert result is updated
-        toolset_service.update_toolset.assert_awaited_once_with(7, body)
-        mcp_toolset_service.replace_toolset.assert_not_awaited()
+        toolset_service.update.assert_awaited_once_with(7, body)
+        mcp_toolset_service.replace.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_delete_toolset_deletes_persistence_before_runtime(
@@ -145,11 +145,11 @@ class TestToolsetRouteOrchestration:
     ):
         calls = []
         toolset_service = mocker.Mock(spec=ToolsetService)
-        toolset_service.delete_toolset = mocker.AsyncMock(
+        toolset_service.delete = mocker.AsyncMock(
             side_effect=lambda toolset_id: calls.append(("persistence", toolset_id))
         )
         mcp_toolset_service = mocker.Mock(spec=McpToolsetService)
-        mcp_toolset_service.remove_toolset = mocker.AsyncMock(
+        mcp_toolset_service.remove = mocker.AsyncMock(
             side_effect=lambda toolset_id: calls.append(("runtime", toolset_id))
         )
 

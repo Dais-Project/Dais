@@ -18,6 +18,6 @@ class TestLlmModelService:
     @pytest.mark.asyncio
     async def test_get_model_by_id_not_found(self, llm_model_service: LlmModelService):
         with pytest.raises(ModelNotFoundError, match="Model '999' not found") as exc_info:
-            await llm_model_service.get_model_by_id(999)
+            await llm_model_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.MODEL_NOT_FOUND

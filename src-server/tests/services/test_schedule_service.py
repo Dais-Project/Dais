@@ -33,7 +33,7 @@ class TestScheduleService:
             ScheduleNotFoundError,
             match="Schedule '999' not found",
         ) as exc_info:
-            await service.get_schedule_by_id(999)
+            await service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.SCHEDULE_NOT_FOUND
 
@@ -57,7 +57,7 @@ class TestScheduleService:
         )
         service = ScheduleService(repository)
 
-        result = await service.create_schedule(data)
+        result = await service.create(data)
 
         assert result is created
         repository.create.assert_awaited_once_with(data)
@@ -88,7 +88,7 @@ class TestScheduleService:
         )
         service = ScheduleService(repository)
 
-        result = await service.update_schedule(existing.id, data)
+        result = await service.update(existing.id, data)
 
         assert result is updated
         repository.update.assert_awaited_once_with(existing, data)
@@ -114,7 +114,7 @@ class TestScheduleService:
         )
         service = ScheduleService(repository)
 
-        await service.delete_schedule(schedule.id)
+        await service.delete(schedule.id)
 
         runner.remove.assert_called_once_with(schedule.id)
         repository.delete.assert_awaited_once_with(schedule)
@@ -140,6 +140,6 @@ class TestScheduleService:
         service = ScheduleService(repository)
 
         with pytest.raises(RuntimeError, match="runner failed"):
-            await service.create_schedule(data)
+            await service.create(data)
 
         repository.create.assert_awaited_once_with(data)

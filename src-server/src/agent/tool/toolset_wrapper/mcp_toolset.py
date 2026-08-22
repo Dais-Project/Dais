@@ -107,7 +107,7 @@ class McpToolset(Toolset):
                         internal_key=self.format_tool_name(tool.name),
                         description=tool.description)
                      for tool in latest_tool_list]
-            merged_toolset_ent = await toolset_service.sync_toolset(self._toolset_id, tools)
+            merged_toolset_ent = await toolset_service.sync(self._toolset_id, tools)
         return merged_toolset_ent.tools
 
     @override

@@ -10,7 +10,7 @@ from .tool_call_safety_audit import ToolCallSafetyAudit, ToolCallSafetyAuditInpu
 
 async def create_one_turn_llm(model_id: int) -> LLM:
     async with db_context() as db_session:
-        model = await LlmModelService.from_db_session(db_session).get_model_by_id(model_id)
+        model = await LlmModelService.from_db_session(db_session).get_by_id(model_id)
         provider = model.provider
     provider = LLM.create_provider(provider.type,
                                                  provider.base_url,

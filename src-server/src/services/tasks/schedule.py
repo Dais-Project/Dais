@@ -26,19 +26,19 @@ class ScheduleService:
     def from_db_session(cls, db_session: AsyncSession) -> ScheduleService:
         return cls(ScheduleRepository(db_session))
 
-    async def get_schedules_page(self, workspace_id: int, query: str | None = None):
+    async def get_page(self, workspace_id: int, query: str | None = None):
         return await self._repository.get_page(workspace_id, query)
 
-    async def get_all_schedules(self) -> list[task_models.Schedule]:
+    async def get_all(self) -> list[task_models.Schedule]:
         return await self._repository.get_all()
 
-    async def get_schedule_by_id(self, schedule_id: int) -> task_models.Schedule:
+    async def get_by_id(self, schedule_id: int) -> task_models.Schedule:
         schedule = await self._repository.get_by_id(schedule_id)
         if schedule is None:
             raise ScheduleNotFoundError(schedule_id)
         return schedule
 
-    async def create_schedule(self, data: schedule_schemas.ScheduleCreate) -> task_models.Schedule:
+    async def create(self, data: schedule_schemas.ScheduleCreate) -> task_models.Schedule:
         from src.agent.task.schedule_runner import use_schedule_runner
 
         created = await self._repository.create(data)
@@ -47,12 +47,12 @@ class ScheduleService:
         )
         return created
 
-    async def update_schedule(self,
+    async def update(self,
                               schedule_id: int,
                               data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
         from src.agent.task.schedule_runner import use_schedule_runner
 
-        schedule = await self.get_schedule_by_id(schedule_id)
+        schedule = await self.get_by_id(schedule_id)
         updated = await self._repository.update(schedule, data)
         runner = use_schedule_runner()
         if updated.is_enabled:
@@ -61,10 +61,10 @@ class ScheduleService:
             runner.remove(updated.id)
         return updated
 
-    async def delete_schedule(self, schedule_id: int):
+    async def delete(self, schedule_id: int):
         from src.agent.task.schedule_runner import use_schedule_runner
 
-        schedule = await self.get_schedule_by_id(schedule_id)
+        schedule = await self.get_by_id(schedule_id)
         use_schedule_runner().remove(schedule_id)
         await self._repository.delete(schedule)
 
@@ -93,36 +93,36 @@ class RunRecordService:
         )
         return cls(RunRecordRepository(db_session), resource_service)
 
-    async def get_run_records_page(self, schedule_id: int):
+    async def get_page(self, schedule_id: int):
         return await self._repository.get_page(schedule_id)
 
-    async def get_all_run_records_page(self):
+    async def get_all_page(self):
         return await self._repository.get_all_page()
 
-    async def get_run_record_by_id(self, record_id: int) -> task_models.RunRecord:
+    async def get_by_id(self, record_id: int) -> task_models.RunRecord:
         record = await self._repository.get_by_id(record_id)
         if record is None:
             raise RunRecordNotFoundError(record_id)
         return record
 
-    async def create_run_record(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
+    async def create(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
         return await self._repository.create(data)
 
-    async def update_run_record(self,
+    async def update(self,
                                 record_id: int,
                                 data: schedule_schemas.RunRecordUpdate) -> task_models.RunRecord:
-        record = await self.get_run_record_by_id(record_id)
+        record = await self.get_by_id(record_id)
         return await self._repository.update(record, data)
 
-    async def delete_run_record(self, record_id: int):
-        record = await self.get_run_record_by_id(record_id)
+    async def delete(self, record_id: int):
+        record = await self.get_by_id(record_id)
         await self._repository.delete(record)
         if self._resource_service is not None:
             await self._resource_service.delete_task_resources(record_id)
 
-    async def cleanup_outdated_run_records(self, retention: RetentionOption):
+    async def cleanup_outdated(self, retention: RetentionOption):
         cutoff = get_retention_cutoff(retention)
         if cutoff is None:
             return
         for record_id in await self._repository.get_ids_before(cutoff):
-            await self.delete_run_record(record_id)
+            await self.delete(record_id)

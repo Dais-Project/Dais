@@ -39,7 +39,7 @@ class McpToolsetManager(ToolsetManager):
     async def initialize(self, db_session: AsyncSession):
         from src.services.toolset import ToolsetService
 
-        toolset_ents = await ToolsetService.from_db_session(db_session).get_all_mcp_toolsets()
+        toolset_ents = await ToolsetService.from_db_session(db_session).get_all_mcp()
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
     async def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):
