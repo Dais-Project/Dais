@@ -1,8 +1,10 @@
 import asyncio
 import inspect
 import shutil
+
 from anyio import Path
 from loguru import logger
+
 from src.common import DATA_DIR
 from src.db import db_context
 from src.db.models import skill as skill_models
@@ -59,7 +61,7 @@ class SkillMaterializer:
     @classmethod
     async def materialize_all(cls):
         async with db_context() as db_session:
-            skills = await SkillService(db_session).get_all_skills()
+            skills = await SkillService.from_db_session(db_session).get_all_skills()
 
         sem = asyncio.Semaphore(12)
         async def sem_materialize(skill: skill_models.Skill):

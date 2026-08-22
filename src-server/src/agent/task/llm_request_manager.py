@@ -1,9 +1,9 @@
 import asyncio
 import uuid
-from typing import override
 from collections.abc import AsyncGenerator
+from typing import override
+
 from anyio import Path
-from loguru import logger
 from dais_sdk import LLM
 from dais_sdk.types import (
     ContentBlock, ContentBlockMetadata, ContentBlockResolver,
@@ -15,10 +15,13 @@ from dais_sdk.types import (
     UsageChunkEvent as SdkUsageChunkEvent,
     ToolCallChunkEvent as SdkToolCallChunkEvent,
 )
+from loguru import logger
+
 from src.db import db_context
-from src.services.tasks import TaskResourceService
 from src.schemas.tasks import runtime as task_runtime_schemas
+from src.services.tasks import TaskResourceService
 from src.utils import MarkdownConverter, to_base64_str
+
 from ..context import AgentContext
 from ..types import (
     is_task_resource_metadata, FileResourceMetadata,
@@ -56,7 +59,7 @@ class TaskResourceRetriever(ContentBlockResolver):
 
     async def _resolve_file_resource(self, metadata: FileResourceMetadata) -> ContentBlock | None:
         async with db_context() as db_session:
-            resource_path = await TaskResourceService(db_session, self._task_type).load_task_resource(self._task_id, metadata["resource_id"])
+            resource_path = await TaskResourceService.from_db_session(db_session, self._task_type).load_task_resource(self._task_id, metadata["resource_id"])
             if resource_path is None: return None
 
             normalized_resource_type = normalize_content_type(metadata["mimetype"])

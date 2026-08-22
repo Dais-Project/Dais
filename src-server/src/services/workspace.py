@@ -1,20 +1,16 @@
-from src.agent.notes import NoteMaterializer
-from src.agent.notes import WorkspaceRefManager
-from src.db.models import agent as agent_models
-from src.db.models import skill as skill_models
-from src.db.models import toolset as toolset_models
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.agent.notes import NoteMaterializer, WorkspaceRefManager
 from src.db.models import workspace as workspace_models
 from src.repositories.workspace import WorkspaceRepository
 from src.schemas import workspace as workspace_schemas
 from src.utils.open_in_file_manager import open_in_file_manager
 
-from .exceptions import ConflictError
-from .exceptions import NotFoundError
-from .exceptions import ServiceErrorCode
+from .exceptions import ConflictError, NotFoundError, ServiceErrorCode
 
 
 class WorkspaceNotFoundError(NotFoundError):
-    def __init__(self, workspace_id: int) -> None:
+    def __init__(self, workspace_id: int):
         super().__init__(
             ServiceErrorCode.WORKSPACE_NOT_FOUND,
             "Workspace",
@@ -23,7 +19,7 @@ class WorkspaceNotFoundError(NotFoundError):
 
 
 class WorkspaceNotesLockedError(ConflictError):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__(
             ServiceErrorCode.WORKSPACE_NOTES_LOCKED_BY_RUNNING_TASK,
             "Workspace notes are locked by a running task",
@@ -31,8 +27,12 @@ class WorkspaceNotesLockedError(ConflictError):
 
 
 class WorkspaceService:
-    def __init__(self, repository: WorkspaceRepository) -> None:
+    def __init__(self, repository: WorkspaceRepository):
         self._repository = repository
+
+    @classmethod
+    def from_db_session(cls, db_session: AsyncSession) -> WorkspaceService:
+        return cls(WorkspaceRepository(db_session))
 
     async def get_workspaces_page(
         self,
@@ -124,11 +124,11 @@ class WorkspaceService:
         await NoteMaterializer.materialize(workspace_read)
         return updated_workspace
 
-    async def delete_workspace(self, workspace_id: int) -> None:
+    async def delete_workspace(self, workspace_id: int):
         workspace = await self.get_workspace_by_id(workspace_id)
         await self._repository.delete(workspace)
         await NoteMaterializer.clear_materialized(workspace_id)
 
-    async def open_workspace(self, workspace_id: int) -> None:
+    async def open_workspace(self, workspace_id: int):
         workspace = await self.get_workspace_by_id(workspace_id)
         await open_in_file_manager(workspace.directory)

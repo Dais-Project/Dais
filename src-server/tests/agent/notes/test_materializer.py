@@ -154,7 +154,7 @@ class TestNoteMaterializer:
         to_thread_mock = AsyncMock()
 
         with patch(
-            "src.services.workspace.WorkspaceService",
+            "src.services.workspace.WorkspaceService.from_db_session",
             return_value=mock_service,
         ):
             with patch("src.agent.notes.materializer.db_context") as mock_db_context:

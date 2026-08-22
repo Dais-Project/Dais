@@ -1,16 +1,20 @@
 import asyncio
 import time
 from typing import Callable, Coroutine
+
 from loguru import logger
+
 from src.db import db_context
-from src.db.models.tasks.schedule import CronConfig, PollingConfig, DelayedConfig
+from src.db.models.tasks.schedule import CronConfig, DelayedConfig, PollingConfig
+from src.repositories.tasks.schedule import ScheduleRepository
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.schemas.tasks import schedule as schedule_schemas
 from src.services.tasks import RunRecordService, ScheduleService
 from src.utils import Scheduler
+
 from . import AgentTask
-from ..types import ScheduleRunCompletedEvent
 from ..context import AgentContext
+from ..types import ScheduleRunCompletedEvent
 
 
 _logger = logger.bind(name="ScheduleRunner")
@@ -123,7 +127,7 @@ class ScheduleRunner:
 
     async def load_schedules(self):
         async with db_context() as db_session:
-            schedules = await ScheduleService(db_session).get_all_schedules()
+            schedules = await ScheduleRepository(db_session).get_all()
 
         for schedule in schedules:
             if schedule.is_enabled:
@@ -132,8 +136,8 @@ class ScheduleRunner:
 
     async def trigger(self, schedule_id: int):
         async with db_context() as db_session:
-            schedule = await ScheduleService(db_session).get_schedule_by_id(schedule_id)
-            record = await RunRecordService(db_session).create_run_record(
+            schedule = await ScheduleService.from_db_session(db_session).get_schedule_by_id(schedule_id)
+            record = await RunRecordService.from_db_session(db_session).create_run_record(
                 schedule_schemas.RunRecordCreate(
                     schedule_id=schedule.id,
                     initial_message=schedule.task))

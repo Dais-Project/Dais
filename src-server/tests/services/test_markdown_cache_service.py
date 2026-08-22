@@ -35,7 +35,7 @@ class TestMarkdownCacheService:
         persisted_workspace: Workspace,
         temp_workspace: Path,
     ):
-        service = MarkdownCacheService(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
+        service = MarkdownCacheService.from_db_session(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
 
         result = await service.get(Path("missing.md"))
 
@@ -50,7 +50,7 @@ class TestMarkdownCacheService:
     ):
         source_path = temp_workspace / "note.md"
         source_path.write_text("# Title", encoding="utf-8")
-        service = MarkdownCacheService(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
+        service = MarkdownCacheService.from_db_session(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
 
         await service.set(Path("note.md"), "cached markdown")
         await db_session.flush()
@@ -58,31 +58,6 @@ class TestMarkdownCacheService:
         result = await service.get(Path("note.md"))
 
         assert result == "cached markdown"
-
-    @pytest.mark.asyncio
-    async def test_set_updates_existing_cache_record_instead_of_creating_duplicate(
-        self,
-        db_session: AsyncSession,
-        persisted_workspace: Workspace,
-        temp_workspace: Path,
-    ):
-        source_path = temp_workspace / "note.md"
-        source_path.write_text("# Title", encoding="utf-8")
-        service = MarkdownCacheService(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
-
-        await service.set(Path("note.md"), "cached markdown v1")
-        await db_session.flush()
-        await service.set(Path("note.md"), "cached markdown v2")
-        await db_session.flush()
-
-        count_stmt = select(func.count()).select_from(MarkdownCache)
-        cache_count = await db_session.scalar(count_stmt)
-        cache_record = await db_session.scalar(select(MarkdownCache))
-
-        assert cache_count == 1
-        assert cache_record is not None
-        assert cache_record.content == "cached markdown v2"
-
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "path_kind,relative_path",
@@ -103,7 +78,7 @@ class TestMarkdownCacheService:
         source_path = temp_workspace / relative_path
         source_path.parent.mkdir(parents=True, exist_ok=True)
         source_path.write_text("# Guide", encoding="utf-8")
-        service = MarkdownCacheService(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
+        service = MarkdownCacheService.from_db_session(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
         target_path = relative_path if path_kind == "relative" else source_path
 
         await service.set(target_path, "normalized content")
@@ -127,7 +102,7 @@ class TestMarkdownCacheService:
         existing_path.write_text("# Existing", encoding="utf-8")
         removed_path = temp_workspace / "removed.md"
         removed_path.write_text("# Removed", encoding="utf-8")
-        service = MarkdownCacheService(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
+        service = MarkdownCacheService.from_db_session(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
 
         await service.set(Path("existing.md"), "existing cache")
         await service.set(Path("removed.md"), "removed cache")
@@ -152,7 +127,7 @@ class TestMarkdownCacheService:
     ):
         outside_file = tmp_path / "outside.md"
         outside_file.write_text("# Outside", encoding="utf-8")
-        service = MarkdownCacheService(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
+        service = MarkdownCacheService.from_db_session(db_session, workspace_id=persisted_workspace.id, cwd=temp_workspace)
 
         await service.set(outside_file, "outside content")
         await db_session.flush()

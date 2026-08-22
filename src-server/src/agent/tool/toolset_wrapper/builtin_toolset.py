@@ -1,10 +1,13 @@
 from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path
 from typing import Self, cast, override, TYPE_CHECKING, TypedDict
+
 from dais_sdk.tool import PythonToolset, python_tool
 from dais_sdk.types import ToolDef
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from ..types import ToolMetadata
+
 
 if TYPE_CHECKING:
     from ....db.models import toolset as toolset_models
@@ -26,7 +29,7 @@ class BuiltinToolsetContext:
 
     cwd_input: InitVar[str | Path]
 
-    def __post_init__(self, cwd_input: str | Path) -> None:
+    def __post_init__(self, cwd_input: str | Path):
         object.__setattr__(self, "cwd", Path(cwd_input).expanduser().resolve())
 
     @classmethod
@@ -42,7 +45,7 @@ class BuiltinToolsetContext:
 class BuiltinToolset(PythonToolset):
     def __init__(self,
                  ctx: BuiltinToolsetContext,
-                 toolset_ent: toolset_models.Toolset | None = None) -> None:
+                 toolset_ent: toolset_models.Toolset | None = None):
         self._ctx = ctx
         self._namespaced_tools_cache = super().get_tools(namespaced_tool_name=True)
         self._non_namespaced_tools_cache = super().get_tools(namespaced_tool_name=False)
@@ -61,7 +64,7 @@ class BuiltinToolset(PythonToolset):
 
         temp_instance = cls(BuiltinToolsetContext.default())
         raw_tools = super().get_tools(temp_instance, namespaced_tool_name=False)
-        toolset_service = ToolsetService(db_session)
+        toolset_service = ToolsetService.from_db_session(db_session)
         toolset_ent = await toolset_service.get_toolset_by_internal_key(cls.internal_key())
         await toolset_service.sync_toolset(toolset_ent.id,
                                             [ToolsetService.ToolLike(

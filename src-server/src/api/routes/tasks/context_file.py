@@ -15,7 +15,7 @@ from ...exceptions import ApiError, ApiErrorCode
 context_file_router = APIRouter(tags=["context_file"])
 
 class ContextFileInternalError(ValueError):
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str):
         super().__init__(message)
 
 def _list_directory(workspace_root: Path, path: str) -> list[context_file_schemas.ContextFileItem]:

@@ -7,15 +7,13 @@ from src.db.models import Base
 
 
 class RepositoryBase[Ent: Base](ABC):
-    def __init__(self, db_session: AsyncSession) -> None:
+    def __init__(self, db_session: AsyncSession):
         self._db_session = db_session
 
-    def apply_fields(
-        self,
-        entity: Ent,
-        data: BaseModel,
-        exclude: set[str] | None = None,
-    ) -> None:
+    def apply_fields(self,
+                     entity: Ent,
+                     data: BaseModel,
+                     exclude: set[str] | None = None):
         exclude = exclude or set()
         dump_data = data.model_dump(exclude_unset=True, exclude=exclude)
         for key, value in dump_data.items():

@@ -1,11 +1,14 @@
 from typing import Self, Sequence, override
+
 from dais_sdk.tool import Toolset
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db import db_context
 from src.db.models import toolset as toolset_models
+
 from .types import ToolsetManager
-from ..toolset_wrapper import BuiltinToolset, BuiltinToolsetContext
 from ..builtin_tools import BUILT_IN_TOOLSETS
+from ..toolset_wrapper import BuiltinToolset, BuiltinToolsetContext
 
 
 class BuiltinToolsetManager(ToolsetManager):
@@ -36,7 +39,7 @@ class BuiltinToolsetManager(ToolsetManager):
         from src.services.toolset import ToolsetService
 
         async with db_context() as db_session:
-            toolset_ents = await ToolsetService(db_session).get_all_builtin_toolsets()
+            toolset_ents = await ToolsetService.from_db_session(db_session).get_all_builtin_toolsets()
         self._toolset_map = {toolset.internal_key: toolset for toolset in toolset_ents}
 
         self._toolsets = []

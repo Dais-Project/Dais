@@ -1,40 +1,47 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter
+from fastapi import Query
+from fastapi import status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import apaginate
-from src.services.agent import AgentService
+
 from src.schemas import agent as agent_schemas
-from ..dependencies import DbSessionDep
+
+from ..dependencies import AgentServiceDep
 
 
 agents_router = APIRouter(tags=["agent"])
 
+
 @agents_router.get("/", response_model=Page[agent_schemas.AgentBrief])
 async def get_agents(
-    db_session: DbSessionDep,
+    service: AgentServiceDep,
     query: str | None = Query(default=None),
 ):
-    db_query = AgentService(db_session).get_agents_query(query)
-    return await apaginate(db_session, db_query)
+    return await service.get_agents_page(query)
+
 
 @agents_router.get("/{agent_id}", response_model=agent_schemas.AgentRead)
-async def get_agent(agent_id: int, db_session: DbSessionDep):
-    return await AgentService(db_session).get_agent_by_id(agent_id)
+async def get_agent(service: AgentServiceDep, agent_id: int):
+    return await service.get_agent_by_id(agent_id)
 
-@agents_router.post("/", status_code=status.HTTP_201_CREATED, response_model=agent_schemas.AgentRead)
-async def create_agent(
-    db_session: DbSessionDep,
-    body: agent_schemas.AgentCreate,
-):
-    return await AgentService(db_session).create_agent(body)
+
+@agents_router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=agent_schemas.AgentRead,
+)
+async def create_agent(service: AgentServiceDep, body: agent_schemas.AgentCreate):
+    return await service.create_agent(body)
+
 
 @agents_router.put("/{agent_id}", response_model=agent_schemas.AgentRead)
 async def update_agent(
+    service: AgentServiceDep,
     agent_id: int,
     body: agent_schemas.AgentUpdate,
-    db_session: DbSessionDep,
 ):
-    return await AgentService(db_session).update_agent(agent_id, body)
+    return await service.update_agent(agent_id, body)
+
 
 @agents_router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_agent(agent_id: int, db_session: DbSessionDep):
-    await AgentService(db_session).delete_agent(agent_id)
+async def delete_agent(service: AgentServiceDep, agent_id: int):
+    await service.delete_agent(agent_id)

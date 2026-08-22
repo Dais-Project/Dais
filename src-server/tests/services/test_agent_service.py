@@ -8,7 +8,7 @@ from src.services.exceptions import ServiceErrorCode
 
 @pytest.fixture
 def agent_service(db_session: AsyncSession) -> AgentService:
-    return AgentService(db_session)
+    return AgentService.from_db_session(db_session)
 
 
 @pytest.mark.service
@@ -46,26 +46,6 @@ class TestAgentService:
         assert agent.instruction == "Instruction A"
         assert agent.model_id is None
         assert {created_tool.id for created_tool in agent.usable_tools} == {tool.id}
-
-    @pytest.mark.asyncio
-    async def test_get_agents_query_filters_by_name_or_description(
-        self,
-        agent_service: AgentService,
-        agent_factory,
-    ):
-        name_match = await agent_factory(name="Release Agent", description="General")
-        description_match = await agent_factory(name="Writer", description="Release notes")
-        await agent_factory(name="Reviewer", description="Code review")
-
-        rows = await agent_service._db_session.scalars(
-            agent_service.get_agents_query("release")
-        )
-
-        assert [agent.id for agent in rows.all()] == [
-            name_match.id,
-            description_match.id,
-        ]
-
     @pytest.mark.asyncio
     async def test_update_agent_updates_fields_and_tools(
         self,

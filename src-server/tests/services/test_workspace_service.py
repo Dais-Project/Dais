@@ -11,7 +11,6 @@ from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
 from src.db.models.tasks.schedule import DelayedConfig
 from src.db.models import workspace as workspace_models
-from src.repositories.workspace import WorkspaceRepository
 from src.schemas import workspace as workspace_schemas
 from src.services.exceptions import ServiceErrorCode
 from src.services.workspace import (
@@ -23,7 +22,7 @@ from src.services.workspace import (
 
 @pytest.fixture
 def workspace_service(db_session: AsyncSession) -> WorkspaceService:
-    return WorkspaceService(WorkspaceRepository(db_session))
+    return WorkspaceService.from_db_session(db_session)
 
 
 @pytest.fixture(autouse=True)

@@ -5,22 +5,24 @@ import difflib
 import os
 import tempfile
 import xml.etree.ElementTree as ET
-from typing import Annotated, ClassVar, Literal, TypedDict, cast, override
 from pathlib import Path as StdPath
 from string import Template
+from typing import Annotated, ClassVar, Literal, TypedDict, cast, override
+
 from anyio import Path as AnyioPath
 from anyxml import AnyXml
-from loguru import logger
-from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, VideoBlock
 from dais_scantree import bfs as scantree_bfs, dfs as scantree_dfs
 from dais_scantree.ignore_rule import load_gitignore_spec
+from dais_sdk.types import AudioBlock, Base64Source, ContentBlock, ImageBlock, VideoBlock
+from loguru import logger
 from wcmatch import glob as wc_glob
+
+from src.binaries import RIPGREP_PATH
 from src.db import db_context
 from src.db.models import toolset as toolset_models
 from src.services.markdown_cache import MarkdownCacheService
-from src.binaries import RIPGREP_PATH
-
 from src.utils import MarkdownConverter
+
 from ..toolset_wrapper import builtin_tool, BuiltinToolset, BuiltinToolsetContext, BuiltinToolDefaults
 from ...utils import magika_identify_path
 
@@ -84,8 +86,8 @@ class FileSystemToolset(BuiltinToolset):
                 self._file_locks[normalized_key] = lock
             return lock
 
-    async def _atomic_write_text(self, path: AnyioPath, content: str) -> None:
-        def write_impl() -> None:
+    async def _atomic_write_text(self, path: AnyioPath, content: str):
+        def write_impl():
             std_path = StdPath(path)
             if std_path.is_symlink():
                 std_path = std_path.resolve(strict=False)
@@ -139,7 +141,7 @@ class FileSystemToolset(BuiltinToolset):
         """
         async def convert_to_markdown_with_cache(path: AnyioPath) -> str:
             async with db_context() as db_session:
-                markdown_cache_service = MarkdownCacheService(db_session, self._ctx.workspace_id, self._ctx.cwd)
+                markdown_cache_service = MarkdownCacheService.from_db_session(db_session, self._ctx.workspace_id, self._ctx.cwd)
                 cached = await markdown_cache_service.get(path)
                 if cached is not None: return cached
 

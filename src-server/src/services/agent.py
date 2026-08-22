@@ -1,78 +1,47 @@
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db.models import agent as agent_models
-from src.db.models import toolset as toolset_models
+from src.repositories.agent import AgentRepository
 from src.schemas import agent as agent_schemas
-from .service_base import ServiceBase
+
 from .exceptions import NotFoundError, ServiceErrorCode
 
 
 class AgentNotFoundError(NotFoundError):
-    def __init__(self, agent_id: int) -> None:
+    def __init__(self, agent_id: int):
         super().__init__(ServiceErrorCode.AGENT_NOT_FOUND, "Agent", agent_id)
 
-class AgentService(ServiceBase[agent_models.Agent]):
-    @staticmethod
-    def relations():
-        return [
-            selectinload(agent_models.Agent.model),
-            selectinload(agent_models.Agent.usable_tools),
-        ]
 
-    def get_agents_query(self, query: str | None = None):
-        stmt = (
-            select(agent_models.Agent)
-            .order_by(agent_models.Agent.id.asc())
-            .options(selectinload(agent_models.Agent.model))
-        )
-        if query:
-            search_term = f"%{query}%"
-            stmt = stmt.where(
-                agent_models.Agent.name.ilike(search_term)
-                | agent_models.Agent.description.ilike(search_term)
-            )
-        return stmt
+class AgentService:
+    def __init__(self, repository: AgentRepository):
+        self._repository = repository
 
-    async def get_agent_by_id(self, id: int) -> agent_models.Agent:
-        agent = await self._db_session.get(
-            agent_models.Agent, id,
-            options=self.relations(),
-        )
-        if not agent:
-            raise AgentNotFoundError(id)
+    @classmethod
+    def from_db_session(cls, db_session: AsyncSession) -> AgentService:
+        return cls(AgentRepository(db_session))
+
+    async def get_agents_page(self, query: str | None = None):
+        return await self._repository.get_page(query)
+
+    async def get_agent_by_id(self, agent_id: int) -> agent_models.Agent:
+        agent = await self._repository.get_by_id(agent_id)
+        if agent is None:
+            raise AgentNotFoundError(agent_id)
         return agent
 
-    async def _update_relations(self,
-                                agent: agent_models.Agent,
-                                data: agent_schemas.AgentCreate | agent_schemas.AgentUpdate
-                                ):
-        if data.usable_tool_ids is not None:
-            stmt = select(toolset_models.Tool).where(
-                toolset_models.Tool.id.in_(data.usable_tool_ids)
-            )
-            tools = (await self._db_session.scalars(stmt)).all()
-            agent.usable_tools = list(tools)
-
     async def create_agent(self, data: agent_schemas.AgentCreate) -> agent_models.Agent:
-        create_data = data.model_dump(exclude={"usable_tool_ids"})
-        new_agent = agent_models.Agent(**create_data)
+        tools = await self._repository.get_tools_by_ids(data.usable_tool_ids)
+        return await self._repository.create(data, tools)
 
-        await self._update_relations(new_agent, data)
+    async def update_agent(self, agent_id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
+        agent = await self.get_agent_by_id(agent_id)
+        tools = (
+            await self._repository.get_tools_by_ids(data.usable_tool_ids)
+            if data.usable_tool_ids is not None
+            else None
+        )
+        return await self._repository.update(agent, data, tools)
 
-        self._db_session.add(new_agent)
-        new_id = await self.flush_and_expunge(new_agent)
-        return await self.get_agent_by_id(new_id)
-
-    async def update_agent(self, id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
-        updated_agent = await self.get_agent_by_id(id)
-
-        self.apply_fields(updated_agent, data, exclude={"usable_tool_ids"})
-
-        await self._update_relations(updated_agent, data)
-        new_id = await self.flush_and_expunge(updated_agent)
-        return await self.get_agent_by_id(new_id)
-
-    async def delete_agent(self, id: int) -> None:
-        agent = await self.get_agent_by_id(id)
-        await self._db_session.delete(agent)
-        await self._db_session.flush()
+    async def delete_agent(self, agent_id: int):
+        agent = await self.get_agent_by_id(agent_id)
+        await self._repository.delete(agent)

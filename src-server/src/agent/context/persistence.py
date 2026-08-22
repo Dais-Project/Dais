@@ -1,13 +1,16 @@
 import time
 from typing import TYPE_CHECKING
+
 from dais_sdk.types import Message
+
 from src.db import db_context
 from src.db.models import tasks as task_models
-from src.schemas.tasks import task as task_schemas
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.schemas.tasks import schedule as schedule_schemas
 from src.schemas.tasks import subtask as subtask_schemas
+from src.schemas.tasks import task as task_schemas
 from src.services.tasks import RunRecordService, SubtaskService, TaskService
+
 
 if TYPE_CHECKING:
     from src.agent.context.models import AgentContextPersistence
@@ -28,7 +31,7 @@ class TaskPersistence:
             last_run_at=int(time.time()),
         )
         async with db_context() as db_session:
-            task = await TaskService(db_session).update_task(runtime_id, update)
+            task = await TaskService.from_db_session(db_session).update_task(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_task(task)
 
 class SubaskPersistence:
@@ -45,7 +48,7 @@ class SubaskPersistence:
             agent_id=None,
         )
         async with db_context() as db_session:
-            subtask = await SubtaskService(db_session).update_subtask(runtime_id, update)
+            subtask = await SubtaskService.from_db_session(db_session).update_subtask(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
 
 class SchedulePersistence:
@@ -62,7 +65,7 @@ class SchedulePersistence:
             schedule_id=None,
         )
         async with db_context() as db_session:
-            record = await RunRecordService(db_session).update_run_record(runtime_id, update)
+            record = await RunRecordService.from_db_session(db_session).update_run_record(runtime_id, update)
         return task_runtime_schemas.TaskRuntimeContext.from_schedule_record(record)
 
 def create_agent_context_persistence(

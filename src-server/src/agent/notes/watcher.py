@@ -1,9 +1,14 @@
 from typing import Callable
+
 from anyio import Path as AnyioPath
 from loguru import logger
 from watchfiles import Change as ChangeType
+
 from src.db import db_context
+from src.db.models import workspace as workspace_models
+from src.repositories.workspace import WorkspaceRepository
 from src.utils import DirectoryWatcher, FileChange
+
 from .materializer import NoteMaterializer
 from .workspace_ref_manager import WorkspaceRefManager
 
@@ -12,7 +17,7 @@ type NoteChange = tuple[ChangeType, AnyioPath]
 
 class NoteWatcher:
     _logger = logger.bind(name="NoteWatcher")
-    def __init__(self, workspace_id: int) -> None:
+    def __init__(self, workspace_id: int):
         self._workspace_id = workspace_id
         self._ref_acquired = False
         self._watcher: DirectoryWatcher | None = None
@@ -33,7 +38,7 @@ class NoteWatcher:
             self._ref_acquired = False
             raise
 
-    async def _stop(self) -> None:
+    async def _stop(self):
         try:
             if not self._watcher: return
             await self._watcher.stop()
@@ -44,7 +49,7 @@ class NoteWatcher:
                 self._ref_acquired = False
                 WorkspaceRefManager.decrease_workspace_ref(self._workspace_id)
 
-    async def _handle_file_changes(self, raw_changes: list[FileChange]) -> None:
+    async def _handle_file_changes(self, raw_changes: list[FileChange]):
         notes_dir = await NoteMaterializer.get_notes_dir(self._workspace_id)
 
         markdown_changes: list[NoteChange] = []
@@ -60,9 +65,6 @@ class NoteWatcher:
             await self._handle_note_changes(notes_dir, markdown_changes)
 
     async def _handle_note_changes(self, base: AnyioPath, changes: list[NoteChange]):
-        from src.repositories.workspace import WorkspaceRepository
-        from src.db.models import workspace as workspace_models
-
         if len(changes) == 0: return
 
         added_notes: list[tuple[AnyioPath, str]] = [] # (relative, content)

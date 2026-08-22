@@ -4,7 +4,7 @@ from src.db.models import tasks as task_models
 
 @dataclass
 class ContextUsage(task_models.TaskUsage):
-    def accumulate(self, usage: UsageChunkEvent) -> None:
+    def accumulate(self, usage: UsageChunkEvent):
         self.input_tokens = usage.input_tokens
         self.output_tokens = usage.output_tokens
         self.total_tokens = usage.total_tokens

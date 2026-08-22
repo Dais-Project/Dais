@@ -19,16 +19,12 @@ from dais_skills.scanner import ScannerError
 from dais_skills.scanner.exceptions import (
     InvalidRepoUrlError as ScannerInvalidRepoUrlError,
 )
-from fastapi import APIRouter, BackgroundTasks, File, Query, UploadFile, status
+from fastapi import APIRouter, File, Query, UploadFile, status
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import apaginate
 
-from src.agent.skills import SkillMaterializer
-from src.db.models import skill as skill_models
 from src.schemas import skill as skill_schemas
-from src.services.skill import SkillNameAlreadyExistsError, SkillService
 
-from ..dependencies import DbSessionDep
+from ..dependencies import SkillServiceDep
 from ..exceptions import ApiError, ApiErrorCode
 
 
@@ -60,25 +56,13 @@ def process_archive(file: bytes | IO[bytes]) -> skill_schemas.SkillCreate:
         ],
     )
 
-def start_materializing_background_task(
-    background_tasks: BackgroundTasks,
-    skill_ent: skill_models.Skill,
-):
-    skill_data = skill_schemas.SkillRead.model_validate(skill_ent)
-
-    async def clear_and_rematerialize(skill: skill_schemas.SkillRead):
-        await SkillMaterializer.clear_materialized(skill.id)
-        await SkillMaterializer.materialize(skill)
-
-    background_tasks.add_task(clear_and_rematerialize, skill_data)
 
 @skills_router.get("/", response_model=Page[skill_schemas.SkillBrief])
 async def get_skills(
-    db_session: DbSessionDep,
+    service: SkillServiceDep,
     query: str | None = Query(default=None),
 ):
-    db_query = SkillService(db_session).get_skills_query(query)
-    return await apaginate(db_session, db_query)
+    return await service.get_skills_page(query)
 
 @skills_router.post(
     "/scan-repo",
@@ -114,11 +98,7 @@ async def scan_repo_skills(body: skill_schemas.ScanRepoRequest):
     status_code=status.HTTP_201_CREATED,
     response_model=list[skill_schemas.SkillRead],
 )
-async def install_from_github(
-    body: skill_schemas.InstallFromGithubRequest,
-    db_session: DbSessionDep,
-    background_tasks: BackgroundTasks,
-):
+async def install_from_github(service: SkillServiceDep, body: skill_schemas.InstallFromGithubRequest):
     async def download_task(repo_url: str, skill_path: str) -> skill_schemas.SkillCreate:
         nonlocal sem
         async with sem:
@@ -148,47 +128,26 @@ async def install_from_github(
     download_tasks = [download_task(body.repo_url, skill_path) for skill_path in body.skill_paths]
     skill_creates = await asyncio.gather(*download_tasks)
 
-    service = SkillService(db_session)
-    created_skills: list[skill_models.Skill] = []
-    for skill_create in skill_creates:
-        try:
-            created_skill = await service.create_skill(skill_create)
-        except SkillNameAlreadyExistsError: continue
-        created_skills.append(created_skill)
-
-    for created_skill in created_skills:
-        start_materializing_background_task(background_tasks, created_skill)
-
-    return created_skills
+    return await service.create_skills_ignoring_duplicates(skill_creates)
 
 @skills_router.get("/{skill_id}", response_model=skill_schemas.SkillRead)
-async def get_skill(skill_id: int, db_session: DbSessionDep):
-    return await SkillService(db_session).get_skill_by_id(skill_id)
+async def get_skill(service: SkillServiceDep, skill_id: int):
+    return await service.get_skill_by_id(skill_id)
 
 @skills_router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
     response_model=skill_schemas.SkillRead,
 )
-async def create_skill(
-    db_session: DbSessionDep,
-    body: skill_schemas.SkillCreate,
-    background_tasks: BackgroundTasks,
-):
-    created_skill = await SkillService(db_session).create_skill(body)
-    start_materializing_background_task(background_tasks, created_skill)
-    return created_skill
+async def create_skill(service: SkillServiceDep, body: skill_schemas.SkillCreate):
+    return await service.create_skill(body)
 
 @skills_router.post(
     "/upload",
     status_code=status.HTTP_201_CREATED,
     response_model=skill_schemas.SkillRead,
 )
-async def upload_archive(
-    db_session: DbSessionDep,
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-):
+async def upload_archive(service: SkillServiceDep, file: UploadFile = File(...)):
     file_obj = file.file
 
     if not zipfile.is_zipfile(file_obj):
@@ -199,26 +158,16 @@ async def upload_archive(
         )
 
     skill_create = await asyncio.to_thread(process_archive, file_obj)
-    created_skill = await SkillService(db_session).create_skill(skill_create)
-    start_materializing_background_task(background_tasks, created_skill)
-    return created_skill
+    return await service.create_skill(skill_create)
 
 @skills_router.put("/{skill_id}", response_model=skill_schemas.SkillRead)
 async def update_skill(
+    service: SkillServiceDep,
     skill_id: int,
     body: skill_schemas.SkillUpdate,
-    db_session: DbSessionDep,
-    background_tasks: BackgroundTasks,
 ):
-    updated_skill = await SkillService(db_session).update_skill(skill_id, body)
-    start_materializing_background_task(background_tasks, updated_skill)
-    return updated_skill
+    return await service.update_skill(skill_id, body)
 
 @skills_router.delete("/{skill_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_skill(
-    skill_id: int,
-    db_session: DbSessionDep,
-    background_tasks: BackgroundTasks,
-):
-    deleted_skill = await SkillService(db_session).delete_skill(skill_id)
-    background_tasks.add_task(SkillMaterializer.clear_materialized, deleted_skill.id)
+async def delete_skill(service: SkillServiceDep, skill_id: int):
+    await service.delete_skill(skill_id)

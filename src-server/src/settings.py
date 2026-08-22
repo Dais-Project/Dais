@@ -2,13 +2,16 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Any
+
 from pydantic import GetJsonSchemaHandler
 from pydantic_core import core_schema
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+
 from src.utils.retention import RetentionOption
+
+from .common import DATA_DIR
 from .db import db_context
 from .services.llm_model import LlmModelService
-from .common import DATA_DIR
 
 
 class JsonFileSettingsSource(PydanticBaseSettingsSource):
@@ -86,7 +89,7 @@ class AppSettings(JsonSettings):
     async def validate_self(self):
         if self.flash_model is not None:
             async with db_context() as db_session:
-                service = LlmModelService(db_session)
+                service = LlmModelService.from_db_session(db_session)
                 try:
                     await service.get_model_by_id(self.flash_model)
                 except Exception:

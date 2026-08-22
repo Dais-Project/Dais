@@ -14,8 +14,6 @@ class ApiErrorCode(StrEnum):
     TASK_RESOURCE_NOT_FOUND = "TASK_RESOURCE_NOT_FOUND"
     TASK_RESOURCE_SHOULD_HAVE_FILENAME_AND_CONTENTTYPE = "TASK_RESOURCE_SHOULD_HAVE_FILENAME_AND_CONTENTTYPE"
 
-    MCP_TOOLSET_NOT_FOUND = "MCP_TOOLSET_NOT_FOUND"
-
     WORKSPACE_NOTES_LOCKED_BY_RUNNING_TASK = "WORKSPACE_NOTES_LOCKED_BY_RUNNING_TASK"
 
     INVALID_SKILL_ARCHIVE = "INVALID_SKILL_ARCHIVE"
@@ -28,7 +26,7 @@ class ApiErrorCode(StrEnum):
 
 class ApiError(Exception):
     """Base class for all API errors."""
-    def __init__(self, status_code: int, error_code: ApiErrorCode | McpConnectionErrorCode, *args) -> None:
+    def __init__(self, status_code: int, error_code: ApiErrorCode | McpConnectionErrorCode, *args):
         super().__init__(*args)
         self.status_code = status_code
         self.error_code = error_code

@@ -63,7 +63,6 @@ class WorkspaceRepository(RepositoryBase[workspace_models.Workspace]):
             workspace_models.Workspace,
             workspace_id,
             options=self.relations(),
-            populate_existing=True,
         )
 
     async def get_frequent(
@@ -146,7 +145,7 @@ class WorkspaceRepository(RepositoryBase[workspace_models.Workspace]):
         )
         workspace = workspace_models.Workspace(
             **create_data,
-            notes=self._build_notes(data.notes),
+            notes=self._create_notes(data.notes),
             usable_agents=agents,
             usable_tools=tools,
             usable_skills=skills,
@@ -192,20 +191,18 @@ class WorkspaceRepository(RepositoryBase[workspace_models.Workspace]):
         workspace: workspace_models.Workspace,
         notes: list[workspace_schemas.WorkspaceNoteBase],
     ) -> workspace_models.Workspace:
-        workspace.notes = self._build_notes(notes)
+        workspace.notes = self._create_notes(notes)
         workspace_id = await self.flush_and_expunge(workspace)
         updated_workspace = await self.get_by_id(workspace_id)
         assert updated_workspace is not None
         return updated_workspace
 
-    async def delete(self, workspace: workspace_models.Workspace) -> None:
+    async def delete(self, workspace: workspace_models.Workspace):
         await self._db_session.delete(workspace)
         await self._db_session.flush()
 
     @staticmethod
-    def _build_notes(
-        notes: list[workspace_schemas.WorkspaceNoteBase],
-    ) -> list[workspace_models.WorkspaceNote]:
+    def _create_notes(notes: list[workspace_schemas.WorkspaceNoteBase]) -> list[workspace_models.WorkspaceNote]:
         return [
             workspace_models.WorkspaceNote(
                 relative=note.relative,

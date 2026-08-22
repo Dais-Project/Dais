@@ -157,7 +157,7 @@ class TestNoteWatcher:
         mock_repository.get_by_id.return_value = workspace
 
         with patch(
-            "src.repositories.workspace.WorkspaceRepository",
+            "src.agent.notes.watcher.WorkspaceRepository",
             return_value=mock_repository,
         ):
             with patch("src.agent.notes.watcher.db_context") as mock_db_context:
@@ -193,7 +193,7 @@ class TestNoteWatcher:
         mock_repository.get_by_id.return_value = workspace
 
         with patch(
-            "src.repositories.workspace.WorkspaceRepository",
+            "src.agent.notes.watcher.WorkspaceRepository",
             return_value=mock_repository,
         ):
             with patch("src.agent.notes.watcher.db_context") as mock_db_context:

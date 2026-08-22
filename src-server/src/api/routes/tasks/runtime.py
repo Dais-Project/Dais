@@ -1,11 +1,13 @@
 from fastapi import APIRouter
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.agent.context import AgentContext
 from src.agent.task import AgentTask
 from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.tasks import TaskService, SubtaskService, RunRecordService
+
 from ...dependencies import DbSessionDep
 
 
@@ -13,7 +15,7 @@ async def _load_task_runtime_context(db_session: AsyncSession,
                                      task_id: int,
                                      agent_id: int | None,
                                      ) -> task_runtime_schemas.TaskRuntimeContext:
-    task = await TaskService(db_session).get_task_by_id(task_id)
+    task = await TaskService.from_db_session(db_session).get_task_by_id(task_id)
     if agent_id is not None:
         task.agent_id = agent_id
     return task_runtime_schemas.TaskRuntimeContext.from_task(task)
@@ -22,7 +24,7 @@ async def _load_subtask_runtime_context(db_session: AsyncSession,
                                         subtask_id: int,
                                         agent_id: int | None,
                                         ) -> task_runtime_schemas.TaskRuntimeContext:
-    subtask = await SubtaskService(db_session).get_subtask_by_id(subtask_id)
+    subtask = await SubtaskService.from_db_session(db_session).get_subtask_by_id(subtask_id)
     if agent_id is not None:
         subtask.agent_id = agent_id
     return task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
@@ -31,7 +33,7 @@ async def _load_schedule_runtime_context(db_session: AsyncSession,
                                          task_id: int,
                                          agent_id: int | None,
                                          ) -> task_runtime_schemas.TaskRuntimeContext:
-    record = await RunRecordService(db_session).get_run_record_by_id(task_id)
+    record = await RunRecordService.from_db_session(db_session).get_run_record_by_id(task_id)
     if agent_id is not None:
         record.schedule.agent_id = agent_id
     return task_runtime_schemas.TaskRuntimeContext.from_schedule_record(record)

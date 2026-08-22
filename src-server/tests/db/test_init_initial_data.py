@@ -1,4 +1,5 @@
 from typing import AsyncGenerator
+
 import pytest
 import pytest_asyncio
 from sqlalchemy import event
@@ -13,8 +14,8 @@ from src.db.models import provider as provider_models
 from src.db.models import skill as skill_models
 from src.db.models import toolset as toolset_models
 from src.db.models import workspace as workspace_models
+from src.repositories.agent import AgentRepository
 from src.repositories.workspace import WorkspaceRepository
-from src.services.agent import AgentService
 
 
 @pytest_asyncio.fixture
@@ -65,7 +66,7 @@ class TestInitInitialData:
                 await session.scalars(
                     select(agent_models.Agent)
                     .order_by(agent_models.Agent.id.asc())
-                    .options(*AgentService.relations())
+                    .options(*AgentRepository.relations())
                 )
             ).all()
             workspaces = (

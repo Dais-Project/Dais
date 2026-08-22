@@ -93,7 +93,7 @@ app.include_router(static_router)
 
 add_pagination(app)
 
-def use_route_names_as_operation_ids(application: FastAPI) -> None:
+def use_route_names_as_operation_ids(application: FastAPI):
     """
     Simplify operation IDs so that generated API clients have simpler function names.
     Should be called only after all routes have been added.

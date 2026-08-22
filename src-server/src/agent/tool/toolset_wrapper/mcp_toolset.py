@@ -2,16 +2,19 @@ import os
 from dataclasses import replace
 from enum import StrEnum
 from typing import cast, override
-from loguru import logger
+
 from dais_sdk.mcp_client import LocalServerParams, RemoteServerParams
 from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset, LocalMcpToolset, RemoteMcpToolset
 from dais_sdk.types import ToolDef, McpConnectionError, McpConnectionErrorCode
+from loguru import logger
 from mcp.client.stdio import get_default_environment
+
+from src.binaries import NPX_PATH, UVX_PATH, NODE_PATH, UV_PATH
+from src.common import DATA_DIR
 from src.db import db_context
 from src.db.models import toolset as toolset_models
-from src.common import DATA_DIR
-from src.binaries import NPX_PATH, UVX_PATH, NODE_PATH, UV_PATH
 from src.shell_config import EMBEDDED_BINARIES_ENV
+
 from ..types import ToolMetadata
 
 
@@ -44,7 +47,7 @@ def resolve_local_mcp_env(env: dict[str, str] | None) -> dict[str, str]:
     if env: base_env.update(env)
     return base_env
 
-def build_local_server_params(params: LocalServerParams) -> LocalServerParams:
+def create_local_server_params(params: LocalServerParams) -> LocalServerParams:
     """Apply runtime transformations to LocalServerParams for MCP stdio process spawning."""
     return params.model_copy(
         update={
@@ -60,7 +63,7 @@ class McpToolset(Toolset):
             match toolset_ent.type:
                 case toolset_models.ToolsetType.MCP_LOCAL:
                     assert isinstance(toolset_ent.params, LocalServerParams)
-                    params = build_local_server_params(toolset_ent.params)
+                    params = create_local_server_params(toolset_ent.params)
                     inner_toolset = LocalMcpToolset(toolset_ent.name, params)
                 case toolset_models.ToolsetType.MCP_REMOTE:
                     assert isinstance(toolset_ent.params, RemoteServerParams)
@@ -98,7 +101,7 @@ class McpToolset(Toolset):
         from src.services.toolset import ToolsetService
 
         async with db_context() as db_session:
-            toolset_service = ToolsetService(db_session)
+            toolset_service = ToolsetService.from_db_session(db_session)
             tools = [ToolsetService.ToolLike(
                         name=tool.name,
                         internal_key=self.format_tool_name(tool.name),

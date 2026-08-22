@@ -1,7 +1,9 @@
 import asyncio
 import shutil
+
 from anyio import Path as AnyioPath
 from loguru import logger
+
 from src.common import DATA_DIR
 from src.db import db_context, workspace_models
 from src.schemas import workspace as workspace_schemas
@@ -51,13 +53,10 @@ class NoteMaterializer:
 
     @classmethod
     async def materialize_all(cls):
-        from src.repositories.workspace import WorkspaceRepository
         from src.services.workspace import WorkspaceService
 
         async with db_context() as db_session:
-            workspaces = await WorkspaceService(
-                WorkspaceRepository(db_session)
-            ).get_all_workspaces()
+            workspaces = await WorkspaceService.from_db_session(db_session).get_all_workspaces()
 
         sem = asyncio.Semaphore(12)
         async def sem_materialize(workspace: workspace_models.Workspace):

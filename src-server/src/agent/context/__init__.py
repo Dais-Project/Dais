@@ -3,10 +3,12 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 from dataclasses import asdict
 from typing import Self
+
 from anyxml import AnyXml
-from loguru import logger
 from dais_sdk.tool import Toolset
 from dais_sdk.types import Message, ToolDef, ToolFn
+from loguru import logger
+
 from src.db import db_context
 from src.schemas import (
     agent as agent_schemas,
@@ -15,18 +17,16 @@ from src.schemas import (
     skill as skill_schemas,
 )
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.repositories.workspace import WorkspaceRepository
 from src.services.agent import AgentService
-from src.services.workspace import WorkspaceService
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
+from src.services.workspace import WorkspaceService
 from src.settings import use_app_setting_manager
-from .persistence import create_agent_context_persistence
+
 from .aliases import BuiltInToolAliases
 from .models import AgentContextResource, AgentContextPersistence
+from .persistence import create_agent_context_persistence
 from ..notes import NoteMaterializer
-from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltinToolsetContext, McpToolsetManager
-from ..tool.types import is_tool_metadata
 from ..prompts import (
     BASE_INSTRUCTION,
     DEFAULT_BASE_ROLE,
@@ -38,6 +38,8 @@ from ..prompts import (
     NO_WORKSPACE_INSTRUCTION,
     NO_AGENT_INSTRUCTION,
 )
+from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltinToolsetContext, McpToolsetManager
+from ..tool.types import is_tool_metadata
 from ..types import ContextUsage
 
 
@@ -70,15 +72,13 @@ class AgentContext:
         assert task.agent_id is not None
 
         async with db_context() as db_session:
-            agent = await AgentService(db_session).get_agent_by_id(task.agent_id)
-            workspace = await WorkspaceService(
-                WorkspaceRepository(db_session)
-            ).get_workspace_by_id(task.workspace_id)
+            agent = await AgentService.from_db_session(db_session).get_agent_by_id(task.agent_id)
+            workspace = await WorkspaceService.from_db_session(db_session).get_workspace_by_id(task.workspace_id)
             skills = workspace.usable_skills
 
             assert agent.model_id is not None
-            model = await LlmModelService(db_session).get_model_by_id(agent.model_id)
-            provider = await ProviderService(db_session).get_provider_by_id(model.provider_id)
+            model = await LlmModelService.from_db_session(db_session).get_model_by_id(agent.model_id)
+            provider = await ProviderService.from_db_session(db_session).get_provider_by_id(model.provider_id)
 
         usage = task.usage
         usage.max_tokens = model.context_size

@@ -42,7 +42,7 @@ def prevent_port_occupancy(port: int):
     time.sleep(1)
 
 class Server:
-    def __init__(self, log_level: int, local_port: int, remote_port: int | None = None) -> None:
+    def __init__(self, log_level: int, local_port: int, remote_port: int | None = None):
         self._config = Server._create_config(log_level, local_port, remote_port)
         self._shutdown_event = asyncio.Event()
         self._loop = asyncio.get_event_loop()

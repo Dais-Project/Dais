@@ -3,19 +3,21 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Coroutine, TypedDict
+
 from fastapi import FastAPI
-from src.agent.skills import SkillMaterializer
+
 from src.agent.notes import NoteMaterializer
+from src.agent.skills import SkillMaterializer
 from src.agent.task.schedule_runner import init_schedule_runner
 from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
-from src.repositories.workspace import WorkspaceRepository
 from src.services.markdown_cache import MarkdownCacheService
 from src.services.tasks import RunRecordService, TaskService
 from src.services.workspace import WorkspaceService
 from src.settings import AppSettings, use_app_setting_manager
-from .sse_dispatcher import SseDispatcher
+
 from .cleanup import CleanupManager
+from .sse_dispatcher import SseDispatcher
 
 
 class AppState(TypedDict):
@@ -32,7 +34,7 @@ class BackgroundTaskManager:
         self._tasks.append(task)
         return task
 
-    async def shutdown(self) -> None:
+    async def shutdown(self):
         for task in self._tasks:
             if not task.done():
                 task.cancel()
@@ -91,15 +93,13 @@ class LifespanManager:
 
     async def _cleanup_outdated_task_records(self, settings: AppSettings):
         async with db_context() as db_session:
-            task_service = TaskService(db_session)
-            run_record_service = RunRecordService(db_session)
+            task_service = TaskService.from_db_session(db_session)
+            run_record_service = RunRecordService.from_db_session(db_session)
             await task_service.cleanup_outdated_tasks(settings.task_retention_days)
             await run_record_service.cleanup_outdated_run_records(settings.schedule_run_record_retention_days)
 
     async def _clear_unused_cache(self):
         async with db_context() as db_session:
-            workspaces = await WorkspaceService(
-                WorkspaceRepository(db_session)
-            ).get_all_workspaces()
+            workspaces = await WorkspaceService.from_db_session(db_session).get_all_workspaces()
             for workspace in workspaces:
-                await MarkdownCacheService(db_session, workspace.id, Path(workspace.directory)).clear_unused()
+                await MarkdownCacheService.from_db_session(db_session, workspace.id, Path(workspace.directory)).clear_unused()

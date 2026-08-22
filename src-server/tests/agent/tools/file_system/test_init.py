@@ -47,6 +47,10 @@ class TestMarkitdownConvertableBinaryDetection:
             def __init__(self, db_session, workspace_id: int, cwd: Path):
                 self._cwd = cwd
 
+            @classmethod
+            def from_db_session(cls, db_session, workspace_id: int, cwd: Path):
+                return cls(db_session, workspace_id, cwd)
+
             async def get(self, path: Path) -> str | None:
                 return None
 

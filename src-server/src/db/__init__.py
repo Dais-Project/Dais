@@ -47,7 +47,7 @@ def on_connect(dbapi_conn, _):
     dbapi_conn.execute("PRAGMA journal_mode=WAL")
     dbapi_conn.execute("PRAGMA busy_timeout=3000")
 
-async def init_initial_data() -> None:
+async def init_initial_data():
     async with AsyncSessionLocal.begin() as session:
         await provider_models.init(session)
         await toolset_models.init(session)
@@ -55,7 +55,7 @@ async def init_initial_data() -> None:
         await skill_models.init(session)
         await workspace_models.init(session)
 
-async def migrate_db() -> None:
+async def migrate_db():
     from alembic.config import Config
     from alembic import command
     from src.common import PROJECT_ROOT

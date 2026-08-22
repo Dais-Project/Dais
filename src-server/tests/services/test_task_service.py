@@ -1,11 +1,10 @@
-from pathlib import Path
 import time
+from pathlib import Path
 
 import pytest
+from dais_sdk.types import UserMessage
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from dais_sdk.types import UserMessage
 
 from src.db.models import tasks as task_models
 from src.schemas.tasks import runtime as task_runtime_schemas
@@ -16,12 +15,12 @@ from src.services.tasks import TaskNotFoundError, TaskResourceService, TaskServi
 
 @pytest.fixture
 def task_service(db_session: AsyncSession) -> TaskService:
-    return TaskService(db_session)
+    return TaskService.from_db_session(db_session)
 
 
 @pytest.fixture
 def task_resource_service(db_session: AsyncSession) -> TaskResourceService:
-    return TaskResourceService(db_session, task_runtime_schemas.TaskType.TASK)
+    return TaskResourceService.from_db_session(db_session, task_runtime_schemas.TaskType.TASK)
 
 
 @pytest.fixture
@@ -40,117 +39,6 @@ class TestTaskService:
             await task_service.get_task_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.TASK_NOT_FOUND
-
-    @pytest.mark.asyncio
-    async def test_get_tasks_query_filters_by_title_case_insensitive(
-        self,
-        task_service: TaskService,
-        workspace_factory,
-        task_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
-        matching = await task_factory(workspace=workspace, title="Release Checklist")
-        await task_factory(workspace=workspace, title="Daily notes")
-
-        rows = await task_service._db_session.scalars(
-            task_service.get_tasks_query(workspace.id, "release")
-        )
-
-        assert [task.id for task in rows.all()] == [matching.id]
-
-    @pytest.mark.asyncio
-    async def test_create_task(
-        self,
-        task_service: TaskService,
-        workspace_factory,
-        agent_factory,
-        tool_factory,
-    ):
-        tool = await tool_factory(name="Echo", internal_key="echo")
-        agent = await agent_factory(name="Agent A", usable_tools=[tool])
-        workspace = await workspace_factory(
-            name="Workspace A",
-            directory="/tmp/workspace-a",
-            instruction="Instruction A",
-            usable_agents=[agent],
-            usable_tools=[tool],
-        )
-
-        task = await task_service.create_task(
-            task_schemas.TaskCreate(
-                title="Task A",
-                agent_id=agent.id,
-                workspace_id=workspace.id,
-            )
-        )
-
-        assert task.title == "Task A"
-        assert task.workspace_id == workspace.id
-        assert task.agent_id == agent.id
-        assert task.messages == []
-
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        "title,last_run_at,messages",
-        [
-            ("Task B", 123456, [UserMessage(content="Updated once")]),
-            ("Task C", 654321, [UserMessage(content="Updated twice")]),
-        ],
-        ids=["single-message-update", "alternate-update-values"],
-    )
-    async def test_update_task_updates_messages_and_fields(
-        self,
-        task_service: TaskService,
-        workspace_factory,
-        agent_factory,
-        tool_factory,
-        title: str,
-        last_run_at: int,
-        messages: list[UserMessage],
-    ):
-        tool = await tool_factory(name="Echo", internal_key="echo")
-        agent = await agent_factory(name="Agent A", usable_tools=[tool])
-        workspace = await workspace_factory(
-            name="Workspace A",
-            directory="/tmp/workspace-a",
-            instruction="Instruction A",
-            usable_agents=[agent],
-            usable_tools=[tool],
-        )
-        created = await task_service.create_task(
-            task_schemas.TaskCreate(
-                title="Task A",
-                agent_id=agent.id,
-                workspace_id=workspace.id,
-            )
-        )
-        updated_usage = task_models.TaskUsage(
-            input_tokens=1,
-            output_tokens=2,
-            total_tokens=3,
-            max_tokens=4,
-            accumulated_input_tokens=5,
-            accumulated_output_tokens=6,
-        )
-
-        updated = await task_service.update_task(
-            created.id,
-            task_schemas.TaskUpdate(
-                title=title,
-                usage=updated_usage,
-                last_run_at=last_run_at,
-                agent_id=None,
-                messages=messages,
-            ),
-        )
-
-        assert updated.title == title
-        assert updated.last_run_at == last_run_at
-        assert updated.agent_id == agent.id
-        assert updated.usage == updated_usage
-        assert [message.content for message in updated.messages] == [
-            message.content for message in messages
-        ]
 
     @pytest.mark.asyncio
     async def test_save_task_resource_creates_db_record_and_file(

@@ -21,7 +21,7 @@ class DirectoryWatcher:
         self._stop_event: asyncio.Event | None = None
         self._watch_task: asyncio.Task | None = None
 
-    async def start(self) -> None:
+    async def start(self):
         if self._watch_task is not None:
             await self.stop()
 
@@ -47,7 +47,7 @@ class DirectoryWatcher:
             self._logger.warning("Failed to detect watchfiles.awatch starting")
             pass
 
-    async def stop(self) -> None:
+    async def stop(self):
         if self._stop_event:
             await self._drain()
             self._stop_event.set()
@@ -68,7 +68,7 @@ class DirectoryWatcher:
             finally:
                 self._watch_task = None
 
-    async def _drain(self) -> None:
+    async def _drain(self):
         """
         Wait until the watcher goes quiet before signalling stop.
         This ensures all the changes generated before `stop` to be handled.
@@ -94,7 +94,7 @@ class DirectoryWatcher:
     async def _watch_loop(self,
                           ready_future: asyncio.Future,
                           change_event: asyncio.Event,
-                          stop_event: asyncio.Event) -> None:
+                          stop_event: asyncio.Event):
         try:
             async for changes in awatch(
                 StdPath(self._dir),
