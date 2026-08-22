@@ -108,7 +108,6 @@ class TestWorkspaceService:
                 name="Workspace B",
                 directory="/tmp/workspace-b",
                 instruction="Instruction B",
-                notes=[],
                 usable_agent_ids=[new_agent.id],
                 usable_tool_ids=[new_tool.id],
                 usable_skill_ids=[],
@@ -149,12 +148,15 @@ class TestWorkspaceService:
         workspace_service: WorkspaceService,
         workspace_factory,
         mock_note_materializer,
+        db_session: AsyncSession,
     ):
         workspace = await workspace_factory(name="Workspace A")
+        workspace_id = workspace.id
+        db_session.expunge(workspace)
         materialize, clear_materialized = mock_note_materializer
 
         updated = await workspace_service.update_workspace_notes(
-            workspace.id,
+            workspace_id,
             workspace_schemas.WorkspaceNotesUpdate(
                 notes=[
                     workspace_schemas.WorkspaceNoteBase(
