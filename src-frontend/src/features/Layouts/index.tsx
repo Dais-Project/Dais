@@ -24,7 +24,6 @@ export function Layout() {
   useScheduleNotificationListener();
 
   const responsive = useResponsive();
-  console.log(responsive);
   if (isMobile(responsive)) {
     return <MobileLayout />;
   } else {
