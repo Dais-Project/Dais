@@ -1,96 +1,83 @@
 import asyncio
 import hashlib
 from os import PathLike
+
 from anyio import Path
 from loguru import logger
-from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.db.models import markdown_cache as markdown_cache_models
-from .service_base import ServiceBase
+
+from src.repositories.markdown_cache import MarkdownCacheRepository
 
 
 _logger = logger.bind(name="MarkdownCacheService")
 
-class MarkdownCacheService(ServiceBase):
-    def __init__(self, db_session: AsyncSession, workspace_id: int, cwd: PathLike) -> None:
-        super().__init__(db_session)
+
+class MarkdownCacheService:
+    def __init__(self,
+                 repository: MarkdownCacheRepository,
+                 workspace_id: int,
+                 cwd: PathLike):
+        self._repository = repository
         self._cwd = Path(cwd)
         self._workspace_id = workspace_id
 
+    @classmethod
+    def from_db_session(cls,
+                        db_session: AsyncSession,
+                        workspace_id: int,
+                        cwd: PathLike) -> MarkdownCacheService:
+        return cls(MarkdownCacheRepository(db_session), workspace_id, cwd)
+
     async def _compute_hash(self, path: Path) -> str | None:
         abs_path = self._cwd / path
-        if not await abs_path.exists(): return None
-        file_bytes= await abs_path.read_bytes()
-        hash = await asyncio.to_thread(hashlib.sha256, file_bytes)
-        return hash.hexdigest()
+        if not await abs_path.exists():
+            return None
+        file_bytes = await abs_path.read_bytes()
+        hash_value = await asyncio.to_thread(hashlib.sha256, file_bytes)
+        return hash_value.hexdigest()
 
     def _normalize_path(self, path: PathLike) -> Path | None:
-        """Normalize the path to be relative to the workspace root."""
-        path = Path(path)
-        if not path.is_absolute(): return path
+        normalized = Path(path)
+        if not normalized.is_absolute():
+            return normalized
         try:
-            return path.relative_to(self._cwd)
+            return normalized.relative_to(self._cwd)
         except ValueError:
-            # invalid path, may not be the subdir of cwd
             return None
 
     async def get(self, path: PathLike) -> str | None:
-        normalized_path = self._normalize_path(path)
-        if normalized_path is None: return None
-
-        hash = await self._compute_hash(normalized_path)
-        if hash is None: return None
-
-        stmt = select(markdown_cache_models.MarkdownCache).where(
-            markdown_cache_models.MarkdownCache.workspace_id == self._workspace_id,
-            markdown_cache_models.MarkdownCache.hash == hash,
-            markdown_cache_models.MarkdownCache.source_path == normalized_path.as_posix(),
+        normalized = self._normalize_path(path)
+        if normalized is None:
+            return None
+        hash_value = await self._compute_hash(normalized)
+        if hash_value is None:
+            return None
+        cache = await self._repository.get(
+            workspace_id=self._workspace_id,
+            hash_value=hash_value,
+            source_path=normalized.as_posix(),
         )
-        select_result = await self._db_session.scalar(stmt)
-        if not select_result: return None
-        return select_result.content
+        return cache.content if cache is not None else None
 
     async def set(self, path: Path, content: str):
-        normalized_path = self._normalize_path(path)
-        if normalized_path is None: return
-
-        hash = await self._compute_hash(normalized_path)
-        if hash is None: return
-
-        stmt = select(markdown_cache_models.MarkdownCache).where(
-            markdown_cache_models.MarkdownCache.workspace_id == self._workspace_id,
-            markdown_cache_models.MarkdownCache.hash == hash,
-            markdown_cache_models.MarkdownCache.source_path == normalized_path.as_posix(),
+        normalized = self._normalize_path(path)
+        if normalized is None:
+            return
+        hash_value = await self._compute_hash(normalized)
+        if hash_value is None:
+            return
+        await self._repository.set(
+            workspace_id=self._workspace_id,
+            hash_value=hash_value,
+            source_path=normalized.as_posix(),
+            content=content,
         )
-        select_result = await self._db_session.scalar(stmt)
-        if select_result:
-            select_result.content = content
-            await self._db_session.flush()
-        else:
-            new_cache = markdown_cache_models.MarkdownCache(
-                hash=hash,
-                content=content,
-                source_path=normalized_path.as_posix(),
-                workspace_id=self._workspace_id,
-            )
-            self._db_session.add(new_cache)
 
     async def clear_unused(self):
-        stmt = select(
-            markdown_cache_models.MarkdownCache.id,
-            markdown_cache_models.MarkdownCache.source_path,).where(
-                markdown_cache_models.MarkdownCache.workspace_id == self._workspace_id)
-        select_result = await self._db_session.execute(stmt)
-
-        to_delete_ids: list[int] = []
-        for id, source_path in select_result.tuples():
-            abs_source_path = self._cwd / source_path
-            if not await abs_source_path.exists():
+        to_delete = []
+        for cache_id, source_path in\
+            await self._repository.get_entries(self._workspace_id):
+            if not await (self._cwd / source_path).exists():
                 _logger.info(f"Clearing unused cache: {source_path}")
-                to_delete_ids.append(id)
-
-        if to_delete_ids:
-            stmt = delete(markdown_cache_models.MarkdownCache).where(
-                markdown_cache_models.MarkdownCache.id.in_(to_delete_ids))
-            await self._db_session.execute(stmt)
-        await self._db_session.flush()
+                to_delete.append(cache_id)
+        await self._repository.delete_by_ids(to_delete)

@@ -1,10 +1,13 @@
 import asyncio
 from enum import Enum
 from typing import Sequence, override
-from loguru import logger
+
 from dais_sdk.tool import Toolset, McpToolset as SdkMcpToolset
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db import toolset_models
+
 from .types import ToolsetManager
 from ..toolset_wrapper import McpToolset
 
@@ -36,7 +39,7 @@ class McpToolsetManager(ToolsetManager):
     async def initialize(self, db_session: AsyncSession):
         from src.services.toolset import ToolsetService
 
-        toolset_ents = await ToolsetService(db_session).get_all_mcp_toolsets()
+        toolset_ents = await ToolsetService.from_db_session(db_session).get_all_mcp()
         self._toolset_map = {toolset.id: McpToolset(toolset) for toolset in toolset_ents}
 
     async def append(self, inner_toolset: SdkMcpToolset, toolset_ent: toolset_models.Toolset):

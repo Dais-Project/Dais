@@ -1,158 +1,128 @@
-from dais_sdk.types import UserMessage
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db.models import tasks as task_models
-from src.schemas.tasks import schedule as schedule_schemas
+from src.repositories.tasks.schedule import RunRecordRepository
+from src.repositories.tasks.schedule import ScheduleRepository
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.utils.retention import RetentionOption, get_retention_cutoff
+from src.schemas.tasks import schedule as schedule_schemas
+from src.utils.retention import RetentionOption
+from src.utils.retention import get_retention_cutoff
+
 from .resource import TaskResourceService
-from ..service_base import ServiceBase
-from ..exceptions import NotFoundError, ServiceErrorCode
+from ..exceptions import NotFoundError
+from ..exceptions import ServiceErrorCode
 
 
 class ScheduleNotFoundError(NotFoundError):
-    def __init__(self, schedule_id: int) -> None:
+    def __init__(self, schedule_id: int):
         super().__init__(ServiceErrorCode.SCHEDULE_NOT_FOUND, "Schedule", schedule_id)
 
-class ScheduleService(ServiceBase[task_models.Schedule]):
-    @staticmethod
-    def relations():
-        return [
-            selectinload(task_models.Schedule.agent),
-            selectinload(task_models.Schedule.workspace),
-        ]
 
-    def get_all_schedules_query(self):
-        return select(task_models.Schedule).order_by(task_models.Schedule.id.desc())
+class ScheduleService:
+    def __init__(self, repository: ScheduleRepository):
+        self._repository = repository
 
-    def get_schedules_query(self, workspace_id: int, query: str | None = None):
-        stmt = (
-            select(task_models.Schedule)
-            .where(task_models.Schedule.workspace_id == workspace_id)
-            .order_by(task_models.Schedule.id.desc())
-        )
-        if query:
-            stmt = stmt.where(task_models.Schedule.name.ilike(f"%{query}%"))
-        return stmt
+    @classmethod
+    def from_db_session(cls, db_session: AsyncSession) -> ScheduleService:
+        return cls(ScheduleRepository(db_session))
 
-    async def get_all_schedules(self) -> list[task_models.Schedule]:
-        stmt = self.get_all_schedules_query()
-        schedules = await self._db_session.scalars(stmt)
-        return list(schedules.all())
+    async def get_page(self, workspace_id: int, query: str | None = None):
+        return await self._repository.get_page(workspace_id, query)
 
-    async def get_schedules(self, workspace_id: int) -> list[task_models.Schedule]:
-        stmt = self.get_schedules_query(workspace_id)
-        schedules = await self._db_session.scalars(stmt)
-        return list(schedules.all())
+    async def get_all(self) -> list[task_models.Schedule]:
+        return await self._repository.get_all()
 
-    async def get_schedule_by_id(self, id: int) -> task_models.Schedule:
-        schedule = await self._db_session.get(
-            task_models.Schedule,
-            id,
-            options=self.relations(),
-        )
-        if not schedule:
-            raise ScheduleNotFoundError(id)
+    async def get_by_id(self, schedule_id: int) -> task_models.Schedule:
+        schedule = await self._repository.get_by_id(schedule_id)
+        if schedule is None:
+            raise ScheduleNotFoundError(schedule_id)
         return schedule
 
-    async def create_schedule(self, data: schedule_schemas.ScheduleCreate) -> task_models.Schedule:
-        new_schedule = task_models.Schedule(
-            _workspace_id=data.workspace_id,
-            **data.model_dump(exclude={"config", "workspace_id"}),
-            config=data.config,
+    async def create(self, data: schedule_schemas.ScheduleCreate) -> task_models.Schedule:
+        from src.agent.task.schedule_runner import use_schedule_runner
+
+        created = await self._repository.create(data)
+        await use_schedule_runner().append(
+            schedule_schemas.ScheduleRead.model_validate(created)
         )
+        return created
 
-        self._db_session.add(instance=new_schedule)
-        new_id = await self.flush_and_expunge(new_schedule)
-        return await self.get_schedule_by_id(new_id)
+    async def update(self,
+                              schedule_id: int,
+                              data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
+        from src.agent.task.schedule_runner import use_schedule_runner
 
-    async def update_schedule(self, id: int, data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
-        schedule = await self.get_schedule_by_id(id)
+        schedule = await self.get_by_id(schedule_id)
+        updated = await self._repository.update(schedule, data)
+        runner = use_schedule_runner()
+        if updated.is_enabled:
+            await runner.append(schedule_schemas.ScheduleRead.model_validate(updated))
+        else:
+            runner.remove(updated.id)
+        return updated
 
-        if data.config is not None:
-            schedule.config = data.config
+    async def delete(self, schedule_id: int):
+        from src.agent.task.schedule_runner import use_schedule_runner
 
-        self.apply_fields(schedule, data, exclude={"config"})
-
-        new_id = await self.flush_and_expunge(schedule)
-        return await self.get_schedule_by_id(new_id)
-
-    async def delete_schedule(self, id: int) -> None:
-        schedule = await self.get_schedule_by_id(id)
-        await self._db_session.delete(schedule)
-        await self._db_session.flush()
+        schedule = await self.get_by_id(schedule_id)
+        use_schedule_runner().remove(schedule_id)
+        await self._repository.delete(schedule)
 
 
 class RunRecordNotFoundError(NotFoundError):
-    def __init__(self, run_record_id: int) -> None:
-        super().__init__(ServiceErrorCode.RUN_RECORD_NOT_FOUND, "RunRecord", run_record_id)
-
-class RunRecordService(ServiceBase[task_models.RunRecord]):
-    @staticmethod
-    def relations():
-        return [
-            selectinload(task_models.RunRecord.schedule),
-        ]
-
-    def get_run_records_query(self, schedule_id: int):
-        return (
-            select(task_models.RunRecord)
-            .where(task_models.RunRecord.schedule_id == schedule_id)
-            .order_by(task_models.RunRecord.id.desc())
+    def __init__(self, run_record_id: int):
+        super().__init__(
+            ServiceErrorCode.RUN_RECORD_NOT_FOUND,
+            "RunRecord",
+            run_record_id,
         )
 
-    def get_all_run_records_query(self):
-        return (
-            select(task_models.RunRecord)
-            .order_by(
-                task_models.RunRecord.run_at.desc(),
-                task_models.RunRecord.id.desc(),
-            )
+
+class RunRecordService:
+    def __init__(self,
+                 repository: RunRecordRepository,
+                 resource_service: TaskResourceService | None = None):
+        self._repository = repository
+        self._resource_service = resource_service
+
+    @classmethod
+    def from_db_session(cls, db_session: AsyncSession) -> RunRecordService:
+        resource_service = TaskResourceService.from_db_session(
+            db_session,
+            task_runtime_schemas.TaskType.SCHEDULE,
         )
+        return cls(RunRecordRepository(db_session), resource_service)
 
-    async def get_run_record_by_id(self, id: int) -> task_models.RunRecord:
-        run_record = await self._db_session.get(
-            task_models.RunRecord,
-            id,
-            options=self.relations(),
-        )
-        if not run_record:
-            raise RunRecordNotFoundError(id)
-        return run_record
+    async def get_page(self, schedule_id: int):
+        return await self._repository.get_page(schedule_id)
 
-    async def create_run_record(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
-        new_run_record = task_models.RunRecord(
-            messages=[UserMessage(content=data.initial_message)],
-            schedule_id=data.schedule_id,
-        )
+    async def get_all_page(self):
+        return await self._repository.get_all_page()
 
-        self._db_session.add(new_run_record)
-        new_id = await self.flush_and_expunge(new_run_record)
-        return await self.get_run_record_by_id(new_id)
+    async def get_by_id(self, record_id: int) -> task_models.RunRecord:
+        record = await self._repository.get_by_id(record_id)
+        if record is None:
+            raise RunRecordNotFoundError(record_id)
+        return record
 
-    async def update_run_record(self, id: int, data: schedule_schemas.RunRecordUpdate) -> task_models.RunRecord:
-        run_record = await self.get_run_record_by_id(id)
+    async def create(self, data: schedule_schemas.RunRecordCreate) -> task_models.RunRecord:
+        return await self._repository.create(data)
 
-        if data.messages is not None:
-            run_record.messages = data.messages
+    async def update(self,
+                                record_id: int,
+                                data: schedule_schemas.RunRecordUpdate) -> task_models.RunRecord:
+        record = await self.get_by_id(record_id)
+        return await self._repository.update(record, data)
 
-        self.apply_fields(run_record, data, exclude={"messages"})
+    async def delete(self, record_id: int):
+        record = await self.get_by_id(record_id)
+        await self._repository.delete(record)
+        if self._resource_service is not None:
+            await self._resource_service.delete_task_resources(record_id)
 
-        new_id = await self.flush_and_expunge(run_record)
-        return await self.get_run_record_by_id(new_id)
-
-    async def delete_run_record(self, id: int):
-        run_record = await self.get_run_record_by_id(id)
-        await self._db_session.delete(run_record)
-        await self._db_session.flush()
-        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.SCHEDULE).delete_task_resources(id)
-
-    async def cleanup_outdated_run_records(self, retention: RetentionOption) -> None:
+    async def cleanup_outdated(self, retention: RetentionOption):
         cutoff = get_retention_cutoff(retention)
-        if cutoff is None: return
-
-        stmt = select(task_models.RunRecord.id).where(task_models.RunRecord.run_at < cutoff)
-        run_record_ids = (await self._db_session.scalars(stmt)).all()
-
-        for run_record_id in run_record_ids:
-            await self.delete_run_record(run_record_id)
+        if cutoff is None:
+            return
+        for record_id in await self._repository.get_ids_before(cutoff):
+            await self.delete(record_id)

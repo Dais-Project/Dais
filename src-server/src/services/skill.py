@@ -1,129 +1,87 @@
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db.models import skill as skill_models
+from src.repositories.skill import SkillRepository
 from src.schemas import skill as skill_schemas
-from .service_base import ServiceBase
-from .exceptions import NotFoundError, ConflictError, ServiceErrorCode
+
+from .exceptions import ConflictError, NotFoundError, ServiceErrorCode
 
 
 class SkillNotFoundError(NotFoundError):
-    def __init__(self, skill_identifier: int | str) -> None:
+    def __init__(self, skill_identifier: int | str):
         super().__init__(ServiceErrorCode.SKILL_NOT_FOUND, "Skill", skill_identifier)
 
+
 class SkillNameAlreadyExistsError(ConflictError):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str):
         super().__init__(
             ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS,
             f"Skill '{name}' already exists",
         )
 
-class SkillService(ServiceBase[skill_models.Skill]):
-    @staticmethod
-    def relations():
-        return [
-            selectinload(skill_models.Skill.resources)
-        ]
 
-    def get_skills_query(self, query: str | None = None):
-        stmt = (
-            select(skill_models.Skill)
-            .order_by(skill_models.Skill.id.asc())
-            .options(selectinload(skill_models.Skill.resources))
-        )
-        if query:
-            search_term = f"%{query}%"
-            stmt = stmt.where(
-                skill_models.Skill.name.ilike(search_term)
-                | skill_models.Skill.description.ilike(search_term)
-            )
-        return stmt
+class SkillService:
+    def __init__(self, repository: SkillRepository):
+        self._repository = repository
 
-    async def get_all_skills(self) -> list[skill_models.Skill]:
-        stmt = (
-            select(skill_models.Skill)
-            .order_by(skill_models.Skill.id.asc())
-            .options(*self.relations())
-        )
-        skills = (await self._db_session.scalars(stmt)).all()
-        return list(skills)
+    @classmethod
+    def from_db_session(cls, db_session: AsyncSession) -> SkillService:
+        return cls(SkillRepository(db_session))
 
-    async def get_skill_by_id(self, id: int) -> skill_models.Skill:
-        skill = await self._db_session.get(
-            skill_models.Skill,
-            id,
-            options=self.relations(),
-        )
-        if not skill:
-            raise SkillNotFoundError(id)
+    async def get_page(self, query: str | None = None):
+        return await self._repository.get_page(query)
+
+    async def get_all(self) -> list[skill_models.Skill]:
+        return await self._repository.get_all()
+
+    async def get_by_id(self, skill_id: int) -> skill_models.Skill:
+        skill = await self._repository.get_by_id(skill_id)
+        if skill is None:
+            raise SkillNotFoundError(skill_id)
         return skill
 
-    async def get_skill_by_name(self, name: str) -> skill_models.Skill:
-        stmt = (
-            select(skill_models.Skill)
-            .where(skill_models.Skill.name == name)
-            .options(*self.relations())
-        )
-        skill = await self._db_session.scalar(stmt)
-        if not skill:
+    async def get_by_name(self, name: str) -> skill_models.Skill:
+        skill = await self._repository.get_by_name(name)
+        if skill is None:
             raise SkillNotFoundError(name)
         return skill
 
-    async def create_skill(self, data: skill_schemas.SkillCreate) -> skill_models.Skill:
-        try:
-            await self.get_skill_by_name(data.name)
+    async def create(self, data: skill_schemas.SkillCreate) -> skill_models.Skill:
+        if await self._repository.get_by_name(data.name) is not None:
             raise SkillNameAlreadyExistsError(data.name)
-        except SkillNotFoundError: pass
-
-        resources = [
-            skill_models.SkillResource(
-                relative=res.relative,
-                content=res.content,
-            )
-            for res in data.resources
-        ]
-        new_skill = skill_models.Skill(
-            name=data.name,
-            hash=skill_models.Skill.compute_resources_hash(resources),
-            description=data.description,
-            is_enabled=data.is_enabled,
-            content=data.content,
-            resources=resources,
-        )
-
-        self._db_session.add(new_skill)
-        new_id = await self.flush_and_expunge(new_skill)
-        return await self.get_skill_by_id(new_id)
-
-    async def update_skill(
-        self, id: int, data: skill_schemas.SkillUpdate
-    ) -> skill_models.Skill:
-        updated_skill = await self.get_skill_by_id(id)
-
-        if data.name is not None and data.name != updated_skill.name:
-            try:
-                await self.get_skill_by_name(data.name)
-                raise SkillNameAlreadyExistsError(data.name)
-            except SkillNotFoundError:
-                pass
-
-        self.apply_fields(updated_skill, data, exclude={"resources"})
-
-        if data.resources is not None:
-            resources = [
-                skill_models.SkillResource(
-                    relative=res.relative,
-                    content=res.content,
-                )
-                for res in data.resources
-            ]
-            updated_skill.hash = skill_models.Skill.compute_resources_hash(resources)
-            updated_skill.resources = resources
-
-        new_id = await self.flush_and_expunge(updated_skill)
-        return await self.get_skill_by_id(new_id)
-
-    async def delete_skill(self, id: int) -> skill_models.Skill:
-        skill = await self.get_skill_by_id(id)
-        await self._db_session.delete(skill)
-        await self._db_session.flush()
+        skill = await self._repository.create(data)
+        await self.rematerialize(skill)
         return skill
+
+    async def update(self, skill_id: int, data: skill_schemas.SkillUpdate) -> skill_models.Skill:
+        skill = await self.get_by_id(skill_id)
+        if data.name is not None and data.name != skill.name:
+            if await self._repository.get_by_name(data.name) is not None:
+                raise SkillNameAlreadyExistsError(data.name)
+        updated = await self._repository.update(skill, data)
+        await self.rematerialize(updated)
+        return updated
+
+    async def delete(self, skill_id: int):
+        from src.agent.skills import SkillMaterializer
+
+        skill = await self.get_by_id(skill_id)
+        await self._repository.delete(skill)
+        await SkillMaterializer.clear_materialized(skill_id)
+
+    async def create_ignoring_duplicates(self, data_items: list[skill_schemas.SkillCreate]) -> list[skill_models.Skill]:
+        created: list[skill_models.Skill] = []
+        for data in data_items:
+            try:
+                created.append(await self.create(data))
+            except SkillNameAlreadyExistsError:
+                continue
+        return created
+
+    @staticmethod
+    async def rematerialize(skill: skill_models.Skill):
+        from src.agent.skills import SkillMaterializer
+
+        skill_data = skill_schemas.SkillRead.model_validate(skill)
+        await SkillMaterializer.clear_materialized(skill.id)
+        await SkillMaterializer.materialize(skill_data)

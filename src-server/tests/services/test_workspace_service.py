@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agent.notes import NoteMaterializer
+from src.agent.notes import WorkspaceRefManager
 from src.db.models.markdown_cache import MarkdownCache
 from src.db.models import agent as agent_models
 from src.db.models import tasks as task_models
@@ -12,12 +13,31 @@ from src.db.models.tasks.schedule import DelayedConfig
 from src.db.models import workspace as workspace_models
 from src.schemas import workspace as workspace_schemas
 from src.services.exceptions import ServiceErrorCode
-from src.services.workspace import WorkspaceNotFoundError, WorkspaceService
+from src.services.workspace import (
+    WorkspaceNotFoundError,
+    WorkspaceNotesLockedError,
+    WorkspaceService,
+)
 
 
 @pytest.fixture
 def workspace_service(db_session: AsyncSession) -> WorkspaceService:
-    return WorkspaceService(db_session)
+    return WorkspaceService.from_db_session(db_session)
+
+
+@pytest.fixture(autouse=True)
+def mock_note_materializer(mocker):
+    materialize = mocker.patch.object(
+        NoteMaterializer,
+        "materialize",
+        autospec=True,
+    )
+    clear_materialized = mocker.patch.object(
+        NoteMaterializer,
+        "clear_materialized",
+        autospec=True,
+    )
+    return materialize, clear_materialized
 
 
 @pytest.mark.service
@@ -26,7 +46,7 @@ class TestWorkspaceService:
     @pytest.mark.asyncio
     async def test_get_workspace_by_id_not_found(self, workspace_service: WorkspaceService):
         with pytest.raises(WorkspaceNotFoundError, match="Workspace '999' not found") as exc_info:
-            await workspace_service.get_workspace_by_id(999)
+            await workspace_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.WORKSPACE_NOT_FOUND
 
@@ -40,7 +60,7 @@ class TestWorkspaceService:
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
 
-        workspace = await workspace_service.create_workspace(
+        workspace = await workspace_service.create(
             workspace_schemas.WorkspaceCreate(
                 name="Workspace A",
                 directory="/tmp/workspace-a",
@@ -59,31 +79,6 @@ class TestWorkspaceService:
         assert {t.id for t in workspace.usable_tools} == {tool.id}
 
     @pytest.mark.asyncio
-    async def test_get_workspaces_query_filters_by_name_or_directory(
-        self,
-        workspace_service: WorkspaceService,
-        workspace_factory,
-    ):
-        name_match = await workspace_factory(
-            name="Release Workspace",
-            directory="/tmp/general",
-        )
-        directory_match = await workspace_factory(
-            name="General",
-            directory="/tmp/release-notes",
-        )
-        await workspace_factory(name="Other", directory="/tmp/other")
-
-        rows = await workspace_service._db_session.scalars(
-            workspace_service.get_workspaces_query("release")
-        )
-
-        assert [workspace.id for workspace in rows.unique().all()] == [
-            name_match.id,
-            directory_match.id,
-        ]
-
-    @pytest.mark.asyncio
     async def test_update_workspace_updates_fields_and_relations(
         self,
         workspace_service: WorkspaceService,
@@ -92,7 +87,7 @@ class TestWorkspaceService:
     ):
         initial_tool = await tool_factory(name="Echo", internal_key="echo")
         initial_agent = await agent_factory(name="Agent A", usable_tools=[initial_tool])
-        initial = await workspace_service.create_workspace(
+        initial = await workspace_service.create(
             workspace_schemas.WorkspaceCreate(
                 name="Workspace A",
                 directory="/tmp/workspace-a",
@@ -107,13 +102,12 @@ class TestWorkspaceService:
         new_tool = await tool_factory(name="Echo 2", internal_key="echo-2")
         new_agent = await agent_factory(name="Agent B", usable_tools=[new_tool])
 
-        updated = await workspace_service.update_workspace(
+        updated = await workspace_service.update(
             initial.id,
             workspace_schemas.WorkspaceUpdate(
                 name="Workspace B",
                 directory="/tmp/workspace-b",
                 instruction="Instruction B",
-                notes=[],
                 usable_agent_ids=[new_agent.id],
                 usable_tool_ids=[new_tool.id],
                 usable_skill_ids=[],
@@ -127,68 +121,77 @@ class TestWorkspaceService:
         assert {t.id for t in updated.usable_tools} == {new_tool.id}
 
     @pytest.mark.asyncio
-    async def test_get_frequent_workspaces_counts_recent_tasks(
+    async def test_update_workspace_notes_rejects_running_workspace(
         self,
         workspace_service: WorkspaceService,
-        db_session: AsyncSession,
         workspace_factory,
-        task_factory,
     ):
-        workspace_a = await workspace_factory(name="Workspace A")
-        workspace_b = await workspace_factory(name="Workspace B")
-        workspace_c = await workspace_factory(name="Workspace C")
-        workspace_d = await workspace_factory(name="Workspace D")
+        workspace = await workspace_factory(name="Workspace A")
+        WorkspaceRefManager.increase_workspace_ref(workspace.id)
+        try:
+            with pytest.raises(WorkspaceNotesLockedError) as exc_info:
+                await workspace_service.update_notes(
+                    workspace.id,
+                    workspace_schemas.WorkspaceNotesUpdate(notes=[]),
+                )
+        finally:
+            WorkspaceRefManager.decrease_workspace_ref(workspace.id)
 
-        await task_factory(workspace=workspace_a, title="Task A1")
-        await task_factory(workspace=workspace_b, title="Task B1")
-        await task_factory(workspace=workspace_a, title="Task A2")
-        await task_factory(workspace=workspace_c, title="Task C1")
-        await task_factory(workspace=workspace_b, title="Task B2")
-        await task_factory(workspace=workspace_c, title="Task C2")
-        await task_factory(workspace=workspace_d, title="Task D1")
-        await task_factory(workspace=workspace_b, title="Task B3")
-        await db_session.flush()
-
-        frequent_workspaces = await workspace_service.get_frequent_workspaces(
-            limit=3,
-            recent_task_limit=5,
+        assert (
+            exc_info.value.error_code
+            == ServiceErrorCode.WORKSPACE_NOTES_LOCKED_BY_RUNNING_TASK
         )
-
-        assert [workspace.id for workspace in frequent_workspaces] == [
-            workspace_b.id,
-            workspace_c.id,
-            workspace_d.id,
-        ]
 
     @pytest.mark.asyncio
-    async def test_get_frequent_workspaces_respects_limit_and_tiebreaker(
+    async def test_update_workspace_notes_rematerializes_notes(
         self,
         workspace_service: WorkspaceService,
-        db_session: AsyncSession,
         workspace_factory,
-        task_factory,
+        mock_note_materializer,
+        db_session: AsyncSession,
     ):
-        workspace_a = await workspace_factory(name="Workspace A")
-        workspace_b = await workspace_factory(name="Workspace B")
-        workspace_c = await workspace_factory(name="Workspace C")
+        workspace = await workspace_factory(name="Workspace A")
+        workspace_id = workspace.id
+        db_session.expunge(workspace)
+        materialize, clear_materialized = mock_note_materializer
 
-        await task_factory(workspace=workspace_c, title="Task C1")
-        await task_factory(workspace=workspace_a, title="Task A1")
-        await task_factory(workspace=workspace_b, title="Task B1")
-        await task_factory(workspace=workspace_c, title="Task C2")
-        await task_factory(workspace=workspace_b, title="Task B2")
-        await task_factory(workspace=workspace_a, title="Task A2")
-        await db_session.flush()
-
-        frequent_workspaces = await workspace_service.get_frequent_workspaces(
-            limit=2,
-            recent_task_limit=10,
+        updated = await workspace_service.update_notes(
+            workspace_id,
+            workspace_schemas.WorkspaceNotesUpdate(
+                notes=[
+                    workspace_schemas.WorkspaceNoteBase(
+                        relative="NOTES.md",
+                        content="# Notes",
+                    )
+                ]
+            ),
         )
 
-        assert [workspace.id for workspace in frequent_workspaces] == [
-            workspace_a.id,
-            workspace_b.id,
+        assert [(note.relative, note.content) for note in updated.notes] == [
+            ("NOTES.md", "# Notes")
         ]
+        clear_materialized.assert_awaited_once_with(workspace.id)
+        materialize.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_open_workspace_delegates_to_file_manager(
+        self,
+        workspace_service: WorkspaceService,
+        workspace_factory,
+        mocker,
+    ):
+        workspace = await workspace_factory(
+            name="Workspace A",
+            directory="/tmp/workspace-a",
+        )
+        open_file_manager = mocker.patch(
+            "src.services.workspace.open_in_file_manager",
+            autospec=True,
+        )
+
+        await workspace_service.open_in_file_manager(workspace.id)
+
+        open_file_manager.assert_awaited_once_with("/tmp/workspace-a")
 
     @pytest.mark.asyncio
     async def test_delete_workspace_removes_entity_and_cascade_children(
@@ -201,7 +204,7 @@ class TestWorkspaceService:
     ):
         tool = await tool_factory(name="Echo", internal_key="echo")
         agent = await agent_factory(name="Agent A", usable_tools=[tool])
-        workspace = await workspace_service.create_workspace(
+        workspace = await workspace_service.create(
             workspace_schemas.WorkspaceCreate(
                 name="Workspace A",
                 directory="/tmp/workspace-a",
@@ -238,12 +241,12 @@ class TestWorkspaceService:
         await db_session.flush()
         schedule_id = schedule.id
 
-        await workspace_service.delete_workspace(workspace.id)
+        await workspace_service.delete(workspace.id)
         await db_session.flush()
         db_session.expunge_all()
 
         with pytest.raises(WorkspaceNotFoundError, match=f"Workspace '{workspace.id}' not found"):
-            await workspace_service.get_workspace_by_id(workspace.id)
+            await workspace_service.get_by_id(workspace.id)
 
         note_in_db = await db_session.scalar(
             select(workspace_models.WorkspaceNote).where(workspace_models.WorkspaceNote.id == note_id)

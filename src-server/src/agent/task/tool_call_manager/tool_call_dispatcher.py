@@ -1,10 +1,10 @@
 import asyncio
 import base64
-import uuid
 import mimetypes
-from dataclasses import dataclass
+import uuid
 from collections.abc import AsyncGenerator
-from loguru import logger
+from dataclasses import dataclass
+
 from dais_sdk.tool import ToolCallExecutor
 from dais_sdk.types import (
     ToolDef, ToolMessage,
@@ -12,23 +12,26 @@ from dais_sdk.types import (
     TextBlock, ImageBlock, AudioBlock, VideoBlock, DocumentBlock,
     ToolDoesNotExistError, ToolArgumentParsingError, ToolResultSerializationError, ToolExecutionError,
 )
+from loguru import logger
+
 from src.db import db_context
-from src.services.tasks import TaskResourceService
 from src.schemas.tasks import runtime as task_runtime_schemas
-from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
+from src.services.tasks import TaskResourceService
+
 from .exception_handlers import (
     handle_tool_does_not_exist_error,
     handle_tool_argument_parsing_error,
     handle_tool_execution_error,
     handle_tool_result_serialization_error,
 )
+from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
 from ...context import AgentContext
+from ...tool import ExecutionControlToolset
 from ...types import (
     ToolEvent, ToolExecutedEvent, MessageReplaceEvent, ErrorEvent,
     ToolRequirePermissionEvent,
     TaskResourceMetadata, TextResourceMetadata, UrlResourceMetadata, FileResourceMetadata,
 )
-from ...tool import ExecutionControlToolset
 from ...types.metadata import UserApprovalStatus, is_agent_tool_metadata
 
 
@@ -44,7 +47,7 @@ class TaskResourcePersister(ContentBlockPersister):
         filename = f"tool-result_{mime_type}.{extension}"
 
         async with db_context() as db_session:
-            task_resource_service = TaskResourceService(db_session, self._task_type)
+            task_resource_service = TaskResourceService.from_db_session(db_session, self._task_type)
             resource = await task_resource_service.save_task_resource(self._task_id, filename, file_bytes)
             return FileResourceMetadata(
                 resource_id=resource.id,

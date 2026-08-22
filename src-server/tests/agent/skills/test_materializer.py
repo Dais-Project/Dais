@@ -22,7 +22,7 @@ class TestSkillMaterializer:
         skill_b.id = 2
 
         skill_service = AsyncMock()
-        skill_service.get_all_skills.return_value = [skill_a, skill_b]
+        skill_service.get_all.return_value = [skill_a, skill_b]
 
         materialize_mock = AsyncMock()
         skill_read_mock = MagicMock(side_effect=[
@@ -48,7 +48,10 @@ class TestSkillMaterializer:
         with patch("src.agent.skills.materializer.db_context") as mock_db_context:
             mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
             mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)
-            with patch("src.agent.skills.materializer.SkillService", return_value=skill_service):
+            with patch(
+                "src.agent.skills.materializer.SkillService.from_db_session",
+                return_value=skill_service,
+            ):
                 with patch("src.agent.skills.materializer.asyncio.to_thread", to_thread_mock):
                     with patch.object(SkillMaterializer, "materialize", materialize_mock):
                         with patch.object(skill_schemas.SkillRead, "model_validate", skill_read_mock):

@@ -1,188 +1,145 @@
 import pytest
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import tasks as task_models
-from src.db.models.tasks.schedule import CronConfig, DelayedConfig, PollingConfig
+from src.db.models.tasks.schedule import PollingConfig
+from src.repositories.tasks.schedule import ScheduleRepository
 from src.schemas.tasks import schedule as schedule_schemas
 from src.services.exceptions import ServiceErrorCode
-from src.services.tasks import ScheduleNotFoundError, ScheduleService
+from src.services.tasks import ScheduleNotFoundError
+from src.services.tasks import ScheduleService
 
 
-@pytest.fixture
-def schedule_service(db_session: AsyncSession) -> ScheduleService:
-    return ScheduleService(db_session)
+def build_schedule(*, is_enabled: bool = True) -> task_models.Schedule:
+    return task_models.Schedule(
+        id=1,
+        name="Schedule A",
+        task="Run task",
+        is_enabled=is_enabled,
+        config=PollingConfig(type="polling", interval_sec=60),
+        agent_id=None,
+        _workspace_id=1,
+    )
 
 
 @pytest.mark.service
-@pytest.mark.integration
 class TestScheduleService:
     @pytest.mark.asyncio
-    async def test_get_schedule_by_id_not_found(self, schedule_service: ScheduleService):
-        with pytest.raises(ScheduleNotFoundError, match="Schedule '999' not found") as exc_info:
-            await schedule_service.get_schedule_by_id(999)
+    async def test_get_schedule_by_id_not_found(self, mocker):
+        repository = mocker.Mock(spec=ScheduleRepository)
+        repository.get_by_id = mocker.AsyncMock(return_value=None)
+        service = ScheduleService(repository)
+
+        with pytest.raises(
+            ScheduleNotFoundError,
+            match="Schedule '999' not found",
+        ) as exc_info:
+            await service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.SCHEDULE_NOT_FOUND
 
     @pytest.mark.asyncio
-    async def test_create_schedule(
-        self,
-        schedule_service: ScheduleService,
-        workspace_factory,
-        agent_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
-        agent = await agent_factory(name="Agent A")
-
-        schedule = await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="Morning sync",
-                task="Send daily summary",
-                config=CronConfig(type="cron", expression="0 9 * * 1"),
-                agent_id=agent.id,
-                workspace_id=workspace.id,
-            )
+    async def test_create_schedule_appends_to_runner(self, mocker):
+        data = schedule_schemas.ScheduleCreate(
+            name="Schedule A",
+            task="Run task",
+            config=PollingConfig(type="polling", interval_sec=60),
+            agent_id=None,
+            workspace_id=1,
         )
+        created = build_schedule()
+        repository = mocker.Mock(spec=ScheduleRepository)
+        repository.create = mocker.AsyncMock(return_value=created)
+        runner = mocker.Mock()
+        runner.append = mocker.AsyncMock()
+        mocker.patch(
+            "src.agent.task.schedule_runner.use_schedule_runner",
+            return_value=runner,
+        )
+        service = ScheduleService(repository)
 
-        assert schedule.name == "Morning sync"
-        assert schedule.is_enabled is True
-        assert schedule.workspace_id == workspace.id
-        assert schedule.agent_id == agent.id
-        assert schedule.config.type == "cron"
-        assert schedule.task == "Send daily summary"
-        assert schedule.config.expression == "0 9 * * 1"
+        result = await service.create(data)
+
+        assert result is created
+        repository.create.assert_awaited_once_with(data)
+        runner.append.assert_awaited_once_with(
+            schedule_schemas.ScheduleRead.model_validate(created)
+        )
 
     @pytest.mark.asyncio
-    async def test_get_schedules_query_orders_by_id_desc(
-        self,
-        schedule_service: ScheduleService,
-        workspace_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
+    @pytest.mark.parametrize("is_enabled", [True, False])
+    async def test_update_schedule_syncs_runner(self, mocker, is_enabled: bool):
+        data = schedule_schemas.ScheduleUpdate(
+            name=None,
+            task=None,
+            is_enabled=is_enabled,
+            config=None,
+            agent_id=None,
+        )
+        existing = build_schedule()
+        updated = build_schedule(is_enabled=is_enabled)
+        repository = mocker.Mock(spec=ScheduleRepository)
+        repository.get_by_id = mocker.AsyncMock(return_value=existing)
+        repository.update = mocker.AsyncMock(return_value=updated)
+        runner = mocker.Mock()
+        runner.append = mocker.AsyncMock()
+        mocker.patch(
+            "src.agent.task.schedule_runner.use_schedule_runner",
+            return_value=runner,
+        )
+        service = ScheduleService(repository)
 
-        first = await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="First",
-                task="First task",
-                is_enabled=True,
-                config=PollingConfig(type="polling", interval_sec=60),
-                agent_id=None,
-                workspace_id=workspace.id,
+        result = await service.update(existing.id, data)
+
+        assert result is updated
+        repository.update.assert_awaited_once_with(existing, data)
+        if is_enabled:
+            runner.append.assert_awaited_once_with(
+                schedule_schemas.ScheduleRead.model_validate(updated)
             )
-        )
-        second = await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="Second",
-                task="Second task",
-                is_enabled=True,
-                config=DelayedConfig(type="delayed", scheduled_at=123456),
-                agent_id=None,
-                workspace_id=workspace.id,
-            )
-        )
-
-        rows = await schedule_service._db_session.scalars(
-            schedule_service.get_schedules_query(workspace.id)
-        )
-        schedules = list(rows.all())
-
-        assert [item.id for item in schedules] == [second.id, first.id]
+            runner.remove.assert_not_called()
+        else:
+            runner.append.assert_not_awaited()
+            runner.remove.assert_called_once_with(updated.id)
 
     @pytest.mark.asyncio
-    async def test_get_schedules_query_filters_by_name_case_insensitive(
-        self,
-        schedule_service: ScheduleService,
-        workspace_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
-        matching = await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="Morning Sync",
-                task="First task",
-                is_enabled=True,
-                config=PollingConfig(type="polling", interval_sec=60),
-                agent_id=None,
-                workspace_id=workspace.id,
-            )
+    async def test_delete_schedule_removes_from_runner(self, mocker):
+        schedule = build_schedule()
+        repository = mocker.Mock(spec=ScheduleRepository)
+        repository.get_by_id = mocker.AsyncMock(return_value=schedule)
+        repository.delete = mocker.AsyncMock()
+        runner = mocker.Mock()
+        mocker.patch(
+            "src.agent.task.schedule_runner.use_schedule_runner",
+            return_value=runner,
         )
-        await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="Evening report",
-                task="Second task",
-                is_enabled=True,
-                config=PollingConfig(type="polling", interval_sec=60),
-                agent_id=None,
-                workspace_id=workspace.id,
-            )
-        )
+        service = ScheduleService(repository)
 
-        rows = await schedule_service._db_session.scalars(
-            schedule_service.get_schedules_query(workspace.id, "morning")
-        )
+        await service.delete(schedule.id)
 
-        assert [schedule.id for schedule in rows.all()] == [matching.id]
+        runner.remove.assert_called_once_with(schedule.id)
+        repository.delete.assert_awaited_once_with(schedule)
 
     @pytest.mark.asyncio
-    async def test_update_schedule(
-        self,
-        schedule_service: ScheduleService,
-        workspace_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
-        created = await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="Original",
-                task="Original task",
-                is_enabled=True,
-                config=PollingConfig(type="polling", interval_sec=30),
-                agent_id=None,
-                workspace_id=workspace.id,
-            )
+    async def test_create_schedule_propagates_runner_error(self, mocker):
+        data = schedule_schemas.ScheduleCreate(
+            name="Schedule A",
+            task="Run task",
+            config=PollingConfig(type="polling", interval_sec=60),
+            agent_id=None,
+            workspace_id=1,
         )
-
-        updated = await schedule_service.update_schedule(
-            created.id,
-            schedule_schemas.ScheduleUpdate(
-                name="Updated",
-                task="Updated task",
-                is_enabled=None,
-                config=CronConfig(type="cron", expression="*/10 * * * *"),
-                agent_id=None,
-            ),
+        created = build_schedule()
+        repository = mocker.Mock(spec=ScheduleRepository)
+        repository.create = mocker.AsyncMock(return_value=created)
+        runner = mocker.Mock()
+        runner.append = mocker.AsyncMock(side_effect=RuntimeError("runner failed"))
+        mocker.patch(
+            "src.agent.task.schedule_runner.use_schedule_runner",
+            return_value=runner,
         )
+        service = ScheduleService(repository)
 
-        assert updated.id == created.id
-        assert updated.name == "Updated"
-        assert updated.task == "Updated task"
-        assert updated.config.type == "cron"
-        assert updated.config.expression == "*/10 * * * *"
+        with pytest.raises(RuntimeError, match="runner failed"):
+            await service.create(data)
 
-    @pytest.mark.asyncio
-    async def test_delete_schedule(
-        self,
-        schedule_service: ScheduleService,
-        db_session: AsyncSession,
-        workspace_factory,
-    ):
-        workspace = await workspace_factory(name="Workspace A")
-        schedule = await schedule_service.create_schedule(
-            schedule_schemas.ScheduleCreate(
-                name="To delete",
-                task="Task to delete",
-                is_enabled=True,
-                config=DelayedConfig(type="delayed", scheduled_at=999999),
-                agent_id=None,
-                workspace_id=workspace.id,
-            )
-        )
-
-        await schedule_service.delete_schedule(schedule.id)
-        await db_session.flush()
-
-        with pytest.raises(ScheduleNotFoundError, match=f"Schedule '{schedule.id}' not found"):
-            await schedule_service.get_schedule_by_id(schedule.id)
-
-        schedule_in_db = await db_session.scalar(
-            select(task_models.Schedule).where(task_models.Schedule.id == schedule.id)
-        )
-        assert schedule_in_db is None
+        repository.create.assert_awaited_once_with(data)

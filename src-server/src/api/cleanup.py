@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 
 class _CleanupManager:
-    def __init__(self) -> None:
+    def __init__(self):
         self._exit_stack = AsyncExitStack()
 
     def add_cleanup(self, fn: Callable, *args, **kwargs):

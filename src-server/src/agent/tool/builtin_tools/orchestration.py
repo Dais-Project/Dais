@@ -23,6 +23,7 @@ from ...types import (
     is_agent_tool_metadata,
 )
 
+
 if TYPE_CHECKING:
     from ...task import AgentTask
 
@@ -142,7 +143,7 @@ class OrchestrationToolset(BuiltinToolset):
             When detail is present, a finished result contains separate `<detail>` and `<summary>` elements. Without detail, the summary remains directly in the root element.
         """
         async with db_context() as db_session:
-            subtask = await SubtaskService(db_session).create_subtask(
+            subtask = await SubtaskService.from_db_session(db_session).create(
                 subtask_schemas.SubtaskCreate(
                     instruction=instruction,
                     task_id=self._ctx.task_id,
@@ -194,7 +195,7 @@ class OrchestrationToolset(BuiltinToolset):
             When detail is present, a finished result contains separate `<detail>` and `<summary>` elements. Without detail, the summary remains directly in the root element.
         """
         async with db_context() as db_session:
-            subtask = await SubtaskService(db_session).get_subtask_by_id(subtask_id)
+            subtask = await SubtaskService.from_db_session(db_session).get_by_id(subtask_id)
             if agent_id is not None:
                 subtask.agent_id = agent_id
             if subtask.agent_id is None:

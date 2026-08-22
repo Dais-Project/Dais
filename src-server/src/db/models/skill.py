@@ -32,7 +32,7 @@ class Skill(Base):
             h.update(r.content.encode("utf-8"))
         return h.hexdigest()
 
-async def init(db_session: AsyncSession) -> None:
+async def init(db_session: AsyncSession):
     from typing import Protocol
     from src.agent.skills.builtin_skills import (
         skill_writer as skill_writer_skill,

@@ -1,14 +1,17 @@
 import asyncio
 from typing import Literal, cast
+
 from dais_sdk.types import ContentBlockMetadata, UserMessage
-from loguru import logger
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from loguru import logger
 from pydantic import BaseModel
+
 from src.agent.task import MessageNotFoundError
 from src.agent.types import MessageReplaceEvent, FileResourceMetadata
 from src.db import db_context
-from src.services.tasks import TaskResourceService
 from src.schemas.tasks import runtime as task_runtime_schemas
+from src.services.tasks import TaskResourceService
+
 from .runtime import create_agent_task
 from ...exceptions import ApiError, ApiErrorCode
 
@@ -54,7 +57,7 @@ async def append_task_message(
                 if file.filename is None or file.content_type is None:
                     raise ApiError(status.HTTP_400_BAD_REQUEST, ApiErrorCode.TASK_RESOURCE_SHOULD_HAVE_FILENAME_AND_CONTENTTYPE)
                 file_bytes = await file.read()
-                resource = await TaskResourceService(db_session, task_type).save_task_resource(task_id, file.filename, file_bytes)
+                resource = await TaskResourceService.from_db_session(db_session, task_type).save_task_resource(task_id, file.filename, file_bytes)
                 mimetype = file.content_type.split(";")[0].strip().lower()
                 metadatas.append(FileResourceMetadata(
                     resource_id=resource.id,

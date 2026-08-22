@@ -7,16 +7,15 @@ from dais_scantree import bfs as scantree_bfs
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
 from rapidfuzz import fuzz
-from src.services.workspace import WorkspaceService
 from src.schemas.tasks import context_file as context_file_schemas
-from ...dependencies import DbSessionDep
+from ...dependencies import WorkspaceServiceDep
 from ...exceptions import ApiError, ApiErrorCode
 
 
 context_file_router = APIRouter(tags=["context_file"])
 
 class ContextFileInternalError(ValueError):
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str):
         super().__init__(message)
 
 def _list_directory(workspace_root: Path, path: str) -> list[context_file_schemas.ContextFileItem]:
@@ -96,23 +95,23 @@ class SearchFileResult(BaseModel):
 
 @context_file_router.get("/files/list", response_model=ListDirectoryResult)
 async def list_directory(
-    db_session: DbSessionDep,
+    workspace_service: WorkspaceServiceDep,
     workspace_id: int = Query(...),
     path: str = Query(default="."),
 ):
-    workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
+    workspace = await workspace_service.get_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
     list_directory_result = await asyncio.to_thread(_list_directory, workspace_root, path)
     return ListDirectoryResult(items=list_directory_result)
 
 @context_file_router.get("/files/search", response_model=SearchFileResult)
 async def search_file(
-    db_session: DbSessionDep,
+    workspace_service: WorkspaceServiceDep,
     workspace_id: int = Query(...),
     query: str = Query(...),
     match_limit: int = Query(default=20, ge=1, le=100),
 ) -> SearchFileResult:
-    workspace = await WorkspaceService(db_session).get_workspace_by_id(workspace_id)
+    workspace = await workspace_service.get_by_id(workspace_id)
     workspace_root = Path(workspace.directory).expanduser().resolve()
     search_file_result = await asyncio.to_thread(_search_file, query, workspace_root, match_limit)
     return SearchFileResult(items=search_file_result, total=len(search_file_result))

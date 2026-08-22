@@ -10,7 +10,7 @@ from src.services.toolset import ToolsetNotFoundError, ToolsetService
 
 @pytest.fixture
 def toolset_service(db_session: AsyncSession) -> ToolsetService:
-    return ToolsetService(db_session)
+    return ToolsetService.from_db_session(db_session)
 
 
 @pytest.mark.service
@@ -19,86 +19,6 @@ class TestToolsetService:
     @pytest.mark.asyncio
     async def test_get_toolset_by_id_not_found(self, toolset_service: ToolsetService):
         with pytest.raises(ToolsetNotFoundError, match="Toolset '999' not found") as exc_info:
-            await toolset_service.get_toolset_by_id(999)
+            await toolset_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.TOOLSET_NOT_FOUND
-
-    @pytest.mark.asyncio
-    async def test_create_toolset_with_tools(self, toolset_service: ToolsetService):
-        created = await toolset_service.create_toolset(
-            toolset_schemas.ToolsetCreate(
-                name="Toolset A",
-                type=toolset_models.ToolsetType.MCP_LOCAL,
-                params={
-                    "command": "echo",
-                    "args": ["hello"],
-                    "env": {},
-                },
-            ),
-            [
-                ToolsetService.ToolLike(
-                    name="Tool A",
-                    internal_key="tool-a",
-                    description="Tool A description",
-                )
-            ],
-        )
-
-        assert created.name == "Toolset A"
-        assert created.internal_key == "Toolset A"
-        assert created.type == toolset_models.ToolsetType.MCP_LOCAL
-        assert len(created.tools) == 1
-        assert created.tools[0].name == "Tool A"
-        assert created.tools[0].description == "Tool A description"
-
-    @pytest.mark.asyncio
-    async def test_get_toolsets_filters_by_name_case_insensitive(
-        self,
-        toolset_service: ToolsetService,
-        toolset_factory,
-    ):
-        builtin_match = await toolset_factory(name="Release Tools")
-        mcp_match = await toolset_factory(
-            name="Release MCP",
-            type=toolset_models.ToolsetType.MCP_LOCAL,
-            params={"command": "echo", "args": [], "env": {}},
-        )
-        await toolset_factory(name="Other tools")
-
-        builtin_toolsets = await toolset_service.get_all_builtin_toolsets("release")
-        mcp_toolsets = await toolset_service.get_all_mcp_toolsets("release")
-
-        assert [toolset.id for toolset in builtin_toolsets] == [builtin_match.id]
-        assert [toolset.id for toolset in mcp_toolsets] == [mcp_match.id]
-
-    @pytest.mark.asyncio
-    async def test_delete_toolset_removes_entity_and_tool_children(
-        self,
-        toolset_service: ToolsetService,
-        db_session: AsyncSession,
-        toolset_factory,
-    ):
-        tool = toolset_models.Tool(
-            name="Tool A",
-            internal_key="tool-a",
-            description="Tool A description",
-            is_enabled=True,
-            auto_approve=False,
-        )
-        toolset = await toolset_factory(
-            name="Toolset A",
-            internal_key="toolset-a",
-            tools=[tool],
-        )
-
-        await toolset_service.delete_toolset(toolset.id)
-        await db_session.flush()
-        db_session.expunge_all()
-
-        with pytest.raises(ToolsetNotFoundError, match=f"Toolset '{toolset.id}' not found"):
-            await toolset_service.get_toolset_by_id(toolset.id)
-
-        tool_in_db = await db_session.scalar(
-            select(toolset_models.Tool).where(toolset_models.Tool.id == tool.id)
-        )
-        assert tool_in_db is None

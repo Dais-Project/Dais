@@ -126,7 +126,7 @@ class TestNoteMaterializer:
         workspace_b.id = 2
 
         mock_service = AsyncMock()
-        mock_service.get_all_workspaces.return_value = [workspace_a, workspace_b]
+        mock_service.get_all.return_value = [workspace_a, workspace_b]
 
         materialize_mock = AsyncMock()
         workspace_read_mock = MagicMock(side_effect=[
@@ -153,7 +153,10 @@ class TestNoteMaterializer:
         ])
         to_thread_mock = AsyncMock()
 
-        with patch("src.services.workspace.WorkspaceService", return_value=mock_service):
+        with patch(
+            "src.services.workspace.WorkspaceService.from_db_session",
+            return_value=mock_service,
+        ):
             with patch("src.agent.notes.materializer.db_context") as mock_db_context:
                 mock_db_context.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
                 mock_db_context.return_value.__aexit__ = AsyncMock(return_value=False)

@@ -1,86 +1,112 @@
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+import time
+
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.agent.prompts import TitleSummarization
+from src.agent.prompts import create_one_turn_llm
 from src.db.models import tasks as task_models
-from src.schemas.tasks import task as task_schemas
+from src.repositories.tasks.task import TaskRepository
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.utils.retention import RetentionOption, get_retention_cutoff
+from src.schemas.tasks import task as task_schemas
+from src.settings import use_app_setting_manager
+from src.utils.retention import RetentionOption
+from src.utils.retention import get_retention_cutoff
+from src.utils.text import get_visual_length
+
 from .resource import TaskResourceService
-from ..service_base import ServiceBase
-from ..exceptions import NotFoundError, ServiceErrorCode
+from ..exceptions import InternalError
+from ..exceptions import NotFoundError
+from ..exceptions import ServiceErrorCode
+
+
+_logger = logger.bind(name="TaskService")
 
 
 class TaskNotFoundError(NotFoundError):
-    def __init__(self, task_id: int) -> None:
+    def __init__(self, task_id: int):
         super().__init__(ServiceErrorCode.TASK_NOT_FOUND, "Task", task_id)
 
-class TaskService(ServiceBase[task_models.Task]):
-    @staticmethod
-    def relations():
-        return [
-            selectinload(task_models.Task.agent),
-            selectinload(task_models.Task.workspace),
-        ]
 
-    def get_tasks_query(self, workspace_id: int, query: str | None = None):
-        stmt = (
-            select(task_models.Task)
-            .where(task_models.Task.workspace_id == workspace_id)
-            .order_by(task_models.Task.id.desc())
-        )
-        if query:
-            stmt = stmt.where(task_models.Task.title.ilike(f"%{query}%"))
-        return stmt
+class TaskService:
+    def __init__(self,
+                 repository: TaskRepository,
+                 resource_service: TaskResourceService):
+        self._repository = repository
+        self._resource_service = resource_service
 
-    def get_recent_tasks_query(self):
-        return (
-            select(task_models.Task)
-            .order_by(
-                task_models.Task.last_run_at.desc(),
-                task_models.Task.id.desc(),
-            )
+    @classmethod
+    def from_db_session(cls, db_session: AsyncSession) -> TaskService:
+        resource_service = TaskResourceService.from_db_session(
+            db_session,
+            task_runtime_schemas.TaskType.TASK,
         )
+        return cls(TaskRepository(db_session), resource_service)
 
-    async def get_task_by_id(self, id: int) -> task_models.Task:
-        task = await self._db_session.get(
-            task_models.Task, id,
-            options=self.relations(),
-        )
-        if not task:
-            raise TaskNotFoundError(id)
+    async def get_page(self, workspace_id: int, query: str | None = None):
+        return await self._repository.get_page(workspace_id, query)
+
+    async def get_recent_page(self):
+        return await self._repository.get_recent_page()
+
+    async def get_by_id(self, task_id: int) -> task_models.Task:
+        task = await self._repository.get_by_id(task_id)
+        if task is None:
+            raise TaskNotFoundError(task_id)
         return task
 
-    async def create_task(self, data: task_schemas.TaskCreate) -> task_models.Task:
-        new_task = task_models.Task(
-            _workspace_id=data.workspace_id,
-            **data.model_dump(exclude={"workspace_id"})
+    async def create(self, data: task_schemas.TaskCreate) -> task_models.Task:
+        return await self._repository.create(data)
+
+    async def update(self,
+                          task_id: int,
+                          data: task_schemas.TaskUpdate) -> task_models.Task:
+        task = await self.get_by_id(task_id)
+        return await self._repository.update(task, data)
+
+    async def summarize_title(self, task_id: int) -> task_models.Task:
+        task = await self.get_by_id(task_id)
+        settings = use_app_setting_manager().settings
+        if settings.flash_model is None or len(task.messages) == 0:
+            raise InternalError(
+                ServiceErrorCode.SUMMARIZE_TITLE_FAILED,
+                "Failed to summarize task title",
+            )
+        try:
+            llm = await create_one_turn_llm(settings.flash_model)
+            title = await TitleSummarization(llm, settings.reply_language)(task.messages)
+            _logger.info(f"Generated title: {title}")
+        except Exception as error:
+            _logger.exception("Failed to request title summarization")
+            raise InternalError(
+                ServiceErrorCode.SUMMARIZE_TITLE_FAILED,
+                str(error) or "Failed to summarize task title",
+            ) from error
+        if len(title) == 0 or get_visual_length(title) > 40:
+            raise InternalError(
+                ServiceErrorCode.SUMMARIZE_TITLE_FAILED,
+                "Failed to summarize task title",
+            )
+        return await self.update(
+            task_id,
+            task_schemas.TaskUpdate(
+                title=title,
+                messages=None,
+                agent_id=None,
+                last_run_at=int(time.time()),
+                usage=None,
+            ),
         )
 
-        self._db_session.add(new_task)
-        new_id = await self.flush_and_expunge(new_task)
-        return await self.get_task_by_id(new_id)
+    async def delete(self, task_id: int):
+        task = await self.get_by_id(task_id)
+        await self._repository.delete(task)
+        if self._resource_service is not None:
+            await self._resource_service.delete_task_resources(task_id)
 
-    async def update_task(self, id: int, data: task_schemas.TaskUpdate) -> task_models.Task:
-        task = await self.get_task_by_id(id)
-
-        if data.messages is not None:
-            task.messages = data.messages
-
-        self.apply_fields(task, data, exclude={"messages"})
-
-        new_id = await self.flush_and_expunge(task)
-        return await self.get_task_by_id(new_id)
-
-    async def delete_task(self, id: int):
-        task = await self.get_task_by_id(id)
-        await self._db_session.delete(task)
-        await self._db_session.flush()
-        await TaskResourceService(self._db_session, task_runtime_schemas.TaskType.TASK).delete_task_resources(id)
-
-    async def cleanup_outdated_tasks(self, retention: RetentionOption):
+    async def cleanup_outdated(self, retention: RetentionOption):
         cutoff = get_retention_cutoff(retention)
-        if cutoff is None: return
-        stmt = select(task_models.Task.id).where(task_models.Task.last_run_at < cutoff)
-        task_ids = (await self._db_session.scalars(stmt)).all()
-
-        for task_id in task_ids:
-            await self.delete_task(task_id)
+        if cutoff is None:
+            return
+        for task_id in await self._repository.get_ids_before(cutoff):
+            await self.delete(task_id)

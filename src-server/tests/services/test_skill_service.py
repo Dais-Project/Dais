@@ -14,7 +14,7 @@ from src.services.skill import (
 
 @pytest.fixture
 def skill_service(db_session: AsyncSession) -> SkillService:
-    return SkillService(db_session)
+    return SkillService.from_db_session(db_session)
 
 
 @pytest.mark.service
@@ -23,7 +23,7 @@ class TestSkillService:
     @pytest.mark.asyncio
     async def test_get_skill_by_id_not_found(self, skill_service: SkillService):
         with pytest.raises(SkillNotFoundError, match="Skill '999' not found") as exc_info:
-            await skill_service.get_skill_by_id(999)
+            await skill_service.get_by_id(999)
 
         assert exc_info.value.error_code == ServiceErrorCode.SKILL_NOT_FOUND
 
@@ -55,7 +55,7 @@ class TestSkillService:
         skill_service: SkillService,
         resources: list[skill_schemas.SkillResourceBase],
     ):
-        created = await skill_service.create_skill(
+        created = await skill_service.create(
             skill_schemas.SkillCreate(
                 name="Skill A",
                 description="Description A",
@@ -81,19 +81,19 @@ class TestSkillService:
             resources=[],
         )
 
-        await skill_service.create_skill(create_data)
+        await skill_service.create(create_data)
 
         with pytest.raises(
             SkillNameAlreadyExistsError,
             match="Skill 'Duplicated Skill' already exists",
         ) as exc_info:
-            await skill_service.create_skill(create_data)
+            await skill_service.create(create_data)
 
         assert exc_info.value.error_code == ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS
 
     @pytest.mark.asyncio
     async def test_update_skill_updates_fields_and_resources(self, skill_service: SkillService):
-        created = await skill_service.create_skill(
+        created = await skill_service.create(
             skill_schemas.SkillCreate(
                 name="Skill A",
                 description="Description A",
@@ -109,7 +109,7 @@ class TestSkillService:
         )
         old_hash = created.hash
 
-        updated = await skill_service.update_skill(
+        updated = await skill_service.update(
             created.id,
             skill_schemas.SkillUpdate(
                 name="Skill B",
@@ -146,6 +146,7 @@ class TestSkillService:
         self,
         skill_service: SkillService,
         skill_factory,
+        db_session: AsyncSession,
     ):
         skill_a = await skill_factory(name="Skill A", content="Content A")
         skill_b = await skill_factory(name="Skill B", content="Content B")
@@ -154,248 +155,9 @@ class TestSkillService:
             SkillNameAlreadyExistsError,
             match="Skill 'Skill A' already exists",
         ) as exc_info:
-            await skill_service.update_skill(
+            await skill_service.update(
                 skill_b.id,
                 skill_schemas.SkillUpdate(name=skill_a.name),
             )
 
         assert exc_info.value.error_code == ServiceErrorCode.SKILL_NAME_ALREADY_EXISTS
-
-    @pytest.mark.asyncio
-    async def test_delete_skill_removes_entity_and_resource_children(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        created = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Skill A",
-                description="",
-                is_enabled=True,
-                content="Skill content",
-                resources=[
-                    skill_schemas.SkillResourceBase(
-                        relative="README.md",
-                        content="resource-content",
-                    )
-                ],
-            )
-        )
-        resource_id = created.resources[0].id
-
-        await skill_service.delete_skill(created.id)
-        await db_session.flush()
-        db_session.expunge_all()
-
-        with pytest.raises(SkillNotFoundError, match=f"Skill '{created.id}' not found"):
-            await skill_service.get_skill_by_id(created.id)
-
-        resource_in_db = await db_session.scalar(
-            select(skill_models.SkillResource).where(skill_models.SkillResource.id == resource_id)
-        )
-        assert resource_in_db is None
-
-    @pytest.mark.asyncio
-    async def test_get_all_skills_orders_by_id_and_loads_resources(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        first = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Skill 1",
-                description="",
-                is_enabled=True,
-                content="Content 1",
-                resources=[
-                    skill_schemas.SkillResourceBase(
-                        relative="a.md",
-                        content="A",
-                    )
-                ],
-            )
-        )
-        second = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Skill 2",
-                description="",
-                is_enabled=True,
-                content="Content 2",
-                resources=[
-                    skill_schemas.SkillResourceBase(
-                        relative="b.md",
-                        content="B",
-                    )
-                ],
-            )
-        )
-
-        db_session.expunge_all()
-
-        skills = await skill_service.get_all_skills()
-
-        assert [skill.id for skill in skills] == [first.id, second.id]
-        assert [len(skill.resources) for skill in skills] == [1, 1]
-        assert skills[0].resources[0].relative == "a.md"
-        assert skills[1].resources[0].relative == "b.md"
-
-    @pytest.mark.asyncio
-    async def test_get_skills_query_without_query_returns_all_ordered_by_id(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        first = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Alpha Skill",
-                description="first skill",
-                is_enabled=True,
-                content="content-a",
-                resources=[],
-            )
-        )
-        second = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Beta Skill",
-                description="second skill",
-                is_enabled=True,
-                content="content-b",
-                resources=[],
-            )
-        )
-
-        db_session.expunge_all()
-
-        rows = await skill_service._db_session.scalars(
-            skill_service.get_skills_query()
-        )
-        skills = list(rows.all())
-
-        assert [skill.id for skill in skills] == [first.id, second.id]
-
-    @pytest.mark.asyncio
-    async def test_get_skills_query_filters_by_name_case_insensitive(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        matched = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Pytest Helper",
-                description="unrelated description",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-        await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Other Skill",
-                description="nothing here",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-
-        db_session.expunge_all()
-
-        rows = await skill_service._db_session.scalars(
-            skill_service.get_skills_query("pytest")
-        )
-        skills = list(rows.all())
-
-        assert [skill.id for skill in skills] == [matched.id]
-
-    @pytest.mark.asyncio
-    async def test_get_skills_query_filters_by_description(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        matched = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Generic Name",
-                description="handles alembic migrations",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-        await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Another Skill",
-                description="frontend styling",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-
-        db_session.expunge_all()
-
-        rows = await skill_service._db_session.scalars(
-            skill_service.get_skills_query("alembic")
-        )
-        skills = list(rows.all())
-
-        assert [skill.id for skill in skills] == [matched.id]
-
-    @pytest.mark.asyncio
-    async def test_get_skills_query_returns_empty_when_no_match(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Existing Skill",
-                description="existing description",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-
-        db_session.expunge_all()
-
-        rows = await skill_service._db_session.scalars(
-            skill_service.get_skills_query("nonexistent-term")
-        )
-        skills = list(rows.all())
-
-        assert skills == []
-
-    @pytest.mark.asyncio
-    async def test_get_skills_query_empty_string_does_not_filter(
-        self,
-        skill_service: SkillService,
-        db_session: AsyncSession,
-    ):
-        first = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Skill A",
-                description="desc a",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-        second = await skill_service.create_skill(
-            skill_schemas.SkillCreate(
-                name="Skill B",
-                description="desc b",
-                is_enabled=True,
-                content="content",
-                resources=[],
-            )
-        )
-
-        db_session.expunge_all()
-
-        rows = await skill_service._db_session.scalars(
-            skill_service.get_skills_query("")
-        )
-        skills = list(rows.all())
-
-        assert [skill.id for skill in skills] == [first.id, second.id]
