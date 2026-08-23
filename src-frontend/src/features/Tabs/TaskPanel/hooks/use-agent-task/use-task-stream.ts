@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { useUnmount } from "ahooks";
 import type { TaskType } from "@/api/generated/schemas";
-import type { TaskSseCallbacks } from "@/api/tasks";
+import { continueTask, type TaskSseCallbacks } from "@/api/tasks";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import type { TaskState } from ".";
 
@@ -23,19 +23,9 @@ type TaskStreamProps = {
 
 type TaskStreamResult = {
   state: TaskState;
-  startStream: <Body extends Record<string, unknown>>(
-    streamApi: TaskStreamFn<Body & { agent_id: number }>,
-    body: Body,
-  ) => void;
+  startStream: () => void;
   cancel: () => void;
 };
-
-export type TaskStreamFn<Body extends { agent_id: number }> = (
-  taskType: TaskType,
-  taskId: number,
-  body: Body,
-  callbacks: TaskSseCallbacks,
-) => AbortController;
 
 function createOverrideCallbacks(
   abortController: RefObject<AbortController | null>,
@@ -88,44 +78,35 @@ export function useTaskStream({
   const abortController = useRef<AbortController | null>(null);
   const wakeLock = useWakeLock();
 
-  const startStream = useCallback(
-    <Body extends Record<string, unknown>>(
-      streamApi: TaskStreamFn<Body & { agent_id: number }>,
-      body: Body,
-    ) => {
-      const overrideCallbacks = createOverrideCallbacks(
-        abortController,
-        wakeLock,
-        setState,
-        sseCallbacksRef,
-      );
-      if (agentId === null) {
-        toast.error("任务失败", { description: "请先选择一个 Agent。" });
-        return;
-      }
+  const startStream = useCallback(() => {
+    const overrideCallbacks = createOverrideCallbacks(
+      abortController,
+      wakeLock,
+      setState,
+      sseCallbacksRef,
+    );
+    if (agentId === null) {
+      toast.error("任务失败", { description: "请先选择一个 Agent。" });
+      return;
+    }
 
-      if (state !== "idle" && state !== "error") {
-        console.warn("Previous stream is not finished yet.");
-        return;
-      }
+    if (state !== "idle" && state !== "error") {
+      console.warn("Previous stream is not finished yet.");
+      return;
+    }
 
-      setState("waiting");
-      if (abortController.current) {
-        console.warn("Aborting previous stream...");
-        abortController.current?.abort();
-      }
-      abortController.current = streamApi(
-        taskType,
-        taskId,
-        {
-          ...body,
-          agent_id: agentId,
-        },
-        overrideCallbacks,
-      );
-    },
-    [state, taskId, taskType, agentId, wakeLock],
-  );
+    setState("waiting");
+    if (abortController.current) {
+      console.warn("Aborting previous stream...");
+      abortController.current?.abort();
+    }
+    abortController.current = continueTask(
+      taskType,
+      taskId,
+      { agent_id: agentId },
+      overrideCallbacks,
+    );
+  }, [state, taskId, taskType, agentId, wakeLock]);
 
   const cancel = useCallback(() => {
     abortController.current?.abort();

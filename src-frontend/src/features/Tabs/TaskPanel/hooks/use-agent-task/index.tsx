@@ -28,11 +28,7 @@ import {
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
 } from "@/api/generated/schemas";
-import {
-  continueTask,
-  type TaskSseCallbacks,
-  useGetTaskRuntimeContextSuspense,
-} from "@/api/tasks";
+import { type TaskSseCallbacks, useGetTaskRuntimeContextSuspense } from "@/api/tasks";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import type { SdkMessage } from "@/types/message";
@@ -173,7 +169,7 @@ export function AgentTaskProvider({
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
-  const { state, startStream, cancel } = useTaskStream({
+  const { state, startStream: handleTaskContinue, cancel } = useTaskStream({
     taskType,
     taskId,
     agentId,
@@ -307,11 +303,6 @@ export function AgentTaskProvider({
     onError,
     onClose,
   };
-
-  const handleTaskContinue = useCallback(
-    () => startStream(continueTask, {}),
-    [startStream],
-  );
 
   const handleTaskCancel = useCallback(() => {
     cancel();
