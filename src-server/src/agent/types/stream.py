@@ -136,3 +136,6 @@ type AgentEvent = Annotated[(
 ), Discriminator("event_id")]
 
 type AgentGenerator = AsyncGenerator[AgentEvent, None]
+
+def is_terminal_event(event: AgentEvent) -> bool:
+    return isinstance(event, (TaskDoneEvent, TaskInterruptedEvent))
