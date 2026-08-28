@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from loguru import logger
 
+from .subscription import AgentTaskSubscription
 from ...types.stream import TaskDoneEvent, ErrorEvent, is_terminal_event
 
 if TYPE_CHECKING:
-    from .subscription import AgentTaskSubscription
     from .. import AgentTask
     from ...types.stream import AgentEvent
 
@@ -27,6 +27,7 @@ class AgentTaskExecution:
             self._logger.warning("Task execution already started")
             return
         self._runner = asyncio.create_task(self._run())
+        self._runner.add_done_callback(lambda _: self._on_finished())
 
     def subscribe(self) -> AgentTaskSubscription:
         subscription = AgentTaskSubscription(execution=self)
@@ -35,6 +36,12 @@ class AgentTaskExecution:
 
     def unsubscribe(self, subscription: AgentTaskSubscription):
         self._subscriptions.discard(subscription)
+
+    async def stop(self):
+        if self._runner is None or self._runner.done():
+            return
+        self._runner.cancel()
+        await self._runner
 
     def _yield_event(self, event: AgentEvent):
         for subscription in self._subscriptions:
@@ -69,4 +76,3 @@ class AgentTaskExecution:
             self._logger.warning("No terminal event yielded")
             pending_terminal_event = TaskDoneEvent()
         self._yield_event(pending_terminal_event)
-        self._on_finished()

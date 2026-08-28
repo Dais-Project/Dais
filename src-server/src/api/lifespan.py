@@ -8,6 +8,7 @@ from fastapi import FastAPI
 
 from src.agent.notes import NoteMaterializer
 from src.agent.skills import SkillMaterializer
+from src.agent.task.executor import AgentTaskExecutor
 from src.agent.task.schedule_runner import init_schedule_runner
 from src.agent.tool import BuiltinToolsetManager, McpToolsetManager, use_mcp_toolset_manager
 from src.db import engine as database_engine, db_context
@@ -21,6 +22,7 @@ from .sse_dispatcher import SseDispatcher
 
 
 class AppState(TypedDict):
+    agent_task_executor: AgentTaskExecutor
     sse_dispatcher: SseDispatcher
     mcp_toolset_manager: McpToolsetManager
 
@@ -46,6 +48,7 @@ class BackgroundTaskManager:
 
 class LifespanManager:
     def __init__(self):
+        self.agent_task_executor = AgentTaskExecutor()
         self.sse_dispatcher = SseDispatcher()
         self.schedule_runner = init_schedule_runner(self.sse_dispatcher.send)
         self.app_setting_manager = use_app_setting_manager()
@@ -58,6 +61,7 @@ class LifespanManager:
 
         try:
             yield AppState(
+                agent_task_executor=self.agent_task_executor,
                 sse_dispatcher=self.sse_dispatcher,
                 mcp_toolset_manager=self.mcp_toolset_manager
             )
@@ -78,6 +82,7 @@ class LifespanManager:
         # prevent the scheduled task runs without skills and notes
         self.background_task_manager.add_task(self.schedule_runner.load_schedules())
 
+        CleanupManager.add_cleanup(self.agent_task_executor.shutdown)
         CleanupManager.add_cleanup(self.schedule_runner.shutdown)
         CleanupManager.add_cleanup(self.background_task_manager.shutdown)
         CleanupManager.add_cleanup(self.mcp_toolset_manager.disconnect_mcp_servers)

@@ -1,8 +1,9 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-from .execution import AgentTaskExecution
 from src.schemas.tasks import runtime as task_runtime_schemas
+
+from .execution import AgentTaskExecution
 
 if TYPE_CHECKING:
     from .. import AgentTask
@@ -21,6 +22,17 @@ class AgentTaskExecutor:
             existing = self._tasks.get(task.id)
             if existing is not None: return existing
 
-            new_execution = AgentTaskExecution(task, lambda: self._tasks.pop(task.id, None))
+            remove = lambda: self._tasks.pop(task.id, None)
+            new_execution = AgentTaskExecution(task, remove)
             self._tasks[task.id] = new_execution
             return new_execution
+
+    async def shutdown(self):
+        async with self._lock:
+            executions = list(self._tasks.values())
+            self._tasks.clear()
+
+        await asyncio.gather(
+            *(execution.stop() for execution in executions),
+            return_exceptions=True,
+        )
