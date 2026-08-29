@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from src.schemas.tasks import runtime as task_runtime_schemas
 
-from .execution import AgentTaskExecution
+from .execution import AgentTaskExecution, AgentTaskCheckpoint
 
 if TYPE_CHECKING:
     from .. import AgentTask
@@ -26,6 +26,12 @@ class AgentTaskExecutor:
             new_execution = AgentTaskExecution(task, remove)
             self._tasks[task.id] = new_execution
             return new_execution
+
+    async def get_snapshot(self, task_id: int) -> AgentTaskCheckpoint | None:
+        async with self._lock:
+            execution = self._tasks.get(task_id)
+            if execution is None: return None
+            return execution.snapshot
 
     async def shutdown(self):
         async with self._lock:

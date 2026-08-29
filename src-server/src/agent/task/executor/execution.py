@@ -2,14 +2,22 @@ import asyncio
 from typing import TYPE_CHECKING, Any, Callable
 
 from loguru import logger
+from pydantic import BaseModel, ConfigDict
 
+from src.schemas.tasks import runtime as task_runtime_schemas
 from .subscription import AgentTaskSubscription
-from ...types.stream import TaskDoneEvent, ErrorEvent, is_terminal_event
+from ...types.stream import TurnEndEvent, TaskDoneEvent, ErrorEvent, is_terminal_event
 
 if TYPE_CHECKING:
     from .. import AgentTask
     from ...types.stream import AgentEvent
 
+
+class AgentTaskCheckpoint(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    revision: int
+    snapshot: task_runtime_schemas.TaskRuntimeContext
 
 class AgentTaskExecution:
     _logger = logger.bind(name="TaskStreamRoute")
@@ -21,6 +29,11 @@ class AgentTaskExecution:
         self._on_finished = on_finished
         self._runner: asyncio.Task | None = None
         self._subscriptions: set[AgentTaskSubscription] = set()
+        self._revision = 0
+        self._checkpoint = AgentTaskCheckpoint(
+            revision=self._revision,
+            snapshot=task.snapshot(),
+        )
 
     def start(self):
         if self._runner is not None:
@@ -28,6 +41,10 @@ class AgentTaskExecution:
             return
         self._runner = asyncio.create_task(self._run())
         self._runner.add_done_callback(lambda _: self._on_finished())
+
+    @property
+    def snapshot(self) -> AgentTaskCheckpoint:
+        return self._checkpoint
 
     def subscribe(self) -> AgentTaskSubscription:
         subscription = AgentTaskSubscription(execution=self)
@@ -44,6 +61,13 @@ class AgentTaskExecution:
         await self._runner
 
     def _yield_event(self, event: AgentEvent):
+        self._revision += 1
+        if isinstance(event, TurnEndEvent):
+            self._checkpoint = AgentTaskCheckpoint(
+                revision=self._revision,
+                snapshot=self._task.snapshot(),
+            )
+
         for subscription in self._subscriptions:
             try:
                 subscription.put_nowait(event)
