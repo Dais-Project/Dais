@@ -62,6 +62,7 @@ class AgentTask:
                         # empty message, retry
                         continue
                     assistant_message = temp_message
+                    break
                 case ErrorEvent(error=error, retryable=retryable) as error_chunk:
                     self._logger.warning(f"LLM provider error: {error}")
                     if not retryable or attempt == MAX_ATTEMPT - 1:
