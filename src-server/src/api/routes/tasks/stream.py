@@ -19,11 +19,15 @@ class ContinueTaskBody(TaskStreamBody): ...
 
 # --- --- --- --- --- ---
 
-task_stream_router = APIRouter(tags=["task", "stream"])
+task_stream_router = APIRouter(tags=["task"])
 
+@task_stream_router.get("/runnings", response_model=list[int])
+async def get_running_tasks(executor: AgentTaskExecutorDep):
+    return await executor.get_task_ids()
 
 @task_stream_router.post(
     "/{task_type}/{task_id}/continue",
+    tags=["stream"],
     responses={200: {"model": AgentEvent}},
     response_class=EventSourceResponse,
 )

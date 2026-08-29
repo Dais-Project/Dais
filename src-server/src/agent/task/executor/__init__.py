@@ -27,6 +27,10 @@ class AgentTaskExecutor:
             self._tasks[task.id] = new_execution
             return new_execution
 
+    async def get_task_ids(self) -> list[int]:
+        async with self._lock:
+            return list(self._tasks.keys())
+
     async def get_snapshot(self, task_id: int) -> AgentTaskCheckpoint | None:
         async with self._lock:
             execution = self._tasks.get(task_id)

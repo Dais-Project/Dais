@@ -6,6 +6,7 @@ import type { TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
   useDeleteTask,
+  useGetRunningTasks,
   useGetTasksSuspenseInfinite,
   useSummarizeTaskTitle,
 } from "@/api/tasks";
@@ -65,6 +66,9 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
     summarizeTaskTitleMutation.mutate({ taskId: task.id });
   };
 
+  const { data: runningTaskIds } = useGetRunningTasks({
+    query: { refetchInterval: 3000, gcTime: SIDEBAR_QUERY_GC_TIME },
+  });
   const query = useGetTasksSuspenseInfinite(
     {
       workspace_id: workspaceId,
@@ -107,6 +111,7 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
             task={item}
             ref={ref}
             index={index}
+            isRunning={runningTaskIds?.includes(item.id) ?? false}
             onOpen={() => openTaskTab(workspaceId, item)}
             onDelete={asyncConfirm.trigger}
             onRegenerateTitle={handleRegenerateTitle}

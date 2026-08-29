@@ -8,6 +8,7 @@ import {
   invalidateTaskQueries,
   useDeleteTask,
   useGetRecentTasksSuspenseInfinite,
+  useGetRunningTasks,
   useSummarizeTaskTitle,
 } from "@/api/tasks";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
@@ -57,6 +58,9 @@ export function RecentTaskList() {
     },
   });
 
+  const { data: runningTaskIds } = useGetRunningTasks({
+    query: { refetchInterval: 3000, gcTime: SIDEBAR_QUERY_GC_TIME },
+  });
   const query = useGetRecentTasksSuspenseInfinite(
     { size: 20 },
     {
@@ -102,6 +106,7 @@ export function RecentTaskList() {
             task={item}
             ref={ref}
             index={index}
+            isRunning={runningTaskIds?.includes(item.id) ?? false}
             onOpen={handleOpen}
             onDelete={asyncConfirm.trigger}
             onRegenerateTitle={handleRegenerateTitle}
