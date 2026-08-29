@@ -54,6 +54,9 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
           callbacks.onTaskStart?.();
           break
 
+        case "TURN_END":
+          break;
+
         case "MESSAGE_START":
           callbacks.onMessageStart?.(data);
           break;
