@@ -15,7 +15,7 @@ class AgentTaskExecutor:
         self._lock = asyncio.Lock()
 
     async def get_or_append(self, task: AgentTask) -> AgentTaskExecution:
-        if task._ctx.task_type != task_runtime_schemas.TaskType.TASK:
+        if task.type != task_runtime_schemas.TaskType.TASK:
             raise ValueError("Only TASK typed AgentTask is supported to append into AgentTaskExecutor")
 
         async with self._lock:

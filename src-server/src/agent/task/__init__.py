@@ -108,6 +108,10 @@ class AgentTask:
         return self._ctx.task_id
 
     @property
+    def type(self) -> task_runtime_schemas.TaskType:
+        return self._ctx.task_type
+
+    @property
     def messages(self) -> MessageManager:
         return self._message_manager
 
