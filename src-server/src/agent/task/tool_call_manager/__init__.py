@@ -4,6 +4,7 @@ from .tool_call_reviewer import ToolCallReviewer
 from .tool_call_dispatcher import ToolCallDispatchResult, ToolCallDispatcher
 from ..message_manager import MessageManager
 from ...context import AgentContext
+from ...exceptions import MessageNotFoundError, ToolCallNotFoundError
 from ...prompts import USER_IGNORED_TOOL_CALL_RESULT, USER_DENIED_TOOL_CALL_RESULT
 from ...types import (
     UserApprovalStatus, is_agent_tool_metadata,
@@ -19,9 +20,17 @@ class ToolCallManager:
         self._tool_call_reviewer = ToolCallReviewer(ctx)
         self._tool_call_dispatcher = ToolCallDispatcher(self._ctx, self._tool_call_reviewer)
 
-    def apply_user_response(self, call_id: str, response: str) -> MessageReplaceEvent:
-        target_message = self._message_manager.find(lambda m: m.role == "tool" and m.call_id == call_id)
+    def _find(self, call_id: str) -> ToolMessage:
+        try:
+            target_message = self._message_manager.find(
+                lambda message: message.role == "tool" and message.call_id == call_id)
+        except MessageNotFoundError:
+            raise ToolCallNotFoundError(call_id) from None
         assert isinstance(target_message, ToolMessage)
+        return target_message
+
+    def apply_user_response(self, call_id: str, response: str) -> MessageReplaceEvent:
+        target_message = self._find(call_id)
 
         assert is_agent_tool_metadata(target_message.metadata)
         if target_message.metadata.get("pending_action") != "respond":
@@ -31,8 +40,7 @@ class ToolCallManager:
         return MessageReplaceEvent(message=target_message)
 
     def approve(self, call_id: str, approved: bool) -> MessageReplaceEvent | None:
-        target_message = self._message_manager.find(lambda m: m.role == "tool" and m.call_id == call_id)
-        assert isinstance(target_message, ToolMessage)
+        target_message = self._find(call_id)
 
         metadata = target_message.metadata
         assert is_agent_tool_metadata(metadata)

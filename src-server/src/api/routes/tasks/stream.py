@@ -3,9 +3,9 @@ from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel
 
 from src.agent.types import AgentEvent
+from src.agent.task.runtime_manager import AgentTaskRuntimeRef
 from src.schemas.tasks import runtime as task_runtime_schemas
 
-from .runtime import create_agent_task
 from ...dependencies import AgentTaskExecutorDep
 
 
@@ -37,12 +37,12 @@ async def continue_task(
     body: ContinueTaskBody,
     executor: AgentTaskExecutorDep,
 ):
-    task = await create_agent_task(task_type, task_id, body.agent_id)
-    execution = await executor.get_or_append(task)
+    task_ref = AgentTaskRuntimeRef(task_type, task_id, body.agent_id)
+    execution = await executor.get_or_append(task_ref)
     subscription = execution.subscribe()
-    execution.start()
 
     try:
+        await execution.start()
         async for event in subscription:
             yield event
     finally:

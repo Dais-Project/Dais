@@ -3,7 +3,7 @@ from loguru import logger
 from dais_sdk.types import ToolMessage, AssistantMessage
 from src.schemas import workspace as workspace_schemas
 from src.schemas.tasks import runtime as task_runtime_schemas
-from .message_manager import MessageManager, MessageNotFoundError
+from .message_manager import MessageManager
 from .tool_call_manager import ToolCallManager
 from .llm_request_manager import LlmRequestManager
 from ..notes import NoteWatcher
@@ -209,8 +209,3 @@ class AgentTask:
     async def stop(self):
         self._is_running = False
         await self._llm_request_manager.cancel()
-
-__all__ = [
-    "AgentTask",
-    "MessageNotFoundError",
-]

@@ -1,9 +1,8 @@
 from typing import Callable, Generator
 from dais_sdk.types import Message, ToolMessage, UserMessage
 from ..context import AgentContext
+from ..exceptions import MessageNotFoundError
 
-
-class MessageNotFoundError(Exception): ...
 
 class MessageManager:
     def __init__(self, ctx: AgentContext):
@@ -32,7 +31,13 @@ class MessageManager:
         self._ctx.messages.append(message)
 
     def edit(self, message_id: str, new_content: str):
-        target_message = self.find(lambda message: message.role == "user" and message.id == message_id)
+        try:
+            target_message = self.find(
+                lambda message: message.role == "user" and message.id == message_id)
+        except MessageNotFoundError:
+            # reraise to attach message_id
+            raise MessageNotFoundError(message_id)
+
         target_index: int | None = None
         for index, message in enumerate(self._ctx.messages):
             if message is target_message:
