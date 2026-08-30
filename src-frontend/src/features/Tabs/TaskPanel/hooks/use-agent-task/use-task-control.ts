@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { MessageReplaceEvent, TaskRuntimeContext, TaskType, ToolReviewBody } from "@/api/generated/schemas";
+import type { MessageReplaceEvent, TaskRuntimeContext, TaskType, ToolReviewBody } from "@/api/generated/schemas";
 import {
   useApprovePendings,
   useAppendTaskMessage,

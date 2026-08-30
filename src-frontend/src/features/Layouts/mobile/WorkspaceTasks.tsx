@@ -16,6 +16,7 @@ import {
   SIDEBAR_QUERY_GC_TIME,
 } from "@/constants/query-options";
 import { openTaskTab } from "@/features/SideBar/views/TasksView/shared";
+import { useRunningTasks } from "@/features/SideBar/views/TasksView/use-running-tasks";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { resolveIconName } from "@/lib/resolve-iconname";
@@ -29,9 +30,10 @@ type TaskItemProps = {
   index: number;
   ref: React.Ref<HTMLButtonElement>;
   workspaceId: number;
+  isRunning: boolean;
 };
 
-function TaskItem({ task, index, ref, workspaceId }: TaskItemProps) {
+function TaskItem({ task, index, ref, workspaceId, isRunning }: TaskItemProps) {
   const { close: closeDrawer } = useNavigationDrawer();
   const { language } = useSettingsStore((state) => state.current);
 
@@ -46,7 +48,17 @@ function TaskItem({ task, index, ref, workspaceId }: TaskItemProps) {
       }}
     >
       <ActionableItemInfo
-        title={task.title}
+        titleRender={(
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate">{task.title}</span>
+            {isRunning && (
+              <span
+                aria-hidden
+                className="size-2 shrink-0 animate-pulse rounded-full bg-info"
+              />
+            )}
+          </div>
+        )}
         description={formatDistanceToNow(
           new Date(task.last_run_at * 1000),
           {
@@ -61,6 +73,7 @@ function TaskItem({ task, index, ref, workspaceId }: TaskItemProps) {
 
 function WorkspaceTaskList({ workspaceId }: { workspaceId: number }) {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { data: runningTaskIds } = useRunningTasks();
   const query = useGetTasksSuspenseInfinite(
     { workspace_id: workspaceId },
     {
@@ -96,6 +109,7 @@ function WorkspaceTaskList({ workspaceId }: { workspaceId: number }) {
           task={item}
           index={index}
           workspaceId={workspaceId}
+          isRunning={runningTaskIds?.includes(item.id) ?? false}
         />
       )}
     />
