@@ -9,15 +9,9 @@ from src.schemas.tasks import runtime as task_runtime_schemas
 from ...dependencies import AgentTaskExecutorDep
 
 
-class TaskStreamBody(BaseModel):
+class ContinueTaskBody(BaseModel):
     # to ensure that the agent_id for the target task is not None
     agent_id: int
-
-
-class ContinueTaskBody(TaskStreamBody): ...
-
-
-# --- --- --- --- --- ---
 
 task_stream_router = APIRouter(tags=["task"])
 

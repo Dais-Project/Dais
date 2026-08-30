@@ -8,7 +8,7 @@ from src.schemas.tasks import runtime as task_runtime_schemas
 from src.agent.exceptions import AgentTaskRuntimeConflictError
 from .subscription import AgentTaskSubscription
 from ..runtime_manager import AgentTaskRuntimeLease, AgentTaskRuntimeRef, use_agent_task_runtime_manager
-from ...types.stream import TurnEndEvent, TaskDoneEvent, ErrorEvent, is_terminal_event
+from ...types.stream import TurnEndEvent, TaskDoneEvent, TaskInterruptedEvent, ErrorEvent, is_terminal_event
 
 if TYPE_CHECKING:
     from ...types.stream import AgentEvent
@@ -96,7 +96,7 @@ class AgentTaskExecution:
                 self._yield_event(event)
         except asyncio.CancelledError:
             await lease.task.stop()
-            raise
+            pending_terminal_event = TaskInterruptedEvent()
         except Exception as e:
             self._logger.exception("Error in agent stream")
             self._yield_event(ErrorEvent(error=str(e)))

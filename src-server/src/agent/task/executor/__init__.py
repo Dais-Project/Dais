@@ -54,6 +54,13 @@ class AgentTaskExecutor:
             if execution is None: return None
             return execution.checkpoint
 
+    async def stop(self, task_id: int):
+        async with self._lock:
+            execution = self._tasks.get(task_id)
+
+        if execution is not None:
+            await execution.stop()
+
     async def shutdown(self):
         async with self._lock:
             executions = list(self._tasks.values())

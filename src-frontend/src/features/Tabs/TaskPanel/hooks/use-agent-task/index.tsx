@@ -304,11 +304,6 @@ export function AgentTaskProvider({
     onClose,
   };
 
-  const handleTaskCancel = useCallback(() => {
-    cancel();
-    messageLifecycle.handleCancel();
-  }, [messageLifecycle, cancel]);
-
   const taskControl = useTaskControl({
     taskId,
     taskType,
@@ -317,6 +312,18 @@ export function AgentTaskProvider({
     onTaskContinue: handleTaskContinue,
     onUpdateRuntimeContext: applyRuntimeContext,
   });
+
+  const handleTaskCancel = useCallback(async () => {
+    try {
+      await taskControl.stop();
+      cancel();
+      messageLifecycle.handleCancel();
+    } catch (error) {
+      toast.error(t("toast.task_failed.title"), {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }, [taskControl, messageLifecycle, cancel, t]);
 
   const stateValue = useMemo(
     () => ({

@@ -2,11 +2,12 @@ import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { MessageReplaceEvent, TaskRuntimeContext, TaskType, ToolReviewBody } from "@/api/generated/schemas";
 import {
-  useToolAnswer,
-  useToolReviews,
-  useEditTaskMessage,
   useApprovePendings,
   useAppendTaskMessage,
+  useEditTaskMessage,
+  useStopTask,
+  useToolAnswer,
+  useToolReviews,
 } from "@/api/tasks";
 import { uiUserMessageFactory, toSdkMessage } from "@/types/message";
 
@@ -26,6 +27,7 @@ export type UseTaskControlResult = {
 
   appendMessage: (text: string, attachments: File[]) => Promise<void>;
   editMessage: (messageId: string, content: string) => Promise<void>;
+  stop: () => Promise<void>;
 };
 
 export function useTaskControl({
@@ -85,6 +87,8 @@ export function useTaskControl({
       },
     },
   });
+
+  const stopTaskMutation = useStopTask();
 
   const answerTool = useCallback(async (toolCallId: string, answer: string) => {
     if (agentId === null) {
@@ -154,11 +158,16 @@ export function useTaskControl({
     });
   }, [editMessageMutation, taskType, taskId, agentId]);
 
+  const stop = useCallback(async () => {
+    await stopTaskMutation.mutateAsync({ taskId, taskType });
+  }, [stopTaskMutation, taskId, taskType]);
+
   return useMemo(() => ({
     answerTool,
     approvePendings,
     reviewTool,
     appendMessage,
     editMessage,
-  }), [answerTool, approvePendings, reviewTool, appendMessage, editMessage]);
+    stop,
+  }), [answerTool, approvePendings, reviewTool, appendMessage, editMessage, stop]);
 }

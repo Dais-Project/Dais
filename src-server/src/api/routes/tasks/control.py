@@ -2,7 +2,7 @@ import asyncio
 from typing import Literal, cast
 
 from dais_sdk.types import ContentBlockMetadata, UserMessage
-from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from loguru import logger
 from pydantic import BaseModel
 
@@ -12,6 +12,7 @@ from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.tasks import TaskResourceService
 
+from ...dependencies import AgentTaskExecutorDep
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -40,6 +41,14 @@ def parse_append_message_body(body: str = Form(default=...)) -> TaskAppendMessag
 
 task_control_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskControlRoute")
+
+@task_control_router.post("/{task_type}/{task_id}/stop", status_code=status.HTTP_204_NO_CONTENT)
+async def stop_task(executor: AgentTaskExecutorDep,
+                    task_type: task_runtime_schemas.TaskType,
+                    task_id: int):
+    if task_type == task_runtime_schemas.TaskType.TASK:
+        await executor.stop(task_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @task_control_router.post("/{task_type}/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)
 async def append_task_message(
