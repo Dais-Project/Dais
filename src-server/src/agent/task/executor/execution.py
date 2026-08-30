@@ -1,4 +1,6 @@
 import asyncio
+from collections import deque
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable
 
 from loguru import logger
@@ -20,8 +22,14 @@ class AgentTaskCheckpoint(BaseModel):
     revision: int
     snapshot: task_runtime_schemas.TaskRuntimeContext
 
+@dataclass(frozen=True)
+class AgentTaskRevisionEvent:
+    revision: int
+    event: AgentEvent
+
 class AgentTaskExecution:
     _logger = logger.bind(name="TaskStreamRoute")
+    _history_limit = AgentTaskSubscription._subscription_capacity * 4
 
     def __init__(self,
                  ref: AgentTaskRuntimeRef,
@@ -31,6 +39,7 @@ class AgentTaskExecution:
         self._runner: asyncio.Task | None = None
         self._subscriptions: set[AgentTaskSubscription] = set()
         self._revision = 0
+        self._history: deque[AgentTaskRevisionEvent] = deque(maxlen=self._history_limit)
 
         # should not be None after start() called
         self._checkpoint: AgentTaskCheckpoint | None = None
@@ -57,8 +66,12 @@ class AgentTaskExecution:
     def checkpoint(self) -> AgentTaskCheckpoint | None:
         return self._checkpoint
 
-    def subscribe(self) -> AgentTaskSubscription:
+    def subscribe(self, after_revision: int | None = None) -> AgentTaskSubscription:
         subscription = AgentTaskSubscription(execution=self)
+        if after_revision is not None:
+            for revision_event in self._history:
+                if revision_event.revision > after_revision:
+                    subscription.put_nowait(revision_event)
         self._subscriptions.add(subscription)
         return subscription
 
@@ -73,10 +86,12 @@ class AgentTaskExecution:
 
     def _yield_event(self, event: AgentEvent):
         self._revision += 1
+        revision_event = AgentTaskRevisionEvent(self._revision, event)
+        self._history.append(revision_event)
 
         for subscription in self._subscriptions:
             try:
-                subscription.put_nowait(event)
+                subscription.put_nowait(revision_event)
             except asyncio.QueueFull:
                 # TODO: handle queue overflow case
                 pass
@@ -88,12 +103,12 @@ class AgentTaskExecution:
                 if is_terminal_event(event):
                     pending_terminal_event = event
                     continue
+                self._yield_event(event)
                 if isinstance(event, TurnEndEvent):
                     self._checkpoint = AgentTaskCheckpoint(
                         revision=self._revision,
                         snapshot=lease.task.snapshot(),
                     )
-                self._yield_event(event)
         except asyncio.CancelledError:
             await lease.task.stop()
             pending_terminal_event = TaskInterruptedEvent()

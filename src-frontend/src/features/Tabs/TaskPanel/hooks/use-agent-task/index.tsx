@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
-import { useLatest } from "ahooks";
+import { useLatest, useMount } from "ahooks";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
@@ -174,6 +174,12 @@ export function AgentTaskProvider({
     taskId,
     agentId,
     sseCallbacksRef,
+  });
+
+  useMount(() => {
+    if (data.revision !== null && data.revision !== undefined) {
+      handleTaskContinue(data.revision);
+    }
   });
 
   const onMessageStart = (eventData: MessageStartEvent) => {

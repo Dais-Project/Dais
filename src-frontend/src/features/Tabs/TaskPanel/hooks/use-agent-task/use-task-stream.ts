@@ -23,7 +23,7 @@ type TaskStreamProps = {
 
 type TaskStreamResult = {
   state: TaskState;
-  startStream: () => void;
+  startStream: (revision?: number) => void;
   cancel: () => void;
 };
 
@@ -78,7 +78,7 @@ export function useTaskStream({
   const abortController = useRef<AbortController | null>(null);
   const wakeLock = useWakeLock();
 
-  const startStream = useCallback(() => {
+  const startStream = useCallback((revision?: number) => {
     const overrideCallbacks = createOverrideCallbacks(
       abortController,
       wakeLock,
@@ -95,17 +95,19 @@ export function useTaskStream({
       return;
     }
 
-    setState("waiting");
+    setState(revision === undefined ? "waiting" : "running");
+    if (revision !== undefined) {
+      wakeLock.acquire();
+    }
     if (abortController.current) {
       console.warn("Aborting previous stream...");
       abortController.current?.abort();
     }
-    abortController.current = continueTask(
-      taskType,
-      taskId,
-      { agent_id: agentId },
-      overrideCallbacks,
-    );
+    abortController.current = continueTask(taskType, taskId, {
+      body: { agent_id: agentId },
+      callbacks: overrideCallbacks,
+      revision,
+    });
   }, [state, taskId, taskType, agentId, wakeLock]);
 
   const cancel = useCallback(() => {

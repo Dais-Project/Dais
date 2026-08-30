@@ -1,5 +1,5 @@
-from fastapi import APIRouter
-from fastapi.sse import EventSourceResponse
+from fastapi import APIRouter, Header
+from fastapi.sse import EventSourceResponse, ServerSentEvent
 from pydantic import BaseModel
 
 from src.agent.types import AgentEvent
@@ -30,14 +30,18 @@ async def continue_task(
     task_id: int,
     body: ContinueTaskBody,
     executor: AgentTaskExecutorDep,
+    last_event_id: int | None = Header(default=None),
 ):
     task_ref = AgentTaskRuntimeRef(task_type, task_id, body.agent_id)
     execution = await executor.get_or_append(task_ref)
-    subscription = execution.subscribe()
+    subscription = execution.subscribe(after_revision=last_event_id)
 
     try:
         await execution.start()
-        async for event in subscription:
-            yield event
+        async for revision_event in subscription:
+            yield ServerSentEvent(
+                data=revision_event.event,
+                id=str(revision_event.revision),
+            )
     finally:
         subscription.unsubscribe()
