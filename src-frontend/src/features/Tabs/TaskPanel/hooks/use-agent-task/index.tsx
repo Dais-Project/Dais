@@ -349,8 +349,8 @@ export function AgentTaskProvider({
     () => ({
       ...taskControl,
       setAgentId,
-      continue: handleTaskContinue,
-      cancel: handleTaskCancel,
+      continue: () => handleTaskContinue(),
+      cancel: () => handleTaskCancel(),
     }),
     [taskControl, handleTaskContinue, handleTaskCancel],
   );

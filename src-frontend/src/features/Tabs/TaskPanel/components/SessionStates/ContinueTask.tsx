@@ -44,9 +44,7 @@ export function ContinueTask() {
     setShow(shouldShow(messages));
   }, [messages]);
 
-  if (!show) {
-    return null;
-  }
+  if (!show) return null;
 
   return (
     <ClosableWrapper onClose={() => setShow(false)}>
