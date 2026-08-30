@@ -1,8 +1,4 @@
-from src.agent.types import ScheduleRunCompletedEvent
+from src.agent.types import ScheduleRunCompletedEvent, TaskExecutorChangedEvent
 
 
-# type DispatcherEventData = Annotated[
-#     ScheduleRunCompletedEvent | None,
-#     Discriminator("event_id")
-# ]
-type DispatcherEventData = ScheduleRunCompletedEvent
+type DispatcherEventData = ScheduleRunCompletedEvent | TaskExecutorChangedEvent

@@ -6,7 +6,6 @@ import type { TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
   useDeleteTask,
-  useGetRunningTasks,
   useGetTasksSuspenseInfinite,
   useSummarizeTaskTitle,
 } from "@/api/tasks";
@@ -23,6 +22,7 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/consta
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
+import { useRunningTasks } from "./use-running-tasks";
 import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 type TaskListProps = {
@@ -66,9 +66,7 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
     summarizeTaskTitleMutation.mutate({ taskId: task.id });
   };
 
-  const { data: runningTaskIds } = useGetRunningTasks({
-    query: { refetchInterval: 3000, gcTime: SIDEBAR_QUERY_GC_TIME },
-  });
+  const { data: runningTaskIds } = useRunningTasks();
   const query = useGetTasksSuspenseInfinite(
     {
       workspace_id: workspaceId,
