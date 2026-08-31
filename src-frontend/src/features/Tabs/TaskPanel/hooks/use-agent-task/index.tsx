@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import { toast } from "sonner";
-import { useLatest, useMount } from "ahooks";
+import { useLatest, useMount, useUnmount } from "ahooks";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
@@ -28,7 +28,11 @@ import {
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
 } from "@/api/generated/schemas";
-import { type TaskSseCallbacks, useGetTaskRuntimeContextSuspense } from "@/api/tasks";
+import {
+  type TaskSseCallbacks,
+  useGetTaskRuntimeContextSuspense,
+  getGetTaskRuntimeContextQueryKey,
+} from "@/api/tasks";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import type { SdkMessage } from "@/types/message";
@@ -45,6 +49,7 @@ import { useNotificationBuffer } from "./use-notification-buffer";
 import { resolveInitialFlags, useTaskFlags } from "./use-task-flags";
 import { sounds } from "@/components/audios";
 import { useTaskControl, type UseTaskControlResult } from "./use-task-control";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -105,6 +110,7 @@ export function AgentTaskProvider({
   children,
 }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const queryClient = useQueryClient();
   const setActiveTab = useTabsStore((state) => state.setActive);
   const backToCurrentTab = () =>
     setActiveTab(
@@ -117,12 +123,10 @@ export function AgentTaskProvider({
 
   const { data } = useGetTaskRuntimeContextSuspense(taskType, taskId, {
     query: {
-      staleTime: 0,
-      gcTime: 0,
+      staleTime: Infinity,
       refetchOnMount: true,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
-      refetchInterval: false,
     },
   });
 
@@ -180,6 +184,12 @@ export function AgentTaskProvider({
     if (data.revision !== null && data.revision !== undefined) {
       handleTaskContinue(data.revision);
     }
+  });
+
+  useUnmount(() => {
+    queryClient.removeQueries({
+      queryKey: getGetTaskRuntimeContextQueryKey(taskType, taskId),
+    })
   });
 
   const onMessageStart = (eventData: MessageStartEvent) => {
