@@ -33,11 +33,9 @@ async def continue_task(
     last_event_id: int | None = Header(default=None),
 ):
     task_ref = AgentTaskRuntimeRef(task_type, task_id, body.agent_id)
-    execution = await executor.get_or_append(task_ref)
-    subscription = execution.subscribe(after_revision=last_event_id)
+    subscription = await executor.get_or_subscribe(task_ref, last_event_id)
 
     try:
-        await execution.start()
         async for revision_event in subscription:
             yield ServerSentEvent(
                 data=revision_event.event,

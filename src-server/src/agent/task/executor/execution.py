@@ -1,14 +1,14 @@
 import asyncio
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Callable, Coroutine
 
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.agent.exceptions import AgentTaskRuntimeConflictError
 from .subscription import AgentTaskSubscription
+from .. import AgentTask
 from ..runtime_manager import AgentTaskRuntimeLease, AgentTaskRuntimeRef, use_agent_task_runtime_manager
 from ...types.stream import TurnEndEvent, TaskDoneEvent, TaskInterruptedEvent, ErrorEvent, is_terminal_event
 
@@ -32,35 +32,28 @@ class AgentTaskExecution:
     _history_limit = AgentTaskSubscription._subscription_capacity * 4
 
     def __init__(self,
-                 ref: AgentTaskRuntimeRef,
-                 on_closed: Callable[[], Any]):
-        self._ref = ref
-        self._on_closed = on_closed
+                 task: AgentTask,
+                 on_finish: Callable[[], Coroutine]):
+        self._task = task
+        self._on_finish = on_finish
+
         self._runner: asyncio.Task | None = None
         self._subscriptions: set[AgentTaskSubscription] = set()
+
         self._revision = 0
+        self._checkpoint = AgentTaskCheckpoint(revision=self._revision,
+                                        snapshot=self._task.snapshot())
         self._history: deque[AgentTaskRevisionEvent] = deque(maxlen=self._history_limit)
 
-        # should not be None after start() called
-        self._checkpoint: AgentTaskCheckpoint | None = None
-
-    async def start(self):
+    def start(self):
         if self._runner is not None:
             self._logger.warning("Task execution already started")
             return
 
-        try:
-            lease = await use_agent_task_runtime_manager().acquire(self._ref)
-        except AgentTaskRuntimeConflictError:
-            self._on_closed()
-            raise
-        
-        self._checkpoint = AgentTaskCheckpoint(
-            revision=self._revision,
-            snapshot=lease.task.snapshot(),
-        )
-        self._runner = asyncio.create_task(self._run(lease))
-        self._runner.add_done_callback(lambda _: self._on_closed())
+        self._checkpoint = AgentTaskCheckpoint(revision=self._revision,
+                                                snapshot=self._task.snapshot())
+        self._runner = asyncio.create_task(self._run())
+        self._runner.add_done_callback(lambda _: asyncio.create_task(self._on_finish()))
 
     @property
     def checkpoint(self) -> AgentTaskCheckpoint | None:
@@ -79,10 +72,11 @@ class AgentTaskExecution:
         self._subscriptions.discard(subscription)
 
     async def stop(self):
-        if self._runner is None or self._runner.done():
-            return
-        self._runner.cancel()
-        await self._runner
+        runner = self._runner
+        if runner is None or runner.done():return
+
+        runner.cancel()
+        await asyncio.shield(runner)
 
     def _yield_event(self, event: AgentEvent):
         self._revision += 1
@@ -96,10 +90,10 @@ class AgentTaskExecution:
                 # TODO: handle queue overflow case
                 pass
 
-    async def _run(self, lease: AgentTaskRuntimeLease):
+    async def _run(self):
         pending_terminal_event = None
         try:
-            async for event in lease.task.run():
+            async for event in self._task.run():
                 if is_terminal_event(event):
                     pending_terminal_event = event
                     continue
@@ -107,10 +101,10 @@ class AgentTaskExecution:
                 if isinstance(event, TurnEndEvent):
                     self._checkpoint = AgentTaskCheckpoint(
                         revision=self._revision,
-                        snapshot=lease.task.snapshot(),
+                        snapshot=self._task.snapshot(),
                     )
         except asyncio.CancelledError:
-            await lease.task.stop()
+            await self._task.stop()
             pending_terminal_event = TaskInterruptedEvent()
         except Exception as e:
             self._logger.exception("Error in agent stream")
@@ -118,11 +112,9 @@ class AgentTaskExecution:
         finally:
             try:
                 # ensure task is persisted before yielding terminal event
-                await asyncio.shield(lease.task.persist())
+                await asyncio.shield(self._task.persist())
             except Exception as e:
                 self._logger.exception("Failed to persist task state in stream finalization")
-            finally:
-                await asyncio.shield(lease.release())
 
         if pending_terminal_event is None:
             self._logger.warning("No terminal event yielded")
