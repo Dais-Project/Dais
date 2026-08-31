@@ -3,9 +3,9 @@ import { useGetScheduleSuspense } from "@/api/tasks/schedule";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { ScheduleTabMetadata } from "@/types/tab";
+import { useTabPanelActions } from "../components/TabPanelActions";
 import type { TabPanelProps } from "../index";
 import { TabPanelFrame } from "../components/TabPanelFrame";
 import { AllScheduleRecordsPanel } from "./AllScheduleRecordsPanel";
@@ -13,43 +13,28 @@ import { ScheduleCreateForm } from "./ScheduleCreateForm";
 import { ScheduleEditForm } from "./ScheduleEditForm";
 import { ScheduleRecordsPanel } from "./ScheduleRecordsPanel";
 
-function ScheduleCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.remove);
+function ScheduleCreatePanel() {
+  const { close } = useTabPanelActions();
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   useEffect(() => {
     if (!currentWorkspace) {
-      removeTab(tabId);
+      close();
     }
-  }, [currentWorkspace, removeTab, tabId]);
+  }, [currentWorkspace, close]);
 
-  if (!currentWorkspace) {
-    return null;
-  }
-
-  const handleComplete = () => removeTab(tabId);
+  if (!currentWorkspace) return null;
 
   return (
-    <ScheduleCreateForm
-      workspaceId={currentWorkspace.id}
-      onConfirm={handleComplete}
-    />
+    <ScheduleCreateForm workspaceId={currentWorkspace.id} onConfirm={close} />
   );
 }
 
-function ScheduleEditPanel({
-  tabId,
-  scheduleId,
-}: {
-  tabId: string;
-  scheduleId: number;
-}) {
-  const removeTab = useTabsStore((state) => state.remove);
+function ScheduleEditPanel({ scheduleId }: { scheduleId: number }) {
+  const { close } = useTabPanelActions();
   const { data: schedule } = useGetScheduleSuspense(scheduleId);
 
-  const handleComplete = () => removeTab(tabId);
-
-  return <ScheduleEditForm schedule={schedule} onConfirm={handleComplete} />;
+  return <ScheduleEditForm schedule={schedule} onConfirm={close} />;
 }
 
 function ScheduleRecordsPanelSkeleton() {
@@ -87,14 +72,14 @@ export function SchedulePanel({
   switch (metadata.mode) {
     case "create":
       return (
-        <TabPanelFrame>
-          <ScheduleCreatePanel tabId={id} />
+        <TabPanelFrame tabId={id}>
+          <ScheduleCreatePanel />
         </TabPanelFrame>
       );
     case "edit":
       return (
-        <TabPanelFrame>
-          <ScheduleEditPanel tabId={id} scheduleId={metadata.id} />
+        <TabPanelFrame tabId={id}>
+          <ScheduleEditPanel scheduleId={metadata.id} />
         </TabPanelFrame>
       );
     case "records":

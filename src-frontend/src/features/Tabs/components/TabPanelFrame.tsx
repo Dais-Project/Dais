@@ -2,6 +2,7 @@ import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
+import { TabPanelActionsProvider } from "./TabPanelActions";
 
 function TabPanelFrameSkeleton() {
   return (
@@ -32,20 +33,23 @@ function TabPanelFrameSkeleton() {
 }
 
 type TabPanelFrameProps = {
+  tabId: string;
   children: React.ReactNode;
 };
 
-export function TabPanelFrame({ children }: TabPanelFrameProps) {
+export function TabPanelFrame({ tabId, children }: TabPanelFrameProps) {
   return (
-    <AsyncBoundary
-      skeleton={<TabPanelFrameSkeleton />}
-      errorRender={(props) => (
-        <div className="flex h-full items-center justify-center p-4">
-          <FailedToLoad error={props.error} retry={props.resetErrorBoundary} />
-        </div>
-      )}
-    >
-      <ScrollArea className="h-full px-8">{children}</ScrollArea>
-    </AsyncBoundary>
+    <TabPanelActionsProvider tabId={tabId}>
+      <AsyncBoundary
+        skeleton={<TabPanelFrameSkeleton />}
+        errorRender={(props) => (
+          <div className="flex h-full items-center justify-center p-4">
+            <FailedToLoad error={props.error} retry={props.resetErrorBoundary} />
+          </div>
+        )}
+      >
+        <ScrollArea className="h-full px-8">{children}</ScrollArea>
+      </AsyncBoundary>
+    </TabPanelActionsProvider>
   );
 }

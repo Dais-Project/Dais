@@ -30,8 +30,8 @@ import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
 import type { UiMessage } from "@/types/message";
 import { sendNotification } from "@/lib/notification";
-import { useTabsStore } from "@/stores/tabs-store";
 import { isForeground } from "@/lib/is-foreground";
+import { useTabPanelActions } from "../../../components/TabPanelActions";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
@@ -83,15 +83,7 @@ export function AgentTaskProvider({
   children,
 }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const setActiveTab = useTabsStore((state) => state.setActive);
-  const backToCurrentTab = () =>
-    setActiveTab(
-      (tab) =>
-        tab.type === "task" &&
-        tab.metadata.type === taskType &&
-        "id" in tab.metadata &&
-        tab.metadata.id === taskId,
-    );
+  const { activate: activateCurrentTab } = useTabPanelActions();
 
   const [runtimeStates, runtimeActions] = useTaskRuntimeState(taskType, taskId);
   const { revision, flags, agentId, usage, messages, todos } = runtimeStates;
@@ -122,7 +114,7 @@ export function AgentTaskProvider({
   });
   const permissionNotificationBuffer = useNotificationBuffer({
     multipleTitle: t("notification.require_permission_multiple"),
-    options: { onClick: backToCurrentTab },
+    options: { onClick: activateCurrentTab },
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
@@ -174,7 +166,7 @@ export function AgentTaskProvider({
           sounds.finished.play();
         } else {
           sendNotification(t("notification.task_done"), {
-            onClick: backToCurrentTab,
+            onClick: activateCurrentTab,
           });
         }
         break;
@@ -194,7 +186,7 @@ export function AgentTaskProvider({
       sounds.notify.play();
     } else {
       sendNotification(t("notification.require_response"), {
-        onClick: backToCurrentTab,
+        onClick: activateCurrentTab,
       });
     }
   };
@@ -218,7 +210,7 @@ export function AgentTaskProvider({
     } else {
       sendNotification(t("notification.task_failed.title"), {
         body: t("notification.task_failed.description"),
-        onClick: backToCurrentTab,
+        onClick: activateCurrentTab,
       });
     }
     toast.error(t("toast.task_failed.title"), {
@@ -242,7 +234,7 @@ export function AgentTaskProvider({
         const notificationContent = t("notification.responded", {
           response: lastMessage.content,
         });
-        sendNotification(notificationContent, { onClick: backToCurrentTab });
+        sendNotification(notificationContent, { onClick: activateCurrentTab });
       }
     }
   };
