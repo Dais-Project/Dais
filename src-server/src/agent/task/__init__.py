@@ -50,7 +50,7 @@ class AgentTask:
             except asyncio.CancelledError:
                 # Task cancelled by user
                 await self.stop()
-                return
+                raise
 
             match last_chunk:
                 case MessageEndEvent() as message_end_chunk:
