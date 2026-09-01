@@ -6,6 +6,7 @@ export {
   useGetTaskSuspense,
   useGetTasksSuspenseInfinite,
   useGetRecentTasksSuspenseInfinite,
+  useGetRunningTasks,
   useCreateTask,
   useSummarizeTaskTitle,
 } from "../generated/endpoints/task/task";

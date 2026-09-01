@@ -1,31 +1,22 @@
 import { useGetProviderSuspense } from "@/api/provider";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProviderCreateForm } from "@/features/Tabs/ProviderPanel/ProviderCreateForm";
 import { ProviderEditForm } from "@/features/Tabs/ProviderPanel/ProviderEditForm";
-import { useTabsStore } from "@/stores/tabs-store";
 import type { ProviderTabMetadata } from "@/types/tab";
-import type { TabPanelProps } from "../index";
+import { useTabPanelActions } from "../components/TabPanelActions";
 import { TabPanelFrame } from "../components/TabPanelFrame";
+import type { TabPanelProps } from "../index";
 
-function ProviderCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.remove);
-  const handleComplete = () => removeTab(tabId);
+function ProviderCreatePanel() {
+  const { close } = useTabPanelActions();
 
-  return <ProviderCreateForm onConfirm={handleComplete} />;
+  return <ProviderCreateForm onConfirm={close} />;
 }
 
-function ProviderEditPanel({
-  tabId,
-  providerId,
-}: {
-  tabId: string;
-  providerId: number;
-}) {
-  const removeTab = useTabsStore((state) => state.remove);
+function ProviderEditPanel({ providerId }: { providerId: number }) {
+  const { close } = useTabPanelActions();
   const { data: provider } = useGetProviderSuspense(providerId);
-  const handleComplete = () => removeTab(tabId);
 
-  return <ProviderEditForm provider={provider} onConfirm={handleComplete} />;
+  return <ProviderEditForm provider={provider} onConfirm={close} />;
 }
 
 export function ProviderPanel({
@@ -34,15 +25,15 @@ export function ProviderPanel({
 }: TabPanelProps<ProviderTabMetadata>) {
   if (metadata.mode === "create") {
     return (
-      <ScrollArea className="h-full px-8">
-        <ProviderCreatePanel tabId={id} />
-      </ScrollArea>
+      <TabPanelFrame tabId={id}>
+        <ProviderCreatePanel />
+      </TabPanelFrame>
     );
   }
 
   return (
-    <TabPanelFrame>
-      <ProviderEditPanel tabId={id} providerId={metadata.id} />
+    <TabPanelFrame tabId={id}>
+      <ProviderEditPanel providerId={metadata.id} />
     </TabPanelFrame>
   );
 }

@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
 from pydantic import BaseModel
 from loguru import logger
+from src.agent.exceptions import AgentError, AgentErrorCode
 from src.services.exceptions import ServiceError, ServiceErrorCode, ServiceStatusCode
 from .exceptions import ApiError, ApiErrorCode
 
@@ -14,7 +15,12 @@ class ErrorResponseContent(TypedDict):
     message: str
 
 class ErrorResponseSchema(BaseModel):
-    error_code: ServiceErrorCode | ApiErrorCode | Literal["VALIDATION_ERROR", "UNEXPECTED_ERROR"]
+    error_code: (
+        ServiceErrorCode
+        | ApiErrorCode
+        | AgentErrorCode
+        | Literal["VALIDATION_ERROR", "UNEXPECTED_ERROR"]
+    )
     message: str
 
 def _specific_exception_handler[E: Exception](expected_exception: type[E]):
@@ -38,6 +44,12 @@ def _specific_exception_handler[E: Exception](expected_exception: type[E]):
 # --- --- --- --- --- ---
 
 _logger = logger.bind(name="ExceptionHandlers")
+
+@_specific_exception_handler(AgentError)
+async def handle_agent_error(_: Request, exc: AgentError) -> JSONResponse:
+    return JSONResponse(status_code=exc.status_code,
+                        content=ErrorResponseContent(error_code=exc.error_code.value,
+                                                     message=str(exc)))
 
 @_specific_exception_handler(ServiceError)
 async def handle_service_error(_: Request, exc: ServiceError) -> JSONResponse:

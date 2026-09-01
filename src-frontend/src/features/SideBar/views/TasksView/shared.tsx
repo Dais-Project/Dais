@@ -71,6 +71,7 @@ type TaskItemProps = {
   task: TaskBrief;
   index: number;
   ref: React.Ref<HTMLDivElement>;
+  isRunning: boolean;
   onRegenerateTitle: (task: TaskBrief) => void;
   onOpen: (task: TaskBrief) => void;
   onDelete: (task: TaskBrief) => void;
@@ -80,6 +81,7 @@ export function TaskItem({
   task,
   index,
   ref,
+  isRunning,
   onOpen,
   onDelete,
   onRegenerateTitle,
@@ -99,7 +101,17 @@ export function TaskItem({
           <DynamicIcon name={resolveIconName(task.icon_name, "box")} />
         </ActionableItemIcon>
         <ActionableItemInfo
-          title={task.title}
+          titleRender={(
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate">{task.title}</span>
+              {isRunning && (
+                <span
+                  aria-hidden
+                  className="size-2 shrink-0 animate-pulse rounded-full bg-info"
+                />
+              )}
+            </div>
+          )}
           description={formatDistanceToNow(new Date(task.last_run_at * 1000), {
             addSuffix: true,
             locale: DATEFNS_LOCALE_MAP[language],

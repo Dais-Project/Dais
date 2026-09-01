@@ -1,74 +1,35 @@
 from fastapi import APIRouter
 from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.agent.context import AgentContext
-from src.agent.task import AgentTask
-from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.services.tasks import TaskService, SubtaskService, RunRecordService
+from src.agent.task.runtime_manager import AgentTaskRuntimeRef, use_agent_task_runtime_manager
 
-from ...dependencies import DbSessionDep
+from ...dependencies import AgentTaskExecutorDep, DbSessionDep
 
-
-async def _load_task_runtime_context(db_session: AsyncSession,
-                                     task_id: int,
-                                     agent_id: int | None,
-                                     ) -> task_runtime_schemas.TaskRuntimeContext:
-    task = await TaskService.from_db_session(db_session).get_by_id(task_id)
-    if agent_id is not None:
-        task.agent_id = agent_id
-    return task_runtime_schemas.TaskRuntimeContext.from_task(task)
-
-async def _load_subtask_runtime_context(db_session: AsyncSession,
-                                        subtask_id: int,
-                                        agent_id: int | None,
-                                        ) -> task_runtime_schemas.TaskRuntimeContext:
-    subtask = await SubtaskService.from_db_session(db_session).get_by_id(subtask_id)
-    if agent_id is not None:
-        subtask.agent_id = agent_id
-    return task_runtime_schemas.TaskRuntimeContext.from_subtask(subtask)
-
-async def _load_schedule_runtime_context(db_session: AsyncSession,
-                                         task_id: int,
-                                         agent_id: int | None,
-                                         ) -> task_runtime_schemas.TaskRuntimeContext:
-    record = await RunRecordService.from_db_session(db_session).get_by_id(task_id)
-    if agent_id is not None:
-        record.schedule.agent_id = agent_id
-    return task_runtime_schemas.TaskRuntimeContext.from_schedule_record(record)
-
-async def load_task_runtime_context(
-    db_session: AsyncSession,
-    task_type: task_runtime_schemas.TaskType,
-    task_id: int,
-    agent_id: int | None = None,
-) -> task_runtime_schemas.TaskRuntimeContext:
-    match task_type:
-        case task_runtime_schemas.TaskType.TASK:
-            return await _load_task_runtime_context(db_session, task_id, agent_id)
-        case task_runtime_schemas.TaskType.SUBTASK:
-            return await _load_subtask_runtime_context(db_session, task_id, agent_id)
-        case task_runtime_schemas.TaskType.SCHEDULE:
-            return await _load_schedule_runtime_context(db_session, task_id, agent_id)
-
-async def create_agent_task(
-    task_type: task_runtime_schemas.TaskType,
-    task_id: int,
-    agent_id: int,
-) -> AgentTask:
-    async with db_context() as db_session:
-        runtime_context = await load_task_runtime_context(db_session, task_type, task_id, agent_id)
-    ctx = await AgentContext.create(runtime_context)
-    return AgentTask(ctx)
 
 task_runtime_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskRuntimeRoute")
 
-@task_runtime_router.get("/{task_type}/{task_id}", response_model=task_runtime_schemas.TaskRuntimeContext)
+class TaskRuntimeContextResponse(task_runtime_schemas.TaskRuntimeContext):
+    revision: int | None = None
+
+@task_runtime_router.get(
+    "/{task_type}/{task_id}",
+    response_model=TaskRuntimeContextResponse,
+)
 async def get_task_runtime_context(
+    db_session: DbSessionDep,
+    executor: AgentTaskExecutorDep,
     task_type: task_runtime_schemas.TaskType,
     task_id: int,
-    db_session: DbSessionDep,
 ):
-    return await load_task_runtime_context(db_session, task_type, task_id)
+    if task_type == task_runtime_schemas.TaskType.TASK:
+        checkpoint = await executor.get_checkpoint(task_id)
+        if checkpoint is not None:
+            return TaskRuntimeContextResponse(**checkpoint.snapshot.model_dump(),
+                                              revision=checkpoint.revision)
+
+    task_ref = AgentTaskRuntimeRef(type=task_type, id=task_id)
+    runtime_context = await use_agent_task_runtime_manager()\
+        .load_task_runtime_context(db_session, task_ref)
+    return TaskRuntimeContextResponse.model_validate(runtime_context)

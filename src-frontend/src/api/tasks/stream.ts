@@ -45,14 +45,28 @@ export type TaskSseCallbacks = {
   onClose?: () => void;
 };
 
-function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSseCallbacks): AbortController {
+type TaskSseStreamOptions = {
+  body: ContinueTaskBody;
+  callbacks: TaskSseCallbacks;
+  headers?: Record<string, string>;
+};
+
+function createTaskSseStream(url: URL | string, {
+  body,
+  callbacks,
+  headers,
+}: TaskSseStreamOptions): AbortController {
   const abortController = createSseStream<AgentEvent>(url, {
     body,
+    headers,
     onMessage: ({ data }) => {
       switch (data?.event_id) {
         case "TASK_START":
           callbacks.onTaskStart?.();
           break
+
+        case "TURN_END":
+          break;
 
         case "MESSAGE_START":
           callbacks.onMessageStart?.(data);
@@ -120,6 +134,26 @@ function createTaskSseStream(url: URL | string, body: object, callbacks: TaskSse
   return abortController;
 }
 
-export function continueTask(taskType: TaskType, taskId: number, body: ContinueTaskBody, callbacks: TaskSseCallbacks): AbortController {
-  return createTaskSseStream(new URL(`${taskType}/${taskId}/continue`, TASK_STREAM_BASE_URL), body, callbacks);
+type ContinueTaskOptions = {
+  body: ContinueTaskBody;
+  callbacks?: TaskSseCallbacks;
+  revision?: number;
+};
+
+export function continueTask(
+  taskType: TaskType,
+  taskId: number,
+  {
+    body,
+    callbacks,
+    revision,
+  }: ContinueTaskOptions,
+): AbortController {
+  const headers = revision !== undefined
+    ? { "last-event-id": String(revision) }
+    : undefined;
+  return createTaskSseStream(
+    new URL(`${taskType}/${taskId}/continue`, TASK_STREAM_BASE_URL),
+    { body, headers, callbacks: callbacks ?? {} },
+  );
 }

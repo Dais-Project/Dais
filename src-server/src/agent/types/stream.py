@@ -14,6 +14,17 @@ from src.db.models import tasks as task_models
 class TaskStartEvent(BaseModel):
     event_id: Literal["TASK_START"] = "TASK_START"
 
+class TurnEndEvent(BaseModel):
+    """
+    Indicates that the current agent turn has ended.
+
+    This event is emitted exactly once after a turn stops producing events,
+    regardless of whether the turn completed successfully, failed, was
+    interrupted, or exhausted its retries. All context mutations made by the
+    turn have been applied before this event is emitted.
+    """
+    event_id: Literal["TURN_END"] = "TURN_END"
+
 class MessageStartEvent(BaseModel):
     message_id: str # This ID is for the AssistantMessage that is being streamed
     event_id: Literal["MESSAGE_START"] = "MESSAGE_START"
@@ -122,6 +133,7 @@ type ToolEvent = (
 
 type AgentEvent = Annotated[(
     TaskStartEvent |
+    TurnEndEvent |
     MessageStartEvent |
     TextChunkEvent |
     ToolCallChunkEvent |
@@ -136,3 +148,6 @@ type AgentEvent = Annotated[(
 ), Discriminator("event_id")]
 
 type AgentGenerator = AsyncGenerator[AgentEvent, None]
+
+def is_terminal_event(event: AgentEvent) -> bool:
+    return isinstance(event, (TaskDoneEvent, TaskInterruptedEvent))

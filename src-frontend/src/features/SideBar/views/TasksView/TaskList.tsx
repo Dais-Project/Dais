@@ -22,6 +22,7 @@ import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/consta
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
+import { useRunningTasks } from "./use-running-tasks";
 import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 
 type TaskListProps = {
@@ -65,6 +66,7 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
     summarizeTaskTitleMutation.mutate({ taskId: task.id });
   };
 
+  const { data: runningTaskIds } = useRunningTasks();
   const query = useGetTasksSuspenseInfinite(
     {
       workspace_id: workspaceId,
@@ -107,6 +109,7 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
             task={item}
             ref={ref}
             index={index}
+            isRunning={runningTaskIds?.includes(item.id) ?? false}
             onOpen={() => openTaskTab(workspaceId, item)}
             onDelete={asyncConfirm.trigger}
             onRegenerateTitle={handleRegenerateTitle}

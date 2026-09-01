@@ -1,38 +1,22 @@
 import { useGetAgentSuspense } from "@/api/agent";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { AgentCreateForm } from "@/features/Tabs/AgentPanel/AgentCreateForm";
 import { AgentEditForm } from "@/features/Tabs/AgentPanel/AgentEditForm";
-import { useTabsStore } from "@/stores/tabs-store";
 import type { AgentTabMetadata } from "@/types/tab";
-import type { TabPanelProps } from "../index";
+import { useTabPanelActions } from "../components/TabPanelActions";
 import { TabPanelFrame } from "../components/TabPanelFrame";
+import type { TabPanelProps } from "../index";
 
-function AgentCreatePanel({ tabId }: { tabId: string }) {
-  const removeTab = useTabsStore((state) => state.remove);
+function AgentCreatePanel() {
+  const { close } = useTabPanelActions();
 
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
-
-  return <AgentCreateForm onConfirm={handleComplete} />;
+  return <AgentCreateForm onConfirm={close} />;
 }
 
-function AgentEditPanel({
-  tabId,
-  agentId,
-}: {
-  tabId: string;
-  agentId: number;
-}) {
-  const removeTab = useTabsStore((state) => state.remove);
-
+function AgentEditPanel({ agentId }: { agentId: number }) {
+  const { close } = useTabPanelActions();
   const { data: agent } = useGetAgentSuspense(agentId);
 
-  const handleComplete = () => {
-    removeTab(tabId);
-  };
-
-  return <AgentEditForm agent={agent} onConfirm={handleComplete} />;
+  return <AgentEditForm agent={agent} onConfirm={close} />;
 }
 
 export function AgentPanel({
@@ -41,16 +25,15 @@ export function AgentPanel({
 }: TabPanelProps<AgentTabMetadata>) {
   if (metadata.mode === "create") {
     return (
-      <ScrollArea className="h-full px-8">
-        <AgentCreatePanel tabId={id} />
-        <ScrollBar orientation="vertical" />
-      </ScrollArea>
+      <TabPanelFrame tabId={id}>
+        <AgentCreatePanel />
+      </TabPanelFrame>
     );
   }
 
   return (
-    <TabPanelFrame>
-      <AgentEditPanel tabId={id} agentId={metadata.id} />
+    <TabPanelFrame tabId={id}>
+      <AgentEditPanel agentId={metadata.id} />
     </TabPanelFrame>
   );
 }

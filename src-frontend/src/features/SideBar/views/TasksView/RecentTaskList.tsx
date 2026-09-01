@@ -23,6 +23,7 @@ import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
+import { useRunningTasks } from "./use-running-tasks";
 
 export function RecentTaskList() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
@@ -57,6 +58,7 @@ export function RecentTaskList() {
     },
   });
 
+  const { data: runningTaskIds } = useRunningTasks();
   const query = useGetRecentTasksSuspenseInfinite(
     { size: 20 },
     {
@@ -102,6 +104,7 @@ export function RecentTaskList() {
             task={item}
             ref={ref}
             index={index}
+            isRunning={runningTaskIds?.includes(item.id) ?? false}
             onOpen={handleOpen}
             onDelete={asyncConfirm.trigger}
             onRegenerateTitle={handleRegenerateTitle}

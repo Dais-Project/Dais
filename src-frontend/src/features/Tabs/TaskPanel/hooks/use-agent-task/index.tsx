@@ -4,12 +4,10 @@ import {
   useContext,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { produce } from "immer";
 import { toast } from "sonner";
-import { useLatest } from "ahooks";
+import { useLatest, useMount } from "ahooks";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import {
   BuiltInTools,
@@ -24,27 +22,24 @@ import {
   type ToolRequirePermissionEvent,
   type ToolRequireUserResponseEvent,
   type UsageChunkEvent,
-  type TaskRuntimeContext,
   type TaskUsage,
   type ExecutionControlUpdateTodosTodosItem as TodoItem,
 } from "@/api/generated/schemas";
-import { type TaskSseCallbacks, useGetTaskRuntimeContextSuspense } from "@/api/tasks";
+import { type TaskSseCallbacks } from "@/api/tasks";
 import { UpdateTodosSchema } from "@/api/tool-schema";
 import { tryParseSchema } from "@/lib/utils";
-import type { SdkMessage } from "@/types/message";
 import type { UiMessage } from "@/types/message";
-import { toUiMessage } from "@/types/message";
 import { sendNotification } from "@/lib/notification";
-import { useTabsStore } from "@/stores/tabs-store";
 import { isForeground } from "@/lib/is-foreground";
+import { useTabPanelActions } from "../../../components/TabPanelActions";
 import { useTaskStream } from "./use-task-stream";
 import { useTextBuffer } from "./use-text-buffer";
 import { useToolCallBuffer } from "./use-tool-call-buffer";
 import { useMessageLifecycle } from "./use-message-lifecycle";
 import { useNotificationBuffer } from "./use-notification-buffer";
-import { resolveInitialFlags, useTaskFlags } from "./use-task-flags";
 import { sounds } from "@/components/audios";
 import { useTaskControl, type UseTaskControlResult } from "./use-task-control";
+import { useTaskRuntimeState } from "./use-task-runtime-state";
 
 export type TaskState = "idle" | "waiting" | "running" | "error";
 
@@ -53,23 +48,6 @@ export type TaskFlags = {
   requiresUserResponse: boolean;
   requiresUserPermission: boolean;
 };
-
-// --- --- --- --- --- ---
-
-function findLatestTodoList(messages: SdkMessage[]): TodoItem[] | null {
-  for (const message of messages.reverseIter()) {
-    if (
-      message.role === "tool" &&
-      message.name === BuiltInTools.ExecutionControl__update_todos
-    ) {
-      const todoList = tryParseSchema(UpdateTodosSchema, message.arguments);
-      if (todoList) {
-        return todoList.todos;
-      }
-    }
-  }
-  return null;
-}
 
 // --- --- --- --- --- ---
 
@@ -105,56 +83,27 @@ export function AgentTaskProvider({
   children,
 }: AgentTaskProviderProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
-  const setActiveTab = useTabsStore((state) => state.setActive);
-  const backToCurrentTab = () =>
-    setActiveTab(
-      (tab) =>
-        tab.type === "task" &&
-        tab.metadata.type === taskType &&
-        "id" in tab.metadata &&
-        tab.metadata.id === taskId,
-    );
+  const { activate: activateCurrentTab } = useTabPanelActions();
 
-  const { data } = useGetTaskRuntimeContextSuspense(taskType, taskId, {
-    query: {
-      staleTime: 0,
-      gcTime: 0,
-      refetchOnMount: true,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchInterval: false,
-    },
+  const [runtimeStates, runtimeActions] = useTaskRuntimeState(taskType, taskId);
+  const { revision, flags, agentId, usage, messages, todos } = runtimeStates;
+  const {
+    setAgentId,
+    setFlag,
+    resetFlags,
+    setUsage,
+    setTodos,
+    setData,
+    applyRuntimeContext,
+  } = runtimeActions;
+
+  useMount(() => {
+    if (revision !== null) {
+      handleTaskContinue(revision);
+    }
   });
 
-  const [agentId, setAgentId] = useState(data.agent_id);
-  const {
-    flags,
-    setFlag,
-    reset: resetFlags,
-  } = useTaskFlags(() => resolveInitialFlags(data.messages));
-  const [usage, setUsage] = useState<TaskUsage>(data.usage);
-  const [messages, setMessages] = useState<UiMessage[]>(() =>
-    toUiMessage(data.messages),
-  );
-  const [todos, setTodos] = useState<TodoItem[] | null>(
-    () => findLatestTodoList(data.messages) ?? null,
-  );
-
-  const applyRuntimeContext = useCallback(
-    (runtimeContext: TaskRuntimeContext) => {
-      setAgentId(runtimeContext.agent_id);
-      setUsage(runtimeContext.usage);
-      setMessages(toUiMessage(runtimeContext.messages));
-      setTodos(findLatestTodoList(runtimeContext.messages) ?? null);
-    },
-    [],
-  );
-
   const latestMessage = useLatest(messages);
-
-  const setData = useCallback((updater: ImmerUpdater<UiMessage[]>) => {
-    setMessages(produce((draft) => updater(draft)));
-  }, []);
 
   const messageLifecycle = useMessageLifecycle({ setData });
   const textBuffer = useTextBuffer({
@@ -165,7 +114,7 @@ export function AgentTaskProvider({
   });
   const permissionNotificationBuffer = useNotificationBuffer({
     multipleTitle: t("notification.require_permission_multiple"),
-    options: { onClick: backToCurrentTab },
+    options: { onClick: activateCurrentTab },
   });
 
   const sseCallbacksRef = useRef<TaskSseCallbacks>({});
@@ -217,7 +166,7 @@ export function AgentTaskProvider({
           sounds.finished.play();
         } else {
           sendNotification(t("notification.task_done"), {
-            onClick: backToCurrentTab,
+            onClick: activateCurrentTab,
           });
         }
         break;
@@ -237,7 +186,7 @@ export function AgentTaskProvider({
       sounds.notify.play();
     } else {
       sendNotification(t("notification.require_response"), {
-        onClick: backToCurrentTab,
+        onClick: activateCurrentTab,
       });
     }
   };
@@ -261,7 +210,7 @@ export function AgentTaskProvider({
     } else {
       sendNotification(t("notification.task_failed.title"), {
         body: t("notification.task_failed.description"),
-        onClick: backToCurrentTab,
+        onClick: activateCurrentTab,
       });
     }
     toast.error(t("toast.task_failed.title"), {
@@ -285,7 +234,7 @@ export function AgentTaskProvider({
         const notificationContent = t("notification.responded", {
           response: lastMessage.content,
         });
-        sendNotification(notificationContent, { onClick: backToCurrentTab });
+        sendNotification(notificationContent, { onClick: activateCurrentTab });
       }
     }
   };
@@ -304,11 +253,6 @@ export function AgentTaskProvider({
     onClose,
   };
 
-  const handleTaskCancel = useCallback(() => {
-    cancel();
-    messageLifecycle.handleCancel();
-  }, [messageLifecycle, cancel]);
-
   const taskControl = useTaskControl({
     taskId,
     taskType,
@@ -317,6 +261,18 @@ export function AgentTaskProvider({
     onTaskContinue: handleTaskContinue,
     onUpdateRuntimeContext: applyRuntimeContext,
   });
+
+  const handleTaskCancel = useCallback(async () => {
+    try {
+      await taskControl.stop();
+      cancel();
+      messageLifecycle.handleCancel();
+    } catch (error) {
+      toast.error(t("toast.task_failed.title"), {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }, [taskControl, messageLifecycle, cancel, t]);
 
   const stateValue = useMemo(
     () => ({
@@ -336,8 +292,8 @@ export function AgentTaskProvider({
     () => ({
       ...taskControl,
       setAgentId,
-      continue: handleTaskContinue,
-      cancel: handleTaskCancel,
+      continue: () => handleTaskContinue(),
+      cancel: () => handleTaskCancel(),
     }),
     [taskControl, handleTaskContinue, handleTaskCancel],
   );

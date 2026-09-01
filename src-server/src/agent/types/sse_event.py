@@ -1,5 +1,7 @@
 from typing import Literal
+
 from pydantic import BaseModel
+
 from .task_result import StopReason
 
 
@@ -10,3 +12,7 @@ class ScheduleRunCompletedEvent(BaseModel):
     run_record_id: int
     workspace_id: int
     status: StopReason
+
+class TaskExecutorChangedEvent(BaseModel):
+    event_id: Literal["TASK_EXECUTOR_CHANGED"]
+    task_id: int

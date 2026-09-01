@@ -2,17 +2,17 @@ import asyncio
 from typing import Literal, cast
 
 from dais_sdk.types import ContentBlockMetadata, UserMessage
-from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from loguru import logger
 from pydantic import BaseModel
 
-from src.agent.task import MessageNotFoundError
+from src.agent.task.runtime_manager import AgentTaskRuntimeRef, use_agent_task_runtime_manager
 from src.agent.types import MessageReplaceEvent, FileResourceMetadata
 from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.tasks import TaskResourceService
 
-from .runtime import create_agent_task
+from ...dependencies import AgentTaskExecutorDep
 from ...exceptions import ApiError, ApiErrorCode
 
 
@@ -42,6 +42,14 @@ def parse_append_message_body(body: str = Form(default=...)) -> TaskAppendMessag
 task_control_router = APIRouter(tags=["task"])
 _logger = logger.bind(name="TaskControlRoute")
 
+@task_control_router.post("/{task_type}/{task_id}/stop", status_code=status.HTTP_204_NO_CONTENT)
+async def stop_task(executor: AgentTaskExecutorDep,
+                    task_type: task_runtime_schemas.TaskType,
+                    task_id: int):
+    if task_type == task_runtime_schemas.TaskType.TASK:
+        await executor.stop(task_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 @task_control_router.post("/{task_type}/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)
 async def append_task_message(
     task_type: task_runtime_schemas.TaskType,
@@ -66,16 +74,17 @@ async def append_task_message(
                 ))
         return metadatas
 
-    task = await create_agent_task(task_type, task_id, body.agent_id)
-    task.tool_calls.discard_pendings()
+    task_ref = AgentTaskRuntimeRef(task_type, task_id, agent_id=body.agent_id)
+    async with use_agent_task_runtime_manager().reserve(task_ref) as task:
+        task.tool_calls.discard_pendings()
 
-    user_message = body.message
-    if len(uploaded_files) > 0:
-        resource_metadatas = await asyncio.shield(persist_attachments())
-        user_message.attachments = cast(list[ContentBlockMetadata], resource_metadatas)
+        user_message = body.message
+        if len(uploaded_files) > 0:
+            resource_metadatas = await asyncio.shield(persist_attachments())
+            user_message.attachments = cast(list[ContentBlockMetadata], resource_metadatas)
 
-    task.messages.append(user_message)
-    return await asyncio.shield(task.persist())
+        task.messages.append(user_message)
+        return await asyncio.shield(task.persist())
 
 @task_control_router.patch("/{task_type}/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)
 async def edit_task_message(
@@ -83,12 +92,10 @@ async def edit_task_message(
     task_id: int,
     body: TaskMessageEditBody,
 ):
-    task = await create_agent_task(task_type, task_id, body.agent_id)
-    try:
+    task_ref = AgentTaskRuntimeRef(task_type, task_id, agent_id=body.agent_id)
+    async with use_agent_task_runtime_manager().reserve(task_ref) as task:
         task.messages.edit(body.message_id, body.content)
-    except MessageNotFoundError:
-        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TASK_MESSAGE_NOT_FOUND, f"Task message '{body.message_id}' not found")
-    return await asyncio.shield(task.persist())
+        return await asyncio.shield(task.persist())
 
 @task_control_router.post("/{task_type}/{task_id}/answer", response_model=MessageReplaceEvent)
 async def tool_answer(
@@ -99,15 +106,12 @@ async def tool_answer(
     """
     This endpoint is used for the HumanInTheLoop tool calls.
     """
-    task = await create_agent_task(task_type, task_id, body.agent_id)
-    try:
-        event = task.tool_calls.apply_user_response(body.call_id, body.answer)
-        return event
-    except MessageNotFoundError:
-        raise ApiError(status.HTTP_404_NOT_FOUND,
-                       ApiErrorCode.TOOL_CALL_NOT_FOUND)
-    finally:
-        await asyncio.shield(task.persist())
+    task_ref = AgentTaskRuntimeRef(task_type, task_id, agent_id=body.agent_id)
+    async with use_agent_task_runtime_manager().reserve(task_ref) as task:
+        try:
+            return task.tool_calls.apply_user_response(body.call_id, body.answer)
+        finally:
+            await asyncio.shield(task.persist())
 
 @task_control_router.post("/{task_type}/{task_id}/review", response_model=MessageReplaceEvent | None)
 async def tool_reviews(
@@ -118,13 +122,12 @@ async def tool_reviews(
     """
     This endpoint is used to submit the tool call permissions.
     """
-    task = await create_agent_task(task_type, task_id, body.agent_id)
-    try:
-        return task.tool_calls.approve(body.call_id, body.status == "approved")
-    except MessageNotFoundError:
-        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND)
-    finally:
-        await asyncio.shield(task.persist())
+    task_ref = AgentTaskRuntimeRef(task_type, task_id, agent_id=body.agent_id)
+    async with use_agent_task_runtime_manager().reserve(task_ref) as task:
+        try:
+            return task.tool_calls.approve(body.call_id, body.status == "approved")
+        finally:
+            await asyncio.shield(task.persist())
 
 @task_control_router.post("/{task_type}/{task_id}/approve_pendings", response_model=list[MessageReplaceEvent] | None)
 async def approve_pendings(
@@ -132,15 +135,14 @@ async def approve_pendings(
     task_id: int,
     body: TaskControlBody,
 ):
-    task = await create_agent_task(task_type, task_id, body.agent_id)
-    replace_events = []
-    try:
-        for message in task.tool_calls.collect_pendings():
-            event = task.tool_calls.approve(message.call_id, True)
-            if event is not None:
-                replace_events.append(event)
-        return replace_events
-    except MessageNotFoundError:
-        raise ApiError(status.HTTP_404_NOT_FOUND, ApiErrorCode.TOOL_CALL_NOT_FOUND)
-    finally:
-        await asyncio.shield(task.persist())
+    task_ref = AgentTaskRuntimeRef(task_type, task_id, agent_id=body.agent_id)
+    async with use_agent_task_runtime_manager().reserve(task_ref) as task:
+        replace_events = []
+        try:
+            for message in task.tool_calls.collect_pendings():
+                event = task.tool_calls.approve(message.call_id, True)
+                if event is not None:
+                    replace_events.append(event)
+            return replace_events
+        finally:
+            await asyncio.shield(task.persist())

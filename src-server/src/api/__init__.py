@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.routing import APIRoute
 from fastapi_pagination import add_pagination
+from src.agent.exceptions import AgentError
 from src.services.exceptions import ServiceError
 from .middlewares import DBSessionMiddleware
 from .routes import (
@@ -28,6 +29,7 @@ from .routes import (
 )
 from .exception_handlers import (
     ErrorResponseSchema,
+    handle_agent_error,
     handle_api_error,
     handle_service_error,
     handle_validation_error,
@@ -61,6 +63,7 @@ app.add_middleware(
 )
 app.add_middleware(DBSessionMiddleware)
 
+app.add_exception_handler(AgentError, handle_agent_error)
 app.add_exception_handler(ServiceError, handle_service_error)
 app.add_exception_handler(ApiError, handle_api_error)
 app.add_exception_handler(RequestValidationError, handle_validation_error)

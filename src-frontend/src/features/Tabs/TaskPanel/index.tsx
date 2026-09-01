@@ -7,6 +7,7 @@ import { TaskDraftView } from "./views/TaskDraftView";
 import { AgentTaskProvider } from "./hooks/use-agent-task";
 import { TaskSessionView, TaskSessionViewSkeleton } from "./views/TaskSessionView";
 import { TaskTabIndicator } from "./components/TaskTabIndicator";
+import { TabPanelActionsProvider } from "../components/TabPanelActions";
 
 export function TaskPanel({ id, isActive, metadata }: TabPanelProps<TaskTabMetadata>) {
   const isInitialDraft = useRef(metadata.type === "task" && metadata.isDraft);
@@ -17,35 +18,39 @@ export function TaskPanel({ id, isActive, metadata }: TabPanelProps<TaskTabMetad
         return <TaskDraftView tabId={id} workspaceId={metadata.workspace_id} />;
       }
       return (
-        <AsyncBoundary skeleton={<TaskSessionViewSkeleton />}>
-          <AgentTaskProvider taskId={metadata.id} taskType={metadata.type}>
-            <TaskTabIndicator tabId={id} isActive={isActive} />
-            <Activity mode={activityVisible(isActive)}>
-              <TaskSessionView
-                workspaceId={metadata.workspace_id}
-                shouldStartStream={(() => {
-                  const value = isInitialDraft.current;
-                  isInitialDraft.current = false;
-                  return value;
-                })()}
-              />
-            </Activity>
-          </AgentTaskProvider>
-        </AsyncBoundary>
+        <TabPanelActionsProvider tabId={id}>
+          <AsyncBoundary skeleton={<TaskSessionViewSkeleton />}>
+            <AgentTaskProvider taskId={metadata.id} taskType={metadata.type}>
+              <TaskTabIndicator tabId={id} isActive={isActive} />
+              <Activity mode={activityVisible(isActive)}>
+                <TaskSessionView
+                  workspaceId={metadata.workspace_id}
+                  shouldStartStream={(() => {
+                    const value = isInitialDraft.current;
+                    isInitialDraft.current = false;
+                    return value;
+                  })()}
+                />
+              </Activity>
+            </AgentTaskProvider>
+          </AsyncBoundary>
+        </TabPanelActionsProvider>
       );
     case "schedule":
       return (
-        <AsyncBoundary skeleton={<TaskSessionViewSkeleton />}>
-          <AgentTaskProvider taskId={metadata.id} taskType={metadata.type}>
-            <TaskTabIndicator tabId={id} isActive={isActive} />
-            <Activity mode={activityVisible(isActive)}>
-              <TaskSessionView
-                workspaceId={metadata.workspace_id}
-                shouldStartStream={false}
-              />
-            </Activity>
-          </AgentTaskProvider>
-        </AsyncBoundary>
+        <TabPanelActionsProvider tabId={id}>
+          <AsyncBoundary skeleton={<TaskSessionViewSkeleton />}>
+            <AgentTaskProvider taskId={metadata.id} taskType={metadata.type}>
+              <TaskTabIndicator tabId={id} isActive={isActive} />
+              <Activity mode={activityVisible(isActive)}>
+                <TaskSessionView
+                  workspaceId={metadata.workspace_id}
+                  shouldStartStream={false}
+                />
+              </Activity>
+            </AgentTaskProvider>
+          </AsyncBoundary>
+        </TabPanelActionsProvider>
       );
   }
 }
