@@ -91,7 +91,7 @@ class AgentTask:
 
         for message in tool_call_messages:
             self._ctx.messages.append(message)
-            yield ToolCallEndEvent(message=message)
+            yield ToolCallEndEvent(message=message.model_copy(deep=True))
 
         dispatch_stream, dispatch_result =\
             self._tool_call_manager.dispatch(tool_call_messages)
