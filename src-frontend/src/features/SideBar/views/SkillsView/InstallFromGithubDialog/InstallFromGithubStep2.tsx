@@ -150,7 +150,7 @@ export function InstallFromGithubStep2({ repoUrl, scannedSkills, onSuccess }: In
         </ScrollArea>
       </div>
 
-      <DialogStepperFooter>
+      <DialogStepperFooter className="mt-4">
         <DialogStepperPrevious variant="outline">
           {t("skills.dialog.install_github.back")}
         </DialogStepperPrevious>
