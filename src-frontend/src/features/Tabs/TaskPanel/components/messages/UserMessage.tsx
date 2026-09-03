@@ -1,5 +1,6 @@
 import { PencilIcon } from "lucide-react";
 import { Activity, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Message,
   MessageActions,
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { TaskResourceMetadata } from "@/api/generated/schemas";
 import {
   attachmentCategoryIcons,
@@ -120,6 +122,7 @@ export function UserMessage({
   attachments,
   isStreaming,
 }: UserMessageProps) {
+  const { t } = useTranslation(TABS_TASK_NAMESPACE);
   const { editMessage } = useAgentTaskAction();
   const [mode, setMode] = useState<UserMessageMode>("view");
   const [draft, setDraft] = useState(text);
@@ -175,7 +178,7 @@ export function UserMessage({
                     setMode("view");
                   }}
                 >
-                  Cancel
+                  {t("user_message.cancel")}
                 </Button>
                 <Button
                   type="button"
@@ -184,7 +187,7 @@ export function UserMessage({
                   disabled={messageId === null}
                   onClick={handleEditMessage}
                 >
-                  Save
+                  {t("user_message.save")}
                 </Button>
               </div>
             </div>

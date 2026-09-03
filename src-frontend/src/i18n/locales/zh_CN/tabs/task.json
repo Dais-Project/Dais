@@ -68,6 +68,10 @@
   "task_progress": {
     "completed": "任务已完成"
   },
+  "user_message": {
+    "cancel": "取消",
+    "save": "保存"
+  },
   "toast": {
     "task_failed": {
       "title": "任务失败"

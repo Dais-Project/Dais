@@ -4,6 +4,9 @@
     "parameters": "Parameters",
     "result": "Result"
   },
+  "prompt": {
+    "attachments_tooltip": "Add photos or files"
+  },
   "risk": {
     "dangerous": "Dangerous",
     "mostly_safe": "Mostly safe",

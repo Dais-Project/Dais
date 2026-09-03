@@ -4,6 +4,9 @@
     "parameters": "参数",
     "result": "结果"
   },
+  "prompt": {
+    "attachments_tooltip": "添加照片或文件"
+  },
   "risk": {
     "dangerous": "高风险",
     "mostly_safe": "较安全",

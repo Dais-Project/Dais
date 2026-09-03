@@ -54,8 +54,10 @@ import {
   useState,
 } from "react";
 import { produce } from "immer";
+import { useTranslation } from "react-i18next";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Spinner } from "../ui/spinner";
+import { COMPONENTS_AI_ELEMENTS_NAMESPACE } from "@/i18n/resources";
 
 export type UiFile = {
   name: string;
@@ -269,6 +271,7 @@ export const usePromptInputReferencedSources = () => {
 };
 
 export const PromptInputActionAddAttachmentsButton = (props: ComponentProps<typeof PromptInputButton>) => {
+  const { t } = useTranslation(COMPONENTS_AI_ELEMENTS_NAMESPACE);
   const attachments = usePromptInputAttachments();
 
   const openFileDialog = useCallback(() => {
@@ -279,7 +282,7 @@ export const PromptInputActionAddAttachmentsButton = (props: ComponentProps<type
     <PromptInputButton
       onClick={openFileDialog}
       tooltip={{
-        content: "Add photos or files",
+        content: t("prompt.attachments_tooltip"),
         align: "end"
       }}
       {...props}
