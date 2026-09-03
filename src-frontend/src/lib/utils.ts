@@ -1,10 +1,6 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 import type { z } from "zod";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cn";
 
 export function tryParseSchema<T>(schema: z.ZodType<T>, data: string | unknown, throwIfInvalid = false): T | null {
   try {
