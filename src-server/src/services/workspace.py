@@ -7,6 +7,7 @@ from src.schemas import workspace as workspace_schemas
 from src.utils.open_in_file_manager import open_in_file_manager
 
 from .exceptions import ConflictError, NotFoundError, ServiceErrorCode
+from .resource_events import WorkspaceChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 class WorkspaceNotFoundError(NotFoundError):
@@ -27,8 +28,11 @@ class WorkspaceNotesLockedError(ConflictError):
 
 
 class WorkspaceService:
-    def __init__(self, repository: WorkspaceRepository):
+    def __init__(self,
+                 repository: WorkspaceRepository,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> WorkspaceService:
@@ -68,6 +72,10 @@ class WorkspaceService:
         await NoteMaterializer.materialize(
             workspace_schemas.WorkspaceRead.model_validate(workspace)
         )
+        self._on_resource_changed(WorkspaceChangedEvent.build(
+            operation="created",
+            resource_id=workspace.id,
+        ))
         return workspace
 
     async def update(self,
@@ -110,6 +118,10 @@ class WorkspaceService:
         workspace = await self.get_by_id(workspace_id)
         await self._repository.delete(workspace)
         await NoteMaterializer.clear_materialized(workspace_id)
+        self._on_resource_changed(WorkspaceChangedEvent.build(
+            operation="deleted",
+            resource_id=workspace_id,
+        ))
 
     async def open_in_file_manager(self, workspace_id: int):
         workspace = await self.get_by_id(workspace_id)

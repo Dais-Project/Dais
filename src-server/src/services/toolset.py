@@ -7,6 +7,7 @@ from src.repositories.toolset import ToolsetRepository
 from src.schemas import toolset as toolset_schemas
 
 from .exceptions import ConflictError, NotFoundError, ServiceErrorCode
+from .resource_events import ToolsetChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 class ToolsetNotFoundError(NotFoundError):
@@ -32,8 +33,11 @@ class ToolNotFoundError(NotFoundError):
 
 
 class ToolsetService:
-    def __init__(self, repository: ToolsetRepository):
+    def __init__(self,
+                 repository: ToolsetRepository,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> ToolsetService:
@@ -71,7 +75,12 @@ class ToolsetService:
                      tools: list[ToolsetRepository.ToolLike]) -> toolset_models.Toolset:
         if await self._repository.get_by_internal_key(data.name) is not None:
             raise ToolsetInternalKeyAlreadyExistsError(data.name)
-        return await self._repository.create(data, tools)
+        toolset = await self._repository.create(data, tools)
+        self._on_resource_changed(ToolsetChangedEvent.build(
+            operation="created",
+            resource_id=toolset.id,
+        ))
+        return toolset
 
     async def update(self,
                      toolset_id: int,
@@ -93,3 +102,7 @@ class ToolsetService:
     async def delete(self, toolset_id: int):
         toolset = await self.get_by_id(toolset_id)
         await self._repository.delete(toolset)
+        self._on_resource_changed(ToolsetChangedEvent.build(
+            operation="deleted",
+            resource_id=toolset_id,
+        ))

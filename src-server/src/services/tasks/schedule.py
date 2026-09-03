@@ -11,6 +11,7 @@ from src.utils.retention import get_retention_cutoff
 from .resource import TaskResourceService
 from ..exceptions import NotFoundError
 from ..exceptions import ServiceErrorCode
+from ..resource_events import ScheduleChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 class ScheduleNotFoundError(NotFoundError):
@@ -19,8 +20,11 @@ class ScheduleNotFoundError(NotFoundError):
 
 
 class ScheduleService:
-    def __init__(self, repository: ScheduleRepository):
+    def __init__(self,
+                 repository: ScheduleRepository,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> ScheduleService:
@@ -45,11 +49,16 @@ class ScheduleService:
         await use_schedule_runner().append(
             schedule_schemas.ScheduleRead.model_validate(created)
         )
+        self._on_resource_changed(ScheduleChangedEvent.build(
+            operation="created",
+            resource_id=created.id,
+            workspace_id=data.workspace_id,
+        ))
         return created
 
     async def update(self,
-                              schedule_id: int,
-                              data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
+                     schedule_id: int,
+                     data: schedule_schemas.ScheduleUpdate) -> task_models.Schedule:
         from src.agent.task.schedule_runner import use_schedule_runner
 
         schedule = await self.get_by_id(schedule_id)
@@ -65,8 +74,14 @@ class ScheduleService:
         from src.agent.task.schedule_runner import use_schedule_runner
 
         schedule = await self.get_by_id(schedule_id)
+        workspace_id = schedule.workspace_id
         use_schedule_runner().remove(schedule_id)
         await self._repository.delete(schedule)
+        self._on_resource_changed(ScheduleChangedEvent.build(
+            operation="deleted",
+            resource_id=schedule_id,
+            workspace_id=workspace_id,
+        ))
 
 
 class RunRecordNotFoundError(NotFoundError):

@@ -5,6 +5,7 @@ from src.repositories.skill import SkillRepository
 from src.schemas import skill as skill_schemas
 
 from .exceptions import ConflictError, NotFoundError, ServiceErrorCode
+from .resource_events import SkillChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 class SkillNotFoundError(NotFoundError):
@@ -21,8 +22,11 @@ class SkillNameAlreadyExistsError(ConflictError):
 
 
 class SkillService:
-    def __init__(self, repository: SkillRepository):
+    def __init__(self,
+                 repository: SkillRepository,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> SkillService:
@@ -51,6 +55,10 @@ class SkillService:
             raise SkillNameAlreadyExistsError(data.name)
         skill = await self._repository.create(data)
         await self.rematerialize(skill)
+        self._on_resource_changed(SkillChangedEvent.build(
+            operation="created",
+            resource_id=skill.id,
+        ))
         return skill
 
     async def update(self, skill_id: int, data: skill_schemas.SkillUpdate) -> skill_models.Skill:
@@ -68,6 +76,10 @@ class SkillService:
         skill = await self.get_by_id(skill_id)
         await self._repository.delete(skill)
         await SkillMaterializer.clear_materialized(skill_id)
+        self._on_resource_changed(SkillChangedEvent.build(
+            operation="deleted",
+            resource_id=skill_id,
+        ))
 
     async def create_ignoring_duplicates(self, data_items: list[skill_schemas.SkillCreate]) -> list[skill_models.Skill]:
         created: list[skill_models.Skill] = []

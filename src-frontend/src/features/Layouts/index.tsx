@@ -2,6 +2,7 @@ import { BackendReadyPromise } from "@/api";
 import { use } from "react";
 import { useResponsive } from "ahooks";
 import { useScheduleNotificationListener } from "../sse-listeners/schedule-notification-listener";
+import { useResourceChangedListener } from "../sse-listeners/resource-changed-listener";
 import { Layout as MobileLayout } from "./mobile/Layout";
 import { LayoutSkeleton as MobileSkeleton } from "./mobile/Skeleton";
 import { Layout as DesktopLayout } from "./desktop/Layout";
@@ -22,6 +23,7 @@ export function LayoutSkeleton() {
 export function Layout() {
   use(BackendReadyPromise);
   useScheduleNotificationListener();
+  useResourceChangedListener();
 
   const responsive = useResponsive();
   if (isMobile(responsive)) {

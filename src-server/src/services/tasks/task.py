@@ -18,6 +18,7 @@ from .resource import TaskResourceService
 from ..exceptions import InternalError
 from ..exceptions import NotFoundError
 from ..exceptions import ServiceErrorCode
+from ..resource_events import TaskChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 _logger = logger.bind(name="TaskService")
@@ -31,9 +32,11 @@ class TaskNotFoundError(NotFoundError):
 class TaskService:
     def __init__(self,
                  repository: TaskRepository,
-                 resource_service: TaskResourceService):
+                 resource_service: TaskResourceService,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
         self._resource_service = resource_service
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> TaskService:
@@ -56,11 +59,17 @@ class TaskService:
         return task
 
     async def create(self, data: task_schemas.TaskCreate) -> task_models.Task:
-        return await self._repository.create(data)
+        task = await self._repository.create(data)
+        self._on_resource_changed(TaskChangedEvent.build(
+            operation="created",
+            resource_id=task.id,
+            workspace_id=data.workspace_id,
+        ))
+        return task
 
     async def update(self,
-                          task_id: int,
-                          data: task_schemas.TaskUpdate) -> task_models.Task:
+                     task_id: int,
+                     data: task_schemas.TaskUpdate) -> task_models.Task:
         task = await self.get_by_id(task_id)
         return await self._repository.update(task, data)
 
@@ -100,9 +109,15 @@ class TaskService:
 
     async def delete(self, task_id: int):
         task = await self.get_by_id(task_id)
+        workspace_id = task.workspace_id
         await self._repository.delete(task)
         if self._resource_service is not None:
             await self._resource_service.delete_task_resources(task_id)
+        self._on_resource_changed(TaskChangedEvent.build(
+            operation="deleted",
+            resource_id=task_id,
+            workspace_id=workspace_id,
+        ))
 
     async def cleanup_outdated(self, retention: RetentionOption):
         cutoff = get_retention_cutoff(retention)

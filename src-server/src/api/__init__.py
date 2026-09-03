@@ -6,6 +6,7 @@ from fastapi_pagination import add_pagination
 from src.agent.exceptions import AgentError
 from src.services.exceptions import ServiceError
 from .middlewares import DBSessionMiddleware
+from .middlewares import ResourceEventMiddleware
 from .routes import (
     sse_router,
     static_router,
@@ -62,6 +63,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(DBSessionMiddleware)
+app.add_middleware(ResourceEventMiddleware)
 
 app.add_exception_handler(AgentError, handle_agent_error)
 app.add_exception_handler(ServiceError, handle_service_error)

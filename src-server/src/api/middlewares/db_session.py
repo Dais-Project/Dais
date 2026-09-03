@@ -1,11 +1,10 @@
-from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import RequestResponseEndpoint
 from starlette.requests import Request
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+
 
 class DBSessionMiddleware(BaseHTTPMiddleware):
-    _logger = logger.bind(name="DBSessionMiddleware")
-
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
         try:
             response = await call_next(request)
@@ -19,11 +18,12 @@ class DBSessionMiddleware(BaseHTTPMiddleware):
         if session is None:
             return response
 
+        if response.status_code >= 400:
+            await session.rollback()
+            return response
+
         try:
-            if response.status_code >= 400:
-                await session.rollback()
-            else:
-                await session.commit()
+            await session.commit()
         except Exception:
             await session.rollback()
             raise

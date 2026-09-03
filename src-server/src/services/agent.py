@@ -5,6 +5,7 @@ from src.repositories.agent import AgentRepository
 from src.schemas import agent as agent_schemas
 
 from .exceptions import NotFoundError, ServiceErrorCode
+from .resource_events import AgentChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 class AgentNotFoundError(NotFoundError):
@@ -13,8 +14,11 @@ class AgentNotFoundError(NotFoundError):
 
 
 class AgentService:
-    def __init__(self, repository: AgentRepository):
+    def __init__(self,
+                 repository: AgentRepository,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> AgentService:
@@ -31,7 +35,12 @@ class AgentService:
 
     async def create(self, data: agent_schemas.AgentCreate) -> agent_models.Agent:
         tools = await self._repository.get_tools_by_ids(data.usable_tool_ids)
-        return await self._repository.create(data, tools)
+        agent = await self._repository.create(data, tools)
+        self._on_resource_changed(AgentChangedEvent.build(
+            operation="created",
+            resource_id=agent.id,
+        ))
+        return agent
 
     async def update(self, agent_id: int, data: agent_schemas.AgentUpdate) -> agent_models.Agent:
         agent = await self.get_by_id(agent_id)
@@ -45,3 +54,7 @@ class AgentService:
     async def delete(self, agent_id: int):
         agent = await self.get_by_id(agent_id)
         await self._repository.delete(agent)
+        self._on_resource_changed(AgentChangedEvent.build(
+            operation="deleted",
+            resource_id=agent_id,
+        ))

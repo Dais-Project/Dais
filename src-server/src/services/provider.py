@@ -5,6 +5,7 @@ from src.repositories.provider import ProviderRepository
 from src.schemas import provider as provider_schemas
 
 from .exceptions import NotFoundError, ServiceErrorCode
+from .resource_events import ProviderChangedEvent, ResourceEventHandler, ignore_resource_event
 
 
 class ProviderNotFoundError(NotFoundError):
@@ -13,8 +14,11 @@ class ProviderNotFoundError(NotFoundError):
 
 
 class ProviderService:
-    def __init__(self, repository: ProviderRepository):
+    def __init__(self,
+                 repository: ProviderRepository,
+                 on_resource_changed: ResourceEventHandler = ignore_resource_event):
         self._repository = repository
+        self._on_resource_changed = on_resource_changed
 
     @classmethod
     def from_db_session(cls, db_session: AsyncSession) -> ProviderService:
@@ -33,7 +37,12 @@ class ProviderService:
         return provider
 
     async def create(self, data: provider_schemas.ProviderCreate) -> provider_models.Provider:
-        return await self._repository.create(data)
+        provider = await self._repository.create(data)
+        self._on_resource_changed(ProviderChangedEvent.build(
+            operation="created",
+            resource_id=provider.id,
+        ))
+        return provider
 
     async def update(self, provider_id: int, data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
         provider = await self.get_by_id(provider_id)
@@ -42,3 +51,7 @@ class ProviderService:
     async def delete(self, provider_id: int):
         provider = await self.get_by_id(provider_id)
         await self._repository.delete(provider)
+        self._on_resource_changed(ProviderChangedEvent.build(
+            operation="deleted",
+            resource_id=provider_id,
+        ))
