@@ -49,7 +49,12 @@ class AgentService:
             if data.usable_tool_ids is not None
             else None
         )
-        return await self._repository.update(agent, data, tools)
+        updated = await self._repository.update(agent, data, tools)
+        self._on_resource_changed(AgentChangedEvent.build(
+            operation="updated",
+            resource_id=agent.id,
+        ))
+        return updated
 
     async def delete(self, agent_id: int):
         agent = await self.get_by_id(agent_id)

@@ -68,6 +68,10 @@ class SkillService:
                 raise SkillNameAlreadyExistsError(data.name)
         updated = await self._repository.update(skill, data)
         await self.rematerialize(updated)
+        self._on_resource_changed(SkillChangedEvent.build(
+            operation="updated",
+            resource_id=updated.id,
+        ))
         return updated
 
     async def delete(self, skill_id: int):

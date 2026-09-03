@@ -46,7 +46,12 @@ class ProviderService:
 
     async def update(self, provider_id: int, data: provider_schemas.ProviderUpdate) -> provider_models.Provider:
         provider = await self.get_by_id(provider_id)
-        return await self._repository.update(provider, data)
+        updated = await self._repository.update(provider, data)
+        self._on_resource_changed(ProviderChangedEvent.build(
+            operation="updated",
+            resource_id=provider.id,
+        ))
+        return updated
 
     async def delete(self, provider_id: int):
         provider = await self.get_by_id(provider_id)

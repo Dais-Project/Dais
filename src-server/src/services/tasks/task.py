@@ -71,7 +71,13 @@ class TaskService:
                      task_id: int,
                      data: task_schemas.TaskUpdate) -> task_models.Task:
         task = await self.get_by_id(task_id)
-        return await self._repository.update(task, data)
+        updated = await self._repository.update(task, data)
+        self._on_resource_changed(TaskChangedEvent.build(
+            operation="updated",
+            resource_id=updated.id,
+            workspace_id=updated.workspace_id,
+        ))
+        return updated
 
     async def summarize_title(self, task_id: int) -> task_models.Task:
         task = await self.get_by_id(task_id)

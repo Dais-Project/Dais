@@ -17,6 +17,15 @@ def test_resource_event_collector_drains_events():
     assert collector.drain() == []
 
 
+def test_resource_event_accepts_updated_operation():
+    event = WorkspaceChangedEvent.build(
+        operation="updated",
+        resource_id=1,
+    )
+    assert event.operation == "updated"
+    assert event.resource_id == 1
+
+
 def test_task_changed_event_requires_workspace_id():
     with pytest.raises(ValidationError):
         TaskChangedEvent.model_validate({

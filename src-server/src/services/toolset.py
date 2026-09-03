@@ -91,7 +91,12 @@ class ToolsetService:
             for tool_data in data.tools:
                 if tool_data.id not in existing_ids:
                     raise ToolNotFoundError(tool_data.id)
-        return await self._repository.update(toolset, data)
+        updated = await self._repository.update(toolset, data)
+        self._on_resource_changed(ToolsetChangedEvent.build(
+            operation="updated",
+            resource_id=toolset.id,
+        ))
+        return updated
 
     async def sync(self,
                    toolset_id: int,

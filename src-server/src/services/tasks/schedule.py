@@ -68,6 +68,11 @@ class ScheduleService:
             await runner.append(schedule_schemas.ScheduleRead.model_validate(updated))
         else:
             runner.remove(updated.id)
+        self._on_resource_changed(ScheduleChangedEvent.build(
+            operation="updated",
+            resource_id=updated.id,
+            workspace_id=updated.workspace_id,
+        ))
         return updated
 
     async def delete(self, schedule_id: int):

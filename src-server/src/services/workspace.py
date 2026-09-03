@@ -91,13 +91,18 @@ class WorkspaceService:
         skills = (await self._repository.get_skills_by_ids(data.usable_skill_ids)
                                if data.usable_skill_ids is not None
                                else None)
-        return await self._repository.update(
+        updated_workspace = await self._repository.update(
             workspace,
             data,
             agents=agents,
             tools=tools,
             skills=skills,
         )
+        self._on_resource_changed(WorkspaceChangedEvent.build(
+            operation="updated",
+            resource_id=workspace.id,
+        ))
+        return updated_workspace
 
     async def update_notes(self,
                            workspace_id: int,
@@ -112,6 +117,10 @@ class WorkspaceService:
         )
         await NoteMaterializer.clear_materialized(workspace_id)
         await NoteMaterializer.materialize(workspace_read)
+        self._on_resource_changed(WorkspaceChangedEvent.build(
+            operation="updated",
+            resource_id=workspace_id,
+        ))
         return updated_workspace
 
     async def delete(self, workspace_id: int):

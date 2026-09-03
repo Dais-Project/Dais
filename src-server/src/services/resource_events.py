@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
-type ResourceOperation = Literal["created", "deleted"]
+type ResourceOperation = Literal["created", "deleted", "updated"]
 
 class ResourceChangedEventBase(BaseModel):
     event_id: Literal["RESOURCE_CHANGED"]

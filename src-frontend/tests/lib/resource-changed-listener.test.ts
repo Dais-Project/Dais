@@ -87,6 +87,24 @@ describe("handleResourceChanged", () => {
       scheduleId: 13,
     });
   });
+  test.each([
+    ["workspace", invalidateWorkspaceQueries],
+    ["agent", invalidateAgentQueries],
+    ["provider", invalidateProviderQueries],
+    ["skill", invalidateSkillQueries],
+    ["toolset", invalidateToolsetQueries],
+  ] as const)("invalidates %s queries on updated operation", async (resourceType, invalidateQueries) => {
+    await handleResourceChanged({
+      event_id: "RESOURCE_CHANGED",
+      resource_type: resourceType,
+      operation: "updated",
+      resource_id: 8,
+    });
+
+    expect(invalidateQueries).toHaveBeenCalledWith(8);
+    expect(removeTabs).not.toHaveBeenCalled();
+  });
+
   test("clears deleted current workspace and related tabs", async () => {
     vi.mocked(useWorkspaceStore.getState).mockReturnValue({
       current: { id: 17 },
