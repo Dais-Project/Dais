@@ -12,6 +12,7 @@ class ResourceChangedEventBase(BaseModel):
     event_id: Literal["RESOURCE_CHANGED"]
     operation: ResourceOperation
     resource_id: int
+    client_id: str | None = None
 
     @classmethod
     def build(cls,

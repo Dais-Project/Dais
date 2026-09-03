@@ -8,6 +8,7 @@ import { invalidateScheduleQueries } from "@/api/tasks/schedule";
 import { invalidateTaskQueries } from "@/api/tasks/task";
 import { invalidateToolsetQueries } from "@/api/toolset";
 import { invalidateWorkspaceQueries } from "@/api/workspace";
+import { clientId } from "@/lib/client-id";
 import SseDispatcher from "@/lib/sse-dispatcher";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -95,6 +96,8 @@ export function useResourceChangedListener() {
   useEffect(
     () =>
       SseDispatcher.subscribe("RESOURCE_CHANGED", (data) => {
+        if (data.client_id === clientId) return;
+
         handleResourceChanged(data).catch((error: unknown) => {
           console.error("Failed to refresh resource queries", error);
         });

@@ -1,3 +1,5 @@
+import { CLIENT_ID_HEADER, clientId } from "@/lib/client-id";
+
 import { API_BASE } from "..";
 import type {
   ErrorResponseSchema,
@@ -35,9 +37,15 @@ export async function fetchApi<T>(
   init?: RequestInit,
 ): Promise<T> {
   const url = new URL(input.toString(), API_BASE);
+  const requestInit = (() => {
+    const headers = new Headers(init?.headers);
+    headers.set(CLIENT_ID_HEADER, clientId);
+    return { ...init, headers };
+  })();
+
   let res: Response;
   try {
-    res = await fetch(url, init);
+    res = await fetch(url, requestInit);
   } catch {
     throw new FetchError(500, {
       error_code: "NETWORK_ERROR",
