@@ -1,4 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { getDesktopAuthHeaders } from "@/lib/desktop-auth";
 
 type SseStreamOptions<TData> = {
   body?: object;
@@ -20,6 +21,7 @@ export function createSseStream<TData>(
     method,
     headers: {
       "Content-Type": "application/json",
+      ...getDesktopAuthHeaders(),
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,

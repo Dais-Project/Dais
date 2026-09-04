@@ -6,6 +6,7 @@ from fastapi_pagination import add_pagination
 from src.agent.exceptions import AgentError
 from src.services.exceptions import ServiceError
 from .middlewares import DBSessionMiddleware
+from .middlewares import DesktopAuthMiddleware
 from .middlewares import ResourceEventMiddleware
 from .routes import (
     sse_router,
@@ -55,6 +56,7 @@ app = FastAPI(
     },
 )
 
+app.add_middleware(DesktopAuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

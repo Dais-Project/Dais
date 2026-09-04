@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import os
 from typing import cast
 from loguru import logger
 from hypercorn.config import Config as HypercornConfig
@@ -7,6 +8,7 @@ from hypercorn.asyncio import serve as hypercorn_serve
 from hypercorn.typing import Framework
 from . import IS_DEV
 from .api import app
+from .auth import set_desktop_auth_token
 from .db import migrate_db
 from .settings import use_app_setting_manager
 from .logger import get_log_level, setup_logging
@@ -76,6 +78,7 @@ async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=1460)
     args = parser.parse_args()
+    set_desktop_auth_token(os.environ.get("DAIS_DESKTOP_AUTH_TOKEN"))
 
     if IS_DEV:
         prevent_port_occupancy(args.port)

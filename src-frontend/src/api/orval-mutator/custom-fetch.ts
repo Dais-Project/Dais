@@ -1,4 +1,5 @@
 import { CLIENT_ID_HEADER, clientId } from "@/lib/client-id";
+import { getDesktopAuthHeaders } from "@/lib/desktop-auth";
 
 import { API_BASE } from "..";
 import type {
@@ -40,6 +41,9 @@ export async function fetchApi<T>(
   const requestInit = (() => {
     const headers = new Headers(init?.headers);
     headers.set(CLIENT_ID_HEADER, clientId);
+    for (const [name, value] of Object.entries(getDesktopAuthHeaders())) {
+      headers.set(name, value);
+    }
     return { ...init, headers };
   })();
 
