@@ -1,4 +1,9 @@
 from .agent import AgentServiceDep
+from .auth_session import (
+    AuthSessionCookieDep,
+    AuthSessionServiceDep,
+    LoginCodeServiceDep,
+)
 from .db_session import DbSessionDep
 from .provider import LlmModelServiceDep, ProviderServiceDep
 from .skill import SkillServiceDep
@@ -11,7 +16,10 @@ from .workspace import WorkspaceServiceDep
 __all__ = [
     "AgentServiceDep",
     "AgentTaskExecutorDep",
+    "AuthSessionCookieDep",
+    "AuthSessionServiceDep",
     "DbSessionDep",
+    "LoginCodeServiceDep",
     "LlmModelServiceDep",
     "McpToolsetManagerDep",
     "McpToolsetServiceDep",
