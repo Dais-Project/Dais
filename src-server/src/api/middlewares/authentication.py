@@ -91,6 +91,10 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # auth required routes
+        desktop_authenticated = self._is_desktop_authenticated(request)
+        if desktop_authenticated:
+            return await call_next(request)
+
         db_session: AsyncSession = request.state.db_session
         service = AuthSessionService(AuthSessionRepository(db_session))
 
