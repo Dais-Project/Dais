@@ -15,6 +15,7 @@ from .tasks import Task, TaskResource, Subtask, Schedule, RunRecord
 from .toolset import Toolset, Tool
 from .skill import Skill
 from .markdown_cache import MarkdownCache
+from .auth_session import AuthSession
 
 __all__ = [
     "Base",
@@ -25,4 +26,5 @@ __all__ = [
     "Toolset", "Tool",
     "Skill",
     "MarkdownCache",
+    "AuthSession",
 ]
