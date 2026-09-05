@@ -42,32 +42,18 @@ class AuthSessionRepository(RepositoryBase[auth_session_models.AuthSession]):
         )
 
     async def refresh_expiration(self,
-                                 session_id: int,
+                                 session: auth_session_models.AuthSession,
                                  *,
-                                 expires_at: int) -> auth_session_models.AuthSession | None:
-        session = await self.get_by_id(session_id)
-        if session is None: return None
+                                 expires_at: int) -> auth_session_models.AuthSession:
         session.expires_at = expires_at
-        await self.flush_and_expunge(session)
-        return await self.get_by_id(session_id)
+        await self._db_session.flush()
+        await self._db_session.refresh(session)
+        return session
 
-    async def delete(self, session_id: int) -> bool:
-        session = await self.get_by_id(session_id)
-        if session is None: return False
+    async def delete(self, session: auth_session_models.AuthSession) -> bool:
         await self._db_session.delete(session)
         await self._db_session.flush()
         return True
-
-    async def delete_all(self) -> int:
-        sessions = list(
-            (await self._db_session.scalars(
-                select(auth_session_models.AuthSession)
-            )).all()
-        )
-        for session in sessions:
-            await self._db_session.delete(session)
-        await self._db_session.flush()
-        return len(sessions)
 
     async def delete_expired(self, *, now: int) -> int:
         sessions = list(

@@ -12,23 +12,14 @@ class ResourceEventMiddleware(BaseHTTPMiddleware):
     _logger = logger.bind(name="ResourceEventMiddleware")
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
+        collector = ResourceEventCollector()
+        request.state.resource_event_collector = collector
+
         response = await call_next(request)
         if response.status_code >= 400:
             return response
 
-        collector: ResourceEventCollector | None = getattr(
-            request.state,
-            "resource_event_collector",
-            None,
-        )
-        dispatcher: SseDispatcher | None = getattr(
-            request.state,
-            "sse_dispatcher",
-            None,
-        )
-        if collector is None or dispatcher is None:
-            return response
-
+        dispatcher: SseDispatcher = request.state.sse_dispatcher
         for event in collector.drain():
             try:
                 await dispatcher.send(event)

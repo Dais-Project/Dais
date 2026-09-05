@@ -1,13 +1,9 @@
-from datetime import UTC, datetime
-
 from fastapi import APIRouter, Request, Response, status
 
-from src.api.exceptions import ApiError, ApiErrorCode
 from src.schemas import auth as auth_schemas
-from src.services.auth_session import AUTH_SESSION_TTL_SECONDS
 
+from ..auth_cookie import set_auth_session_cookie, clear_auth_session_cookie
 from ..dependencies.auth_session import (
-    AUTH_SESSION_COOKIE_NAME,
     AuthSessionCookieDep,
     AuthSessionServiceDep,
     LoginCodeServiceDep,
@@ -15,31 +11,6 @@ from ..dependencies.auth_session import (
 
 
 auth_router = APIRouter(tags=["auth"])
-
-
-def set_auth_session_cookie(response: Response,
-                            *,
-                            token: str,
-                            expires_at: int):
-    response.set_cookie(
-        key=AUTH_SESSION_COOKIE_NAME,
-        value=token,
-        max_age=AUTH_SESSION_TTL_SECONDS,
-        expires=datetime.fromtimestamp(expires_at, tz=UTC),
-        path="/",
-        secure=False,
-        httponly=True,
-        samesite="strict",
-    )
-
-def clear_auth_session_cookie(response: Response):
-    response.delete_cookie(
-        key=AUTH_SESSION_COOKIE_NAME,
-        path="/",
-        secure=False,
-        httponly=True,
-        samesite="strict",
-    )
 
 
 @auth_router.post("/login-code", response_model=auth_schemas.LoginCodeRead)
@@ -71,20 +42,8 @@ async def browser_login(
     )
 
 @auth_router.get("/session", response_model=auth_schemas.AuthSessionRead)
-async def get_auth_session(service: AuthSessionServiceDep, token: AuthSessionCookieDep = None):
-    if token is None:
-        raise ApiError(
-            status.HTTP_401_UNAUTHORIZED,
-            ApiErrorCode.UNAUTHENTICATED,
-            "Authentication required",
-        )
+async def get_auth_session(service: AuthSessionServiceDep, token: AuthSessionCookieDep):
     session = await service.get_valid(token)
-    if session is None:
-        raise ApiError(
-            status.HTTP_401_UNAUTHORIZED,
-            ApiErrorCode.UNAUTHENTICATED,
-            "Authentication required",
-        )
     return auth_schemas.AuthSessionRead(
         authenticated=True,
         expires_at=session.expires_at,
@@ -92,10 +51,9 @@ async def get_auth_session(service: AuthSessionServiceDep, token: AuthSessionCoo
 
 @auth_router.delete("/session", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_auth_session(
-    response: Response,
     service: AuthSessionServiceDep,
-    token: AuthSessionCookieDep = None,
+    token: AuthSessionCookieDep,
+    response: Response,
 ):
-    if token is not None:
-        await service.delete(token)
+    await service.delete(token)
     clear_auth_session_cookie(response)

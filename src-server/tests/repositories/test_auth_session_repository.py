@@ -73,7 +73,7 @@ class TestAuthSessionRepository:
         refreshed_expiration = now + 14 * 24 * 60 * 60
 
         refreshed = await auth_session_repository.refresh_expiration(
-            created.id,
+            created,
             expires_at=refreshed_expiration,
         )
 
@@ -129,7 +129,7 @@ class TestAuthSessionRepository:
             expires_at=now + 14 * 24 * 60 * 60,
         )
 
-        deleted = await auth_session_repository.delete(created.id)
+        deleted = await auth_session_repository.delete(created)
         loaded = await auth_session_repository.get_valid_by_token_digest(
             "delete-digest",
             now=now,
@@ -137,39 +137,6 @@ class TestAuthSessionRepository:
 
         assert deleted is True
         assert loaded is None
-
-    @pytest.mark.asyncio
-    async def test_delete_all_removes_every_session(
-        self,
-        auth_session_repository: AuthSessionRepository,
-    ):
-        now = int(time.time())
-        await auth_session_repository.create(
-            token_digest="all-a",
-            expires_at=now + 14 * 24 * 60 * 60,
-        )
-        await auth_session_repository.create(
-            token_digest="all-b",
-            expires_at=now + 14 * 24 * 60 * 60,
-        )
-
-        deleted_count = await auth_session_repository.delete_all()
-
-        assert deleted_count == 2
-        assert (
-            await auth_session_repository.get_valid_by_token_digest(
-                "all-a",
-                now=now,
-            )
-            is None
-        )
-        assert (
-            await auth_session_repository.get_valid_by_token_digest(
-                "all-b",
-                now=now,
-            )
-            is None
-        )
 
     @pytest.mark.asyncio
     async def test_delete_expired_preserves_valid_sessions(

@@ -15,3 +15,7 @@ class AuthSession(Base):
     expires_at: Mapped[int] = mapped_column(index=True)
     user_agent: Mapped[str | None]
     remote_address: Mapped[str | None]
+
+    @property
+    def ttl(self) -> int:
+        return max(0, self.expires_at - int(time.time()))

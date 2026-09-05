@@ -1,9 +1,9 @@
 from .db_session import DBSessionMiddleware
-from .desktop_auth import DesktopAuthMiddleware
+from .authentication import AuthenticationMiddleware
 from .resource_events import ResourceEventMiddleware
 
 __all__ = [
     "DBSessionMiddleware",
-    "DesktopAuthMiddleware",
+    "AuthenticationMiddleware",
     "ResourceEventMiddleware",
 ]

@@ -1,15 +1,14 @@
 from typing import Annotated
 
-from fastapi import Cookie, Depends
+from fastapi import Cookie, Depends, status
 
 from src.repositories.auth_session import AuthSessionRepository
 from src.services.auth_session import AuthSessionService
 from src.services.login_code import LoginCodeService, use_login_code_service
 
+from ..auth_cookie import AUTH_SESSION_COOKIE_NAME
+from ..exceptions import ApiError, ApiErrorCode
 from .db_session import DbSessionDep
-
-
-AUTH_SESSION_COOKIE_NAME = "dais_browser_session"
 
 
 def get_auth_session_service(db_session: DbSessionDep) -> AuthSessionService:
@@ -18,6 +17,18 @@ def get_auth_session_service(db_session: DbSessionDep) -> AuthSessionService:
 
 def get_login_code_service() -> LoginCodeService:
     return use_login_code_service()
+
+
+def get_auth_session_cookie(
+    token: Annotated[str | None, Cookie(alias=AUTH_SESSION_COOKIE_NAME)] = None,
+) -> str:
+    if token is None:
+        raise ApiError(
+            status.HTTP_401_UNAUTHORIZED,
+            ApiErrorCode.UNAUTHENTICATED,
+            "Authentication required",
+        )
+    return token
 
 
 AuthSessionServiceDep = Annotated[
@@ -29,6 +40,6 @@ LoginCodeServiceDep = Annotated[
     Depends(get_login_code_service),
 ]
 AuthSessionCookieDep = Annotated[
-    str | None,
-    Cookie(alias=AUTH_SESSION_COOKIE_NAME),
+    str,
+    Depends(get_auth_session_cookie),
 ]
