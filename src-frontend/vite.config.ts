@@ -27,6 +27,8 @@ export default defineConfig(async () => ({
     }),
   ],
 
+  publicDir: path.resolve(import.meta.dirname, "../public"),
+
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
