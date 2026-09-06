@@ -44,7 +44,7 @@ export async function fetchApi<T>(
     for (const [name, value] of Object.entries(getDesktopAuthHeaders())) {
       headers.set(name, value);
     }
-    return { ...init, headers };
+    return { ...init, headers, credentials: "same-origin" as const  };
   })();
 
   let res: Response;

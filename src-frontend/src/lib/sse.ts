@@ -1,5 +1,6 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { getDesktopAuthHeaders } from "@/lib/desktop-auth";
+import { invalidateAuthSessionQuery } from "@/api/auth";
 
 type SseStreamOptions<TData> = {
   body?: object;
@@ -25,11 +26,18 @@ export function createSseStream<TData>(
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
+    credentials: "same-origin",
     signal: abortController.signal,
 
     async onopen(response) {
       if (response.ok) {
         onConnect?.(response);
+        return;
+      }
+
+      if (response.status === 401) {
+        invalidateAuthSessionQuery();
+        abortController.abort();
         return;
       }
 
