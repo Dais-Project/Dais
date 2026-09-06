@@ -57,7 +57,13 @@ pub fn run(args: Args) {
   } else {
     utils::get_available_tcp_port().expect("Failed to get available port")
   };
-  let desktop_auth_token = utils::generate_desktop_auth_token();
+
+  let desktop_auth_token = if args.dev {
+    std::env::var("DAIS_DESKTOP_AUTH_TOKEN")
+      .expect("DAIS_DESKTOP_AUTH_TOKEN must be set in development mode")
+  } else {
+    utils::generate_desktop_auth_token()
+  };
 
   tauri::Builder::default()
     .plugin(tauri_plugin_fs::init())
