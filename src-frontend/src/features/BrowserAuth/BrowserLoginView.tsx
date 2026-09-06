@@ -2,7 +2,7 @@ import logo from "@shared/icon-square.png";
 import { Loader2Icon } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { invalidateAuthSessionQuery, useBrowserLogin } from "@/api/auth";
+import { resetAuthSessionQuery, useBrowserLogin } from "@/api/auth";
 import { FetchError } from "@/api/orval-mutator/custom-fetch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -31,7 +31,7 @@ export function BrowserLoginView({ onAuthenticated }: BrowserLoginViewProps) {
       },
       onSuccess: async () => {
         form.reset();
-        await invalidateAuthSessionQuery()
+        await resetAuthSessionQuery()
         await onAuthenticated();
       },
     },

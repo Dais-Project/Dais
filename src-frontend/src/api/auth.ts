@@ -4,11 +4,10 @@ import { getGetAuthSessionQueryKey } from "./generated/endpoints/auth/auth";
 export {
   useBrowserLogin,
   useCreateLoginCode,
+  useDeleteAuthSession,
   useGetAuthSessionSuspense,
 } from "./generated/endpoints/auth/auth";
 
-export function invalidateAuthSessionQuery() {
-  return queryClient.invalidateQueries({
-    queryKey: getGetAuthSessionQueryKey(),
-  });
+export async function resetAuthSessionQuery() {
+  await queryClient.resetQueries({ queryKey: getGetAuthSessionQueryKey() });
 }

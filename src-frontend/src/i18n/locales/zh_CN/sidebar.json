@@ -220,6 +220,13 @@
           "generate_error": "生成浏览器登录码失败。"
         }
       },
+      "logout": {
+        "button": "退出登录",
+        "title": "浏览器会话",
+        "toast": {
+          "error": "退出登录失败。"
+        }
+      },
       "port": {
         "title": "远程访问端口"
       }

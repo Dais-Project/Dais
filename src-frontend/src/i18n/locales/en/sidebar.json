@@ -220,6 +220,13 @@
           "generate_error": "Failed to generate browser login code."
         }
       },
+      "logout": {
+        "button": "Log out",
+        "title": "Browser session",
+        "toast": {
+          "error": "Failed to log out."
+        }
+      },
       "port": {
         "title": "Remote access port"
       }
