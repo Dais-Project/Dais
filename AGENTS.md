@@ -36,6 +36,23 @@ ORM：SQLAlchemy + Alembic
 仅前端使用的数据直接使用 zustand 的 persist 存储在 localStorage 中。
 对于前后端共享数据，如工作区设置、Agent 配置、用户会话数据等，通过后端存储在 SQLite 数据库中。
 
+### 桌面应用与远程访问
+
+- Dais 是一个 Tauri 桌面应用，Python FastAPI server 作为 Sidecar 随桌面应用运行；前端既可由 Tauri WebView 加载，也可通过 server 暴露的 Web 端口由局域网浏览器访问。
+- 远程访问复用与桌面端相同的前端应用和后端 API，不是独立的 Web 部署。开发功能时需要同时考虑 Tauri WebView 和普通浏览器两种运行环境，不能假设前端始终运行在 Tauri 中。
+- 桌面应用负责控制远程监听是否启用及监听端口。关闭远程访问表示停止从 Web 端口接受远程连接，不等同于删除持久化的浏览器会话。
+- 未认证浏览器不得初始化主应用、请求受保护业务数据或建立 SSE；Tauri 桌面端不经过浏览器登录门禁。
+
+### 访问鉴权
+
+- 后端 `/api` 接口默认需要鉴权，支持两种独立认证通道：Tauri 桌面端通过 `X-Dais-Desktop-Token` 请求头认证，远程浏览器通过 `dais_browser_session` HttpOnly Cookie 认证。
+- 匿名 API 必须是明确且必要的例外；当前公开接口和桌面专属接口由 `AuthenticationMiddleware` 按 HTTP method 与精确 path 维护。新增 API 不应默认公开。
+- 桌面专属 API 只能接受桌面 Token，不能接受浏览器会话 Cookie；浏览器登录码生成属于桌面专属能力。
+- 前端 API 请求必须复用统一的 Orval mutator，不要在业务组件中手工添加桌面 Token；浏览器 Cookie 请求必须保留 `credentials: "same-origin"`。
+- SSE 与普通 API 使用相同的认证语义，必须携带对应凭证；浏览器会话失效时应停止连接并返回 Auth Gate。
+- 浏览器认证状态以 HttpOnly Cookie 和后端 SQLite 会话记录为准，不得将认证 Token 或额外认证状态持久化到 localStorage 或 Zustand。
+- 六位浏览器登录码必须始终按字符串处理以保留前导零，不得转换为 number。登录码、Cookie Token 及完整 Token 摘要不得进入日志、toast、持久化状态或分析事件。
+
 ## 开发指南
 
 ### 上下文信息要求
@@ -57,7 +74,11 @@ ORM：SQLAlchemy + Alembic
 - **组件编写**: 统一使用 `function Component(props: Props) {}` 格式编写，不要使用箭头函数
   - **图标组件使用**: 统一使用 lucide-react 库提供的图标组件，且使用时需要带 `Icon` 后缀。（例如，使用 `Plus` 图标应该导入 `PlusIcon`）
   - **dialog 组件使用**: 在创建通用 dialog 组件时，需要基于 shadcn 提供的 dialog 组件创建，同时必须使用 DialogTrigger 来控制 dialog 状态，不要在 dialog 组件外额外使用 useState 管理 dialog 状态
-- **错误处理**: 在出现错误时统一使用 toast 组件展示
+- **错误处理**:
+  - 一般 API 错误使用 toast 展示。
+  - `401 UNAUTHENTICATED` 在浏览器环境中由 Auth Gate 统一处理，不显示通用错误 toast。
+  - 可操作的表单校验错误应显示在对应字段或表单中，例如 `LOGIN_CODE_INVALID`，不要同时显示全局 toast。
+
 
 #### 后端代码风格
 

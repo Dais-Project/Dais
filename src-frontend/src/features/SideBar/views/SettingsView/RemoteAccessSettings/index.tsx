@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { isTauri } from "@/lib/tauri";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
+import { BrowserLoginCodeSetting } from "./BrowserLoginCodeSetting";
+import { BrowserLogoutSetting } from "./BrowserLogoutSetting";
 
 function isValidRemoteAccessPort(value: number) {
   return Number.isInteger(value) && value >= 1 && value <= 65535;
@@ -92,6 +95,12 @@ export function RemoteAccessSettings() {
           />
         )}
       </SettingItem>
+
+      {isTauri && localSettings?.remote_access && (
+        <BrowserLoginCodeSetting />
+      )}
+
+      {!isTauri && <BrowserLogoutSetting />}
     </div>
   );
 }

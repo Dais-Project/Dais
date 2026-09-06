@@ -27,6 +27,7 @@ openapi.json
 
 /target/
 /node-bin/
+.env
 
 
 # Nx

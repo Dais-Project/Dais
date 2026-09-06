@@ -3,6 +3,8 @@ from dais_sdk.types import McpConnectionErrorCode
 
 
 class ApiErrorCode(StrEnum):
+    UNAUTHENTICATED = "UNAUTHENTICATED"
+
     CANNOT_CREATE_BUILTIN_TOOLSET = "CANNOT_CREATE_BUILTIN_TOOLSET"
 
     PATH_NOT_FOUND = "PATH_NOT_FOUND"

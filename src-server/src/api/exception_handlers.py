@@ -16,10 +16,14 @@ class ErrorResponseContent(TypedDict):
 
 class ErrorResponseSchema(BaseModel):
     error_code: (
-        ServiceErrorCode
+        Literal[
+            "VALIDATION_ERROR",
+            "UNAUTHENTICATED",
+            "UNEXPECTED_ERROR",
+        ]
+        | ServiceErrorCode
         | ApiErrorCode
         | AgentErrorCode
-        | Literal["VALIDATION_ERROR", "UNEXPECTED_ERROR"]
     )
     message: str
 

@@ -6,6 +6,7 @@ from fastapi_pagination import add_pagination
 from src.agent.exceptions import AgentError
 from src.services.exceptions import ServiceError
 from .middlewares import DBSessionMiddleware
+from .middlewares import AuthenticationMiddleware
 from .middlewares import ResourceEventMiddleware
 from .routes import (
     sse_router,
@@ -27,6 +28,7 @@ from .routes import (
     context_file_router,
     schedule_manage_router,
     health_router,
+    auth_router,
 )
 from .exception_handlers import (
     ErrorResponseSchema,
@@ -55,6 +57,8 @@ app = FastAPI(
     },
 )
 
+app.add_middleware(AuthenticationMiddleware)
+app.add_middleware(DBSessionMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -62,7 +66,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(DBSessionMiddleware)
 app.add_middleware(ResourceEventMiddleware)
 
 app.add_exception_handler(AgentError, handle_agent_error)
@@ -91,6 +94,7 @@ app.include_router(schedule_manage_router, prefix="/api/schedules")
 
 app.include_router(sse_router, prefix="/api/events")
 app.include_router(health_router, prefix="/api/health")
+app.include_router(auth_router, prefix="/api/auth")
 app.include_router(filesystem_router, prefix="/api/filesystem")
 
 app.include_router(static_router)

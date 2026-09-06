@@ -1,0 +1,19 @@
+{
+  "login": {
+    "code": {
+      "error": {
+        "format": "The login code must contain six digits.",
+        "invalid": "The login code is invalid or has expired.",
+        "required": "Enter the six-digit login code."
+      }
+    },
+    "submit_button": "Continue",
+    "title": "Login with OTP"
+  },
+  "session_check": {
+    "error": {
+      "title": "Unable to check sign-in status",
+      "description": "Check your network connection and try again."
+    }
+  }
+}

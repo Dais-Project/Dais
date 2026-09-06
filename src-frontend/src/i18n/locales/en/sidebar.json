@@ -212,6 +212,21 @@
       "enabled": {
         "title": "Enable remote access"
       },
+      "login_code": {
+        "expired": "Login code expired",
+        "generate_button": "Generate login code",
+        "title": "Browser login code",
+        "toast": {
+          "generate_error": "Failed to generate browser login code."
+        }
+      },
+      "logout": {
+        "button": "Log out",
+        "title": "Browser session",
+        "toast": {
+          "error": "Failed to log out."
+        }
+      },
       "port": {
         "title": "Remote access port"
       }

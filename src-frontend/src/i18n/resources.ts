@@ -1,39 +1,42 @@
 import type { Resource } from "i18next";
 import type { Language } from "@/types/common";
+import enBrowserAuth from "./locales/en/browser-auth.json";
+import enComponentsAiElements from "./locales/en/components/ai-elements.json";
+import enComponentsCustom from "./locales/en/components/custom.json";
+import enComponentsStreamdown from "./locales/en/components/streamdown.json";
+import enComponentsUi from "./locales/en/components/ui.json";
 import enDialog from "./locales/en/dialog.json";
+import enError from "./locales/en/error.json";
 import enForm from "./locales/en/form.json";
 import enSideBar from "./locales/en/sidebar.json";
-import enTabs from "./locales/en/tabs/index.json";
 import enTabsAgent from "./locales/en/tabs/agent.json";
+import enTabs from "./locales/en/tabs/index.json";
 import enTabsProvider from "./locales/en/tabs/provider.json";
+import enTabsSchedule from "./locales/en/tabs/schedule.json";
 import enTabsSkill from "./locales/en/tabs/skill.json";
 import enTabsTask from "./locales/en/tabs/task.json";
 import enTabsToolset from "./locales/en/tabs/toolset.json";
 import enTabsWorkspace from "./locales/en/tabs/workspace.json";
-import enTabsSchedule from "./locales/en/tabs/schedule.json";
-import enError from "./locales/en/error.json";
-import enComponentsUi from "./locales/en/components/ui.json";
-import enComponentsAiElements from "./locales/en/components/ai-elements.json";
-import enComponentsStreamdown from "./locales/en/components/streamdown.json";
-import enComponentsCustom from "./locales/en/components/custom.json";
+import zhCnBrowserAuth from "./locales/zh_CN/browser-auth.json";
+import zhCnComponentsAiElements from "./locales/zh_CN/components/ai-elements.json";
+import zhCnComponentsCustom from "./locales/zh_CN/components/custom.json";
+import zhCnComponentsStreamdown from "./locales/zh_CN/components/streamdown.json";
+import zhCnComponentsUi from "./locales/zh_CN/components/ui.json";
 import zhCnDialog from "./locales/zh_CN/dialog.json";
+import zhCnError from "./locales/zh_CN/error.json";
 import zhCnForm from "./locales/zh_CN/form.json";
 import zhCnSideBar from "./locales/zh_CN/sidebar.json";
-import zhCnTabs from "./locales/zh_CN/tabs/index.json";
 import zhCnTabsAgent from "./locales/zh_CN/tabs/agent.json";
+import zhCnTabs from "./locales/zh_CN/tabs/index.json";
 import zhCnTabsProvider from "./locales/zh_CN/tabs/provider.json";
+import zhCnTabsSchedule from "./locales/zh_CN/tabs/schedule.json";
 import zhCnTabsSkill from "./locales/zh_CN/tabs/skill.json";
 import zhCnTabsTask from "./locales/zh_CN/tabs/task.json";
 import zhCnTabsToolset from "./locales/zh_CN/tabs/toolset.json";
 import zhCnTabsWorkspace from "./locales/zh_CN/tabs/workspace.json";
-import zhCnTabsSchedule from "./locales/zh_CN/tabs/schedule.json";
-import zhCnError from "./locales/zh_CN/error.json";
-import zhCnComponentsUi from "./locales/zh_CN/components/ui.json";
-import zhCnComponentsAiElements from "./locales/zh_CN/components/ai-elements.json";
-import zhCnComponentsStreamdown from "./locales/zh_CN/components/streamdown.json";
-import zhCnComponentsCustom from "./locales/zh_CN/components/custom.json";
 
 export const FORM_NAMESPACE = "form";
+export const BROWSER_AUTH_NAMESPACE = "browser-auth";
 export const DIALOG_NAMESPACE = "dialog";
 export const SIDEBAR_NAMESPACE = "sidebar";
 export const TABS_NAMESPACE = "tabs/index";
@@ -55,6 +58,7 @@ export const SUPPORTED_LANGUAGES = ["en", "zh_CN"] as const satisfies readonly L
 
 export const resources: Resource = {
   en: {
+    [BROWSER_AUTH_NAMESPACE]: enBrowserAuth,
     [FORM_NAMESPACE]: enForm,
     [DIALOG_NAMESPACE]: enDialog,
     [TABS_NAMESPACE]: enTabs,
@@ -73,6 +77,7 @@ export const resources: Resource = {
     [ERROR_NAMESPACE]: enError,
   },
   zh_CN: {
+    [BROWSER_AUTH_NAMESPACE]: zhCnBrowserAuth,
     [FORM_NAMESPACE]: zhCnForm,
     [DIALOG_NAMESPACE]: zhCnDialog,
     [SIDEBAR_NAMESPACE]: zhCnSideBar,

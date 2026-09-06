@@ -1,5 +1,6 @@
 # resource routes
 from .tasks import *
+from .auth import auth_router
 from .workspace import workspaces_router
 from .agent import agents_router
 from .provider import providers_router

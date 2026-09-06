@@ -1,0 +1,19 @@
+{
+  "login": {
+    "code": {
+      "error": {
+        "format": "登录码必须为六位数字。",
+        "invalid": "登录码无效或已过期。",
+        "required": "请输入六位登录码。"
+      }
+    },
+    "submit_button": "继续",
+    "title": "使用 OTP 登录"
+  },
+  "session_check": {
+    "error": {
+      "title": "无法检查登录状态",
+      "description": "请检查网络连接后重试。"
+    }
+  }
+}

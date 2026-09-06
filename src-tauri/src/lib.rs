@@ -13,12 +13,17 @@ use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
-fn start_sidecar(app: tauri::AppHandle, server_port: u16) -> Result<CommandChild, String> {
+fn start_sidecar(
+  app: tauri::AppHandle,
+  server_port: u16,
+  desktop_auth_token: &str,
+) -> Result<CommandChild, String> {
   let mut child = app
     .shell()
     .sidecar("server")
     .expect("Failed to get sidecar")
     .args(["--port", &server_port.to_string()])
+    .env("DAIS_DESKTOP_AUTH_TOKEN", desktop_auth_token)
     .spawn()
     .expect("Failed to spawn sidecar");
 
@@ -53,6 +58,13 @@ pub fn run(args: Args) {
     utils::get_available_tcp_port().expect("Failed to get available port")
   };
 
+  let desktop_auth_token = if args.dev {
+    std::env::var("DAIS_DESKTOP_AUTH_TOKEN")
+      .expect("DAIS_DESKTOP_AUTH_TOKEN must be set in development mode")
+  } else {
+    utils::generate_desktop_auth_token()
+  };
+
   tauri::Builder::default()
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_opener::init())
@@ -64,6 +76,7 @@ pub fn run(args: Args) {
     .plugin(plugins::inject_vars::init(HashMap::from([
       ("dev", args.dev.to_string()),
       ("server_port", server_port.to_string()),
+      ("desktop_auth_token", desktop_auth_token.clone()),
     ])))
     .register_uri_scheme_protocol(protocols::APP_PROTOCOL_NAME, protocols::handle_app_protocol)
     .setup(move |app| {
@@ -71,7 +84,11 @@ pub fn run(args: Args) {
 
       if !args.dev {
         // only start sidecar in production mode
-        let child = start_sidecar(app.handle().clone(), server_port)?;
+        let child = start_sidecar(
+          app.handle().clone(),
+          server_port,
+          &desktop_auth_token,
+        )?;
         app.manage(state::AppState {
           child: Mutex::new(Some(child)),
         });
