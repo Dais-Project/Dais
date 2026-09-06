@@ -5,6 +5,7 @@ import { useCreateLoginCode } from "@/api/auth";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Button } from "@/components/ui/button";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { RotateCcwIcon } from "lucide-react";
 
 type LoginCodeState = {
   code: string;
@@ -87,7 +88,6 @@ export function BrowserLoginCodeSetting() {
   return (
     <SettingItem
       title={t("settings.remote_access.login_code.title")}
-      align="start"
       contentClassName="gap-3"
     >
       <BrowserLoginCodeSettingContent code={code} expired={expired} />
@@ -99,7 +99,7 @@ export function BrowserLoginCodeSetting() {
       >
         {code === null
           ? t("settings.remote_access.login_code.generate_button")
-          : t("settings.remote_access.login_code.regenerate_button")}
+          : <RotateCcwIcon />}
       </Button>
     </SettingItem>
   );

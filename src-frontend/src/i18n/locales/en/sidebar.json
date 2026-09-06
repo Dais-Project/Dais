@@ -215,7 +215,6 @@
       "login_code": {
         "expired": "Login code expired",
         "generate_button": "Generate login code",
-        "regenerate_button": "Regenerate login code",
         "title": "Browser login code",
         "toast": {
           "generate_error": "Failed to generate browser login code."

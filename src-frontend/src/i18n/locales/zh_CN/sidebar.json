@@ -215,7 +215,6 @@
       "login_code": {
         "expired": "登录码已过期",
         "generate_button": "生成登录码",
-        "regenerate_button": "重新生成登录码",
         "title": "浏览器登录码",
         "toast": {
           "generate_error": "生成浏览器登录码失败。"
