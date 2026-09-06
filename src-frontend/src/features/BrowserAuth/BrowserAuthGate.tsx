@@ -7,6 +7,7 @@ import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { BROWSER_AUTH_NAMESPACE } from "@/i18n/resources";
 import { isTauri } from "@/lib/tauri";
+import { useServerSettingsStore } from "@/stores/server-settings-store";
 import { LayoutSkeleton } from "../Layouts";
 import { BrowserLoginView } from "./BrowserLoginView";
 
@@ -29,6 +30,7 @@ type BrowserAuthGateProps = {
 
 export function BrowserAuthGate({ children }: BrowserAuthGateProps) {
   const { t } = useTranslation(BROWSER_AUTH_NAMESPACE);
+  const reloadServerSettings = useServerSettingsStore((s) => s.reload);
 
   if (isTauri) return children;
 
@@ -42,7 +44,10 @@ export function BrowserAuthGate({ children }: BrowserAuthGateProps) {
         if (isUnauthenticated) {
           return (
             <div className="h-screen flex items-center justify-center bg-muted/30">
-              <BrowserLoginView onAuthenticated={resetErrorBoundary} />
+              <BrowserLoginView onAuthenticated={() => {
+                reloadServerSettings();
+                resetErrorBoundary();
+              }} />
             </div>
           );
         }

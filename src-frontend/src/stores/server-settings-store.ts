@@ -14,10 +14,17 @@ type ServerSettingsStore = {
 export const useServerSettingsStore = create<ServerSettingsStore>()((set, get) => ({
   current: null,
   currentPromise: (async () => {
-    await BackendReadyPromise;
-    const settings = await getSettings();
-    set({ current: settings, isLoading: false });
-    return settings;
+    try {
+      await BackendReadyPromise;
+      const settings = await getSettings()
+        .then((settings) => {
+          set({ current: settings });
+          return settings;
+        });
+      return settings;
+    } finally {
+      set({ isLoading: false });
+    }
   })(),
   isLoading: true,
   async reload() {
