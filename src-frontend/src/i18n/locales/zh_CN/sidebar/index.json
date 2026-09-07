@@ -1,0 +1,28 @@
+{
+  "mobile": {
+    "navigation": "导航",
+    "open_navigation": "打开导航",
+    "opened": "已打开",
+    "select_workspace": "选择工作区",
+    "workspace_select_error": "选择工作区失败。",
+    "workspace_tasks": "工作区任务"
+  },
+  "plugins": {
+    "placeholder": "插件视图"
+  },
+  "activity_bar": {
+    "tasks": "任务",
+    "schedules": "计划任务",
+    "workspaces": "工作区",
+    "agents": "Agents",
+    "toolsets": "工具集",
+    "skills": "技能",
+    "settings": "设置"
+  },
+  "search": {
+    "empty": {
+      "description": "没有与「{{query}}」匹配的资源，请尝试其他关键词。",
+      "title": "未找到匹配结果"
+    }
+  }
+}

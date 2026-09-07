@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -20,13 +20,13 @@ const AUTO_DELETE_OPTIONS: Array<{
   value: RetentionOption;
   labelKey: string;
 }> = [
-    { value: "disabled", labelKey: "settings.general.auto_delete.options.disabled" },
-    { value: 7, labelKey: "settings.general.auto_delete.options.days_7" },
-    { value: 14, labelKey: "settings.general.auto_delete.options.days_14" },
-    { value: 30, labelKey: "settings.general.auto_delete.options.days_30" },
-    { value: 60, labelKey: "settings.general.auto_delete.options.days_60" },
-    { value: 180, labelKey: "settings.general.auto_delete.options.days_180" },
-    { value: 360, labelKey: "settings.general.auto_delete.options.days_360" },
+    { value: "disabled", labelKey: "general.auto_delete.options.disabled" },
+    { value: 7, labelKey: "general.auto_delete.options.days_7" },
+    { value: 14, labelKey: "general.auto_delete.options.days_14" },
+    { value: 30, labelKey: "general.auto_delete.options.days_30" },
+    { value: 60, labelKey: "general.auto_delete.options.days_60" },
+    { value: 180, labelKey: "general.auto_delete.options.days_180" },
+    { value: 360, labelKey: "general.auto_delete.options.days_360" },
   ];
 
 function getAutoDeleteSelections() {
@@ -36,7 +36,7 @@ function getAutoDeleteSelections() {
 }
 
 export function GeneralSettings() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const { current: settings, setPartial: setPartialConfig } = useSettingsStore();
   const {
     current: serverSettings,
@@ -67,23 +67,23 @@ export function GeneralSettings() {
 
   return (
     <div className="px-4 py-2">
-      <SettingItem title={t("settings.general.theme.title")}>
+      <SettingItem title={t("general.theme.title")}>
         <Select value={settings.theme} onValueChange={handleThemeChange}>
           <SelectTrigger className="w-32">
-            <SelectValue placeholder={t("settings.general.theme.placeholder")} />
+            <SelectValue placeholder={t("general.theme.placeholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="system">{t("settings.general.theme.system")}</SelectItem>
-            <SelectItem value="light">{t("settings.general.theme.light")}</SelectItem>
-            <SelectItem value="dark">{t("settings.general.theme.dark")}</SelectItem>
+            <SelectItem value="system">{t("general.theme.system")}</SelectItem>
+            <SelectItem value="light">{t("general.theme.light")}</SelectItem>
+            <SelectItem value="dark">{t("general.theme.dark")}</SelectItem>
           </SelectContent>
         </Select>
       </SettingItem>
 
-      <SettingItem title={t("settings.general.language.title")}>
+      <SettingItem title={t("general.language.title")}>
         <Select value={settings.language} onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-32">
-            <SelectValue placeholder={t("settings.general.language.placeholder")} />
+            <SelectValue placeholder={t("general.language.placeholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
@@ -92,14 +92,14 @@ export function GeneralSettings() {
         </Select>
       </SettingItem>
 
-      <SettingItem title={t("settings.general.reply_language.title")}>
+      <SettingItem title={t("general.reply_language.title")}>
         <Select
           value={serverSettings?.reply_language}
           onValueChange={handleModelReplyLanguageChange}
           disabled={isServerSettingsLoading}
         >
           <SelectTrigger className="w-32">
-            <SelectValue placeholder={t("settings.general.reply_language.placeholder")} />
+            <SelectValue placeholder={t("general.reply_language.placeholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="English">English</SelectItem>
@@ -108,7 +108,7 @@ export function GeneralSettings() {
         </Select>
       </SettingItem>
 
-      <SettingItem title={t("settings.general.auto_delete.task.title")}>
+      <SettingItem title={t("general.auto_delete.task.title")}>
         <StringifiableSelect
           selections={getAutoDeleteSelections()}
           value={serverSettings?.task_retention_days}
@@ -116,7 +116,7 @@ export function GeneralSettings() {
           disabled={isServerSettingsLoading}
         >
           <StringifiableSelectTrigger className="w-32">
-            <StringifiableSelectValue placeholder={t("settings.general.auto_delete.placeholder")} />
+            <StringifiableSelectValue placeholder={t("general.auto_delete.placeholder")} />
           </StringifiableSelectTrigger>
           <StringifiableSelectContent>
             {AUTO_DELETE_OPTIONS.map((option) => (
@@ -128,7 +128,7 @@ export function GeneralSettings() {
         </StringifiableSelect>
       </SettingItem>
 
-      <SettingItem title={t("settings.general.auto_delete.schedule_run_record.title")}>
+      <SettingItem title={t("general.auto_delete.schedule_run_record.title")}>
         <StringifiableSelect
           selections={getAutoDeleteSelections()}
           value={serverSettings?.schedule_run_record_retention_days}
@@ -136,7 +136,7 @@ export function GeneralSettings() {
           disabled={isServerSettingsLoading}
         >
           <StringifiableSelectTrigger className="w-32">
-            <StringifiableSelectValue placeholder={t("settings.general.auto_delete.placeholder")} />
+            <StringifiableSelectValue placeholder={t("general.auto_delete.placeholder")} />
           </StringifiableSelectTrigger>
           <StringifiableSelectContent>
             {AUTO_DELETE_OPTIONS.map((option) => (
@@ -149,7 +149,7 @@ export function GeneralSettings() {
       </SettingItem>
 
       {isTauri && (
-        <SettingItem title={t("settings.general.autostart.title")}>
+        <SettingItem title={t("general.autostart.title")}>
           <Switch
             checked={autostartEnabled}
             onCheckedChange={handleAutostartChange}

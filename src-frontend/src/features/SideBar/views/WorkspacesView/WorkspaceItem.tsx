@@ -19,7 +19,7 @@ import {
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import { isTauri } from "@/lib/tauri";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
@@ -33,8 +33,8 @@ function createWorkspaceEditTab(
 ): Tab {
   return {
     type: "workspace",
-    title: i18n.t("workspaces.tab.edit_title_with_name", {
-      ns: SIDEBAR_NAMESPACE,
+    title: i18n.t("tab.edit_title_with_name", {
+      ns: SIDEBAR_WORKSPACE_NAMESPACE,
       name: workspaceName,
     }),
     icon: "folder-cog",
@@ -48,8 +48,8 @@ function createWorkspaceNotesEditTab(
 ): Tab {
   return {
     type: "workspace",
-    title: i18n.t("workspaces.tab.edit_notes_title_with_name", {
-      ns: SIDEBAR_NAMESPACE,
+    title: i18n.t("tab.edit_notes_title_with_name", {
+      ns: SIDEBAR_WORKSPACE_NAMESPACE,
       name: workspaceName,
     }),
     icon: "notebook-pen",
@@ -129,7 +129,7 @@ export function WorkspaceItem({
   onSelect,
   onDelete,
 }: WorkspaceItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_WORKSPACE_NAMESPACE);
 
   const handleSelect = (e: React.MouseEvent) => {
     if (disabled) {
@@ -192,24 +192,24 @@ export function WorkspaceItem({
           disabled={variant === "current"}
         >
           <CircleIcon />
-          <span>{t("workspaces.menu.select")}</span>
+          <span>{t("menu.select")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleCreateTask}>
           <PlusIcon />
-          <span>{t("workspaces.menu.create_task")}</span>
+          <span>{t("menu.create_task")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
-          <span>{t("workspaces.menu.edit")}</span>
+          <span>{t("menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={handleEditNotes}>
           <NotebookPenIcon />
-          <span>{t("workspaces.menu.edit_notes")}</span>
+          <span>{t("menu.edit_notes")}</span>
         </ActionableItemMenuItem>
         {isTauri && (
           <ActionableItemMenuItem onClick={handleOpenInFileManager}>
             <FolderOpenIcon />
-            <span>{t("workspaces.menu.open_in_file_manager")}</span>
+            <span>{t("menu.open_in_file_manager")}</span>
           </ActionableItemMenuItem>
         )}
         <ActionableItemMenuItem
@@ -217,7 +217,7 @@ export function WorkspaceItem({
           onClick={() => onDelete?.(workspace)}
         >
           <TrashIcon />
-          <span>{t("workspaces.menu.delete")}</span>
+          <span>{t("menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>

@@ -9,7 +9,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SCHEDULE_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { SideBarHeader, SideBarHeaderAction } from "../../components/SideBarHeader";
@@ -28,7 +28,7 @@ function openScheduleCreateTab() {
   const addTab = useTabsStore.getState().add;
   addTab({
     type: "schedule",
-    title: i18n.t("schedules.tab.create_title", { ns: SIDEBAR_NAMESPACE }),
+    title: i18n.t("tab.create_title", { ns: SIDEBAR_SCHEDULE_NAMESPACE }),
     metadata: { mode: "create" },
   });
 }
@@ -45,7 +45,7 @@ function openScheduleAllRecordsTab() {
 
   addTab({
     type: "schedule",
-    title: i18n.t("schedules.tab.all_records_title", { ns: SIDEBAR_NAMESPACE }),
+    title: i18n.t("tab.all_records_title", { ns: SIDEBAR_SCHEDULE_NAMESPACE }),
     icon: "history",
     metadata: { mode: "all-records" },
   });
@@ -60,14 +60,14 @@ function CurrentWorkspaceSchedules({
   searchQuery: string | null;
   className?: string;
 }) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
 
   if (!workspaceId) {
     return (
       <Empty className={className}>
         <EmptyContent>
-          <EmptyTitle>{t("schedules.empty.no_workspace.title")}</EmptyTitle>
-          <EmptyDescription>{t("schedules.empty.no_workspace.description")}</EmptyDescription>
+          <EmptyTitle>{t("empty.no_workspace.title")}</EmptyTitle>
+          <EmptyDescription>{t("empty.no_workspace.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -93,28 +93,28 @@ function RunningScheduleTasks({ className }: { className?: string }) {
 }
 
 export function SchedulesView() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   return (
     <SideBarSearchProvider>
       {({ normalizedQuery, setQuery }) => (
         <div className="flex h-full flex-col">
-          <SideBarHeader title={t("schedules.header.title")} actionsClass="flex-1 ml-4">
+          <SideBarHeader title={t("header.title")} actionsClass="flex-1 ml-4">
             <ExpandableSearchBar
               className="flex-1"
               expandDirection="left"
-              placeholder={t("schedules.header.search_placeholder")}
+              placeholder={t("header.search_placeholder")}
               onValueChange={setQuery}
             />
             <SideBarHeaderAction
               Icon={HistoryIcon}
-              tooltip={t("schedules.header.history_tooltip")}
+              tooltip={t("header.history_tooltip")}
               onClick={openScheduleAllRecordsTab}
             />
             <SideBarHeaderAction
               Icon={PlusIcon}
-              tooltip={t("schedules.header.create_tooltip")}
+              tooltip={t("header.create_tooltip")}
               onClick={openScheduleCreateTab}
               disabled={!currentWorkspace}
             />
@@ -129,7 +129,7 @@ export function SchedulesView() {
               />
             </SideBarPrimarySection>
             <SideBarCollapsibleSection
-              title={t("schedules.running.title")}
+              title={t("running.title")}
               collapsedStateKey="is-running-schedule-tasks-collapsed"
             >
               <RunningScheduleTasks className="h-full" />

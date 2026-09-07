@@ -1,0 +1,31 @@
+{
+  "dialog": {
+    "delete_description_with_name": "Are you sure you want to delete toolset \"{{name}}\"? This action cannot be undone."
+  },
+  "header": {
+    "create_tooltip": "Connect to MCP server",
+    "search_placeholder": "Search toolsets...",
+    "title": "Toolsets"
+  },
+  "menu": {
+    "delete": "Delete",
+    "edit": "Edit toolset",
+    "reconnect": "Reconnect"
+  },
+  "status": {
+    "connected": "Connected",
+    "connecting": "Connecting",
+    "disconnected": "Disconnected",
+    "error": "Error"
+  },
+  "tab": {
+    "create_title": "Connect to MCP server",
+    "edit_title_with_name": "Edit: {{name}}"
+  },
+  "toast": {
+    "delete_success_description": "Toolset deleted successfully.",
+    "delete_success_title": "Delete success",
+    "reconnect_success_description": "Toolset connection retried successfully.",
+    "reconnection_success_title": "Retry success"
+  }
+}

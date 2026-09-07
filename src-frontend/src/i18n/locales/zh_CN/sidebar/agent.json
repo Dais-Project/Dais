@@ -1,0 +1,29 @@
+{
+  "dialog": {
+    "delete_description_with_name": "确定要删除 Agent \"{{name}}\" 吗？此操作无法撤销。"
+  },
+  "empty": {
+    "description": "您还没有创建任何 Agent。",
+    "title": "暂无 Agent"
+  },
+  "header": {
+    "create_tooltip": "创建 Agent",
+    "search_placeholder": "搜索 Agent...",
+    "title": "Agents"
+  },
+  "list": {
+    "no_model": "无模型"
+  },
+  "menu": {
+    "delete": "删除",
+    "edit": "编辑 Agent"
+  },
+  "tab": {
+    "create_title": "创建 Agent",
+    "edit_title_with_name": "编辑：{{name}}"
+  },
+  "toast": {
+    "delete_success_description": "已成功删除 Agent。",
+    "delete_success_title": "删除成功"
+  }
+}

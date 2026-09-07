@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDebounceFn } from "ahooks";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import type { AppSettings } from "@/api/generated/schemas";
 
 export function AgentSettings() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const { current: serverSettings, setPartial: setPartialServerSettings } =
     useServerSettingsStore();
   const [localSettings, setLocalSettings] = useState(serverSettings);
@@ -44,7 +44,7 @@ export function AgentSettings() {
 
   return (
     <div className="px-4 py-2">
-      <SettingItem title={t("settings.agents.smart_approve.title")}>
+      <SettingItem title={t("agents.smart_approve.title")}>
         {localSettings === null ? (
           <Skeleton className="h-4.5 w-8" />
         ) : (
@@ -58,7 +58,7 @@ export function AgentSettings() {
         )}
       </SettingItem>
 
-      <SettingItem title={t("settings.agents.smart_approve_threshold.title")}>
+      <SettingItem title={t("agents.smart_approve_threshold.title")}>
         {localSettings === null ? (
           <Skeleton className="h-9 w-24" />
         ) : (
@@ -78,7 +78,7 @@ export function AgentSettings() {
         )}
       </SettingItem>
 
-      <SettingItem title={t("settings.agents.smart_approve_timeout.title")}>
+      <SettingItem title={t("agents.smart_approve_timeout.title")}>
         {localSettings === null ? (
           <Skeleton className="h-9 w-24" />
         ) : (

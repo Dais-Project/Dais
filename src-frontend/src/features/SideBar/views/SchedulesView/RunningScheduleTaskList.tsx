@@ -18,19 +18,19 @@ import {
 import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SCHEDULE_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";
 
 function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
   const cancelScheduleExecutionMutation = useCancelScheduleExecution({
     mutation: {
       async onSuccess() {
         await invalidateScheduleRunningJobsQuery();
-        toast.success(t("schedules.toast.cancel_run_success_title"), {
-          description: t("schedules.toast.cancel_run_success_description"),
+        toast.success(t("toast.cancel_run_success_title"), {
+          description: t("toast.cancel_run_success_description"),
         });
       },
     },
@@ -48,8 +48,8 @@ function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
           <ActionableItemActionButton
             icon={SquareIcon}
             className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            title={t("schedules.running.cancel")}
-            aria-label={t("schedules.running.cancel")}
+            title={t("running.cancel")}
+            aria-label={t("running.cancel")}
             disabled={cancelScheduleExecutionMutation.isPending}
             onClick={handleCancel}
           />
@@ -60,7 +60,7 @@ function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
         </ActionableItemIcon>
         <ActionableItemInfo
           title={task.name}
-          description={t("schedules.running.description_with_created_at", {
+          description={t("running.description_with_created_at", {
             time: formatDistanceToNow(new Date(task.created_at * 1000), {
               addSuffix: true,
               locale: DATEFNS_LOCALE_MAP[language],
@@ -73,15 +73,15 @@ function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
 }
 
 export function RunningScheduleTaskList() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
   const query = useGetScheduleRunningJobsSuspense({ query: { gcTime: SIDEBAR_QUERY_GC_TIME } });
 
   if (query.data.length === 0) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("schedules.running.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("schedules.running.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("running.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("running.empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );

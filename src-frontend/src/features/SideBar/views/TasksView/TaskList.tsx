@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_TASK_NAMESPACE } from "@/i18n/resources";
 import type { TaskBrief } from "@/api/generated/schemas";
 import {
   getGetTaskQueryKey,
@@ -31,7 +31,7 @@ type TaskListProps = {
 };
 
 export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TASK_NAMESPACE);
   const queryClient = useQueryClient();
 
   const deleteTaskMutation = useDeleteTask({
@@ -42,8 +42,8 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
         queryClient.removeQueries({
           queryKey: getGetTaskQueryKey(variables.taskId),
         });
-        toast.success(t("tasks.toast.delete_success_title"), {
-          description: t("tasks.toast.delete_success_description"),
+        toast.success(t("toast.delete_success_title"), {
+          description: t("toast.delete_success_description"),
         });
       },
     },
@@ -87,8 +87,8 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("tasks.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("tasks.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -118,7 +118,7 @@ export function TaskList({ workspaceId, searchQuery }: TaskListProps) {
       />
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("tasks.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.title ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

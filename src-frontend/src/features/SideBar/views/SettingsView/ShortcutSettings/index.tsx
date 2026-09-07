@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { ShortcutRecorder } from "@/components/custom/ShortcutRecorder";
 import { SettingItem } from "@/components/custom/item/SettingItem";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { useSettingsStore } from "@/stores/settings-store";
 
 export function ShortcutSettings() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const shortcuts = useSettingsStore((store) => store.current.shortcuts);
   const setPartial = useSettingsStore((store) => store.setPartial);
 
@@ -38,21 +38,21 @@ export function ShortcutSettings() {
 
   return (
     <div className="px-4 py-2">
-      <SettingItem title={t("settings.shortcuts.new_task.title")}>
+      <SettingItem title={t("shortcuts.new_task.title")}>
         <ShortcutRecorder
           value={shortcuts.new_task}
           onChange={handleNewTaskShortcutChange}
         />
       </SettingItem>
 
-      <SettingItem title={t("settings.shortcuts.toggle_sidebar.title")}>
+      <SettingItem title={t("shortcuts.toggle_sidebar.title")}>
         <ShortcutRecorder
           value={shortcuts.toggle_sidebar}
           onChange={handleToggleSidebarShortcutChange}
         />
       </SettingItem>
 
-      <SettingItem title={t("settings.shortcuts.close_tab.title")}>
+      <SettingItem title={t("shortcuts.close_tab.title")}>
         <ShortcutRecorder
           value={shortcuts.close_tab}
           onChange={handleCloseTabShortcutChange}

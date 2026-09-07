@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_TOOLSET_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
@@ -50,7 +50,7 @@ function getStatusColor(status: McpToolsetStatus): string {
 function createToolsetEditTab(toolsetId: number, toolsetName: string): Tab {
   return {
     type: "toolset",
-    title: i18n.t("toolsets.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: toolsetName }),
+    title: i18n.t("tab.edit_title_with_name", { ns: SIDEBAR_TOOLSET_NAMESPACE, name: toolsetName }),
     icon: "wrench",
     metadata: { mode: "edit", id: toolsetId },
   };
@@ -88,7 +88,7 @@ type ToolsetItemProps = {
 };
 
 function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TOOLSET_NAMESPACE);
   const isMcpToolset = toolset.type === ToolsetType.mcp_local || toolset.type === ToolsetType.mcp_remote;
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -134,17 +134,17 @@ function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
-          <span>{t("toolsets.menu.edit")}</span>
+          <span>{t("menu.edit")}</span>
         </ActionableItemMenuItem>
         {isMcpToolset && (
           <ActionableItemMenuItem onClick={() => onReconnect?.(toolset)}>
             <RefreshCwIcon />
-            <span>{t("toolsets.menu.reconnect")}</span>
+            <span>{t("menu.reconnect")}</span>
           </ActionableItemMenuItem>
         )}
         <ActionableItemMenuItem variant="destructive" onClick={() => onDelete?.(toolset)}>
           <TrashIcon />
-          <span>{t("toolsets.menu.delete")}</span>
+          <span>{t("menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -156,15 +156,15 @@ type ToolsetListProps = {
 };
 
 export function ToolsetList({ searchQuery }: ToolsetListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TOOLSET_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const reconnectMcpToolsetMutation = useReconnectMcpToolset({
     mutation: {
       async onSuccess(_, variables) {
         await invalidateToolsetQueries(variables.toolsetId);
-        toast.success(t("toolsets.toast.reconnection_success_title"), {
-          description: t("toolsets.toast.reconnect_success_description"),
+        toast.success(t("toast.reconnection_success_title"), {
+          description: t("toast.reconnect_success_description"),
         });
       },
     },
@@ -180,8 +180,8 @@ export function ToolsetList({ searchQuery }: ToolsetListProps) {
         tab.metadata.mode === "edit" &&
         tab.metadata.id === toolset.id));
 
-      toast.success(t("toolsets.toast.delete_success_title"), {
-        description: t("toolsets.toast.delete_success_description"),
+      toast.success(t("toast.delete_success_title"), {
+        description: t("toast.delete_success_description"),
       });
     }
   });
@@ -215,7 +215,7 @@ export function ToolsetList({ searchQuery }: ToolsetListProps) {
       </ScrollArea>
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("toolsets.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.name ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

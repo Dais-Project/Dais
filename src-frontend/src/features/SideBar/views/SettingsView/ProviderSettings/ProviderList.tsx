@@ -9,7 +9,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/
 import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { ProviderBadge } from "./ProviderBadge";
@@ -17,7 +17,7 @@ import { ProviderBadge } from "./ProviderBadge";
 function createProviderEditTab(providerId: number, providerName: string): Tab {
   return {
     type: "provider",
-    title: i18n.t("settings.providers.tab.edit_title_with_name", { ns: SIDEBAR_NAMESPACE, name: providerName }),
+    title: i18n.t("providers.tab.edit_title_with_name", { ns: SIDEBAR_SETTINGS_NAMESPACE, name: providerName }),
     icon: "plug",
     metadata: { mode: "edit", id: providerId },
   };
@@ -55,7 +55,7 @@ type ProviderItemProps = {
 };
 
 function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
 
   const handleEditClick = () => {
     onEdit(provider);
@@ -74,7 +74,7 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
         </ItemTitle>
         <ItemDescription className="space-x-1">
           <span className="text-muted-foreground text-sm">
-            {t("settings.providers.list.model_count_with_count", { count: provider.model_count })}
+            {t("providers.list.model_count_with_count", { count: provider.model_count })}
           </span>
         </ItemDescription>
       </ItemContent>
@@ -84,12 +84,12 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
           size="icon"
           className="size-8"
           onClick={handleEditClick}
-          title={t("settings.providers.list.edit_provider_title")}
+          title={t("providers.list.edit_provider_title")}
         >
           <PencilIcon className="size-4" />
         </Button>
         <ConfirmDeleteDialog
-          description={t("settings.providers.dialog.delete_description_with_name", {
+          description={t("providers.dialog.delete_description_with_name", {
             name: provider.name,
           })}
           onConfirm={handleDeleteConfirm}
@@ -99,7 +99,7 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
             variant="ghost"
             size="icon"
             className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            title={t("settings.providers.list.delete_provider_title")}
+            title={t("providers.list.delete_provider_title")}
             disabled={isDeleting}
             onClick={(e) => e.stopPropagation()}
           >
@@ -112,7 +112,7 @@ function ProviderItem({ provider, onEdit, onDelete, isDeleting }: ProviderItemPr
 }
 
 export function ProviderList() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const { data } = useGetProvidersBriefSuspense({ query: { gcTime: SIDEBAR_QUERY_GC_TIME } });
 
   const deleteProviderMutation = useDeleteProvider({
@@ -121,8 +121,8 @@ export function ProviderList() {
         await invalidateProviderQueries(variables.providerId);
         removeProviderTab(variables.providerId);
 
-        toast.success(t("settings.providers.toast.delete_success_title"), {
-          description: t("settings.providers.toast.delete_success_description"),
+        toast.success(t("providers.toast.delete_success_title"), {
+          description: t("providers.toast.delete_success_description"),
         });
       }
     },
@@ -140,8 +140,8 @@ export function ProviderList() {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("settings.providers.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("settings.providers.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("providers.empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("providers.empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );

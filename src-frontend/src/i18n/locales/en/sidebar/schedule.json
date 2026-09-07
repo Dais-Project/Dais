@@ -1,0 +1,52 @@
+{
+  "dialog": {
+    "delete_description_with_name": "Are you sure you want to delete schedule \"{{name}}\"? This action cannot be undone."
+  },
+  "empty": {
+    "description": "You haven't created any schedules yet.",
+    "no_workspace": {
+      "description": "Please select a workspace first to view schedules.",
+      "title": "No workspace selected"
+    },
+    "title": "No schedules"
+  },
+  "header": {
+    "create_tooltip": "Create new schedule",
+    "history_tooltip": "View all execution histories",
+    "search_placeholder": "Search schedules...",
+    "title": "Schedules"
+  },
+  "list": {
+    "delayed_description_with_datetime": "Run at {{datetime}}",
+    "polling_description_with_duration": "Run every {{duration}}"
+  },
+  "menu": {
+    "delete": "Delete",
+    "edit": "Edit schedule",
+    "run_now": "Run now",
+    "view_records": "View records"
+  },
+  "running": {
+    "cancel": "Cancel",
+    "description_with_created_at": "Started {{time}}",
+    "empty": {
+      "description": "There are no running schedule tasks right now.",
+      "title": "No running tasks"
+    },
+    "title": "Running"
+  },
+  "tab": {
+    "all_records_title": "Execution history",
+    "create_title": "Create schedule",
+    "edit_title_with_name": "Edit: {{name}}",
+    "records_title_with_name": "Run records: {{name}}"
+  },
+  "toast": {
+    "cancel_run_success_description": "Schedule execution cancelled successfully.",
+    "cancel_run_success_title": "Cancelled",
+    "delete_success_description": "Schedule deleted successfully.",
+    "delete_success_title": "Delete success",
+    "run_now_success_description": "Schedule run has been triggered.",
+    "run_now_success_title": "Triggered"
+  }
+}

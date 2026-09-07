@@ -6,7 +6,7 @@ import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { isTauri } from "@/lib/tauri";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
 import { BrowserLoginCodeSetting } from "./BrowserLoginCodeSetting";
@@ -17,7 +17,7 @@ function isValidRemoteAccessPort(value: number) {
 }
 
 export function RemoteAccessSettings() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const { current: serverSettings, setPartial: setPartialServerSettings } =
     useServerSettingsStore();
   const [localSettings, setLocalSettings] = useState(serverSettings);
@@ -66,7 +66,7 @@ export function RemoteAccessSettings() {
 
   return (
     <div className="px-4 py-2">
-      <SettingItem title={t("settings.remote_access.enabled.title")}>
+      <SettingItem title={t("remote_access.enabled.title")}>
         {localSettings === null ? (
           <Skeleton className="h-4.5 w-8" />
         ) : (
@@ -80,7 +80,7 @@ export function RemoteAccessSettings() {
         )}
       </SettingItem>
 
-      <SettingItem title={t("settings.remote_access.port.title")}>
+      <SettingItem title={t("remote_access.port.title")}>
         {localSettings === null ? (
           <Skeleton className="h-9 w-24" />
         ) : (

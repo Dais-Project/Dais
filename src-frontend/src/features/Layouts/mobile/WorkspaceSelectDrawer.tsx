@@ -27,7 +27,11 @@ import {
   PAGINATED_QUERY_DEFAULT_OPTIONS,
   SIDEBAR_QUERY_GC_TIME,
 } from "@/constants/query-options";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import {
+  SIDEBAR_NAMESPACE,
+  SIDEBAR_TASK_NAMESPACE,
+  SIDEBAR_WORKSPACE_NAMESPACE,
+} from "@/i18n/resources";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { NavigationListItem } from "./components/NavigationListItem";
 import { WorkspaceItemVariant } from "@/features/SideBar/views/WorkspacesView/types";
@@ -64,7 +68,7 @@ function WorkspaceOption({
 }
 
 function WorkspaceSelectionList({ onSelected }: { onSelected: () => void }) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation([SIDEBAR_NAMESPACE, SIDEBAR_WORKSPACE_NAMESPACE]);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
   const isLoading = useWorkspaceStore((state) => state.isLoading);
@@ -112,8 +116,10 @@ function WorkspaceSelectionList({ onSelected }: { onSelected: () => void }) {
     return (
       <Empty className="h-full rounded-none">
         <EmptyContent>
-          <EmptyTitle>{t("workspaces.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("workspaces.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("empty.title", { ns: SIDEBAR_WORKSPACE_NAMESPACE })}</EmptyTitle>
+          <EmptyDescription>
+            {t("empty.description", { ns: SIDEBAR_WORKSPACE_NAMESPACE })}
+          </EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -154,7 +160,7 @@ function WorkspaceSelectionList({ onSelected }: { onSelected: () => void }) {
 }
 
 export function WorkspaceSelectDrawer() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation([SIDEBAR_NAMESPACE, SIDEBAR_TASK_NAMESPACE]);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -167,7 +173,8 @@ export function WorkspaceSelectDrawer() {
         >
           <FolderIcon className="size-5 shrink-0" fill="currentColor" />
           <span className="min-w-0 flex-1 truncate font-medium text-sm">
-            {currentWorkspace?.name ?? t("tasks.empty.no_workspace.title")}
+            {currentWorkspace?.name ??
+              t("empty.no_workspace.title", { ns: SIDEBAR_TASK_NAMESPACE })}
           </span>
           <ChevronsUpDownIcon className="size-5 shrink-0 text-muted-foreground" />
         </button>

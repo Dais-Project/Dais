@@ -1,0 +1,147 @@
+{
+  "about": {
+    "author": {
+      "title": "Author"
+    },
+    "version": {
+      "title": "Version"
+    }
+  },
+  "agents": {
+    "smart_approve": {
+      "title": "Smart approve"
+    },
+    "smart_approve_threshold": {
+      "title": "Smart approve threshold"
+    },
+    "smart_approve_timeout": {
+      "title": "Smart approve timeout (seconds)"
+    }
+  },
+  "dev": {
+    "devtools": {
+      "open_button": "Open",
+      "title": "Developer tools"
+    }
+  },
+  "general": {
+    "auto_delete": {
+      "options": {
+        "days_7": "7 days",
+        "days_14": "14 days",
+        "days_30": "30 days",
+        "days_60": "60 days",
+        "days_180": "180 days",
+        "days_360": "360 days",
+        "disabled": "Disabled"
+      },
+      "placeholder": "Select retention period",
+      "schedule_run_record": {
+        "title": "Auto-delete scheduled task records"
+      },
+      "task": {
+        "title": "Auto-delete old tasks"
+      }
+    },
+    "autostart": {
+      "title": "Launch at startup",
+      "toast": {
+        "load_error": "Failed to load launch at startup status.",
+        "update_error": "Failed to update launch at startup status."
+      }
+    },
+    "language": {
+      "placeholder": "Select language",
+      "title": "Language"
+    },
+    "reply_language": {
+      "placeholder": "Select language",
+      "title": "Model reply language"
+    },
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "placeholder": "Select theme",
+      "system": "System",
+      "title": "Theme"
+    }
+  },
+  "header": {
+    "title": "Settings"
+  },
+  "helper_model": {
+    "flash_model": {
+      "title": "Flash model"
+    }
+  },
+  "providers": {
+    "actions": {
+      "add": "Add"
+    },
+    "dialog": {
+      "delete_description_with_name": "Are you sure you want to delete provider \"{{name}}\"? This action cannot be undone."
+    },
+    "empty": {
+      "description": "No providers configured yet.",
+      "title": "No model providers"
+    },
+    "list": {
+      "delete_provider_title": "Delete",
+      "edit_provider_title": "Edit provider",
+      "model_count_with_count_one": "",
+      "model_count_with_count_other": ""
+    },
+    "tab": {
+      "create_title": "Add provider",
+      "edit_title_with_name": "Edit: {{name}}"
+    },
+    "toast": {
+      "delete_success_description": "Provider deleted successfully.",
+      "delete_success_title": "Delete success"
+    }
+  },
+  "remote_access": {
+    "enabled": {
+      "title": "Enable remote access"
+    },
+    "login_code": {
+      "expired": "Login code expired",
+      "generate_button": "Generate login code",
+      "title": "Browser login code",
+      "toast": {
+        "generate_error": "Failed to generate browser login code."
+      }
+    },
+    "logout": {
+      "button": "Log out",
+      "title": "Browser session",
+      "toast": {
+        "error": "Failed to log out."
+      }
+    },
+    "port": {
+      "title": "Remote access port"
+    }
+  },
+  "shortcuts": {
+    "close_tab": {
+      "title": "Close current tab"
+    },
+    "new_task": {
+      "title": "Create new task"
+    },
+    "toggle_sidebar": {
+      "title": "Toggle sidebar"
+    }
+  },
+  "tabs": {
+    "about": "About",
+    "agents": "Agents",
+    "dev": "Development",
+    "general": "General",
+    "helper_model": "Helper model",
+    "providers": "Model providers",
+    "remote_access": "Remote access",
+    "shortcuts": "Shortcuts"
+  }
+}

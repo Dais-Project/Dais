@@ -11,7 +11,7 @@ import {
   DialogStepperTitle,
 } from "@/components/ui/dialog-stepper";
 import { Input } from "@/components/ui/input";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SKILL_NAMESPACE } from "@/i18n/resources";
 
 function isValidGithubRepoUrl(value: string): boolean {
   if (!isURL(value, { protocols: ["http", "https"], require_protocol: true })) {
@@ -35,7 +35,7 @@ type InstallFromGithubStep1Props = {
 };
 
 export function InstallFromGithubStep1({ onNext }: InstallFromGithubStep1Props) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SKILL_NAMESPACE);
   const scanMutation = useScanRepoSkills();
   const [repoUrl, setRepoUrl] = useState("");
   const canScan = isValidGithubRepoUrl(repoUrl.trim()) && !scanMutation.isPending;
@@ -52,8 +52,8 @@ export function InstallFromGithubStep1({ onNext }: InstallFromGithubStep1Props) 
   return (
     <>
       <DialogStepperHeader>
-        <DialogStepperTitle>{t("skills.dialog.install_github.step1_title")}</DialogStepperTitle>
-        <DialogStepperDescription>{t("skills.dialog.install_github.step1_description")}</DialogStepperDescription>
+        <DialogStepperTitle>{t("dialog.install_github.step1_title")}</DialogStepperTitle>
+        <DialogStepperDescription>{t("dialog.install_github.step1_description")}</DialogStepperDescription>
       </DialogStepperHeader>
 
       <Input
@@ -61,7 +61,7 @@ export function InstallFromGithubStep1({ onNext }: InstallFromGithubStep1Props) 
         value={repoUrl}
         className="mt-4"
         onChange={(event) => setRepoUrl(event.target.value)}
-        placeholder={t("skills.dialog.install_github.repo_url_placeholder")}
+        placeholder={t("dialog.install_github.repo_url_placeholder")}
         disabled={scanMutation.isPending}
         onKeyDown={(event) => {
           if (event.key === "Enter" && canScan) {
@@ -74,8 +74,8 @@ export function InstallFromGithubStep1({ onNext }: InstallFromGithubStep1Props) 
       <DialogStepperFooter className="mt-4">
         <Button disabled={!canScan} onClick={handleScan}>
           {scanMutation.isPending
-            ? t("skills.dialog.install_github.scanning")
-            : t("skills.dialog.install_github.scan")}
+            ? t("dialog.install_github.scanning")
+            : t("dialog.install_github.scan")}
         </Button>
       </DialogStepperFooter>
     </>

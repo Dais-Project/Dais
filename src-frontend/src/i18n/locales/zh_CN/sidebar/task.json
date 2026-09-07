@@ -1,0 +1,32 @@
+{
+  "dialog": {
+    "delete_description_with_name": "确定要删除任务 \"{{name}}\" 吗？此操作无法撤销。"
+  },
+  "empty": {
+    "description": "您还没有创建任何任务。",
+    "no_workspace": {
+      "description": "请先选择一个工作区以查看任务。",
+      "title": "未选择工作区"
+    },
+    "title": "暂无任务"
+  },
+  "header": {
+    "create_tooltip": "创建任务",
+    "search_placeholder": "搜索任务...",
+    "title": "任务"
+  },
+  "menu": {
+    "delete": "删除",
+    "regenerate_title": "重新生成标题"
+  },
+  "recent": {
+    "empty": {
+      "description": "你最近的任务会显示在这里。",
+      "title": "暂无最近任务"
+    }
+  },
+  "toast": {
+    "delete_success_description": "已成功删除任务。",
+    "delete_success_title": "删除成功"
+  }
+}

@@ -19,14 +19,14 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_TASK_NAMESPACE } from "@/i18n/resources";
 import { updateTaskTitle } from "@/features/resource/task-actions";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { TaskItem, openTaskTab, removeTaskTab } from "./shared";
 import { useRunningTasks } from "./use-running-tasks";
 
 export function RecentTaskList() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TASK_NAMESPACE);
   const queryClient = useQueryClient();
 
   const summarizeTaskTitleMutation = useSummarizeTaskTitle({
@@ -45,8 +45,8 @@ export function RecentTaskList() {
         queryClient.removeQueries({
           queryKey: getGetTaskQueryKey(variables.taskId),
         });
-        toast.success(t("tasks.toast.delete_success_title"), {
-          description: t("tasks.toast.delete_success_description"),
+        toast.success(t("toast.delete_success_title"), {
+          description: t("toast.delete_success_description"),
         });
       },
     },
@@ -80,9 +80,9 @@ export function RecentTaskList() {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("tasks.recent.empty.title")}</EmptyTitle>
+          <EmptyTitle>{t("recent.empty.title")}</EmptyTitle>
           <EmptyDescription>
-            {t("tasks.recent.empty.description")}
+            {t("recent.empty.description")}
           </EmptyDescription>
         </EmptyContent>
       </Empty>
@@ -114,7 +114,7 @@ export function RecentTaskList() {
 
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("tasks.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.title ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

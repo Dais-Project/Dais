@@ -13,7 +13,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import type { WorkspaceItemVariant } from "./types";
 import { WorkspaceItem } from "./WorkspaceItem";
@@ -86,16 +86,16 @@ export function WorkspaceViewList({
   onSelect,
   onDelete,
 }: WorkspaceDefaultListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_WORKSPACE_NAMESPACE);
   const { items, query } = useWorkspaceListItems();
 
   if (items.length === 0 && !currentWorkspace) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("workspaces.empty.title")}</EmptyTitle>
+          <EmptyTitle>{t("empty.title")}</EmptyTitle>
           <EmptyDescription>
-            {t("workspaces.empty.description")}
+            {t("empty.description")}
           </EmptyDescription>
         </EmptyContent>
       </Empty>

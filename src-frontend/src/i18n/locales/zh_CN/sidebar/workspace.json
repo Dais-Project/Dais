@@ -1,0 +1,31 @@
+{
+  "dialog": {
+    "delete_description_with_name": "确定要删除工作区 \"{{name}}\" 吗？此操作无法撤销。"
+  },
+  "empty": {
+    "description": "您还没有创建任何工作区。",
+    "title": "暂无工作区"
+  },
+  "header": {
+    "create_tooltip": "创建工作区",
+    "search_placeholder": "搜索工作区...",
+    "title": "工作区"
+  },
+  "menu": {
+    "create_task": "在此工作区中创建任务",
+    "delete": "删除",
+    "edit": "编辑工作区",
+    "edit_notes": "编辑工作区笔记",
+    "open_in_file_manager": "在文件管理器中打开",
+    "select": "设为当前工作区"
+  },
+  "tab": {
+    "create_title": "创建工作区",
+    "edit_notes_title_with_name": "笔记：{{name}}",
+    "edit_title_with_name": "编辑：{{name}}"
+  },
+  "toast": {
+    "delete_success_description": "已成功删除工作区。",
+    "delete_success_title": "删除成功"
+  }
+}

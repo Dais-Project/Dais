@@ -1,6 +1,6 @@
 import { use } from "react";
 import { useTranslation } from "react-i18next";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { ModelSelectDialog } from "@/components/custom/dialog/resource-dialog/ModelSelectDialog";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
@@ -22,14 +22,14 @@ function HelperModelSettingsSuspense() {
 }
 
 export function HelperModelSettings() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const reload = useServerSettingsStore((s) => s.reload);
 
   return (
     <div className="px-4 py-2">
       <AsyncBoundary
         skeleton={(
-          <SettingItem title={t("settings.helper_model.flash_model.title")}>
+          <SettingItem title={t("helper_model.flash_model.title")}>
             <Skeleton className="h-9 w-24" />
           </SettingItem>
         )}
@@ -43,7 +43,7 @@ export function HelperModelSettings() {
           />
         )}
       >
-        <SettingItem title={t("settings.helper_model.flash_model.title")}>
+        <SettingItem title={t("helper_model.flash_model.title")}>
           <HelperModelSettingsSuspense />
         </SettingItem>
       </AsyncBoundary>

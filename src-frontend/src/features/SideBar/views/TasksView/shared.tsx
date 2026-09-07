@@ -11,7 +11,7 @@ import {
   ActionableItemMenuItem,
   ActionableItemTrigger,
 } from "@/components/custom/item/ActionableItem";
-import { SIDEBAR_NAMESPACE, TABS_TASK_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_TASK_NAMESPACE, TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { i18n } from "@/i18n";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -86,7 +86,7 @@ export function TaskItem({
   onDelete,
   onRegenerateTitle,
 }: TaskItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TASK_NAMESPACE);
   const { language } = useSettingsStore((state) => state.current);
 
   return (
@@ -122,11 +122,11 @@ export function TaskItem({
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={() => onRegenerateTitle(task)}>
           <RefreshCwIcon />
-          <span>{t("tasks.menu.regenerate_title")}</span>
+          <span>{t("menu.regenerate_title")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem variant="destructive" onClick={() => onDelete(task)}>
           <TrashIcon />
-          <span>{t("tasks.menu.delete")}</span>
+          <span>{t("menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>

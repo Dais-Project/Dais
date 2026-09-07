@@ -27,7 +27,7 @@ import {
 import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SKILL_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
 import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
@@ -35,8 +35,8 @@ import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 function createSkillEditTab(skillId: number, skillName: string): Tab {
   return {
     type: "skill",
-    title: i18n.t("skills.tab.edit_title_with_name", {
-      ns: SIDEBAR_NAMESPACE,
+    title: i18n.t("tab.edit_title_with_name", {
+      ns: SIDEBAR_SKILL_NAMESPACE,
       name: skillName,
     }),
     icon: "scroll-text",
@@ -73,7 +73,7 @@ type SkillItemProps = {
 };
 
 function SkillItem({ skill, index, ref, onDelete }: SkillItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SKILL_NAMESPACE);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,20 +88,20 @@ function SkillItem({ skill, index, ref, onDelete }: SkillItemProps) {
         </ActionableItemIcon>
         <ActionableItemInfo
           title={skill.name}
-          description={skill.description || t("skills.list.no_description")}
+          description={skill.description || t("list.no_description")}
         />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
-          <span>{t("skills.menu.edit")}</span>
+          <span>{t("menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem
           variant="destructive"
           onClick={() => onDelete?.(skill)}
         >
           <TrashIcon />
-          <span>{t("skills.menu.delete")}</span>
+          <span>{t("menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -113,7 +113,7 @@ type SkillListProps = {
 };
 
 export function SkillList({ searchQuery }: SkillListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SKILL_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetSkillsSuspenseInfinite(
@@ -136,8 +136,8 @@ export function SkillList({ searchQuery }: SkillListProps) {
             tab.metadata.id === variables.skillId,
         );
         await invalidateSkillQueries(variables.skillId);
-        toast.success(t("skills.toast.delete_success_title"), {
-          description: t("skills.toast.delete_success_description"),
+        toast.success(t("toast.delete_success_title"), {
+          description: t("toast.delete_success_description"),
         });
       },
     },
@@ -158,8 +158,8 @@ export function SkillList({ searchQuery }: SkillListProps) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("skills.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("skills.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -186,7 +186,7 @@ export function SkillList({ searchQuery }: SkillListProps) {
       />
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("skills.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.name ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

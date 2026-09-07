@@ -7,21 +7,21 @@ import {
 } from "@/api/auth";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Button } from "@/components/ui/button";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 
 export function BrowserLogoutSetting() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const { mutate: logout, isPending } = useDeleteAuthSession({
     mutation: {
       onSuccess: () => resetAuthSessionQuery(),
       onError: () => {
-        toast.error(t("settings.remote_access.logout.toast.error"));
+        toast.error(t("remote_access.logout.toast.error"));
       },
     },
   });
 
   return (
-    <SettingItem title={t("settings.remote_access.logout.title")}>
+    <SettingItem title={t("remote_access.logout.title")}>
       <Button
         type="button"
         variant="destructive"
@@ -29,7 +29,7 @@ export function BrowserLogoutSetting() {
         disabled={isPending}
       >
         <LogOutIcon />
-        {t("settings.remote_access.logout.button")}
+        {t("remote_access.logout.button")}
       </Button>
     </SettingItem>
   );

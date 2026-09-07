@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useCreateLoginCode } from "@/api/auth";
 import { SettingItem } from "@/components/custom/item/SettingItem";
 import { Button } from "@/components/ui/button";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { RotateCcwIcon } from "lucide-react";
 
 type LoginCodeState = {
@@ -13,7 +13,7 @@ type LoginCodeState = {
 } | null;
 
 function useBrowserLoginCode() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const [loginCode, setLoginCode] = useState<LoginCodeState>(null);
   const [expired, setExpired] = useState(false);
   const { mutate: generateLoginCode, isPending } = useCreateLoginCode({
@@ -24,7 +24,7 @@ function useBrowserLoginCode() {
       },
       onError: () => {
         toast.error(
-          t("settings.remote_access.login_code.toast.generate_error"),
+          t("remote_access.login_code.toast.generate_error"),
         );
       },
     },
@@ -64,7 +64,7 @@ function BrowserLoginCodeSettingContent({
   code,
   expired,
 }: BrowserLoginCodeSettingContentProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   if (code === null) return null;
   return (
     <div className="text-right">
@@ -73,7 +73,7 @@ function BrowserLoginCodeSettingContent({
       </div>
       {expired && (
         <div className="text-muted-foreground text-xs">
-          {t("settings.remote_access.login_code.expired")}
+          {t("remote_access.login_code.expired")}
         </div>
       )}
     </div>
@@ -81,13 +81,13 @@ function BrowserLoginCodeSettingContent({
 }
 
 export function BrowserLoginCodeSetting() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
   const { code, expired, generateLoginCode, isPending } =
     useBrowserLoginCode();
 
   return (
     <SettingItem
-      title={t("settings.remote_access.login_code.title")}
+      title={t("remote_access.login_code.title")}
       contentClassName="gap-3"
     >
       <BrowserLoginCodeSettingContent code={code} expired={expired} />
@@ -98,7 +98,7 @@ export function BrowserLoginCodeSetting() {
         disabled={isPending}
       >
         {code === null
-          ? t("settings.remote_access.login_code.generate_button")
+          ? t("remote_access.login_code.generate_button")
           : <RotateCcwIcon />}
       </Button>
     </SettingItem>

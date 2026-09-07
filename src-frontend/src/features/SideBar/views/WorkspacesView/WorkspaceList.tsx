@@ -7,7 +7,7 @@ import {
 } from "@/api/workspace";
 import { ConfirmDeleteDialog } from "@/components/custom/dialog/ConfirmDeteteDialog";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_WORKSPACE_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { WorkspaceSearchList } from "./WorkspaceSearchList";
@@ -18,7 +18,7 @@ type WorkspaceListProps = {
 };
 
 export function WorkspaceList({ searchQuery }: WorkspaceListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_WORKSPACE_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
   const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrent);
@@ -44,8 +44,8 @@ export function WorkspaceList({ searchQuery }: WorkspaceListProps) {
           await setCurrentWorkspace(null);
         }
 
-        toast.success(t("workspaces.toast.delete_success_title"), {
-          description: t("workspaces.toast.delete_success_description"),
+        toast.success(t("toast.delete_success_title"), {
+          description: t("toast.delete_success_description"),
         });
       },
     },
@@ -75,7 +75,7 @@ export function WorkspaceList({ searchQuery }: WorkspaceListProps) {
       {List}
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("workspaces.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.name ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

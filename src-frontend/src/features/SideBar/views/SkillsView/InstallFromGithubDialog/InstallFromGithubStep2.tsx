@@ -12,7 +12,7 @@ import {
   DialogStepperTitle,
 } from "@/components/ui/dialog-stepper";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SKILL_NAMESPACE } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 
 type InstallableSkillProps = {
@@ -23,7 +23,7 @@ type InstallableSkillProps = {
 };
 
 function InstallableSkill({ checked, disabled, onCheckedChange, skill }: InstallableSkillProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SKILL_NAMESPACE);
 
   return (
     <div
@@ -41,7 +41,7 @@ function InstallableSkill({ checked, disabled, onCheckedChange, skill }: Install
       <div className="min-w-0 flex-1 space-y-1">
         <div className="truncate font-medium text-sm">{skill.name}</div>
         <div className="line-clamp-2 text-muted-foreground text-xs">
-          {skill.description || t("skills.list.no_description")}
+          {skill.description || t("list.no_description")}
         </div>
       </div>
     </div>
@@ -55,7 +55,7 @@ type InstallFromGithubStep2Props = {
 };
 
 export function InstallFromGithubStep2({ repoUrl, scannedSkills, onSuccess }: InstallFromGithubStep2Props) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SKILL_NAMESPACE);
   const installMutation = useInstallFromGithub();
   const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
   const allSelected = scannedSkills.length > 0 && selectedPaths.length === scannedSkills.length;
@@ -92,8 +92,8 @@ export function InstallFromGithubStep2({ repoUrl, scannedSkills, onSuccess }: In
     }, {
       async onSuccess(skills) {
         await invalidateSkillQueries();
-        toast.success(t("skills.toast.install_github_success_title"), {
-          description: t("skills.toast.install_github_success_description", {
+        toast.success(t("toast.install_github_success_title"), {
+          description: t("toast.install_github_success_description", {
             count: skills.length,
           }),
         });
@@ -105,13 +105,13 @@ export function InstallFromGithubStep2({ repoUrl, scannedSkills, onSuccess }: In
   return (
     <>
       <DialogStepperHeader>
-        <DialogStepperTitle>{t("skills.dialog.install_github.step2_title")}</DialogStepperTitle>
+        <DialogStepperTitle>{t("dialog.install_github.step2_title")}</DialogStepperTitle>
       </DialogStepperHeader>
 
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground text-sm">
-            {t("skills.dialog.install_github.selected_count", {
+            {t("dialog.install_github.selected_count", {
               count: selectedPaths.length,
             })}
           </span>
@@ -123,14 +123,14 @@ export function InstallFromGithubStep2({ repoUrl, scannedSkills, onSuccess }: In
             disabled={scannedSkills.length === 0}
           >
             {allSelected
-              ? t("skills.dialog.install_github.deselect_all")
-              : t("skills.dialog.install_github.select_all")}
+              ? t("dialog.install_github.deselect_all")
+              : t("dialog.install_github.select_all")}
           </Button>
         </div>
 
         <ScrollArea className="h-64 rounded-md border">
           {scannedSkills.length === 0 ? (
-            <div className="p-4 text-muted-foreground text-sm">{t("skills.dialog.install_github.empty")}</div>
+            <div className="p-4 text-muted-foreground text-sm">{t("dialog.install_github.empty")}</div>
           ) : (
             <div className="divide-y">
               {scannedSkills.map((skill) => {
@@ -152,12 +152,12 @@ export function InstallFromGithubStep2({ repoUrl, scannedSkills, onSuccess }: In
 
       <DialogStepperFooter className="mt-4">
         <DialogStepperPrevious variant="outline">
-          {t("skills.dialog.install_github.back")}
+          {t("dialog.install_github.back")}
         </DialogStepperPrevious>
         <Button disabled={!canInstall} onClick={handleInstall}>
           {installMutation.isPending
-            ? t("skills.dialog.install_github.installing")
-            : t("skills.dialog.install_github.install")}
+            ? t("dialog.install_github.installing")
+            : t("dialog.install_github.install")}
         </Button>
       </DialogStepperFooter>
     </>

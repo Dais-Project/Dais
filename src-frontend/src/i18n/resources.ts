@@ -8,7 +8,14 @@ import enComponentsUi from "./locales/en/components/ui.json";
 import enDialog from "./locales/en/dialog.json";
 import enError from "./locales/en/error.json";
 import enForm from "./locales/en/form.json";
-import enSideBar from "./locales/en/sidebar.json";
+import enSidebarAgent from "./locales/en/sidebar/agent.json";
+import enSidebar from "./locales/en/sidebar/index.json";
+import enSidebarSchedule from "./locales/en/sidebar/schedule.json";
+import enSidebarSettings from "./locales/en/sidebar/settings.json";
+import enSidebarSkill from "./locales/en/sidebar/skill.json";
+import enSidebarTask from "./locales/en/sidebar/task.json";
+import enSidebarToolset from "./locales/en/sidebar/toolset.json";
+import enSidebarWorkspace from "./locales/en/sidebar/workspace.json";
 import enTabsAgent from "./locales/en/tabs/agent.json";
 import enTabs from "./locales/en/tabs/index.json";
 import enTabsProvider from "./locales/en/tabs/provider.json";
@@ -25,7 +32,14 @@ import zhCnComponentsUi from "./locales/zh_CN/components/ui.json";
 import zhCnDialog from "./locales/zh_CN/dialog.json";
 import zhCnError from "./locales/zh_CN/error.json";
 import zhCnForm from "./locales/zh_CN/form.json";
-import zhCnSideBar from "./locales/zh_CN/sidebar.json";
+import zhCnSidebarAgent from "./locales/zh_CN/sidebar/agent.json";
+import zhCnSidebar from "./locales/zh_CN/sidebar/index.json";
+import zhCnSidebarSchedule from "./locales/zh_CN/sidebar/schedule.json";
+import zhCnSidebarSettings from "./locales/zh_CN/sidebar/settings.json";
+import zhCnSidebarSkill from "./locales/zh_CN/sidebar/skill.json";
+import zhCnSidebarTask from "./locales/zh_CN/sidebar/task.json";
+import zhCnSidebarToolset from "./locales/zh_CN/sidebar/toolset.json";
+import zhCnSidebarWorkspace from "./locales/zh_CN/sidebar/workspace.json";
 import zhCnTabsAgent from "./locales/zh_CN/tabs/agent.json";
 import zhCnTabs from "./locales/zh_CN/tabs/index.json";
 import zhCnTabsProvider from "./locales/zh_CN/tabs/provider.json";
@@ -38,7 +52,14 @@ import zhCnTabsWorkspace from "./locales/zh_CN/tabs/workspace.json";
 export const FORM_NAMESPACE = "form";
 export const BROWSER_AUTH_NAMESPACE = "browser-auth";
 export const DIALOG_NAMESPACE = "dialog";
-export const SIDEBAR_NAMESPACE = "sidebar";
+export const SIDEBAR_NAMESPACE = "sidebar/index";
+export const SIDEBAR_AGENT_NAMESPACE = "sidebar/agent";
+export const SIDEBAR_SCHEDULE_NAMESPACE = "sidebar/schedule";
+export const SIDEBAR_SETTINGS_NAMESPACE = "sidebar/settings";
+export const SIDEBAR_SKILL_NAMESPACE = "sidebar/skill";
+export const SIDEBAR_TASK_NAMESPACE = "sidebar/task";
+export const SIDEBAR_TOOLSET_NAMESPACE = "sidebar/toolset";
+export const SIDEBAR_WORKSPACE_NAMESPACE = "sidebar/workspace";
 export const TABS_NAMESPACE = "tabs/index";
 export const TABS_AGENT_NAMESPACE = "tabs/agent";
 export const TABS_PROVIDER_NAMESPACE = "tabs/provider";
@@ -61,8 +82,15 @@ export const resources: Resource = {
     [BROWSER_AUTH_NAMESPACE]: enBrowserAuth,
     [FORM_NAMESPACE]: enForm,
     [DIALOG_NAMESPACE]: enDialog,
+    [SIDEBAR_NAMESPACE]: enSidebar,
+    [SIDEBAR_AGENT_NAMESPACE]: enSidebarAgent,
+    [SIDEBAR_SCHEDULE_NAMESPACE]: enSidebarSchedule,
+    [SIDEBAR_SETTINGS_NAMESPACE]: enSidebarSettings,
+    [SIDEBAR_SKILL_NAMESPACE]: enSidebarSkill,
+    [SIDEBAR_TASK_NAMESPACE]: enSidebarTask,
+    [SIDEBAR_TOOLSET_NAMESPACE]: enSidebarToolset,
+    [SIDEBAR_WORKSPACE_NAMESPACE]: enSidebarWorkspace,
     [TABS_NAMESPACE]: enTabs,
-    [SIDEBAR_NAMESPACE]: enSideBar,
     [TABS_AGENT_NAMESPACE]: enTabsAgent,
     [TABS_PROVIDER_NAMESPACE]: enTabsProvider,
     [TABS_SKILL_NAMESPACE]: enTabsSkill,
@@ -80,7 +108,14 @@ export const resources: Resource = {
     [BROWSER_AUTH_NAMESPACE]: zhCnBrowserAuth,
     [FORM_NAMESPACE]: zhCnForm,
     [DIALOG_NAMESPACE]: zhCnDialog,
-    [SIDEBAR_NAMESPACE]: zhCnSideBar,
+    [SIDEBAR_NAMESPACE]: zhCnSidebar,
+    [SIDEBAR_AGENT_NAMESPACE]: zhCnSidebarAgent,
+    [SIDEBAR_SCHEDULE_NAMESPACE]: zhCnSidebarSchedule,
+    [SIDEBAR_SETTINGS_NAMESPACE]: zhCnSidebarSettings,
+    [SIDEBAR_SKILL_NAMESPACE]: zhCnSidebarSkill,
+    [SIDEBAR_TASK_NAMESPACE]: zhCnSidebarTask,
+    [SIDEBAR_TOOLSET_NAMESPACE]: zhCnSidebarToolset,
+    [SIDEBAR_WORKSPACE_NAMESPACE]: zhCnSidebarWorkspace,
     [TABS_NAMESPACE]: zhCnTabs,
     [TABS_AGENT_NAMESPACE]: zhCnTabsAgent,
     [TABS_PROVIDER_NAMESPACE]: zhCnTabsProvider,

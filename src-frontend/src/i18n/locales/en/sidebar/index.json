@@ -1,0 +1,28 @@
+{
+  "mobile": {
+    "navigation": "Navigation",
+    "open_navigation": "Open navigation",
+    "opened": "Opened",
+    "select_workspace": "Select workspace",
+    "workspace_select_error": "Failed to select workspace.",
+    "workspace_tasks": "Workspace tasks"
+  },
+  "plugins": {
+    "placeholder": "Plugins view"
+  },
+  "activity_bar": {
+    "tasks": "Tasks",
+    "schedules": "Schedules",
+    "workspaces": "Workspaces",
+    "agents": "Agents",
+    "toolsets": "Toolsets",
+    "skills": "Skills",
+    "settings": "Settings"
+  },
+  "search": {
+    "empty": {
+      "description": "No resources match \"{{query}}\". Try a different search term.",
+      "title": "No matching results"
+    }
+  }
+}

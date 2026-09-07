@@ -1,0 +1,32 @@
+{
+  "dialog": {
+    "delete_description_with_name": "Are you sure you want to delete task \"{{name}}\"? This action cannot be undone."
+  },
+  "empty": {
+    "description": "You haven't created any tasks yet.",
+    "no_workspace": {
+      "description": "Please select a workspace first to view tasks.",
+      "title": "No workspace selected"
+    },
+    "title": "No tasks"
+  },
+  "header": {
+    "create_tooltip": "Create new task",
+    "search_placeholder": "Search tasks...",
+    "title": "Tasks"
+  },
+  "menu": {
+    "delete": "Delete",
+    "regenerate_title": "Regenerate title"
+  },
+  "recent": {
+    "empty": {
+      "description": "Your recent tasks will appear here.",
+      "title": "No recent tasks"
+    }
+  },
+  "toast": {
+    "delete_success_description": "Task deleted successfully.",
+    "delete_success_title": "Delete success"
+  }
+}

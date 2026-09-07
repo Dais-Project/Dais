@@ -28,7 +28,7 @@ import {
 import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_AGENT_NAMESPACE } from "@/i18n/resources";
 import { resolveIconName } from "@/lib/resolve-iconname";
 import { useTabsStore } from "@/stores/tabs-store";
 import type { Tab } from "@/types/tab";
@@ -37,8 +37,8 @@ import { SideBarSearchEmpty } from "../../components/SideBarSearchEmpty";
 function createAgentEditTab(agentId: number, agentName: string): Tab {
   return {
     type: "agent",
-    title: i18n.t("agents.tab.edit_title_with_name", {
-      ns: SIDEBAR_NAMESPACE,
+    title: i18n.t("tab.edit_title_with_name", {
+      ns: SIDEBAR_AGENT_NAMESPACE,
       name: agentName,
     }),
     icon: "bot",
@@ -80,7 +80,7 @@ type AgentItemProps = {
 };
 
 function AgentItem({ agent, index, ref, onDelete }: AgentItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_AGENT_NAMESPACE);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -97,20 +97,20 @@ function AgentItem({ agent, index, ref, onDelete }: AgentItemProps) {
         </ActionableItemIcon>
         <ActionableItemInfo
           title={agent.name}
-          description={agent.model?.name ?? t("agents.list.no_model")}
+          description={agent.model?.name ?? t("list.no_model")}
         />
       </ActionableItemTrigger>
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={handleEdit}>
           <PencilIcon />
-          <span>{t("agents.menu.edit")}</span>
+          <span>{t("menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem
           variant="destructive"
           onClick={() => onDelete?.(agent)}
         >
           <TrashIcon />
-          <span>{t("agents.menu.delete")}</span>
+          <span>{t("menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -122,7 +122,7 @@ type AgentListProps = {
 };
 
 export function AgentList({ searchQuery }: AgentListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_AGENT_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetAgentsSuspenseInfinite(
@@ -145,8 +145,8 @@ export function AgentList({ searchQuery }: AgentListProps) {
             tab.metadata.id === variables.agentId,
         );
         await invalidateAgentQueries(variables.agentId);
-        toast.success(t("agents.toast.delete_success_title"), {
-          description: t("agents.toast.delete_success_description"),
+        toast.success(t("toast.delete_success_title"), {
+          description: t("toast.delete_success_description"),
         });
       },
     },
@@ -167,8 +167,8 @@ export function AgentList({ searchQuery }: AgentListProps) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("agents.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("agents.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -195,7 +195,7 @@ export function AgentList({ searchQuery }: AgentListProps) {
       />
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("agents.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.name ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

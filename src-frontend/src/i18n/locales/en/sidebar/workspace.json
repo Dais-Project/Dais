@@ -1,0 +1,31 @@
+{
+  "dialog": {
+    "delete_description_with_name": "Are you sure you want to delete workspace \"{{name}}\"? This action cannot be undone."
+  },
+  "empty": {
+    "description": "You haven't created any workspaces yet.",
+    "title": "No workspaces"
+  },
+  "header": {
+    "create_tooltip": "Create new workspace",
+    "search_placeholder": "Search workspaces...",
+    "title": "Workspaces"
+  },
+  "menu": {
+    "create_task": "Create task in workspace",
+    "delete": "Delete",
+    "edit": "Edit workspace",
+    "edit_notes": "Edit workspace notes",
+    "open_in_file_manager": "Open in file manager",
+    "select": "Set as current"
+  },
+  "tab": {
+    "create_title": "Create workspace",
+    "edit_notes_title_with_name": "Notes: {{name}}",
+    "edit_title_with_name": "Edit: {{name}}"
+  },
+  "toast": {
+    "delete_success_description": "Workspace deleted successfully.",
+    "delete_success_title": "Delete success"
+  }
+}

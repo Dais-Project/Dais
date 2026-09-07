@@ -18,7 +18,7 @@ import {
 import { openTaskTab } from "@/features/SideBar/views/TasksView/shared";
 import { useRunningTasks } from "@/features/SideBar/views/TasksView/use-running-tasks";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_TASK_NAMESPACE } from "@/i18n/resources";
 import { resolveIconName } from "@/lib/resolve-iconname";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -72,7 +72,7 @@ function TaskItem({ task, index, ref, workspaceId, isRunning }: TaskItemProps) {
 }
 
 function WorkspaceTaskList({ workspaceId }: { workspaceId: number }) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TASK_NAMESPACE);
   const { data: runningTaskIds } = useRunningTasks();
   const query = useGetTasksSuspenseInfinite(
     { workspace_id: workspaceId },
@@ -88,8 +88,8 @@ function WorkspaceTaskList({ workspaceId }: { workspaceId: number }) {
     return (
       <Empty className="h-full rounded-none">
         <EmptyContent>
-          <EmptyTitle>{t("tasks.empty.title")}</EmptyTitle>
-          <EmptyDescription>{t("tasks.empty.description")}</EmptyDescription>
+          <EmptyTitle>{t("empty.title")}</EmptyTitle>
+          <EmptyDescription>{t("empty.description")}</EmptyDescription>
         </EmptyContent>
       </Empty>
     );
@@ -117,16 +117,16 @@ function WorkspaceTaskList({ workspaceId }: { workspaceId: number }) {
 }
 
 export function WorkspaceTasks() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_TASK_NAMESPACE);
   const currentWorkspace = useWorkspaceStore((state) => state.current);
 
   if (currentWorkspace === null) {
     return (
       <Empty className="h-full rounded-none">
         <EmptyContent>
-          <EmptyTitle>{t("tasks.empty.no_workspace.title")}</EmptyTitle>
+          <EmptyTitle>{t("empty.no_workspace.title")}</EmptyTitle>
           <EmptyDescription>
-            {t("tasks.empty.no_workspace.description")}
+            {t("empty.no_workspace.description")}
           </EmptyDescription>
         </EmptyContent>
       </Empty>

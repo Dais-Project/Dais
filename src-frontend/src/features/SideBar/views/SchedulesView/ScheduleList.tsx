@@ -38,7 +38,7 @@ import {
 import { PAGINATED_QUERY_DEFAULT_OPTIONS, SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SCHEDULE_NAMESPACE } from "@/i18n/resources";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTabsStore } from "@/stores/tabs-store";
@@ -55,8 +55,8 @@ type ScheduleListProps = {
 function createScheduleEditTab(scheduleId: number, scheduleName: string): Tab {
   return {
     type: "schedule",
-    title: i18n.t("schedules.tab.edit_title_with_name", {
-      ns: SIDEBAR_NAMESPACE,
+    title: i18n.t("tab.edit_title_with_name", {
+      ns: SIDEBAR_SCHEDULE_NAMESPACE,
       name: scheduleName,
     }),
     metadata: { mode: "edit", id: scheduleId },
@@ -69,8 +69,8 @@ function createScheduleRecordsTab(
 ): Tab {
   return {
     type: "schedule",
-    title: i18n.t("schedules.tab.records_title_with_name", {
-      ns: SIDEBAR_NAMESPACE,
+    title: i18n.t("tab.records_title_with_name", {
+      ns: SIDEBAR_SCHEDULE_NAMESPACE,
       name: scheduleName,
     }),
     metadata: { mode: "records", id: scheduleId },
@@ -146,8 +146,8 @@ function getConfigDescription(schedule: ScheduleBrief) {
       const hours = Math.floor((totalSeconds % 86400) / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
-      return i18n.t("schedules.list.polling_description_with_duration", {
-        ns: SIDEBAR_NAMESPACE,
+      return i18n.t("list.polling_description_with_duration", {
+        ns: SIDEBAR_SCHEDULE_NAMESPACE,
         duration: formatDuration(
           { days, hours, minutes, seconds },
           { locale: DATEFNS_LOCALE_MAP[language] },
@@ -155,8 +155,8 @@ function getConfigDescription(schedule: ScheduleBrief) {
       });
     }
     case "delayed":
-      return i18n.t("schedules.list.delayed_description_with_datetime", {
-        ns: SIDEBAR_NAMESPACE,
+      return i18n.t("list.delayed_description_with_datetime", {
+        ns: SIDEBAR_SCHEDULE_NAMESPACE,
         datetime: new Date(schedule.config.scheduled_at * 1000).toLocaleString(
           INTL_LOCALE_MAP[language],
         ),
@@ -185,7 +185,7 @@ function ScheduleItem({
   onViewRecords,
   onTrigger,
 }: ScheduleItemProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
   const ScheduleIcon = getScheduleIcon(schedule);
 
   return (
@@ -214,22 +214,22 @@ function ScheduleItem({
       <ActionableItemMenu>
         <ActionableItemMenuItem onClick={() => onTrigger(schedule)}>
           <PlayIcon />
-          <span>{t("schedules.menu.run_now")}</span>
+          <span>{t("menu.run_now")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={() => onEdit(schedule)}>
           <PencilIcon />
-          <span>{t("schedules.menu.edit")}</span>
+          <span>{t("menu.edit")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem onClick={() => onViewRecords(schedule)}>
           <HistoryIcon />
-          <span>{t("schedules.menu.view_records")}</span>
+          <span>{t("menu.view_records")}</span>
         </ActionableItemMenuItem>
         <ActionableItemMenuItem
           variant="destructive"
           onClick={() => onDelete(schedule)}
         >
           <TrashIcon />
-          <span>{t("schedules.menu.delete")}</span>
+          <span>{t("menu.delete")}</span>
         </ActionableItemMenuItem>
       </ActionableItemMenu>
     </ActionableItem>
@@ -237,7 +237,7 @@ function ScheduleItem({
 }
 
 export function ScheduleList({ workspaceId, searchQuery }: ScheduleListProps) {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
   const removeTabs = useTabsStore((state) => state.remove);
 
   const query = useGetSchedulesSuspenseInfinite(
@@ -258,8 +258,8 @@ export function ScheduleList({ workspaceId, searchQuery }: ScheduleListProps) {
           workspaceId,
           scheduleId: variables.scheduleId,
         });
-        toast.success(t("schedules.toast.run_now_success_title"), {
-          description: t("schedules.toast.run_now_success_description"),
+        toast.success(t("toast.run_now_success_title"), {
+          description: t("toast.run_now_success_description"),
         });
       },
     },
@@ -278,8 +278,8 @@ export function ScheduleList({ workspaceId, searchQuery }: ScheduleListProps) {
             tab.metadata.mode !== "create" &&
             tab.metadata.id === variables.scheduleId,
         );
-        toast.success(t("schedules.toast.delete_success_title"), {
-          description: t("schedules.toast.delete_success_description"),
+        toast.success(t("toast.delete_success_title"), {
+          description: t("toast.delete_success_description"),
         });
       },
     },
@@ -313,9 +313,9 @@ export function ScheduleList({ workspaceId, searchQuery }: ScheduleListProps) {
     return (
       <Empty>
         <EmptyContent>
-          <EmptyTitle>{t("schedules.empty.title")}</EmptyTitle>
+          <EmptyTitle>{t("empty.title")}</EmptyTitle>
           <EmptyDescription>
-            {t("schedules.empty.description")}
+            {t("empty.description")}
           </EmptyDescription>
         </EmptyContent>
       </Empty>
@@ -347,7 +347,7 @@ export function ScheduleList({ workspaceId, searchQuery }: ScheduleListProps) {
 
       <ConfirmDeleteDialog
         open={asyncConfirm.isOpen}
-        description={t("schedules.dialog.delete_description_with_name", {
+        description={t("dialog.delete_description_with_name", {
           name: asyncConfirm.pendingData?.name ?? "",
         })}
         onConfirm={asyncConfirm.confirm}

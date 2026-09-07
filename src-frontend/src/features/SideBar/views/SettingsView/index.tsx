@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SETTINGS_NAMESPACE } from "@/i18n/resources";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { GeneralSettings } from "./GeneralSettings";
@@ -22,48 +22,48 @@ type SettingItem = {
 const settingItems: SettingItem[] = [
   {
     id: "general",
-    titleKey: "settings.tabs.general",
+    titleKey: "tabs.general",
     content: <GeneralSettings />,
   },
   {
     id: "providers",
-    titleKey: "settings.tabs.providers",
+    titleKey: "tabs.providers",
     content: <ProviderSettings />,
   },
   {
     id: "helper-model",
-    titleKey: "settings.tabs.helper_model",
+    titleKey: "tabs.helper_model",
     content: <HelperModelSettings />,
   },
   {
     id: "agents",
-    titleKey: "settings.tabs.agents",
+    titleKey: "tabs.agents",
     content: <AgentSettings />,
   },
   {
     id: "remote-access",
-    titleKey: "settings.tabs.remote_access",
+    titleKey: "tabs.remote_access",
     content: <RemoteAccessSettings />,
   },
   {
     id: "shortcuts",
-    titleKey: "settings.tabs.shortcuts",
+    titleKey: "tabs.shortcuts",
     content: <ShortcutSettings />,
   },
   {
     id: "dev",
-    titleKey: "settings.tabs.dev",
+    titleKey: "tabs.dev",
     content: <DevSettings />,
   },
   {
     id: "about",
-    titleKey: "settings.tabs.about",
+    titleKey: "tabs.about",
     content: <AboutSettings />,
   },
 ];
 
 export function SettingsView() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SETTINGS_NAMESPACE);
 
   const tabsTriggerClasses = cn(
     "!text-foreground !bg-transparent !border-transparent",
@@ -72,7 +72,7 @@ export function SettingsView() {
   );
   return (
     <div className="flex h-full flex-col">
-      <SideBarHeader title={t("settings.header.title")} />
+      <SideBarHeader title={t("header.title")} />
       <Tabs defaultValue={settingItems[0].id} className="flex min-h-0 w-full flex-1 flex-row gap-0">
         <TabsList className="flex h-full flex-col items-stretch gap-2 rounded-none border-r bg-transparent p-0">
           {settingItems.map((item) => (

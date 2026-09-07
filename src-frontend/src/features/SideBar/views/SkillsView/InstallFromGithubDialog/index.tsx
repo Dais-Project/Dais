@@ -10,12 +10,12 @@ import {
   DialogStepperTrigger,
 } from "@/components/ui/dialog-stepper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
+import { SIDEBAR_SKILL_NAMESPACE } from "@/i18n/resources";
 import { InstallFromGithubStep1 } from "./InstallFromGithubStep1";
 import { InstallFromGithubStep2 } from "./InstallFromGithubStep2";
 
 export function InstallFromGithubDialog() {
-  const { t } = useTranslation(SIDEBAR_NAMESPACE);
+  const { t } = useTranslation(SIDEBAR_SKILL_NAMESPACE);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [repoUrl, setRepoUrl] = useState("");
@@ -46,7 +46,7 @@ export function InstallFromGithubDialog() {
             </Button>
           </DialogStepperTrigger>
         </TooltipTrigger>
-        <TooltipContent>{t("skills.header.install_github_tooltip")}</TooltipContent>
+        <TooltipContent>{t("header.install_github_tooltip")}</TooltipContent>
       </Tooltip>
 
       <DialogStepperContent className="max-w-lg">
