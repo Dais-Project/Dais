@@ -2,13 +2,12 @@ import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/animated-tabs";
 import { DrawerContainer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
 import { NavigationListSkeleton } from "./components/NavigationListSkeleton";
 import { NavigationDrawerProvider } from "./NavigationDrawerContext";
-import { OpenedTaskTabs } from "./OpenedTaskTabs";
+import { OpenedTasks } from "./views/OpenedTasks";
 import { WorkspaceSelectDrawer } from "./WorkspaceSelectDrawer";
-import { WorkspaceTasks } from "./WorkspaceTasks";
+import { WorkspaceTasks } from "./views/WorkspaceTasks";
 
 function NavigationViews() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
@@ -24,7 +23,7 @@ function NavigationViews() {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="opened-tasks" className="min-h-0">
-        <OpenedTaskTabs />
+        <OpenedTasks />
       </TabsContent>
       <TabsContent value="workspace-tasks" className="min-h-0">
         <AsyncBoundary skeleton={<NavigationListSkeleton />}>

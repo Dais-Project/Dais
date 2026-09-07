@@ -4,14 +4,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyTitle } from "@/components/ui/empty";
 import { ItemTitle } from "@/components/ui/item";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { TabIcon } from "@/features/Tabs/components/TabIcon";
 import { TabIndicator } from "@/features/Tabs/components/TabIndicator";
 import { TABS_NAMESPACE } from "@/i18n/resources";
 import { useTabsStore } from "@/stores/tabs-store";
-import { useNavigationDrawer } from "./NavigationDrawerContext";
-import { NavigationListItem } from "./components/NavigationListItem";
+import { useNavigationDrawer } from "../NavigationDrawerContext";
+import { NavigationListItem } from "../components/NavigationListItem";
 
-export function OpenedTaskTabs() {
+export function OpenedTasks() {
   const { t } = useTranslation(TABS_NAMESPACE);
   const { close: closeDrawer } = useNavigationDrawer();
   const tabs = useTabsStore((state) => state.tabs);
@@ -37,13 +38,14 @@ export function OpenedTaskTabs() {
   }
 
   return (
-    <div className="h-full overflow-y-auto">
+    <ScrollArea className="h-full">
       {taskTabs.map((tab) => {
         const indicator = indicators[tab.id] ?? null;
         return (
           <NavigationListItem
             key={tab.id}
             id={`mobile-tab-${tab.id}`}
+            triggerClassName="py-2"
             icon={
               <span className="relative">
                 <TabIcon tab={tab} className="size-5" />
@@ -61,12 +63,7 @@ export function OpenedTaskTabs() {
                 variant="ghost"
                 size="icon"
                 aria-label="Close tab"
-                onPointerDown={(event) => event.stopPropagation()}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  removeTab(tab.id);
-                }}
+                onClick={() => removeTab(tab.id)}
               >
                 <XIcon className="size-4" />
               </Button>
@@ -78,6 +75,6 @@ export function OpenedTaskTabs() {
           </NavigationListItem>
         );
       })}
-    </div>
+    </ScrollArea>
   );
 }

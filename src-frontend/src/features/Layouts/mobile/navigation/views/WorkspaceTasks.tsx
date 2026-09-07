@@ -22,13 +22,13 @@ import { SIDEBAR_TASK_NAMESPACE } from "@/i18n/resources";
 import { resolveIconName } from "@/lib/resolve-iconname";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useNavigationDrawer } from "./NavigationDrawerContext";
-import { NavigationListItem } from "./components/NavigationListItem";
+import { useNavigationDrawer } from "../NavigationDrawerContext";
+import { NavigationListItem } from "../components/NavigationListItem";
 
 type TaskItemProps = {
   task: TaskBrief;
   index: number;
-  ref: React.Ref<HTMLButtonElement>;
+  ref: React.Ref<HTMLDivElement>;
   workspaceId: number;
   isRunning: boolean;
 };
