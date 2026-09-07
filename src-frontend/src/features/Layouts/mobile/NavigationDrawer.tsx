@@ -1,63 +1,37 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
-import { Button } from "@/components/ui/button";
-import {
-  DrawerContainer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/animated-tabs";
+import { DrawerContainer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_NAMESPACE } from "@/i18n/resources";
-import { cn } from "@/lib/utils";
+import { NavigationListSkeleton } from "./components/NavigationListSkeleton";
 import { NavigationDrawerProvider } from "./NavigationDrawerContext";
 import { OpenedTaskTabs } from "./OpenedTaskTabs";
 import { WorkspaceSelectDrawer } from "./WorkspaceSelectDrawer";
 import { WorkspaceTasks } from "./WorkspaceTasks";
-import { NavigationListSkeleton } from "./components/NavigationListSkeleton";
-
-type NavigationView = "opened-tasks" | "workspace-tasks";
 
 function NavigationViews() {
   const { t } = useTranslation(SIDEBAR_NAMESPACE);
-  const [view, setView] = useState<NavigationView>("opened-tasks");
 
   return (
-    <>
-      <div className="flex items-center justify-center border-b pt-[env(safe-area-inset-top)]">
-        <Button
-          variant="ghost"
-          onClick={() => setView("opened-tasks")}
-          className={cn(
-            "flex-1 min-h-10 rounded-none",
-            view === "opened-tasks" && "bg-accent text-accent-foreground",
-          )}
-        >
+    <Tabs defaultValue="opened-tasks" className="min-h-0 flex-1 gap-0">
+      <TabsList className="h-auto w-full shrink-0 rounded-none border-b bg-transparent pb-1 pt-[calc(env(safe-area-inset-top)_+_0.25rem)]">
+        <TabsTrigger value="opened-tasks" className="min-h-8 cursor-pointer rounded-none">
           {t("mobile.opened")}
-        </Button>
-        <Separator orientation="vertical" />
-        <Button
-          variant="ghost"
-          onClick={() => setView("workspace-tasks")}
-          className={cn(
-            "flex-1 min-h-10 rounded-none",
-            view === "workspace-tasks" && "bg-accent text-accent-foreground",
-          )}
-        >
+        </TabsTrigger>
+        <TabsTrigger value="workspace-tasks" className="min-h-8 cursor-pointer rounded-none">
           {t("mobile.workspace_tasks")}
-        </Button>
-      </div>
-      <div className="min-h-0 flex-1">
-        {view === "opened-tasks" ? (
-          <OpenedTaskTabs />
-        ) : (
-          <AsyncBoundary skeleton={<NavigationListSkeleton />}>
-            <WorkspaceTasks />
-          </AsyncBoundary>
-        )}
-      </div>
-    </>
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="opened-tasks" className="min-h-0">
+        <OpenedTaskTabs />
+      </TabsContent>
+      <TabsContent value="workspace-tasks" className="min-h-0">
+        <AsyncBoundary skeleton={<NavigationListSkeleton />}>
+          <WorkspaceTasks />
+        </AsyncBoundary>
+      </TabsContent>
+    </Tabs>
   );
 }
 
