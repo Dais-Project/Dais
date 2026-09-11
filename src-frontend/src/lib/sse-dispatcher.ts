@@ -17,6 +17,7 @@ type DispatcherEventHandler<TEvent extends DispatcherEvent> = (
 
 class _SseDispatcher {
   private abortController: AbortController | null = null;
+  private url: URL | string | null = null;
   private readonly listeners: Map<DispatcherEvent, Set<unknown>> = new Map();
 
   private getEventListeners<TEvent extends DispatcherEvent>(
@@ -84,21 +85,26 @@ class _SseDispatcher {
   }
 
   connect(url: URL | string, onConnect?: (response: Response) => void) {
+    this.url = url;
+    this.abortController?.abort();
     this.abortController = createSseStream<DispatcherEventData>(url, {
       onConnect,
       onMessage: ({ data }) => {
-        if (data === null) {
-          return;
-        }
-
+        if (data === null) return;
         this.emit(data.event_id, data);
       },
     });
   }
 
+  reconnect() {
+    if (this.url === null) return;
+    this.connect(this.url);
+  }
+
   disconnect() {
     this.abortController?.abort();
     this.abortController = null;
+    this.url = null;
     this.listeners.clear();
   }
 }

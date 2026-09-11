@@ -31,7 +31,7 @@ export function BrowserLoginView({ onAuthenticated }: BrowserLoginViewProps) {
       },
       onSuccess: async () => {
         form.reset();
-        await resetAuthSessionQuery()
+        await resetAuthSessionQuery();
         await onAuthenticated();
       },
     },

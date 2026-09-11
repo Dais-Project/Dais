@@ -7,6 +7,7 @@ import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import { FailedToLoad } from "@/components/custom/FailedToLoad";
 import { BROWSER_AUTH_NAMESPACE } from "@/i18n/resources";
 import { isTauri } from "@/lib/tauri";
+import sseDispatcher from "@/lib/sse-dispatcher";
 import { useServerSettingsStore } from "@/stores/server-settings-store";
 import { LayoutSkeleton } from "../Layouts";
 import { BrowserLoginView } from "./BrowserLoginView";
@@ -47,6 +48,7 @@ export function BrowserAuthGate({ children }: BrowserAuthGateProps) {
               <BrowserLoginView onAuthenticated={() => {
                 reloadServerSettings();
                 resetErrorBoundary();
+                sseDispatcher.reconnect();
               }} />
             </div>
           );
