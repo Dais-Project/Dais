@@ -1,5 +1,7 @@
+import re
 import secrets
 from dataclasses import dataclass
+from enum import Enum
 
 from fastapi import status
 from fastapi.responses import JSONResponse
@@ -24,13 +26,36 @@ from src.services.auth_session import (
 
 
 AUTH_SESSION_REFRESH_THRESHOLD = 13 * 24 * 60 * 60
-PUBLIC_API_ROUTES = {
-    ("GET", "/api/health/"),
-    ("POST", "/api/auth/browser-login"),
-}
-DESKTOP_ONLY_API_ROUTES = {
-    ("POST", "/api/auth/login-code"),
-}
+
+
+class SpecialRouteType(Enum):
+    PUBLIC = "public"
+    DESKTOP_ONLY = "desktop_only"
+    AUTH_REQUIRED = "auth_required"
+
+
+@dataclass(frozen=True)
+class SpecialRoute:
+    method: str
+    path: str | re.Pattern[str]
+    route_type: SpecialRouteType
+
+    def matches(self, method: str, path: str) -> bool:
+        if method != self.method:
+            return False
+        if isinstance(self.path, str):
+            return path == self.path
+        return self.path.fullmatch(path) is not None
+
+
+SPECIAL_ROUTES = (
+    SpecialRoute("GET", "/api/health/", SpecialRouteType.PUBLIC),
+    SpecialRoute("POST", "/api/auth/browser-login", SpecialRouteType.PUBLIC),
+    SpecialRoute("GET",
+                 re.compile(r"/api/task-resources/access/[^/]+"),
+                 SpecialRouteType.PUBLIC),
+    SpecialRoute("POST", "/api/auth/login-code", SpecialRouteType.DESKTOP_ONLY),
+)
 
 
 def _create_unauthenticated_response() -> JSONResponse:
@@ -42,6 +67,11 @@ def _create_unauthenticated_response() -> JSONResponse:
         },
     )
 
+def _get_special_route_type(request: Request) -> SpecialRouteType:
+    for route in SPECIAL_ROUTES:
+        if route.matches(request.method, request.url.path):
+            return route.route_type
+    return SpecialRouteType.AUTH_REQUIRED
 
 @dataclass(frozen=True)
 class BrowserAuthentication:
@@ -81,10 +111,10 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         if request.method.lower() == "options" or not self._is_api_request(request):
             return await call_next(request)
 
-        route = (request.method, request.url.path)
-        if route in PUBLIC_API_ROUTES:
+        route_type = _get_special_route_type(request)
+        if route_type is SpecialRouteType.PUBLIC:
             return await call_next(request)
-        elif route in DESKTOP_ONLY_API_ROUTES:
+        if route_type is SpecialRouteType.DESKTOP_ONLY:
             desktop_authenticated = self._is_desktop_authenticated(request)
             if not desktop_authenticated:
                 return _create_unauthenticated_response()

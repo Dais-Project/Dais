@@ -13,19 +13,6 @@ from .db_session import DbSessionDep
 from .resource_events import ResourceEventHandlerDep
 
 
-def get_task_resource_service(
-    db_session: DbSessionDep,
-    task_type: task_runtime_schemas.TaskType,
-) -> TaskResourceService:
-    return TaskResourceService.from_db_session(db_session, task_type)
-
-
-TaskResourceServiceDep = Annotated[
-    TaskResourceService,
-    Depends(get_task_resource_service),
-]
-
-
 def get_task_service(
     db_session: DbSessionDep,
     on_resource_changed: ResourceEventHandlerDep,

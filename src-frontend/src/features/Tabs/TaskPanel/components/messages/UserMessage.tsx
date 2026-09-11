@@ -23,7 +23,8 @@ import {
 } from "../../hooks/use-agent-task";
 import { activityVisible } from "@/lib/activity-visible";
 import { escapeXml } from "@/lib/escape-xml";
-import { createTaskResourceUrl } from "@/api/tasks";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
+import { TaskResource } from "../TaskResource";
 
 type UserMessageMode = "view" | "edit";
 
@@ -78,23 +79,35 @@ function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
     );
   }
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
   const content = (() => {
     switch (resourceType) {
       case "image":
         return (
-          <img
-            className="size-full object-cover"
-            src={resourceUrl.toString()}
-          />
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              <img className="size-full object-cover" src={resourceUrl} />
+            )}
+          </TaskResource>
         );
       case "video":
         return (
-          <video
-            className="size-full object-cover"
-            muted
-            src={resourceUrl.toString()}
-          />
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              <video
+                className="size-full object-cover"
+                muted
+                src={resourceUrl}
+              />
+            )}
+          </TaskResource>
         );
       default: {
         const Icon = attachmentCategoryIcons[resourceType];
@@ -104,7 +117,7 @@ function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
   })();
   return (
     <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
-      {content}
+      <AsyncBoundary skeleton={null}>{content}</AsyncBoundary>
     </div>
   );
 }

@@ -7,8 +7,9 @@ from .auth_session import (
 from .db_session import DbSessionDep
 from .provider import LlmModelServiceDep, ProviderServiceDep
 from .skill import SkillServiceDep
-from .task import RunRecordServiceDep, ScheduleServiceDep, TaskServiceDep, TaskResourceServiceDep
+from .task import RunRecordServiceDep, ScheduleServiceDep, TaskServiceDep
 from .task_executor import AgentTaskExecutorDep
+from .task_resource_access import TaskResourceAccessServiceDep
 from .toolset import McpToolsetManagerDep, McpToolsetServiceDep, ToolsetServiceDep
 from .workspace import WorkspaceServiceDep
 
@@ -27,8 +28,8 @@ __all__ = [
     "RunRecordServiceDep",
     "ScheduleServiceDep",
     "SkillServiceDep",
+    "TaskResourceAccessServiceDep",
     "TaskServiceDep",
-    "TaskResourceServiceDep",
     "ToolsetServiceDep",
     "WorkspaceServiceDep",
 ]

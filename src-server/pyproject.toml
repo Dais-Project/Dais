@@ -19,6 +19,7 @@ dependencies = [
     "loguru==0.7.3",
     "markitdown[docx,pdf,pptx]==0.1.5",
     "platformdirs==4.9.6",
+    "PyJWT==2.11.0",
     "pydantic==2.12.5",
     "pydantic-settings==2.13.0",
     "RapidFuzz==3.14.3",

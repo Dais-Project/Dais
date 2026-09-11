@@ -1,7 +1,7 @@
 import { Activity } from "react";
 import { LinkIcon } from "lucide-react";
 import type { TaskResourceMetadata } from "@/api/generated/schemas";
-import { createTaskResourceUrl } from "@/api/tasks";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   attachmentCategoryIcons,
   resolveMimetypeCategory,
@@ -21,6 +21,7 @@ import { getToolMessageMetadata, type UiToolMessage } from "@/types/message";
 import { isTaskResourceMetadataList } from "@/types/message/type-guards";
 import type { ToolMessageProps } from "./BuiltInToolMessage";
 import { ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmation";
+import { TaskResource } from "../TaskResource";
 import {
   useAgentTaskAction,
   useAgentTaskState,
@@ -77,36 +78,63 @@ export function ContentBlockItem({ data }: { data: TaskResourceMetadata }) {
   }
 
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
 
-  switch (resourceType) {
-    case "image":
-      return (
-        <img
-          alt={data.filename}
-          className="max-h-80 rounded-lg object-contain"
-          src={resourceUrl.toString()}
-        />
-      );
-    case "video":
-      return (
-        // biome-ignore lint: a11y/useMediaCaption
-        <video
-          className="max-h-80 rounded-lg"
-          controls
-          src={resourceUrl.toString()}
-        />
-      );
-    case "audio":
-      return (
-        // biome-ignore lint: a11y/useMediaCaption
-        <audio className="w-full" controls src={resourceUrl.toString()} />
-      );
-    default: {
-      const Icon = attachmentCategoryIcons[resourceType];
-      return <Icon className="size-8 text-muted-foreground" />;
+  const content = (() => {
+    switch (resourceType) {
+      case "image":
+        return (
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              <img
+                alt={data.filename}
+                className="max-h-80 rounded-lg object-contain"
+                src={resourceUrl}
+              />
+            )}
+          </TaskResource>
+        );
+      case "video":
+        return (
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              // biome-ignore lint: a11y/useMediaCaption
+              <video
+                className="max-h-80 rounded-lg"
+                controls
+                src={resourceUrl}
+              />
+            )}
+          </TaskResource>
+        );
+      case "audio":
+        return (
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              // biome-ignore lint: a11y/useMediaCaption
+              <audio className="w-full" controls src={resourceUrl} />
+            )}
+          </TaskResource>
+        );
+      default: {
+        const Icon = attachmentCategoryIcons[resourceType];
+        return <Icon className="size-8 text-muted-foreground" />;
+      }
     }
-  }
+  })();
+
+  return <AsyncBoundary skeleton={null}>{content}</AsyncBoundary>;
 }
 
 export function GeneralToolMessage({ message }: ToolMessageProps) {

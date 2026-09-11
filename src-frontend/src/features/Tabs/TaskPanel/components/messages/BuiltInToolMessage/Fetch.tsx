@@ -6,7 +6,7 @@ import type {
   TaskResourceMetadata,
   WebInteractionFetch,
 } from "@/api/generated/schemas";
-import { createTaskResourceUrl } from "@/api/tasks";
+import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
 import {
   attachmentCategoryIcons,
   resolveMimetypeCategory,
@@ -31,26 +31,27 @@ import { ToolConfirmation } from "./components/ToolConfirmation";
 import { getToolMessageMetadata } from "@/types/message";
 import { isTaskResourceMetadataList } from "@/types/message/type-guards";
 import { XmlRawContentParser } from "@/lib/escape-xml";
+import { TaskResource } from "../../TaskResource";
 
 type ParsedFetchResult =
   | {
-      kind: "success";
-      url: string;
-      statusCode: number | null;
-      reasonPhrase: string;
-      content: string;
-    }
+    kind: "success";
+    url: string;
+    statusCode: number | null;
+    reasonPhrase: string;
+    content: string;
+  }
   | {
-      kind: "error";
-      url: string;
-      statusCode: number | null;
-      reasonPhrase: string;
-      text: string;
-    }
+    kind: "error";
+    url: string;
+    statusCode: number | null;
+    reasonPhrase: string;
+    text: string;
+  }
   | {
-      kind: "raw";
-      rawText: string;
-    };
+    kind: "raw";
+    rawText: string;
+  };
 
 function parseStatusCode(value: string | null | undefined): number | null {
   if (!value) {
@@ -128,36 +129,62 @@ function FetchContentBlockItem({ data }: { data: TaskResourceMetadata }) {
   }
 
   const resourceType = resolveMimetypeCategory(data.mimetype);
-  const resourceUrl = createTaskResourceUrl(taskType, taskId, data.resource_id);
 
-  switch (resourceType) {
-    case "image":
-      return (
-        <img
-          alt={data.filename}
-          className="max-h-80 rounded-lg object-contain"
-          src={resourceUrl.toString()}
-        />
-      );
-    case "video":
-      return (
-        // biome-ignore lint: a11y/useMediaCaption
-        <video
-          className="max-h-80 rounded-lg"
-          controls
-          src={resourceUrl.toString()}
-        />
-      );
-    case "audio":
-      return (
-        // biome-ignore lint: a11y/useMediaCaption
-        <audio className="w-full" controls src={resourceUrl.toString()} />
-      );
-    default: {
-      const Icon = attachmentCategoryIcons[resourceType];
-      return <Icon className="size-8 text-muted-foreground" />;
+  const content = (() => {
+    switch (resourceType) {
+      case "image":
+        return (
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              <img
+                alt={data.filename}
+                className="max-h-80 rounded-lg object-contain"
+                src={resourceUrl}
+              />
+            )}
+          </TaskResource>
+        );
+      case "video":
+        return (
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              <video
+                className="max-h-80 rounded-lg"
+                controls
+                src={resourceUrl}
+              />
+            )}
+          </TaskResource>
+        );
+      case "audio":
+        return (
+          <TaskResource
+            taskType={taskType}
+            taskId={taskId}
+            resourceId={data.resource_id}
+          >
+            {(resourceUrl) => (
+              // biome-ignore lint: a11y/useMediaCaption
+              <audio className="w-full" controls src={resourceUrl} />
+            )}
+          </TaskResource>
+        );
+      default: {
+        const Icon = attachmentCategoryIcons[resourceType];
+        return <Icon className="size-8 text-muted-foreground" />;
+      }
     }
-  }
+  })();
+
+  return <AsyncBoundary skeleton={null}>{content}</AsyncBoundary>;
 }
 
 function FetchContentBlocks({ result }: { result: TaskResourceMetadata[] }) {

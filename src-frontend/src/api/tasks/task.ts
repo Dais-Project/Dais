@@ -11,30 +11,40 @@ export {
   useSummarizeTaskTitle,
 } from "../generated/endpoints/task/task";
 
+import { useSuspenseQuery } from "@tanstack/react-query";
 import queryClient from "@/query-client";
-import { API_BASE } from "..";
 import {
-  getGetTaskResourceFileUrl,
+  createTaskResourceAccessUrl,
   getGetTaskQueryKey,
   getGetTasksInfiniteQueryKey,
   getGetRecentTasksInfiniteQueryKey,
 } from "../generated/endpoints/task/task";
-import type { TaskType } from "../generated/schemas";
+import type { TaskResourceAccessUrlCreate } from "../generated/schemas";
+
+const TASK_RESOURCE_ACCESS_URL_STALE_TIME = 24 * 60 * 60 * 1000;
 
 type InvalidateTaskQueriesOptions = {
   workspaceId?: number;
   taskId?: number;
 };
 
-export function createTaskResourceUrl(
-  taskType: TaskType,
-  taskId: number,
-  resourceId: number,
-): URL {
-  return new URL(
-    getGetTaskResourceFileUrl(taskType, taskId, resourceId),
-    API_BASE,
-  );
+/**
+ * Orval treats this POST endpoint as a mutation, but resource URLs need
+ * Suspense and query-key-based reuse, so the generated request is wrapped here.
+ */
+export function useTaskResourceAccessUrlSuspense(
+  data: TaskResourceAccessUrlCreate,
+) {
+  return useSuspenseQuery({
+    queryKey: [
+      "TaskResourceAccessUrl",
+      data.task_type,
+      data.task_id,
+      data.resource_id,
+    ],
+    queryFn: () => createTaskResourceAccessUrl(data),
+    staleTime: TASK_RESOURCE_ACCESS_URL_STALE_TIME,
+  });
 }
 
 export async function invalidateTaskQueries({

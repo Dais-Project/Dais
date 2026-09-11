@@ -85,10 +85,10 @@ app.include_router(skills_router, prefix="/api/skills")
 app.include_router(settings_router, prefix="/api/settings")
 
 app.include_router(task_control_router, prefix="/api/tasks")
-app.include_router(task_resource_router, prefix="/api/tasks")
 app.include_router(task_stream_router, prefix="/api/tasks")
 app.include_router(context_file_router, prefix="/api/tasks")
 app.include_router(task_manage_router, prefix="/api/tasks")
+app.include_router(task_resource_router, prefix="/api/task/resources")
 app.include_router(task_runtime_router, prefix="/api/tasks/runtime")
 app.include_router(schedule_manage_router, prefix="/api/schedules")
 
