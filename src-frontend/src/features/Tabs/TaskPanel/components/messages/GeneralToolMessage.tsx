@@ -1,12 +1,5 @@
 import { Activity } from "react";
-import { LinkIcon } from "lucide-react";
-import type { TaskResourceMetadata } from "@/api/generated/schemas";
-import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
-import {
-  attachmentCategoryIcons,
-  resolveMimetypeCategory,
-} from "@/components/ai-elements/attachments";
-import { CodeBlock } from "@/components/ai-elements/code-block";
+import type { ToolMessageMetadata } from "@/api/generated/schemas";
 import {
   Tool,
   ToolContent,
@@ -16,16 +9,12 @@ import {
   type ToolState,
 } from "@/components/ai-elements/tool";
 import { activityVisible } from "@/lib/activity-visible";
-import type { ToolMessageMetadata } from "@/api/generated/schemas";
 import { getToolMessageMetadata, type UiToolMessage } from "@/types/message";
 import { isTaskResourceMetadataList } from "@/types/message/type-guards";
 import type { ToolMessageProps } from "./BuiltInToolMessage";
 import { ToolConfirmation } from "./BuiltInToolMessage/components/ToolConfirmation";
-import { TaskResource } from "../TaskResource";
-import {
-  useAgentTaskAction,
-  useAgentTaskState,
-} from "../../hooks/use-agent-task";
+import { TaskResourceAttachment } from "../TaskResourceAttachment";
+import { useAgentTaskAction } from "../../hooks/use-agent-task";
 import { useToolName } from "../../hooks/use-tool-name";
 import { useToolActionable } from "../../hooks/use-tool-actionable";
 import { useCollapsed } from "../../hooks/use-collapsible-store";
@@ -51,90 +40,6 @@ function getToolState(message: UiToolMessage): ToolState {
     default: // do nothing
   }
   return "input-streaming";
-}
-
-export function ContentBlockItem({ data }: { data: TaskResourceMetadata }) {
-  const { taskId, taskType } = useAgentTaskState();
-
-  if ("text" in data) {
-    return (
-      <CodeBlock
-        code={data.text}
-        className="w-full"
-        language="text"
-        showLineNumbers={true}
-        startingLineNumber={1}
-      />
-    );
-  }
-
-  if ("url" in data) {
-    return (
-      <div className="flex items-center gap-2 rounded-lg bg-muted p-3 text-sm">
-        <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
-        <span className="break-all font-mono">{data.url}</span>
-      </div>
-    );
-  }
-
-  const resourceType = resolveMimetypeCategory(data.mimetype);
-
-  const content = (() => {
-    switch (resourceType) {
-      case "image":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              <img
-                alt={data.filename}
-                className="max-h-80 rounded-lg object-contain"
-                src={resourceUrl}
-              />
-            )}
-          </TaskResource>
-        );
-      case "video":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              // biome-ignore lint: a11y/useMediaCaption
-              <video
-                className="max-h-80 rounded-lg"
-                controls
-                src={resourceUrl}
-              />
-            )}
-          </TaskResource>
-        );
-      case "audio":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              // biome-ignore lint: a11y/useMediaCaption
-              <audio className="w-full" controls src={resourceUrl} />
-            )}
-          </TaskResource>
-        );
-      default: {
-        const Icon = attachmentCategoryIcons[resourceType];
-        return <Icon className="size-8 text-muted-foreground" />;
-      }
-    }
-  })();
-
-  return <AsyncBoundary skeleton={null}>{content}</AsyncBoundary>;
 }
 
 export function GeneralToolMessage({ message }: ToolMessageProps) {
@@ -171,9 +76,10 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
               isTaskResourceMetadataList(message.result) ? (
                 <div className="flex flex-col items-center justify-center gap-2">
                   {message.result.map((item, index) => (
-                    <ContentBlockItem
+                    <TaskResourceAttachment
                       key={`${typeof item.resource_id}:${item.resource_id}:${index}`}
                       data={item}
+                      variant="content"
                     />
                   ))}
                 </div>

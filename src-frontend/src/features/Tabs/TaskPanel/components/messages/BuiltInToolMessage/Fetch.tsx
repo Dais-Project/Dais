@@ -1,4 +1,4 @@
-import { GlobeIcon, LinkIcon } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
@@ -6,11 +6,6 @@ import type {
   TaskResourceMetadata,
   WebInteractionFetch,
 } from "@/api/generated/schemas";
-import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
-import {
-  attachmentCategoryIcons,
-  resolveMimetypeCategory,
-} from "@/components/ai-elements/attachments";
 import { FetchToolSchema } from "@/api/tool-schema";
 import { CodeBlock } from "@/components/ai-elements/code-block";
 import type { ToolMessageProps } from ".";
@@ -21,17 +16,14 @@ import {
   BuiltInToolHeader,
   BuiltInToolTitle,
 } from "./components/BuiltInTool";
-import {
-  useAgentTaskAction,
-  useAgentTaskState,
-} from "../../../hooks/use-agent-task";
+import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { getToolMessageMetadata } from "@/types/message";
 import { isTaskResourceMetadataList } from "@/types/message/type-guards";
 import { XmlRawContentParser } from "@/lib/escape-xml";
-import { TaskResource } from "../../TaskResource";
+import { TaskResourceAttachment } from "../../TaskResourceAttachment";
 
 type ParsedFetchResult =
   | {
@@ -105,94 +97,12 @@ function parseFetchResult(resultText: string): ParsedFetchResult {
   }
 }
 
-function FetchContentBlockItem({ data }: { data: TaskResourceMetadata }) {
-  const { taskId, taskType } = useAgentTaskState();
-
-  if ("text" in data) {
-    return (
-      <CodeBlock
-        code={data.text}
-        language="text"
-        showLineNumbers={true}
-        startingLineNumber={1}
-      />
-    );
-  }
-
-  if ("url" in data) {
-    return (
-      <div className="flex items-center gap-3 rounded-lg bg-muted p-3 text-sm">
-        <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
-        <span className="break-all font-mono">{data.url}</span>
-      </div>
-    );
-  }
-
-  const resourceType = resolveMimetypeCategory(data.mimetype);
-
-  const content = (() => {
-    switch (resourceType) {
-      case "image":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              <img
-                alt={data.filename}
-                className="max-h-80 rounded-lg object-contain"
-                src={resourceUrl}
-              />
-            )}
-          </TaskResource>
-        );
-      case "video":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              <video
-                className="max-h-80 rounded-lg"
-                controls
-                src={resourceUrl}
-              />
-            )}
-          </TaskResource>
-        );
-      case "audio":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              // biome-ignore lint: a11y/useMediaCaption
-              <audio className="w-full" controls src={resourceUrl} />
-            )}
-          </TaskResource>
-        );
-      default: {
-        const Icon = attachmentCategoryIcons[resourceType];
-        return <Icon className="size-8 text-muted-foreground" />;
-      }
-    }
-  })();
-
-  return <AsyncBoundary skeleton={null}>{content}</AsyncBoundary>;
-}
-
 function FetchContentBlocks({ result }: { result: TaskResourceMetadata[] }) {
   const [_fetchMetadata, actualResult] = result;
 
   return (
     <div className="flex flex-col items-center justify-center gap-2 px-4 pb-4">
-      <FetchContentBlockItem data={actualResult} />
+      <TaskResourceAttachment data={actualResult} variant="content" />
     </div>
   );
 }

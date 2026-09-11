@@ -25,7 +25,7 @@ import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { XmlRawContentParser } from "@/lib/escape-xml";
-import { ContentBlockItem } from "../GeneralToolMessage";
+import { TaskResourceAttachment } from "../../TaskResourceAttachment";
 
 const MARKDOWNED_FILE_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx", "epub"];
 
@@ -167,7 +167,11 @@ function ReadFileContent({
   return (
     <div className="flex flex-col justify-center items-center gap-2 px-4 pb-4">
       {result.map((data) => (
-        <ContentBlockItem key={data.resource_id} data={data} />
+        <TaskResourceAttachment
+          key={data.resource_id}
+          data={data}
+          variant="content"
+        />
       ))}
     </div>
   );

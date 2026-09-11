@@ -13,18 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { TABS_TASK_NAMESPACE } from "@/i18n/resources";
 import type { TaskResourceMetadata } from "@/api/generated/schemas";
-import {
-  attachmentCategoryIcons,
-  resolveMimetypeCategory,
-} from "@/components/ai-elements/attachments";
-import {
-  useAgentTaskAction,
-  useAgentTaskState,
-} from "../../hooks/use-agent-task";
+import { TaskResourceAttachment } from "../TaskResourceAttachment";
+import { useAgentTaskAction } from "../../hooks/use-agent-task";
 import { activityVisible } from "@/lib/activity-visible";
 import { escapeXml } from "@/lib/escape-xml";
-import { AsyncBoundary } from "@/components/custom/AsyncBoundary";
-import { TaskResource } from "../TaskResource";
 
 type UserMessageMode = "view" | "edit";
 
@@ -58,68 +50,6 @@ function formatUserMessage(text: string) {
       return escapeXml(seg.content).replace(/(?<!\n)\n(?!\n)/g, "  \n");
     })
     .join("");
-}
-
-function UserMessageAttachment({ data }: { data: TaskResourceMetadata }) {
-  const { taskId, taskType } = useAgentTaskState();
-  if ("text" in data) {
-    const Icon = attachmentCategoryIcons.document;
-    return (
-      <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
-        <Icon className="size-6 text-muted-foreground" />
-      </div>
-    );
-  }
-  if ("url" in data) {
-    const Icon = attachmentCategoryIcons.source;
-    return (
-      <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
-        <Icon className="size-6 text-muted-foreground" />
-      </div>
-    );
-  }
-  const resourceType = resolveMimetypeCategory(data.mimetype);
-  const content = (() => {
-    switch (resourceType) {
-      case "image":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              <img className="size-full object-cover" src={resourceUrl} />
-            )}
-          </TaskResource>
-        );
-      case "video":
-        return (
-          <TaskResource
-            taskType={taskType}
-            taskId={taskId}
-            resourceId={data.resource_id}
-          >
-            {(resourceUrl) => (
-              <video
-                className="size-full object-cover"
-                muted
-                src={resourceUrl}
-              />
-            )}
-          </TaskResource>
-        );
-      default: {
-        const Icon = attachmentCategoryIcons[resourceType];
-        return <Icon className="size-6 text-muted-foreground" />;
-      }
-    }
-  })();
-  return (
-    <div className="flex shrink-0 items-center justify-center bg-muted size-24 overflow-hidden rounded-lg">
-      <AsyncBoundary skeleton={null}>{content}</AsyncBoundary>
-    </div>
-  );
 }
 
 type UserMessageProps = {
@@ -169,7 +99,11 @@ export function UserMessage({
     <>
       <div className="max-w-[85%] ml-auto mb-2 flex flex-wrap justify-end gap-2">
         {attachments?.map((data) => (
-          <UserMessageAttachment key={data.resource_id} data={data} />
+          <TaskResourceAttachment
+            key={data.resource_id}
+            data={data}
+            variant="thumbnail"
+          />
         ))}
       </div>
       <Message className="selectable" from="user">
