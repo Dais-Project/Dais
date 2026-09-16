@@ -9,14 +9,22 @@ import type { TabPanelProps } from "../index";
 function ProviderCreatePanel() {
   const { close } = useTabPanelActions();
 
-  return <ProviderCreateForm onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <ProviderCreateForm onConfirm={close} />
+    </div>
+  );
 }
 
 function ProviderEditPanel({ providerId }: { providerId: number }) {
   const { close } = useTabPanelActions();
   const { data: provider } = useGetProviderSuspense(providerId);
 
-  return <ProviderEditForm provider={provider} onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <ProviderEditForm provider={provider} onConfirm={close} />
+    </div>
+  );
 }
 
 export function ProviderPanel({

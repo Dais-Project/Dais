@@ -26,7 +26,12 @@ function ScheduleCreatePanel() {
   if (!currentWorkspace) return null;
 
   return (
-    <ScheduleCreateForm workspaceId={currentWorkspace.id} onConfirm={close} />
+    <div className="mx-auto w-full max-w-3xl">
+      <ScheduleCreateForm
+        workspaceId={currentWorkspace.id}
+        onConfirm={close}
+      />
+    </div>
   );
 }
 
@@ -34,7 +39,11 @@ function ScheduleEditPanel({ scheduleId }: { scheduleId: number }) {
   const { close } = useTabPanelActions();
   const { data: schedule } = useGetScheduleSuspense(scheduleId);
 
-  return <ScheduleEditForm schedule={schedule} onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <ScheduleEditForm schedule={schedule} onConfirm={close} />
+    </div>
+  );
 }
 
 function ScheduleRecordsPanelSkeleton() {

@@ -9,14 +9,22 @@ import type { TabPanelProps } from "../index";
 function AgentCreatePanel() {
   const { close } = useTabPanelActions();
 
-  return <AgentCreateForm onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <AgentCreateForm onConfirm={close} />
+    </div>
+  );
 }
 
 function AgentEditPanel({ agentId }: { agentId: number }) {
   const { close } = useTabPanelActions();
   const { data: agent } = useGetAgentSuspense(agentId);
 
-  return <AgentEditForm agent={agent} onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <AgentEditForm agent={agent} onConfirm={close} />
+    </div>
+  );
 }
 
 export function AgentPanel({

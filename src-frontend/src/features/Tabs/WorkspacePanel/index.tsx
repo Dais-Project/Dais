@@ -10,14 +10,22 @@ import { WorkspaceNotesEditForm } from "./WorkspaceNotesEditForm";
 function WorkspaceCreatePanel() {
   const { close } = useTabPanelActions();
 
-  return <WorkspaceCreateForm onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <WorkspaceCreateForm onConfirm={close} />
+    </div>
+  );
 }
 
 function WorkspaceEditPanel({ workspaceId }: { workspaceId: number }) {
   const { close } = useTabPanelActions();
   const { data: workspace } = useGetWorkspaceSuspense(workspaceId);
 
-  return <WorkspaceEditForm workspace={workspace} onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <WorkspaceEditForm workspace={workspace} onConfirm={close} />
+    </div>
+  );
 }
 
 function WorkspaceNotesEditPanel({ workspaceId }: { workspaceId: number }) {

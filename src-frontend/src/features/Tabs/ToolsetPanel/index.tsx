@@ -9,14 +9,22 @@ import { ToolsetCreateForm } from "./ToolsetCreateForm";
 function ToolsetCreatePanel() {
   const { close } = useTabPanelActions();
 
-  return <ToolsetCreateForm onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <ToolsetCreateForm onConfirm={close} />
+    </div>
+  );
 }
 
 function ToolsetEditPanel({ toolsetId }: { toolsetId: number }) {
   const { close } = useTabPanelActions();
   const { data: toolset } = useGetToolsetSuspense(toolsetId);
 
-  return <ToolsetEditForm toolset={toolset} onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <ToolsetEditForm toolset={toolset} onConfirm={close} />
+    </div>
+  );
 }
 
 export function ToolsetPanel({

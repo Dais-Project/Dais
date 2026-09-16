@@ -9,14 +9,22 @@ import { SkillCreateForm } from "./SkillCreateForm";
 function SkillCreatePanel() {
   const { close } = useTabPanelActions();
 
-  return <SkillCreateForm onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <SkillCreateForm onConfirm={close} />
+    </div>
+  );
 }
 
 function SkillEditPanel({ skillId }: { skillId: number }) {
   const { close } = useTabPanelActions();
   const { data: skill } = useGetSkillSuspense(skillId);
 
-  return <SkillEditForm skill={skill} onConfirm={close} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <SkillEditForm skill={skill} onConfirm={close} />
+    </div>
+  );
 }
 
 export function SkillPanel({
