@@ -1,4 +1,6 @@
 import { useResponsive } from "ahooks";
+import { use } from "react";
+import { BackendReadyPromise } from "@/api";
 import { useScheduleNotificationListener } from "../sse-listeners/schedule-notification-listener";
 import { useResourceChangedListener } from "../sse-listeners/resource-changed-listener";
 import { Layout as MobileLayout } from "./mobile/Layout";
@@ -19,6 +21,8 @@ export function LayoutSkeleton() {
 }
 
 export function Layout() {
+  use(BackendReadyPromise);
+
   useScheduleNotificationListener();
   useResourceChangedListener();
 
