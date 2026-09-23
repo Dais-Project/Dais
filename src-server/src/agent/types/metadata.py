@@ -1,6 +1,9 @@
 from enum import StrEnum
 from typing import Literal, Mapping, TypeGuard, TypedDict
 
+from dais_sdk.types import ContentBlockMetadata
+
+
 class UserApprovalStatus(StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
@@ -14,6 +17,8 @@ class ToolMessageMetadata(TypedDict, total=False):
 
     # this field is used to identify if a pending tool message needs respond or approve
     pending_action: Literal["respond", "approve"]
+
+    original_result: str | list[ContentBlockMetadata]
 
 def is_agent_tool_metadata(_: dict) -> TypeGuard[ToolMessageMetadata]:
     return True
