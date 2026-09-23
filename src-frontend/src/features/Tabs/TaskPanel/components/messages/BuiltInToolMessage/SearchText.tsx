@@ -17,6 +17,7 @@ import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 
 export function SearchText({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
@@ -27,6 +28,7 @@ export function SearchText({ message }: ToolMessageProps) {
   );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
+  const result = useToolResult<string>(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -39,11 +41,11 @@ export function SearchText({ message }: ToolMessageProps) {
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
-    if (message.result !== null) {
+    if (result !== null) {
       return (
         <div className="px-4 pb-4">
           <CodeBlock
-            code={message.result as string}
+            code={result}
             language="text"
             showLineNumbers={false}
           />

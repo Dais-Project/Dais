@@ -19,6 +19,7 @@ import { ToolConfirmation } from "./components/ToolConfirmation";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 
 const findFilesResultSchema = z.object({
   matches: z.array(z.string()),
@@ -56,6 +57,7 @@ export function FindFiles({ message }: ToolMessageProps) {
   );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
+  const result = useToolResult<string>(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -68,8 +70,8 @@ export function FindFiles({ message }: ToolMessageProps) {
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
-    if (message.result !== null) {
-      return <FindFilesContent result={message.result as string} />;
+    if (result !== null) {
+      return <FindFilesContent result={result} />;
     }
     if (toolArguments === null) {
       return (

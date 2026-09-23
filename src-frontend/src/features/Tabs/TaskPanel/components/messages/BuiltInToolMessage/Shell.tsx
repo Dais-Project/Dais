@@ -14,6 +14,7 @@ import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useCollapsed } from "../../../hooks/use-collapsible-store";
+import { useToolResult } from "../../../hooks/use-tool-result";
 import { getToolMessageMetadata } from "@/types/message";
 import { XmlRawContentParser } from "@/lib/escape-xml";
 
@@ -59,6 +60,7 @@ function useShellDisplay(
     ShellToolSchema,
   );
   const { userApproval } = getToolMessageMetadata(message);
+  const result = useToolResult<string>(message);
 
   const input = useMemo(() => {
     if (toolArguments === null) {
@@ -76,7 +78,7 @@ function useShellDisplay(
     if (message.error !== null) {
       return { stdout: null, stderr: message.error };
     }
-    if (message.result === null) {
+    if (result === null) {
       if (userApproval === "pending") {
         return {
           stdout: t("tool.shell.waiting_approval"),
@@ -85,8 +87,8 @@ function useShellDisplay(
       }
       return { stdout: t("tool.shell.executing"), stderr: null };
     }
-    return parseShellResult(message.result as string);
-  }, [message.isStreaming, message.error, message.result, userApproval, t]);
+    return parseShellResult(result);
+  }, [message.isStreaming, message.error, result, userApproval, t]);
 
   return [input, output];
 }

@@ -23,6 +23,7 @@ import {
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { XmlRawContentParser } from "@/lib/escape-xml";
 import { TaskResourceAttachment } from "../../TaskResourceAttachment";
@@ -186,6 +187,7 @@ export function ReadFile({ message }: ToolMessageProps) {
   );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
+  const result = useToolResult<string | TaskResourceMetadata[]>(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -205,11 +207,11 @@ export function ReadFile({ message }: ToolMessageProps) {
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
-    if (message.result !== null) {
+    if (result !== null) {
       return (
         <ReadFileContent
           arguments={toolArguments}
-          result={message.result as string | TaskResourceMetadata[]}
+          result={result}
         />
       );
     }

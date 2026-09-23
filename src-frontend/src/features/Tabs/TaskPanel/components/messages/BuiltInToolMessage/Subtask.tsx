@@ -28,6 +28,7 @@ import {
   useAgentTaskAction,
 } from "../../../hooks/use-agent-task";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 import {
   ReadonlySessionView,
   ReadonlySessionViewSkeleton,
@@ -116,7 +117,8 @@ function Subtask({ message, agentId }: SubtaskProps) {
   const { reviewTool } = useAgentTaskAction();
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
-  const subtaskId = parseSubtaskIdFromResult(message.result as string | null);
+  const result = useToolResult<string>(message);
+  const subtaskId = parseSubtaskIdFromResult(result);
 
   return (
     <Drawer direction="right" modal={false}>
