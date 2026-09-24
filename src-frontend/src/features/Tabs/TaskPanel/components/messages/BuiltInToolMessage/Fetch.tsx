@@ -19,6 +19,7 @@ import {
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 import { getToolMessageMetadata } from "@/types/message";
 import { isTaskResourceMetadataList } from "@/types/message/type-guards";
@@ -174,6 +175,7 @@ function FetchTextContent({ result }: { result: string }) {
 
 function FetchResult({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
+  const result = useToolResult<string | TaskResourceMetadata[]>(message);
   const toolArguments = useToolArgument<WebInteractionFetch>(
     message,
     FetchToolSchema,
@@ -192,7 +194,7 @@ function FetchResult({ message }: ToolMessageProps) {
       </p>
     );
   }
-  const { result, error } = message;
+  const { error } = message;
   if (error) {
     return <BuiltInToolError error={error} />;
   }
@@ -200,7 +202,7 @@ function FetchResult({ message }: ToolMessageProps) {
     if (isTaskResourceMetadataList(result)) {
       return <FetchContentBlocks result={result} />;
     }
-    return <FetchTextContent result={result as string} />;
+    return <FetchTextContent result={result} />;
   }
   return null;
 }

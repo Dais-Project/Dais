@@ -17,6 +17,7 @@ import { TaskResourceAttachment } from "../TaskResourceAttachment";
 import { useAgentTaskAction } from "../../hooks/use-agent-task";
 import { useToolName } from "../../hooks/use-tool-name";
 import { useToolActionable } from "../../hooks/use-tool-actionable";
+import { useToolResult } from "../../hooks/use-tool-result";
 import { useCollapsed } from "../../hooks/use-collapsible-store";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
   const { hasResult, disabled, markAsSubmitted } = useToolActionable(message);
   const [collapsed, setCollapsed] = useCollapsed(message.call_id, true);
   const { userApproval, risk } = getToolMessageMetadata(message);
+  const result = useToolResult(message);
 
   return (
     <Tool
@@ -73,9 +75,9 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
         <Activity mode={activityVisible(hasResult)}>
           <ToolOutput
             output={
-              isTaskResourceMetadataList(message.result) ? (
+              isTaskResourceMetadataList(result) ? (
                 <div className="flex flex-col items-center justify-center gap-2">
-                  {message.result.map((item, index) => (
+                  {result.map((item, index) => (
                     <TaskResourceAttachment
                       key={`${typeof item.resource_id}:${item.resource_id}:${index}`}
                       data={item}
@@ -84,7 +86,7 @@ export function GeneralToolMessage({ message }: ToolMessageProps) {
                   ))}
                 </div>
               ) : (
-                message.result
+                result
               )
             }
             errorText={message.error}

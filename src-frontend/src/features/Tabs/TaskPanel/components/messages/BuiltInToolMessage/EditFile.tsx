@@ -18,6 +18,7 @@ import {
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 
 export function EditFile({ message }: ToolMessageProps) {
   const { t } = useTranslation(TABS_TASK_NAMESPACE);
@@ -28,6 +29,7 @@ export function EditFile({ message }: ToolMessageProps) {
   );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
+  const result = useToolResult<string>(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -40,7 +42,6 @@ export function EditFile({ message }: ToolMessageProps) {
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
-    const result = message.result as string | null;
     if (result !== null && result.trim().length > 0) {
       return (
         <div className="px-4 pb-4">

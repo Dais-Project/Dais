@@ -17,6 +17,7 @@ import {
 import { useAgentTaskAction } from "../../../hooks/use-agent-task";
 import { useToolArgument } from "../../../hooks/use-tool-argument";
 import { useToolActionable } from "../../../hooks/use-tool-actionable";
+import { useToolResult } from "../../../hooks/use-tool-result";
 import { ToolConfirmation } from "./components/ToolConfirmation";
 
 export function ListDirectory({ message }: ToolMessageProps) {
@@ -28,6 +29,7 @@ export function ListDirectory({ message }: ToolMessageProps) {
   );
   const { disabled, markAsSubmitted } = useToolActionable(message);
   const { userApproval, risk } = getToolMessageMetadata(message);
+  const result = useToolResult<string>(message);
 
   const content = (() => {
     if (message.isStreaming) {
@@ -40,8 +42,7 @@ export function ListDirectory({ message }: ToolMessageProps) {
     if (message.error) {
       return <BuiltInToolError error={message.error} />;
     }
-    if (message.result !== null) {
-      const result = message.result as string;
+    if (result !== null) {
       if (result.trim().length === 0) {
         return (
           <p className="px-4 pb-4 text-muted-foreground text-sm">

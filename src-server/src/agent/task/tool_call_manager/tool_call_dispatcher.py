@@ -25,6 +25,7 @@ from .exception_handlers import (
     handle_tool_result_serialization_error,
 )
 from .tool_call_reviewer import ToolCallReviewer, ToolCallBlocked, ToolCallApproved
+from .tool_result_truncator import ToolResultTruncator
 from ...context import AgentContext
 from ...tool import ExecutionControlToolset
 from ...types import (
@@ -85,8 +86,9 @@ class ToolCallDispatcher:
     def __init__(self, ctx: AgentContext, tool_call_reviewer: ToolCallReviewer):
         self._ctx = ctx
         self._tool_call_reviewer = tool_call_reviewer
-        content_block_persister = TaskResourcePersister(self._ctx.task_id, self._ctx.task_type)
-        self._tool_call_executor = ToolCallExecutor(content_block_persister)
+        self._content_block_persister = TaskResourcePersister(ctx.task_id, ctx.task_type)
+        self._tool_result_truncator = ToolResultTruncator(ctx.task_id, ctx.task_type)
+        self._tool_call_executor = ToolCallExecutor(self._content_block_persister)
         self._tool_call_executor.exception_handler.set_handler(ToolDoesNotExistError, handle_tool_does_not_exist_error)
         self._tool_call_executor.exception_handler.set_handler(ToolArgumentParsingError, handle_tool_argument_parsing_error)
         self._tool_call_executor.exception_handler.set_handler(ToolResultSerializationError, handle_tool_result_serialization_error)
@@ -101,11 +103,14 @@ class ToolCallDispatcher:
         message.result = result
         message.error = error
 
-        assert is_agent_tool_metadata(message.metadata)
+        try:
+            await self._tool_result_truncator.truncate(message)
+        except Exception as e:
+            self._logger.error(f"Failed to truncate tool result: {e}")
 
         return ToolExecutedEvent(
             call_id=message.call_id,
-            result=result if error is None else None)
+            result=message.result if error is None else None)
 
     async def _classify(self,
                         dispatches: list[ToolCallDispatch]
