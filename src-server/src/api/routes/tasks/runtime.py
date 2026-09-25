@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from loguru import logger
 
 from src.schemas.tasks import runtime as task_runtime_schemas
-from src.agent.task.runtime_manager import AgentTaskRuntimeRef, use_agent_task_runtime_manager
+from src.agent.task.runtime_manager import AgentTaskRuntimeKey, AgentTaskRuntimeRef, use_agent_task_runtime_manager
 
 from ...dependencies import AgentTaskExecutorDep, DbSessionDep
 
@@ -23,11 +23,10 @@ async def get_task_runtime_context(
     task_type: task_runtime_schemas.TaskType,
     task_id: int,
 ):
-    if task_type == task_runtime_schemas.TaskType.TASK:
-        checkpoint = await executor.get_checkpoint(task_id)
-        if checkpoint is not None:
-            return TaskRuntimeContextResponse(**checkpoint.snapshot.model_dump(),
-                                              revision=checkpoint.revision)
+    checkpoint = await executor.get_checkpoint(AgentTaskRuntimeKey(task_type, task_id))
+    if checkpoint is not None:
+        return TaskRuntimeContextResponse(**checkpoint.snapshot.model_dump(),
+                                          revision=checkpoint.revision)
 
     task_ref = AgentTaskRuntimeRef(type=task_type, id=task_id)
     runtime_context = await use_agent_task_runtime_manager()\

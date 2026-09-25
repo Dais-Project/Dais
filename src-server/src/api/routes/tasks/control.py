@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from loguru import logger
 from pydantic import BaseModel
 
-from src.agent.task.runtime_manager import AgentTaskRuntimeRef, use_agent_task_runtime_manager
+from src.agent.task.runtime_manager import AgentTaskRuntimeKey, AgentTaskRuntimeRef, use_agent_task_runtime_manager
 from src.agent.types import MessageReplaceEvent, FileResourceMetadata
 from src.db import db_context
 from src.schemas.tasks import runtime as task_runtime_schemas
@@ -46,8 +46,7 @@ _logger = logger.bind(name="TaskControlRoute")
 async def stop_task(executor: AgentTaskExecutorDep,
                     task_type: task_runtime_schemas.TaskType,
                     task_id: int):
-    if task_type == task_runtime_schemas.TaskType.TASK:
-        await executor.stop(task_id)
+    await executor.stop(AgentTaskRuntimeKey(task_type, task_id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @task_control_router.post("/{task_type}/{task_id}/messages", response_model=task_runtime_schemas.TaskRuntimeContext)

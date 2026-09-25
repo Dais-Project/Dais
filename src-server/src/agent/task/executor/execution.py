@@ -65,6 +65,10 @@ class AgentTaskExecution:
             for revision_event in self._history:
                 if revision_event.revision > after_revision:
                     subscription.put_nowait(revision_event)
+        if (self._runner is not None and self._runner.done() and self._history and
+            is_terminal_event(self._history[-1].event) and
+            (after_revision is None or after_revision >= self._history[-1].revision)):
+            subscription.put_nowait(self._history[-1])
         self._subscriptions.add(subscription)
         return subscription
 

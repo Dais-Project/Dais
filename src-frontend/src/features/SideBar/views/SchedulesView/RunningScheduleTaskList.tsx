@@ -1,8 +1,9 @@
 import { formatDistanceToNow } from "date-fns";
 import { ActivityIcon, SquareIcon } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { ScheduleRunningJob } from "@/api/generated/schemas";
+import { TaskType, type ScheduleRunningJob } from "@/api/generated/schemas";
 import {
   invalidateScheduleRunningJobsQuery,
   useCancelScheduleExecution,
@@ -19,6 +20,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/
 import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
 import { DATEFNS_LOCALE_MAP } from "@/i18n/locale-maps/datefns";
 import { SIDEBAR_SCHEDULE_NAMESPACE } from "@/i18n/resources";
+import SseDispatcher from "@/lib/sse-dispatcher";
 import { useSettingsStore } from "@/stores/settings-store";
 
 function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
@@ -75,6 +77,12 @@ function RunningScheduleTaskItem({ task }: { task: ScheduleRunningJob }) {
 export function RunningScheduleTaskList() {
   const { t } = useTranslation(SIDEBAR_SCHEDULE_NAMESPACE);
   const query = useGetScheduleRunningJobsSuspense({ query: { gcTime: SIDEBAR_QUERY_GC_TIME } });
+
+  useEffect(() => (
+    SseDispatcher.subscribe("TASK_EXECUTOR_CHANGED", (data) => {
+      if (data.task_type === TaskType.schedule) query.refetch();
+    })
+  ), [query.refetch]);
 
   if (query.data.length === 0) {
     return (
