@@ -24,16 +24,17 @@ class AgentTaskExecutor:
         self._lock = asyncio.Lock()
         self._on_tasks_changed = on_tasks_changed
 
-    async def start(self, ref: AgentTaskRuntimeRef):
+    async def start(self, ref: AgentTaskRuntimeRef) -> AgentTaskExecution:
         key = AgentTaskRuntimeKey(ref.type, ref.id)
         async with self._lock:
             if key in self._tasks:
-                return
+                return self._tasks[key]
             execution = await self._create_execution(ref)
             self._tasks[key] = execution
             execution.start()
 
         await self._notify_tasks_changed(key)
+        return execution
 
     async def get_or_subscribe(self,
                                ref: AgentTaskRuntimeRef,
@@ -60,7 +61,7 @@ class AgentTaskExecutor:
     async def _create_execution(self, ref: AgentTaskRuntimeRef) -> AgentTaskExecution:
         key = AgentTaskRuntimeKey(ref.type, ref.id)
         lease = await use_agent_task_runtime_manager().acquire(ref)
-        on_finish = lambda: self._finish_execution(key, lease, new_execution)
+        on_finish = lambda _: self._finish_execution(key, lease, new_execution)
         new_execution = AgentTaskExecution(lease.task, on_finish)
         return new_execution
 

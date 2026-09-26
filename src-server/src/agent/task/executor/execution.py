@@ -9,12 +9,14 @@ from pydantic import BaseModel, ConfigDict
 from src.schemas.tasks import runtime as task_runtime_schemas
 from .subscription import AgentTaskSubscription
 from .. import AgentTask
-from ..runtime_manager import AgentTaskRuntimeLease, AgentTaskRuntimeRef, use_agent_task_runtime_manager
+from ...types import TaskStopResult
 from ...types.stream import TurnEndEvent, TaskDoneEvent, TaskInterruptedEvent, ErrorEvent, is_terminal_event
 
 if TYPE_CHECKING:
     from ...types.stream import AgentEvent
 
+
+type FinishCallback = Callable[[TaskStopResult], Coroutine]
 
 class AgentTaskCheckpoint(BaseModel):
     model_config = ConfigDict(frozen=True)
@@ -33,9 +35,9 @@ class AgentTaskExecution:
 
     def __init__(self,
                  task: AgentTask,
-                 on_finish: Callable[[], Coroutine]):
+                 on_finish: FinishCallback):
         self._task = task
-        self._on_finish = on_finish
+        self._on_finish_callbacks: list[FinishCallback] = [on_finish]
 
         self._runner: asyncio.Task | None = None
         self._subscriptions: set[AgentTaskSubscription] = set()
@@ -53,7 +55,7 @@ class AgentTaskExecution:
         self._checkpoint = AgentTaskCheckpoint(revision=self._revision,
                                                 snapshot=self._task.snapshot())
         self._runner = asyncio.create_task(self._run())
-        self._runner.add_done_callback(lambda _: asyncio.create_task(self._on_finish()))
+        self._runner.add_done_callback(lambda _: asyncio.create_task(self._on_finish_handler()))
 
     @property
     def checkpoint(self) -> AgentTaskCheckpoint | None:
@@ -74,6 +76,12 @@ class AgentTaskExecution:
 
     def unsubscribe(self, subscription: AgentTaskSubscription):
         self._subscriptions.discard(subscription)
+
+    def add_finish_callback(self, callback: FinishCallback):
+        self._on_finish_callbacks.append(callback)
+
+    def remove_finish_callback(self, callback: FinishCallback):
+        self._on_finish_callbacks.remove(callback)
 
     async def stop(self):
         runner = self._runner
@@ -124,3 +132,10 @@ class AgentTaskExecution:
             self._logger.warning("No terminal event yielded")
             pending_terminal_event = TaskDoneEvent()
         self._yield_event(pending_terminal_event)
+
+        await self._on_finish_handler()
+
+    async def _on_finish_handler(self):
+        result = self._task.result
+        for callback in self._on_finish_callbacks:
+            await callback(result)

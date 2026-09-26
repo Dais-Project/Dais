@@ -155,6 +155,10 @@ class AgentTask:
             if isinstance(event, TaskInterruptedEvent):
                 return TaskInterrupted()
 
+        return self.result
+
+    @property
+    def result(self) -> TaskStopResult:
         pending_tool_calls = self._tool_call_manager.collect_pendings()
         if len(pending_tool_calls) > 0:
             return TaskWaitingAction(messages=pending_tool_calls)
