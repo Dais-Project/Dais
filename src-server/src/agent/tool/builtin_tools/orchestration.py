@@ -96,15 +96,9 @@ def compose_subtask_result(subtask: AgentTask, task_result: TaskStopResult) -> s
     return AnyXml.tostring(root)
 
 async def run_subtask(task: AgentTask) -> str:
-    try:
-        await task.persist()
-        task_result = await task.run_until_done()
-        return compose_subtask_result(task, task_result)
-    except asyncio.CancelledError:
-        await task.stop()
-        raise
-    finally:
-        await asyncio.shield(task.persist())
+    await task.persist()
+    task_result = await task.run_until_done()
+    return compose_subtask_result(task, task_result)
 
 class OrchestrationToolset(BuiltinToolset):
     @property

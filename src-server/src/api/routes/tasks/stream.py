@@ -17,7 +17,7 @@ task_stream_router = APIRouter(tags=["task"])
 
 @task_stream_router.get("/runnings", response_model=list[int])
 async def get_running_tasks(executor: AgentTaskExecutorDep):
-    return await executor.get_task_ids()
+    return executor.get_running_ids(task_runtime_schemas.TaskType.TASK)
 
 @task_stream_router.post(
     "/{task_type}/{task_id}/continue",

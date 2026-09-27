@@ -12,8 +12,7 @@ from src.schemas.tasks import schedule as schedule_schemas
 from src.services.tasks import RunRecordService, ScheduleService
 from src.utils import Scheduler
 
-from . import AgentTask
-from ..context import AgentContext
+from .executor import AgentTaskExecutor, AgentTaskRuntimeRef
 from ..types import ScheduleRunCompletedEvent
 
 
@@ -30,17 +29,25 @@ class ScheduleJob:
     ):
         self.id = record.id
         self.created_at = int(time.time())
-        self.task: asyncio.Task | None = None
         self._schedule = schedule
+        self._execution = None
         self._on_job_completed = on_job_completed
-        self._runtime_context = task_runtime_schemas.TaskRuntimeContext(
-            id=record.id,
+
+    async def start_with_executor(self, executor: AgentTaskExecutor):
+        task_ref = AgentTaskRuntimeRef(
             type=task_runtime_schemas.TaskType.SCHEDULE,
-            usage=record.usage,
-            agent_id=schedule.agent_id,
-            workspace_id=schedule.workspace_id,
-            messages=record.messages
+            id=self.id,
+            agent_id=self._schedule.agent_id,
         )
+        self._execution = await executor.start(task_ref)
+        self._execution.add_finish_callback(lambda result: self._on_job_completed(ScheduleRunCompletedEvent(
+            event_id="SCHEDULE_RUN_COMPLETED",
+                run_record_id=self.id,
+                schedule_id=self._schedule.id,
+                schedule_name=self._schedule.name,
+                workspace_id=self._schedule.workspace_id,
+                status=result.reason,
+        )))
 
     def snapshot(self) -> schedule_schemas.ScheduleRunningJob:
         return schedule_schemas.ScheduleRunningJob(
@@ -50,65 +57,51 @@ class ScheduleJob:
             workspace_id=self._schedule.workspace_id,
         )
 
-    async def run(self):
-        ctx = await AgentContext.create(self._runtime_context)
-        task = AgentTask(ctx)
-        try:
-            result = await task.run_until_done()
-            await self._on_job_completed(ScheduleRunCompletedEvent(
-                event_id="SCHEDULE_RUN_COMPLETED",
-                schedule_id=self._schedule.id,
-                schedule_name=self._schedule.name,
-                workspace_id=self._schedule.workspace_id,
-                run_record_id=self.id,
-                status=result.reason,
-            ))
-        except asyncio.CancelledError:
-            await task.stop()
-            raise
-        finally:
-            await asyncio.shield(task.persist())
-
-    def cancel(self) -> asyncio.Task | None:
-        if self.task is None:
-            _logger.warning(f"Schedule job {self.id} not running")
-            return None
-        if not self.task.done():
-            self.task.cancel()
-        return self.task
+    async def cancel(self):
+        if self._execution is None: return
+        await self._execution.stop()
 
 class ScheduleJobPool:
-    def __init__(self):
+    def __init__(self,
+                 job_executor: AgentTaskExecutor,
+                 on_job_completed: JobCompletedCallback):
         self._pool: dict[int, ScheduleJob] = {}
-        self._lock = asyncio.Lock()
+        self._job_executor = job_executor
+        self._on_job_completed = on_job_completed
 
-    async def add(self, job: ScheduleJob):
-        async with self._lock:
-            task = asyncio.create_task(job.run())
-            job.task = task
-            self._pool[job.id] = job
-            task.add_done_callback(lambda _: self._pool.pop(job.id, None))
+    async def add(self,
+                  schedule: schedule_schemas.ScheduleRead,
+                  record: schedule_schemas.RunRecordRead):
+        async def job_completed_handler(event: ScheduleRunCompletedEvent):
+            self._pool.pop(event.run_record_id, None)
+            await self._on_job_completed(event)
+
+        job = ScheduleJob(schedule, record, job_completed_handler)
+        self._pool[job.id] = job
+        try:
+            await job.start_with_executor(self._job_executor)
+        except Exception as e:
+            _logger.error(f"Error starting schedule job {job.id}: {e}")
+            self._pool.pop(job.id, None)
 
     async def list_snapshots(self) -> list[schedule_schemas.ScheduleRunningJob]:
-        async with self._lock:
-            return [job.snapshot() for job in self._pool.values()]
+        return [job.snapshot() for job in self._pool.values()]
 
     async def cancel(self, job_id: int):
-        async with self._lock:
-            job = self._pool.pop(job_id, None)
+        job = self._pool.pop(job_id, None)
 
         if job is None:
             _logger.warning(f"Schedule job {job_id} not found")
             return
 
-        task = job.cancel()
-        if task is not None:
-            await asyncio.gather(task, return_exceptions=True)
+        try:
+            await job.cancel()
+        except Exception as e:
+            _logger.error(f"Error cancelling schedule job {job_id}: {e}")
 
     async def shutdown(self):
-        async with self._lock:
-            jobs = list(self._pool.values())
-            self._pool.clear()
+        jobs = list(self._pool.values())
+        self._pool.clear()
 
         tasks = []
         for job in jobs:
@@ -120,10 +113,11 @@ class ScheduleJobPool:
             await asyncio.gather(*tasks, return_exceptions=True)
 
 class ScheduleRunner:
-    def __init__(self, on_job_completed: JobCompletedCallback):
+    def __init__(self,
+                 job_executor: AgentTaskExecutor,
+                 on_job_completed: JobCompletedCallback):
         self._scheduler = Scheduler()
-        self._task_pool = ScheduleJobPool()
-        self._on_job_completed = on_job_completed
+        self._task_pool = ScheduleJobPool(job_executor, on_job_completed)
 
     async def load_schedules(self):
         async with db_context() as db_session:
@@ -143,8 +137,7 @@ class ScheduleRunner:
                     initial_message=schedule.task))
         schedule = schedule_schemas.ScheduleRead.model_validate(schedule)
         record = schedule_schemas.RunRecordRead.model_validate(record)
-        job = ScheduleJob(schedule, record, self._on_job_completed)
-        await self._task_pool.add(job)
+        await self._task_pool.add(schedule, record)
 
     async def append(self, schedule: schedule_schemas.ScheduleRead):
         match schedule.config:
@@ -170,9 +163,10 @@ class ScheduleRunner:
 
 __instance = None
 
-def init_schedule_runner(on_job_completed: JobCompletedCallback) -> ScheduleRunner:
+def init_schedule_runner(job_executor: AgentTaskExecutor,
+                         on_job_completed: JobCompletedCallback) -> ScheduleRunner:
     global __instance
-    __instance = ScheduleRunner(on_job_completed)
+    __instance = ScheduleRunner(job_executor, on_job_completed)
     return __instance
 
 def use_schedule_runner() -> ScheduleRunner:
