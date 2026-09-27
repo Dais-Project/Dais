@@ -14,7 +14,7 @@ dependencies = [
     "binaryornot==0.6.0",
     "fastapi==0.136.1",
     "fastapi-pagination==0.15.12",
-    "httpx>=0.28.0",
+    "httpx2>=2.13.1",
     "hypercorn==0.18.0",
     "loguru==0.7.3",
     "markitdown[docx,pdf,pptx]==0.1.5",

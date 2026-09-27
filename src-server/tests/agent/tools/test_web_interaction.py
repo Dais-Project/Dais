@@ -2,7 +2,7 @@ import base64
 import re
 import xml.etree.ElementTree as ET
 
-import httpx
+import httpx2
 import pytest
 import src.agent.tool.builtin_tools.web_interaction as web_interaction_module
 from dais_sdk.types import AudioBlock, ImageBlock, TextBlock, VideoBlock
@@ -35,7 +35,7 @@ class FakeMagika:
 
 
 class FakeAsyncClient:
-    def __init__(self, response: httpx.Response):
+    def __init__(self, response: httpx2.Response):
         self._response = response
 
     async def __aenter__(self):
@@ -44,7 +44,7 @@ class FakeAsyncClient:
     async def __aexit__(self, exc_type, exc, tb):
         return None
 
-    async def send(self, _: httpx.Request) -> httpx.Response:
+    async def send(self, _: httpx2.Request) -> httpx2.Response:
         return self._response
 
 
@@ -52,9 +52,9 @@ def make_response(
     content: bytes,
     status_code: int = 200,
     content_type: str = "application/octet-stream",
-) -> httpx.Response:
-    request = httpx.Request("GET", "https://example.com/resource")
-    return httpx.Response(
+) -> httpx2.Response:
+    request = httpx2.Request("GET", "https://example.com/resource")
+    return httpx2.Response(
         status_code,
         content=content,
         request=request,
@@ -101,7 +101,7 @@ class TestFetch:
         content = b"fake media"
         response = make_response(content, content_type=mime_type)
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )
@@ -144,7 +144,7 @@ class TestFetch:
             content_type="image/png",
         )
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )
@@ -171,7 +171,7 @@ class TestFetch:
         content = b"fake image"
         response = make_response(content, content_type="text/plain")
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )
@@ -211,7 +211,7 @@ class TestFetch:
     ):
         response = make_response(b"hello")
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )
@@ -248,7 +248,7 @@ class TestFetch:
         )
         response = make_response(html_content, content_type="text/html")
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )
@@ -278,7 +278,7 @@ class TestFetch:
         html_content = b"<html><body></body></html>"
         response = make_response(html_content, content_type="text/html")
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )
@@ -307,7 +307,7 @@ class TestFetch:
         html_content = b"<html><body><p>Raw HTML</p></body></html>"
         response = make_response(html_content, content_type="text/html")
         monkeypatch.setattr(
-            web_interaction_module.httpx,
+            web_interaction_module.httpx2,
             "AsyncClient",
             lambda **_: FakeAsyncClient(response),
         )

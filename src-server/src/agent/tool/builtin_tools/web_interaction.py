@@ -2,7 +2,7 @@ import asyncio
 import base64
 import json
 from anyxml import AnyXml
-import httpx
+import httpx2
 import trafilatura
 import xml.etree.ElementTree as ET
 from magika import ContentTypeLabel
@@ -133,7 +133,7 @@ class WebInteractionToolset(BuiltinToolset):
         """
 
         async def read_media_content_block(
-            res: httpx.Response,
+            res: httpx2.Response,
             media_type: Literal["image", "audio", "video"],
             mime_type: str,
         ) -> ContentBlock:
@@ -151,7 +151,7 @@ class WebInteractionToolset(BuiltinToolset):
                 case "audio": return AudioBlock(source=source)
                 case "video": return VideoBlock(source=source)
 
-        async def extract_fetch_content(res: httpx.Response, raw: bool, content_type: Any) -> str:
+        async def extract_fetch_content(res: httpx2.Response, raw: bool, content_type: Any) -> str:
             if res.status_code == 204: return ""
             if not content_type.output.is_text:
                 if self._markdown_converter.is_convertable_binary(content_type.output.label):
@@ -168,7 +168,7 @@ class WebInteractionToolset(BuiltinToolset):
                 return extracted
             else: return res.text
 
-        def format_redirects(redirects: list[httpx.Response]) -> ET.Element:
+        def format_redirects(redirects: list[httpx2.Response]) -> ET.Element:
             redirects_el = ET.Element("redirects")
             for r in redirects:
                 ET.SubElement(redirects_el, "redirect", attrib={
@@ -178,7 +178,7 @@ class WebInteractionToolset(BuiltinToolset):
                 })
             return redirects_el
 
-        def format_fetch_error(res: httpx.Response) -> str:
+        def format_fetch_error(res: httpx2.Response) -> str:
             error_root = ET.Element("error")
             ET.SubElement(error_root, "url").text = str(res.url)
             ET.SubElement(error_root, "status_code").text = str(res.status_code)
@@ -187,7 +187,7 @@ class WebInteractionToolset(BuiltinToolset):
             ET.SubElement(error_root, "text").text = res.text
             return ET.tostring(error_root, encoding="unicode")
 
-        async def format_fetch_result(res: httpx.Response, raw: bool) -> str | list[ContentBlock]:
+        async def format_fetch_result(res: httpx2.Response, raw: bool) -> str | list[ContentBlock]:
             fetch_root = ET.Element("fetch")
             ET.SubElement(fetch_root, "url").text = str(res.url)
             ET.SubElement(fetch_root, "status_code").text = str(res.status_code)
@@ -209,8 +209,8 @@ class WebInteractionToolset(BuiltinToolset):
             request_kwargs.update(body.to_params())
         if headers is not None:
             request_kwargs["headers"].update(headers)
-        req = httpx.Request(method, url, **request_kwargs)
-        async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
+        req = httpx2.Request(method, url, **request_kwargs)
+        async with httpx2.AsyncClient(follow_redirects=True, timeout=30) as client:
             res = await client.send(req)
 
         if res.status_code >= 400:

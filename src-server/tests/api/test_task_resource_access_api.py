@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from types import SimpleNamespace
 
-import httpx
+import httpx2
 import pytest
 from fastapi import FastAPI
 
@@ -45,9 +45,9 @@ def api_app(access_service: TaskResourceAccessService):
 
 
 @pytest.fixture
-async def client(api_app: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
-    transport = httpx.ASGITransport(app=api_app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+async def client(api_app: FastAPI) -> AsyncIterator[httpx2.AsyncClient]:
+    transport = httpx2.ASGITransport(app=api_app)
+    async with httpx2.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 
 
@@ -134,7 +134,7 @@ async def test_access_url_requires_authentication(mocker):
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_authenticated_request_creates_access_url(
-    client: httpx.AsyncClient,
+    client: httpx2.AsyncClient,
 ):
     response = await client.post(
         "/api/task-resources/access-url",
@@ -149,7 +149,7 @@ async def test_authenticated_request_creates_access_url(
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_signed_resource_supports_range_without_authentication(
-    client: httpx.AsyncClient,
+    client: httpx2.AsyncClient,
     access_service: TaskResourceAccessService,
     mocker,
     tmp_path: Path,
@@ -184,7 +184,7 @@ async def test_signed_resource_supports_range_without_authentication(
 
 @pytest.mark.api
 @pytest.mark.asyncio
-async def test_invalid_signed_resource_returns_401(client: httpx.AsyncClient):
+async def test_invalid_signed_resource_returns_401(client: httpx2.AsyncClient):
     response = await client.get("/api/task-resources/access/invalid.token")
 
     assert response.status_code == 401

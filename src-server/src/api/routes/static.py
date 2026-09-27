@@ -1,4 +1,4 @@
-import httpx
+import httpx2
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request, status
 from starlette.responses import FileResponse, Response
@@ -7,7 +7,7 @@ from ..cleanup import CleanupManager
 
 
 static_router = APIRouter(tags=["static"])
-_PROXY_CLIENT = httpx.AsyncClient(follow_redirects=True)
+_PROXY_CLIENT = httpx2.AsyncClient(follow_redirects=True)
 _FRONTEND_DEV_URL = "http://localhost:1420"
 _HOP_BY_HOP_HEADERS = {
     "connection",
@@ -37,7 +37,7 @@ def _resolve_static_file(static_root: Path, request_path: str) -> Path:
     return static_root / "index.html"
 
 async def _proxy_to_frontend_dev_server(request: Request, request_path: str) -> Response:
-    target_url = httpx.URL(_FRONTEND_DEV_URL).join(request_path or "/")
+    target_url = httpx2.URL(_FRONTEND_DEV_URL).join(request_path or "/")
     if request.url.query:
         target_url = target_url.copy_with(query=request.url.query.encode("utf-8"))
 
