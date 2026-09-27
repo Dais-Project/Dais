@@ -145,7 +145,7 @@ type AgentEvent = Annotated[(
     TaskInterruptedEvent |
     ToolEvent |
     ErrorEvent
-), Discriminator("event_id")]
+), Discriminator(discriminator="event_id")]
 
 type AgentGenerator = AsyncGenerator[AgentEvent, None]
 

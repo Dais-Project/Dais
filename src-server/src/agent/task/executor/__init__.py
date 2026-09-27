@@ -88,27 +88,22 @@ class AgentTaskExecutor:
             task_id=key.id,
         ))
 
-    async def get_task_ids(self) -> list[int]:
-        async with self._lock:
-            return [key.id for key in self._tasks if key.type == task_runtime_schemas.TaskType.TASK]
+    def get_running_ids(self, task_type: task_runtime_schemas.TaskType) -> list[int]:
+        return [key.id for key in self._tasks if key.type == task_type]
 
     async def get_checkpoint(self, key: AgentTaskRuntimeKey) -> AgentTaskCheckpoint | None:
-        async with self._lock:
-            execution = self._tasks.get(key)
-            if execution is None: return None
-            return execution.checkpoint
+        execution = self._tasks.get(key)
+        if execution is None: return None
+        return execution.checkpoint
 
     async def stop(self, key: AgentTaskRuntimeKey):
-        async with self._lock:
-            execution = self._tasks.get(key)
-
+        execution = self._tasks.get(key)
         if execution is not None:
             await execution.stop()
 
     async def shutdown(self):
-        async with self._lock:
-            executions = list(self._tasks.values())
-            self._tasks.clear()
+        executions = list(self._tasks.values())
+        self._tasks.clear()
 
         await asyncio.gather(*(execution.stop() for execution in executions),
                              return_exceptions=True)

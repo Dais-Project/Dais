@@ -50,7 +50,7 @@ class LifespanManager:
     def __init__(self):
         self.sse_dispatcher = SseDispatcher()
         self.agent_task_executor = AgentTaskExecutor(self.sse_dispatcher.send)
-        self.schedule_runner = init_schedule_runner(self.sse_dispatcher.send)
+        self.schedule_runner = init_schedule_runner(self.agent_task_executor, self.sse_dispatcher.send)
         self.app_setting_manager = use_app_setting_manager()
         self.mcp_toolset_manager = use_mcp_toolset_manager()
         self.background_task_manager = BackgroundTaskManager()

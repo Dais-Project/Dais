@@ -11,12 +11,54 @@ from ..context import AgentContext
 from ..tool import ExecutionControlToolset
 from ..tool.builtin_tools.execution_control import TodoItem
 from ..types import (
-    AgentGenerator,
+    AgentGenerator, AgentEvent,
     TaskError, TaskWaitingAction, TaskInterrupted, TaskFinished, TaskStopResult,
     TaskStartEvent, TurnEndEvent, ToolCallEndEvent, MessageEndEvent,
     TaskInterruptedEvent, TaskDoneEvent, ErrorEvent
 )
 
+
+class TaskResultTracker:
+    def __init__(self, task: AgentTask):
+        self._task = task
+        self._early_result: TaskError | TaskInterrupted | None = None
+
+    def accept(self, event: AgentEvent) -> None:
+        # run_until_done() returns on the first error/interruption event.
+        if self._early_result is not None:
+            return
+        if isinstance(event, ErrorEvent):
+            self._early_result = TaskError(event=event)
+        elif isinstance(event, TaskInterruptedEvent):
+            self._early_result = TaskInterrupted()
+
+    def finish(self) -> TaskStopResult:
+        if self._early_result is not None:
+            return self._early_result
+
+        pending_tool_calls = self._task.tool_calls.collect_pendings()
+        if pending_tool_calls:
+            return TaskWaitingAction(messages=pending_tool_calls)
+
+        last_message = self._task.messages[-1]
+        if last_message.role == "assistant" and last_message.content is not None:
+            return TaskFinished(summary=last_message.content)
+        if last_message.role == "tool":
+            from src.agent.tool import ExecutionControlToolset
+
+            tool = self._task._ctx.find_tool(last_message.name)
+            if tool is not None and tool.executes(ExecutionControlToolset.finish_task):
+                previous_message = self._task.messages[-2]
+                detail = (
+                    previous_message.content
+                    if previous_message.role == "assistant"
+                    else None
+                )
+                return TaskFinished(
+                    summary=last_message.arguments["summary"],
+                    detail=detail,
+                )
+        return TaskInterrupted()
 
 class AgentTask:
     _logger = logger.bind(name="AgentTask")
@@ -142,44 +184,28 @@ class AgentTask:
                     async for event in self._run_turn():
                         yield event
                     yield TurnEndEvent()
+            except asyncio.CancelledError:
+                await self.stop()
             except GeneratorExit:
                 _exited_by_generator_close = True
+            except Exception as e:
+                self._logger.exception("Error in agent stream")
+                yield ErrorEvent(error=str(e))
             finally:
+                try:
+                    # ensure task is persisted before yielding terminal event
+                    await asyncio.shield(self.persist())
+                except Exception as e:
+                    self._logger.exception("Failed to persist task state in stream finalization")
+
                 if not _exited_by_generator_close:
                     yield TaskDoneEvent()
 
     async def run_until_done(self) -> TaskStopResult:
+        task_result_tracker = TaskResultTracker(self)
         async for event in self.run():
-            if isinstance(event, ErrorEvent):
-                return TaskError(event=event)
-            if isinstance(event, TaskInterruptedEvent):
-                return TaskInterrupted()
-
-        return self.result
-
-    @property
-    def result(self) -> TaskStopResult:
-        pending_tool_calls = self._tool_call_manager.collect_pendings()
-        if len(pending_tool_calls) > 0:
-            return TaskWaitingAction(messages=pending_tool_calls)
-
-        last_message = self.messages[-1]
-        if last_message.role == "assistant" and last_message.content is not None:
-            return TaskFinished(summary=last_message.content)
-        if (last_message.role == "tool" and
-           (tool := self._ctx.find_tool(last_message.name)) and
-           tool.executes(ExecutionControlToolset.finish_task)):
-            previous_message = self.messages[-2]
-            detail = (
-                previous_message.content
-                if previous_message.role == "assistant"
-                else None
-            )
-            return TaskFinished(
-                summary=last_message.arguments["summary"],
-                detail=detail,
-            )
-        return TaskInterrupted()
+            task_result_tracker.accept(event)
+        return task_result_tracker.finish()
 
     @property
     def todos(self) -> list[TodoItem] | None:

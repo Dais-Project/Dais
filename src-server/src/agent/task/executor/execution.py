@@ -8,9 +8,9 @@ from pydantic import BaseModel, ConfigDict
 
 from src.schemas.tasks import runtime as task_runtime_schemas
 from .subscription import AgentTaskSubscription
-from .. import AgentTask
+from .. import AgentTask, TaskResultTracker
 from ...types import TaskStopResult
-from ...types.stream import TurnEndEvent, TaskDoneEvent, TaskInterruptedEvent, ErrorEvent, is_terminal_event
+from ...types.stream import TurnEndEvent, is_terminal_event
 
 if TYPE_CHECKING:
     from ...types.stream import AgentEvent
@@ -55,7 +55,6 @@ class AgentTaskExecution:
         self._checkpoint = AgentTaskCheckpoint(revision=self._revision,
                                                 snapshot=self._task.snapshot())
         self._runner = asyncio.create_task(self._run())
-        self._runner.add_done_callback(lambda _: asyncio.create_task(self._on_finish_handler()))
 
     @property
     def checkpoint(self) -> AgentTaskCheckpoint | None:
@@ -103,39 +102,20 @@ class AgentTaskExecution:
                 pass
 
     async def _run(self):
-        pending_terminal_event = None
+        result_tracker = TaskResultTracker(self._task)
         try:
             async for event in self._task.run():
-                if is_terminal_event(event):
-                    pending_terminal_event = event
-                    continue
+                result_tracker.accept(event)
                 self._yield_event(event)
                 if isinstance(event, TurnEndEvent):
                     self._checkpoint = AgentTaskCheckpoint(
                         revision=self._revision,
                         snapshot=self._task.snapshot(),
                     )
-        except asyncio.CancelledError:
-            await self._task.stop()
-            pending_terminal_event = TaskInterruptedEvent()
-        except Exception as e:
-            self._logger.exception("Error in agent stream")
-            self._yield_event(ErrorEvent(error=str(e)))
         finally:
-            try:
-                # ensure task is persisted before yielding terminal event
-                await asyncio.shield(self._task.persist())
-            except Exception as e:
-                self._logger.exception("Failed to persist task state in stream finalization")
+            result = result_tracker.finish()
+            await asyncio.shield(self._on_finish_handler(result))
 
-        if pending_terminal_event is None:
-            self._logger.warning("No terminal event yielded")
-            pending_terminal_event = TaskDoneEvent()
-        self._yield_event(pending_terminal_event)
-
-        await self._on_finish_handler()
-
-    async def _on_finish_handler(self):
-        result = self._task.result
+    async def _on_finish_handler(self, result: TaskStopResult):
         for callback in self._on_finish_callbacks:
             await callback(result)

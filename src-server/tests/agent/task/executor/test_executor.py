@@ -37,9 +37,9 @@ async def test_subscribe_all_types_and_release(executor, task_type):
     executions[0][0].start.assert_called_once()
     assert notify.await_args.args[0].task_type == task_type
     assert notify.await_args.args[0].task_id == 42
-    assert await pool.get_task_ids() == ([42] if task_type == TaskType.TASK else [])
+    assert pool.get_running_ids(task_type) == [42]
 
-    await executions[0][1]()
+    await executions[0][1](MagicMock())
     manager.acquire.return_value.release.assert_awaited_once()
     assert await pool.get_checkpoint(AgentTaskRuntimeKey(task_type, 42)) is None
     assert notify.await_count == 2
@@ -53,7 +53,7 @@ async def test_same_id_different_types_and_existing_configuration(executor):
     assert len(executions) == 3
     await pool.get_or_subscribe(AgentTaskRuntimeRef(TaskType.SCHEDULE, 4, 999))
     assert manager.acquire.await_count == 3
-    assert await pool.get_task_ids() == [4]
+    assert pool.get_running_ids(TaskType.TASK) == [4]
 
     for ref, (execution, _) in zip(refs, executions):
         key = AgentTaskRuntimeKey(ref.type, ref.id)
