@@ -15,7 +15,7 @@
       "options": {
         "commands": [
           {
-            "command": "cargo install prebuilt-down",
+            "command": "pnpm dlx prebuilt-down",
             "forwardAllArgs": false
           },
           {
