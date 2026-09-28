@@ -6,7 +6,6 @@
   "targets": {
     "install": {
       "command": "uv sync --all-groups",
-      "cache": true,
       "inputs": ["{projectRoot}/pyproject.toml", "{projectRoot}/uv.lock"]
     },
     "install-prebuilts": {

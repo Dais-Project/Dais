@@ -9,7 +9,6 @@
   "targets": {
     "install": {
       "command": "pnpm install --config.confirmModulesPurge=false",
-      "cache": true,
       "inputs": [
         "{projectRoot}/package.json"
       ]
