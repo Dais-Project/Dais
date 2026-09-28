@@ -80,7 +80,8 @@ class McpToolsetManager(ToolsetManager):
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for toolset, result in zip(toolsets, results):
             if not isinstance(result, BaseException): continue
-            self._logger.exception(f"Failed to connect to MCP server {toolset.name}")
+            self._logger.opt(exception=result).error(
+                f"Failed to connect to MCP server {toolset.name}")
         self._state = McpToolsetManagerState.CONNECTED
 
     async def disconnect_mcp_servers(self):
