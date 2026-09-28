@@ -122,7 +122,7 @@ function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
                     <p>{
                       toolset.error_code
                         ? getErrorMessage(toolset.error_code)
-                        : t(`toolsets.status.${toolset.status}`)
+                        : t(`status.${toolset.status}`)
                     }</p>
                   </TooltipContent>
                 </Tooltip>
