@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 import platform
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 
 project_root = SPECPATH
@@ -27,7 +27,10 @@ uv_dir = os.path.join(project_root, "bin", "uv")
 a = Analysis(
     ["entry.py"],
     pathex=[],
-    binaries=[],
+    binaries=[
+        *collect_data_files("cua_driver", includes=["**/bin/**"]),
+        *collect_dynamic_libs("cua_driver"),
+    ],
     datas=[
         (alembic_ini_path, "."),
         (alembic_env_path, "src/db/alembic"),

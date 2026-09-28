@@ -425,6 +425,18 @@ wheels = [
 ]
 
 [[package]]
+name = "cua-driver"
+version = "0.30.3"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/3d/6c717b5b47ee53343deddf01120f1a67ec4d504e962f570c336e2009b8f7/cua_driver-0.30.3-py3-none-macosx_13_0_universal2.whl", hash = "sha256:cc955f2833919b2c9618e26bc6c01df2e1c5364c640224e36603238cfa6789c0", size = 43500693, upload-time = "2026-09-28T14:03:04.407Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/28/bace77deaebc576e8f699bd759abd72e9166b2749f6d4b93b838c3afe621/cua_driver-0.30.3-py3-none-manylinux_2_31_aarch64.whl", hash = "sha256:ad04c11035af4bae4a2b50e78566eac976b30cc52c10d5cbfe493d8558716aed", size = 32550552, upload-time = "2026-09-28T14:03:07.543Z" },
+    { url = "https://files.pythonhosted.org/packages/98/ba/f3029491fce4e56ddc3677813a2963d160b47e6e78f6a69042d250a76007/cua_driver-0.30.3-py3-none-manylinux_2_31_x86_64.whl", hash = "sha256:bd19a27ac8b14f5f328ccc1f49386b4f6a001e52c75bc101e10f087ee1cedb86", size = 32178502, upload-time = "2026-09-28T14:03:10.284Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/c5/8161dc307518418e1b6dae894e251b9aabe5ff171c0090bba7b85de5506a/cua_driver-0.30.3-py3-none-win_amd64.whl", hash = "sha256:88c772cacc99779d45a53c78b308803ff8084257370fe03d45f5b0770553695d", size = 28373669, upload-time = "2026-09-28T14:03:13.078Z" },
+    { url = "https://files.pythonhosted.org/packages/52/fb/702f1fc66ccf3e4582ede82027534dbd42f94b03d72eef31a2a2796e7891/cua_driver-0.30.3-py3-none-win_arm64.whl", hash = "sha256:7f60a3f5fe6b1771a5805c03fd72aa6951a5265cd6064c7fa56d85284d687eac", size = 26564257, upload-time = "2026-09-28T14:03:15.766Z" },
+]
+
+[[package]]
 name = "dais-scantree"
 version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -466,6 +478,7 @@ dependencies = [
     { name = "anyxml" },
     { name = "apscheduler" },
     { name = "binaryornot" },
+    { name = "cua-driver" },
     { name = "dais-scantree" },
     { name = "dais-sdk" },
     { name = "dais-shell" },
@@ -515,6 +528,7 @@ requires-dist = [
     { name = "anyxml", specifier = "==0.1.0" },
     { name = "apscheduler", specifier = "==3.11.2" },
     { name = "binaryornot", specifier = "==0.6.0" },
+    { name = "cua-driver", specifier = ">=0.30.3" },
     { name = "dais-scantree", specifier = "==0.2.2" },
     { name = "dais-sdk", specifier = "==0.11.5" },
     { name = "dais-shell", specifier = "==0.3.2" },
