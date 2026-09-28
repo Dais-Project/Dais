@@ -185,7 +185,9 @@ class AgentTask:
                         yield event
                     yield TurnEndEvent()
             except asyncio.CancelledError:
+                yield TaskInterruptedEvent()
                 await self.stop()
+                raise
             except GeneratorExit:
                 _exited_by_generator_close = True
             except Exception as e:
