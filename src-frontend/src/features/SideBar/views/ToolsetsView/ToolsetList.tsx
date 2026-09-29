@@ -20,12 +20,7 @@ import {
 } from "@/components/custom/item/ActionableItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SIDEBAR_QUERY_GC_TIME } from "@/constants/query-options";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAsyncConfirm } from "@/hooks/use-async-confirm";
 import { i18n } from "@/i18n";
 import { SIDEBAR_TOOLSET_NAMESPACE } from "@/i18n/resources";
