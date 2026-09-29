@@ -9,21 +9,7 @@
       "inputs": ["{projectRoot}/pyproject.toml", "{projectRoot}/uv.lock"]
     },
     "install-prebuilts": {
-      "executor": "nx:run-commands",
-      "inputs": ["{projectRoot}/prebuilt-down.toml"],
-      "options": {
-        "commands": [
-          {
-            "command": "pnpm dlx prebuilt-down",
-            "forwardAllArgs": false
-          },
-          {
-            "command": "prebuilt-down",
-            "forwardAllArgs": true
-          }
-        ],
-        "parallel": false
-      }
+      "command": "pnpm dlx prebuilt-down"
     },
     "test": {
       "command": "uv run pytest",
