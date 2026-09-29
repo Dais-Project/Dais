@@ -15,6 +15,7 @@ from src.db import engine as database_engine, db_context
 from src.services.markdown_cache import MarkdownCacheService
 from src.services.tasks import RunRecordService, TaskService
 from src.services.workspace import WorkspaceService
+from src.services.computer_use import use_computer
 from src.settings import AppSettings, use_app_setting_manager
 
 from .cleanup import CleanupManager
@@ -89,6 +90,7 @@ class LifespanManager:
         CleanupManager.add_cleanup(self.app_setting_manager.persist)
         CleanupManager.add_cleanup(self.sse_dispatcher.close)
         CleanupManager.add_cleanup(database_engine.dispose)
+        CleanupManager.add_cleanup(use_computer().shutdown)
 
     async def _init_toolsets(self):
         async with db_context() as db_session:
