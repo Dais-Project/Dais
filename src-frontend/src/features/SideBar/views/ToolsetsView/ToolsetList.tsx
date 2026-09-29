@@ -108,7 +108,7 @@ function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
           titleRender={
             <div className="space-x-2">
               <span>{toolset.name}</span>
-              <TooltipProvider>
+              {isMcpToolset && (
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <div
@@ -126,7 +126,7 @@ function ToolsetItem({ toolset, onReconnect, onDelete }: ToolsetItemProps) {
                     }</p>
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
+              )}
             </div>
           }
         />
