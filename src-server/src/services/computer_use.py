@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from cua_driver import (
     CuaDriver,
@@ -18,6 +19,15 @@ class ComputerUseSession:
     def __init__(self, driver: CuaDriver):
         self._session_id = str(uuid.uuid4())
         self._driver = driver
+        self._loop = asyncio.get_running_loop()
+
+    def __del__(self):
+        """
+        Fallback and best-effort cleanup invocation.
+        """
+        if self._loop.is_closed(): return
+        self._loop.call_soon_threadsafe(
+            lambda: asyncio.create_task(self.stop()))
 
     @property
     def id(self) -> str:
@@ -125,6 +135,9 @@ class ComputerUseSession:
             steps=None,
         ))
 
+    async def stop(self):
+        await self._driver.end_session(EndSessionInput(session=self.id))
+
 class ComputerUse:
     def __init__(self):
         self._driver = CuaDriver.create(None)
@@ -137,7 +150,7 @@ class ComputerUse:
             cursor_theme=None,
         ))
         return session
-    
+
     async def stop_session(self, session: ComputerUseSession):
         await self._driver.end_session(EndSessionInput(session=session.id))
 

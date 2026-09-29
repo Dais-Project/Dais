@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.toolset import ToolsetService
 from src.repositories.toolset import ToolsetRepository
+from src.services.computer_use import ComputerUseSession, use_computer
 
 from ..types import ToolMetadata
 
@@ -31,9 +32,14 @@ class BuiltinToolsetContext:
     workspace_id: int
 
     cwd_input: InitVar[str | Path]
+    computer_use_session: ComputerUseSession | None = None
 
     def __post_init__(self, cwd_input: str | Path):
         object.__setattr__(self, "cwd", Path(cwd_input).expanduser().resolve())
+
+    async def cleanup(self):
+        if self.computer_use_session is not None:
+            await self.computer_use_session.stop()
 
     @classmethod
     def default(cls) -> Self:

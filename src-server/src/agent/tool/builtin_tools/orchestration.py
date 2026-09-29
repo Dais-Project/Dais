@@ -96,9 +96,12 @@ def compose_subtask_result(subtask: AgentTask, task_result: TaskStopResult) -> s
     return AnyXml.tostring(root)
 
 async def run_subtask(task: AgentTask) -> str:
-    await task.persist()
-    task_result = await task.run_until_done()
-    return compose_subtask_result(task, task_result)
+    try:
+        await task.persist()
+        task_result = await task.run_until_done()
+        return compose_subtask_result(task, task_result)
+    finally:
+        await task.cleanup()
 
 class OrchestrationToolset(BuiltinToolset):
     @property
