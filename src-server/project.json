@@ -9,7 +9,7 @@
       "inputs": ["{projectRoot}/pyproject.toml", "{projectRoot}/uv.lock"]
     },
     "install-prebuilts": {
-      "command": "pnpm dlx prebuilt-down"
+      "command": "pnpm dlx prebuilt-down@latest"
     },
     "test": {
       "command": "uv run pytest",

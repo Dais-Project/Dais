@@ -87,7 +87,14 @@ class AgentTaskExecution:
         if runner is None or runner.done():return
 
         runner.cancel()
-        await asyncio.shield(runner)
+
+        try:
+            await asyncio.shield(runner)
+        except asyncio.CancelledError:
+            current_task = asyncio.current_task()
+            is_stop_self_cancelled = (current_task is not None and current_task.cancelling()) or not runner.cancelled()
+            if is_stop_self_cancelled:
+                raise
 
     def _yield_event(self, event: AgentEvent):
         self._revision += 1
