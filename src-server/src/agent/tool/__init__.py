@@ -1,5 +1,6 @@
 from .builtin_tools import (
     get_builtin_tool_enum, get_builtin_tool_arg_schemas,
+    ComputerUseToolset,
     ExecutionControlToolset,
     FileSystemToolset,
     OsInteractionsToolset,
