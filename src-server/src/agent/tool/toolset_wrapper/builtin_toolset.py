@@ -27,15 +27,22 @@ class BuiltinToolDefaults(TypedDict, total=False):
 
 @dataclass(frozen=True)
 class BuiltinToolsetContext:
-    cwd: Path = field(init=False)
     task_id: int
     workspace_id: int
 
-    cwd_input: InitVar[str | Path]
-    computer_use_session: ComputerUseSession | None = None
+    _cwd: str | Path
+    _computer_use_session: ComputerUseSession | None
 
-    def __post_init__(self, cwd_input: str | Path):
-        object.__setattr__(self, "cwd", Path(cwd_input).expanduser().resolve())
+    @property
+    def cwd(self) -> Path:
+        return Path(self._cwd).expanduser().resolve()
+
+    @property
+    def computer_use_session(self) -> ComputerUseSession:
+        if self._computer_use_session is None:
+            raise RuntimeError(
+                "Computer use session is unavailable in a metadata-only context")
+        return self._computer_use_session
 
     async def cleanup(self):
         if self.computer_use_session is not None:
@@ -49,7 +56,7 @@ class BuiltinToolsetContext:
         definitions, such as tool metadata synchronization. Runtime-only properties are
         intentionally unavailable on this instance.
         """
-        return cls(1, 1, Path.cwd())
+        return cls(1, 1, Path.cwd(), None)
 
 class BuiltinToolset(PythonToolset):
     def __init__(self,
