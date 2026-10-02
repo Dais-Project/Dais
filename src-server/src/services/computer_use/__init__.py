@@ -12,7 +12,7 @@ from cua_driver import (
     ScrollInput, ScrollBy,
     PressKeyInput,
     DragInput,
-    ActionResult, InputDeliveryMode,
+    ToolResult, ActionResult, InputDeliveryMode,
 )
 
 from .types import (
@@ -35,6 +35,13 @@ class ComputerUseSession:
         if self._loop.is_closed(): return
         self._loop.call_soon_threadsafe(
             lambda: asyncio.create_task(self.stop()))
+
+    @staticmethod
+    def _unwrap_tool_result(result: ToolResult) -> ActionResult:
+        if result.is_error:
+            raise Exception(result.error_code, result.text)
+        assert result.action is not None
+        return result.action
 
     @property
     def id(self) -> str:
@@ -70,21 +77,21 @@ class ComputerUseSession:
     
     async def type_text(self,
                         text: str,
-                        target: ActionTarget) -> ActionResult | None:
+                        target: ActionTarget) -> ActionResult:
         result = await self._driver.type_text(TypeTextInput(
             session=self.id,
             text=text,
             target=target.to_driver(),
             scope=None,
         ))
-        return result.action
+        return self._unwrap_tool_result(result)
 
     async def scroll(self,
                      target: ActionTarget,
                      x: float,
                      y: float,
                      direction: ScrollDirection,
-                     amount: int = 1) -> ActionResult | None:
+                     amount: int = 1) -> ActionResult:
         result = await self._driver.scroll(ScrollInput(
             session=self.id,
             x=x,
@@ -95,12 +102,12 @@ class ComputerUseSession:
             amount=amount,
             scope=None,
         ))
-        return result.action
+        return self._unwrap_tool_result(result)
 
     async def press_key(self,
                         target: ActionTarget,
                         key: str,
-                        modifiers: list[str] | None = None) -> ActionResult | None:
+                        modifiers: list[str] | None = None) -> ActionResult:
         result = await self._driver.press_key(PressKeyInput(
             session=self.id,
             target=target.to_driver(),
@@ -108,14 +115,14 @@ class ComputerUseSession:
             modifiers=modifiers if modifiers is not None else [],
             scope=None,
         ))
-        return result.action
+        return self._unwrap_tool_result(result)
 
     async def drag(self,
                    target: ActionTarget,
                    start: ClickPosition.COORDINATES,
                    end: ClickPosition.COORDINATES,
                    button: ClickButton = ClickButton.LEFT,
-                   modifiers: list[str] | None = None) -> ActionResult | None:
+                   modifiers: list[str] | None = None) -> ActionResult:
         result = await self._driver.drag(DragInput(
             session=self.id,
             from_x=start.x,
@@ -129,7 +136,7 @@ class ComputerUseSession:
             duration_ms=None,
             steps=None,
         ))
-        return result.action
+        return self._unwrap_tool_result(result)
 
     async def stop(self):
         await self._driver.end_session(EndSessionInput(session=self.id))
