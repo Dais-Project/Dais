@@ -1,12 +1,16 @@
 from enum import StrEnum
-from typing import Annotated, Literal, cast
+from typing import Annotated, Literal, Self, cast
 
 from cua_driver import (
     ActionTarget as DriverActionTarget,
     ClickButton as DriverClickButton,
     ClickPosition as DriverClickPosition,
-    GetWindowStateInput,
     ScrollDirection as DriverScrollDirection,
+    SnapshotImage,
+    GetWindowStateInput,
+    WindowBounds,
+    WindowElement,
+    WindowStateOutput,
 )
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,7 +19,8 @@ class ScreenshotOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["screenshot"]
-    max_image_dimension: Annotated[int | None, Field(gt=0)] = None
+    max_image_dimension: Annotated[int | None,
+                                   Field(gt=0, description="Maximum width or height of the returned screenshot in pixels")] = None
 
     def to_driver_options(self, session: str, pid: int, window_id: int) -> GetWindowStateInput:
         return GetWindowStateInput(
@@ -64,6 +69,41 @@ type WindowStateOptions = Annotated[
     Field(discriminator="type"),
 ]
 
+class WindowStateResultBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    app_name: str
+    window_title: str
+
+class ScreenshotResult(WindowStateResultBase):
+    type: Literal["screenshot"] = "screenshot"
+    images: list[SnapshotImage]
+    window_bounds: WindowBounds
+    screenshot_width: int
+    screenshot_height: int
+    screenshot_scale: float
+
+    @classmethod
+    def from_driver(cls, result: WindowStateOutput) -> Self:
+        return cls.model_validate(result)
+
+class AccessibilityTreeResult(WindowStateResultBase):
+    type: Literal["accessibility_tree"] = "accessibility_tree"
+    elements: list[WindowElement]
+    total_element_count: int
+    returned_element_count: int
+    elements_complete: bool
+
+    @classmethod
+    def from_driver(cls, result: WindowStateOutput) -> Self:
+        return cls.model_validate(result)
+
+type WindowStateResult = Annotated[
+    ScreenshotResult | AccessibilityTreeResult,
+    Field(discriminator="type"),
+]
+
+# --- --- --- --- --- ---
 
 class WindowTarget(BaseModel):
     type: Literal["window"]
@@ -82,6 +122,7 @@ class DesktopTarget(BaseModel):
 
 type ActionTarget = Annotated[WindowTarget | DesktopTarget, Field(discriminator="type")]
 
+# --- --- --- --- --- ---
 
 class Coordinates(BaseModel):
     type: Literal["coordinates"]
@@ -114,6 +155,49 @@ type ClickPosition = Annotated[
     Field(discriminator="type"),
 ]
 
+# --- --- --- --- --- ---
+
+type KeyName = Literal[
+    # Letters
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+    "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+    "u", "v", "w", "x", "y", "z",
+
+    # Digits
+    "0", "1", "2", "3", "4",
+    "5", "6", "7", "8", "9",
+
+    # Special
+    "return",
+    "tab",
+    "escape",
+    "space",
+    "delete",
+
+    # Navigation
+    "up",
+    "down",
+    "left",
+    "right",
+    "home",
+    "end",
+    "pageup",
+    "pagedown",
+
+    # Function
+    "f1", "f2", "f3", "f4", "f5", "f6",
+    "f7", "f8", "f9", "f10", "f11", "f12",
+]
+
+type Modifier = Literal[
+    "ctrl",
+    "shift",
+    "alt",
+    "meta",
+    "fn",
+]
+
+# --- --- --- --- --- ---
 
 class ClickButton(StrEnum):
     LEFT = "left"
@@ -132,3 +216,7 @@ class ScrollDirection(StrEnum):
 
     def to_driver(self) -> DriverScrollDirection:
         return DriverScrollDirection[self.name]
+
+class DragCoordinates(BaseModel):
+    x: float
+    y: float

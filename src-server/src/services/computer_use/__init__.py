@@ -6,7 +6,6 @@ from cua_driver import (
     StartSessionInput, EndSessionInput,
     ListAppsInput, ListAppsOutput,
     ListWindowsInput, ListWindowsOutput,
-    WindowStateOutput,
     ClickInput, ClickPosition,
     TypeTextInput,
     ScrollInput, ScrollBy,
@@ -16,11 +15,17 @@ from cua_driver import (
 )
 
 from .types import (
-    WindowStateOptions,
+    DragCoordinates, KeyName, Modifier, WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
     ActionTarget, ClickButton,
     ScrollDirection,
 )
 
+
+def _unwrap_tool_result(result: ToolResult) -> ActionResult:
+    if result.is_error:
+        raise Exception(result.error_code, result.text)
+    assert result.action is not None
+    return result.action
 
 class ComputerUseSession:
     def __init__(self, driver: CuaDriver):
@@ -36,13 +41,6 @@ class ComputerUseSession:
         self._loop.call_soon_threadsafe(
             lambda: asyncio.create_task(self.stop()))
 
-    @staticmethod
-    def _unwrap_tool_result(result: ToolResult) -> ActionResult:
-        if result.is_error:
-            raise Exception(result.error_code, result.text)
-        assert result.action is not None
-        return result.action
-
     @property
     def id(self) -> str:
         return self._session_id
@@ -50,7 +48,7 @@ class ComputerUseSession:
     async def list_apps(self) -> ListAppsOutput:
         return await self._driver.list_apps(ListAppsInput())
 
-    async def list_windows(self, pid: int) -> ListWindowsOutput:
+    async def list_windows(self, pid: int | None) -> ListWindowsOutput:
         return await self._driver.list_windows(
             ListWindowsInput(pid=pid, on_screen_only=False))
 
@@ -58,9 +56,14 @@ class ComputerUseSession:
                                pid: int,
                                window_id: int,
                                options: WindowStateOptions,
-                               ) -> WindowStateOutput:
-        return await self._driver.get_window_state(
+                               ) -> WindowStateResult:
+        result = await self._driver.get_window_state(
             options.to_driver_options(session=self.id, pid=pid, window_id=window_id))
+        match options.type:
+            case "screenshot":
+                return ScreenshotResult.from_driver(result)
+            case "accessibility_tree":
+                return AccessibilityTreeResult.from_driver(result)
 
     async def click(self,
                     target: ActionTarget,
@@ -84,7 +87,7 @@ class ComputerUseSession:
             target=target.to_driver(),
             scope=None,
         ))
-        return self._unwrap_tool_result(result)
+        return _unwrap_tool_result(result)
 
     async def scroll(self,
                      target: ActionTarget,
@@ -102,27 +105,27 @@ class ComputerUseSession:
             amount=amount,
             scope=None,
         ))
-        return self._unwrap_tool_result(result)
+        return _unwrap_tool_result(result)
 
     async def press_key(self,
                         target: ActionTarget,
-                        key: str,
-                        modifiers: list[str] | None = None) -> ActionResult:
+                        key: KeyName,
+                        modifiers: list[Modifier] | None = None) -> ActionResult:
         result = await self._driver.press_key(PressKeyInput(
             session=self.id,
             target=target.to_driver(),
             key=key,
-            modifiers=modifiers if modifiers is not None else [],
+            modifiers=list(modifiers) if modifiers is not None else [],
             scope=None,
         ))
-        return self._unwrap_tool_result(result)
+        return _unwrap_tool_result(result)
 
     async def drag(self,
                    target: ActionTarget,
-                   start: ClickPosition.COORDINATES,
-                   end: ClickPosition.COORDINATES,
+                   start: DragCoordinates,
+                   end: DragCoordinates,
                    button: ClickButton = ClickButton.LEFT,
-                   modifiers: list[str] | None = None) -> ActionResult:
+                   modifiers: list[Modifier] | None = None) -> ActionResult:
         result = await self._driver.drag(DragInput(
             session=self.id,
             from_x=start.x,
@@ -131,12 +134,12 @@ class ComputerUseSession:
             to_y=end.y,
             target=target.to_driver(),
             button=button.to_driver(),
-            modifier=modifiers if modifiers is not None else [],
+            modifier=list(modifiers) if modifiers is not None else [],
             scope=None,
             duration_ms=None,
             steps=None,
         ))
-        return self._unwrap_tool_result(result)
+        return _unwrap_tool_result(result)
 
     async def stop(self):
         await self._driver.end_session(EndSessionInput(session=self.id))
