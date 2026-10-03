@@ -1,4 +1,6 @@
 import asyncio
+import platform
+from typing import Literal
 import uuid
 
 from cua_driver import (
@@ -26,6 +28,14 @@ def _unwrap_tool_result(result: ToolResult) -> ActionResult:
         raise Exception(result.error_code, result.text)
     assert result.action is not None
     return result.action
+
+def _normalize_modifier(modifier: Modifier) -> Modifier | Literal["option", "win", "super"]:
+    if modifier != "meta": return modifier
+    match platform.system():
+        case "Windows": return "win"
+        case "Darwin": return "option"
+        case "Linux": return "super"
+        case system: raise RuntimeError(f"Unsupported platform: {system!r}")
 
 class ComputerUseSession:
     def __init__(self, driver: CuaDriver):
@@ -111,11 +121,16 @@ class ComputerUseSession:
                         target: ActionTarget,
                         key: KeyName,
                         modifiers: list[Modifier] | None = None) -> ActionResult:
+        if modifiers is not None:
+            normalized_modifiers = [_normalize_modifier(modifier) for modifier in modifiers]
+        else: 
+            normalized_modifiers = None
+
         result = await self._driver.press_key(PressKeyInput(
             session=self.id,
             target=target.to_driver(),
             key=key,
-            modifiers=list(modifiers) if modifiers is not None else [],
+            modifiers=normalized_modifiers,
             scope=None,
         ))
         return _unwrap_tool_result(result)
@@ -126,6 +141,11 @@ class ComputerUseSession:
                    end: DragCoordinates,
                    button: ClickButton = ClickButton.LEFT,
                    modifiers: list[Modifier] | None = None) -> ActionResult:
+        if modifiers is not None:
+            normalized_modifiers = [_normalize_modifier(modifier) for modifier in modifiers]
+        else: 
+            normalized_modifiers = None
+
         result = await self._driver.drag(DragInput(
             session=self.id,
             from_x=start.x,
@@ -134,7 +154,7 @@ class ComputerUseSession:
             to_y=end.y,
             target=target.to_driver(),
             button=button.to_driver(),
-            modifier=list(modifiers) if modifiers is not None else [],
+            modifier=normalized_modifiers,
             scope=None,
             duration_ms=None,
             steps=None,

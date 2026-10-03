@@ -1,10 +1,12 @@
-from typing import Any, Protocol
-from pydantic import BaseModel, field_serializer
+from typing import Any
+from pydantic import BaseModel, ConfigDict, field_serializer
 from cua_driver import (
     ActionEffect, ActionRoute, ActionDelivery, ActionEvidence, ActionEscalation
 )
 
-class ActionErrorLike(Protocol):
+class ActionErrorLike(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     code: str
     hint: str | None
 

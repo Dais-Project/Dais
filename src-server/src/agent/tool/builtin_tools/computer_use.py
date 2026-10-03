@@ -89,7 +89,10 @@ Screenshot height: {result.screenshot_height}
                         target: WindowTarget,
                         ) -> ActionResultModel:
         """
-        Use this for text and punctuation input rather than `press_key` tool
+        Enter text and punctuation into the focused control in the target window rather than using `press_key` for text input.
+
+        NOTE:
+            Before calling this tool, the intended input widget must be focused.
         """
         result = await self._ctx.computer_use_session.type_text(text, target)
         return ActionResultModel.model_validate(result)
@@ -122,6 +125,12 @@ Screenshot height: {result.screenshot_height}
                    button: ClickButton = ClickButton.LEFT,
                    modifiers: list[Modifier] | None = None,
                    ) -> ActionResultModel:
+        """
+        Drag from start to end in the target window.
+
+        Both positions use window-local screenshot pixel coordinates in the same coordinate space as the window screenshot returned by `get_window_state`,
+        with (0, 0) at its top-left corner, not screen-absolute coordinates.
+        """
         result = await self._ctx.computer_use_session.drag(
             target,
             start,

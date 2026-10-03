@@ -29,6 +29,7 @@ async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType
     from ...agent.tool import BuiltinToolsetContext
     from ...agent.tool.builtin_tools import (
+        ComputerUseToolset,
         FileSystemToolset,
         ExecutionControlToolset,
         OsInteractionsToolset,
@@ -38,6 +39,8 @@ async def init(db_session: AsyncSession):
     from ...agent.prompts.builtin_agents import (
         DAILY_ASSISTANT_AGENT_DESCRIPTION,
         DAILY_ASSISTANT_AGENT_INSTRUCTION,
+        COMPUTER_USE_AGENT_DESCRIPTION,
+        COMPUTER_USE_AGENT_INSTRUCTION,
         SOFTWARE_ENGINEER_AGENT_DESCRIPTION,
         SOFTWARE_ENGINEER_AGENT_INSTRUCTION,
         TERMINAL_INTERPRETER_AGENT_DESCRIPTION,
@@ -48,6 +51,7 @@ async def init(db_session: AsyncSession):
     builtin_toolsets: dict[type[BuiltinToolset], BuiltinToolset] = {
         toolset_t: toolset_t(builtin_toolset_ctx)
         for toolset_t in [
+            ComputerUseToolset,
             FileSystemToolset,
             ExecutionControlToolset,
             OsInteractionsToolset,
@@ -106,6 +110,25 @@ async def init(db_session: AsyncSession):
             SOFTWARE_ENGINEER_AGENT_DESCRIPTION,
             SOFTWARE_ENGINEER_AGENT_INSTRUCTION,
             ALL_TOOLS,
+        ),
+        (
+            "Computer Operator", "monitor",
+            COMPUTER_USE_AGENT_DESCRIPTION,
+            COMPUTER_USE_AGENT_INSTRUCTION,
+            [
+                (ComputerUseToolset, ComputerUseToolset.list_apps),
+                (ComputerUseToolset, ComputerUseToolset.list_windows),
+                (ComputerUseToolset, ComputerUseToolset.get_window_state),
+                (ComputerUseToolset, ComputerUseToolset.click),
+                (ComputerUseToolset, ComputerUseToolset.type_text),
+                (ComputerUseToolset, ComputerUseToolset.scroll),
+                (ComputerUseToolset, ComputerUseToolset.press_key),
+                (ComputerUseToolset, ComputerUseToolset.drag),
+                (UserInteractionToolset, UserInteractionToolset.ask_user),
+                (UserInteractionToolset, UserInteractionToolset.show_plan),
+                (ExecutionControlToolset, ExecutionControlToolset.update_todos),
+                (ExecutionControlToolset, ExecutionControlToolset.finish_task),
+            ],
         ),
     ]
 

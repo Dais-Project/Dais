@@ -15,6 +15,7 @@ def schema():
     watches = [
         "./src/api",
         "./src/schemas",
+        "./src/agent/tool",
         "./src/settings.py",
         "./scripts/export_openapi.py",
     ]
