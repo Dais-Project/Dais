@@ -1,6 +1,6 @@
 from typing import Annotated, override
 
-from cua_driver import ListAppsOutput
+from cua_driver import ListAppsOutput, ListWindowsOutput
 from dais_sdk.types import Base64Source, ContentBlock, ImageBlock, TextBlock
 from pydantic import Field
 
@@ -31,12 +31,11 @@ class ComputerUseToolset(BuiltinToolset):
         return await self._ctx.computer_use_session.list_apps()
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def list_windows(self, pid: int | None) -> ActionResultModel:
+    async def list_windows(self, pid: int | None) -> ListWindowsOutput:
         """
         List all windows for the specified app process, or for all apps if pid is None.
         """
-        result = await self._ctx.computer_use_session.list_windows(pid)
-        return ActionResultModel.model_validate(result)
+        return await self._ctx.computer_use_session.list_windows(pid)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def get_window_state(self,
