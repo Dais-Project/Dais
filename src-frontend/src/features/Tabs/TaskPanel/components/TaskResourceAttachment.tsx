@@ -1,4 +1,6 @@
 import { LinkIcon } from "lucide-react";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
 import type { TaskResourceMetadata } from "@/api/generated/schemas";
 import { attachmentCategoryIcons, resolveMimetypeCategory } from "@/components/ai-elements/attachments";
 import { CodeBlock } from "@/components/ai-elements/code-block";
@@ -39,8 +41,10 @@ function TaskResourceAttachmentThumbnail({ data }: Pick<TaskResourceAttachmentPr
         return (
           <TaskResource taskType={taskType} taskId={taskId} resourceId={data.resource_id}>
             {(resourceUrl) => (
-              // biome-ignore lint/correctness/useImageSize: Resource dimensions are not available in task metadata.
-              <img alt={data.filename} className="size-full object-cover" src={resourceUrl} />
+              <Zoom>
+                {/* biome-ignore lint/correctness/useImageSize: Resource dimensions are not available in task metadata. */}
+                <img alt={data.filename} className="size-24 object-cover" src={resourceUrl} />
+              </Zoom>
             )}
           </TaskResource>
         );
@@ -89,8 +93,10 @@ function TaskResourceAttachmentContent({ data }: Pick<TaskResourceAttachmentProp
         return (
           <TaskResource taskType={taskType} taskId={taskId} resourceId={data.resource_id}>
             {(resourceUrl) => (
-              // biome-ignore lint/correctness/useImageSize: Resource dimensions are not available in task metadata.
-              <img alt={data.filename} className="max-h-80 rounded-lg object-contain" src={resourceUrl} />
+              <Zoom>
+                {/* biome-ignore lint/correctness/useImageSize: Resource dimensions are not available in task metadata. */}
+                <img alt={data.filename} className="max-h-80 rounded-lg object-contain" src={resourceUrl} />
+              </Zoom>
             )}
           </TaskResource>
         );
