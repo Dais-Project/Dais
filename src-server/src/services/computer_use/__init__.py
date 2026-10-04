@@ -17,7 +17,7 @@ from cua_driver import (
     ToolResult, ActionResult,
 )
 
-from src.platforms.window_manager import restore_without_activate
+from src.platforms.window_manager import configure_dpi_awareness, restore_without_activate
 
 from .types import (
     WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
@@ -238,6 +238,10 @@ class ComputerUse:
 
     async def shutdown(self):
         await self._driver.shutdown()
+
+# Required by CUA screenshot capture on Windows to avoid DPI virtualization
+# causing screenshots to be cropped to the top-left region.
+configure_dpi_awareness()
 
 __instance = ComputerUse()
 
