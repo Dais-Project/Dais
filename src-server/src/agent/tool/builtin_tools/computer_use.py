@@ -1,8 +1,8 @@
 from typing import Annotated, override
 
-from cua_driver import ListAppsOutput, ListWindowsOutput
 from dais_sdk.types import Base64Source, ContentBlock, ImageBlock, TextBlock
 from pydantic import Field
+from loguru import logger
 
 from src.services.computer_use.types import (
     ClickButton, ClickPosition,
@@ -11,8 +11,8 @@ from src.services.computer_use.types import (
     ScrollDirection,
     WindowStateOptions,
     WindowTarget,
+    ActionResultModel,
 )
-from src.schemas.computer_use import ActionResultModel
 
 from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset
 
@@ -24,18 +24,20 @@ class ComputerUseToolset(BuiltinToolset):
         return "ComputerUse"
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def list_apps(self) -> ListAppsOutput:
+    async def list_apps(self) -> list[str]:
         """
         List apps, both currently running and installed-but-not-running.
         """
-        return await self._ctx.computer_use_session.list_apps()
+        result = await self._ctx.computer_use_session.list_apps()
+        return [str(app) for app in result.apps]
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def list_windows(self, pid: int | None) -> ListWindowsOutput:
+    async def list_windows(self, pid: int | None) -> list[str]:
         """
         List all windows for the specified app process, or for all apps if pid is None.
         """
-        return await self._ctx.computer_use_session.list_windows(pid)
+        result = await self._ctx.computer_use_session.list_windows(pid)
+        return [str(window) for window in result.windows]
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def get_window_state(self,
@@ -67,7 +69,7 @@ Screenshot height: {result.screenshot_height}
             case "accessibility_tree":
                 return result.model_dump(exclude={"type"})
 
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def click(self,
                     target: WindowTarget,
                     position: ClickPosition,
@@ -96,7 +98,7 @@ Screenshot height: {result.screenshot_height}
         result = await self._ctx.computer_use_session.type_text(text, target)
         return ActionResultModel.model_validate(result)
 
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def scroll(self,
                      target: WindowTarget,
                      x: float,
@@ -107,16 +109,18 @@ Screenshot height: {result.screenshot_height}
         result = await self._ctx.computer_use_session.scroll(target, x, y, direction, amount)
         return ActionResultModel.model_validate(result)
 
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def press_key(self,
                         target: WindowTarget,
                         key: KeyName,
                         modifiers: list[Modifier] | None = None,
                         ) -> ActionResultModel:
         result = await self._ctx.computer_use_session.press_key(target, key, modifiers)
-        return ActionResultModel.model_validate(result)
+        validated = ActionResultModel.model_validate(result)
+        logger.debug(validated)
+        return validated
 
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def drag(self,
                    target: WindowTarget,
                    start: DragCoordinates,

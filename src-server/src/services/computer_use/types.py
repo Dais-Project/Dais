@@ -2,6 +2,7 @@ from enum import StrEnum
 from typing import Annotated, Literal, Self, cast
 
 from cua_driver import (
+    ActionEffect, ActionRoute, ActionDelivery, ActionEvidence, ActionEscalation,
     ActionTarget as DriverActionTarget,
     ClickButton as DriverClickButton,
     ClickPosition as DriverClickPosition,
@@ -12,8 +13,31 @@ from cua_driver import (
     WindowElement,
     WindowStateOutput,
 )
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer
 
+
+type Serialized[T] = Annotated[T, PlainSerializer(str, return_type=str)]
+
+# --- --- --- --- --- ---
+
+class ActionErrorModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    code: str
+    hint: str | None
+
+class ActionResultModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    effect: Serialized[ActionEffect]
+    route: Serialized[ActionRoute]
+    delivery: Serialized[ActionDelivery] | None
+    evidence: list[Serialized[ActionEvidence]] | None
+    escalation: Serialized[ActionEscalation] | None
+    error: ActionErrorModel | None
+    summary: str | None
+
+# --- --- --- --- --- ---
 
 class ScreenshotOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -77,11 +101,11 @@ class WindowStateResultBase(BaseModel):
 
 class ScreenshotResult(WindowStateResultBase):
     type: Literal["screenshot"] = "screenshot"
-    images: list[SnapshotImage]
-    window_bounds: WindowBounds
-    screenshot_width: int
-    screenshot_height: int
-    screenshot_scale: float
+    images: list[Serialized[SnapshotImage]]
+    window_bounds: Serialized[WindowBounds]
+    screenshot_width: int | None
+    screenshot_height: int | None
+    screenshot_scale: float | None
 
     @classmethod
     def from_driver(cls, result: WindowStateOutput) -> Self:
@@ -89,7 +113,7 @@ class ScreenshotResult(WindowStateResultBase):
 
 class AccessibilityTreeResult(WindowStateResultBase):
     type: Literal["accessibility_tree"] = "accessibility_tree"
-    elements: list[WindowElement]
+    elements: list[Serialized[WindowElement]]
     total_element_count: int
     returned_element_count: int
     elements_complete: bool

@@ -194,7 +194,7 @@ class ToolCallDispatcher:
         execute_tasks = [execute_wrapper(dispatch) for _, dispatch in approved]
         for item in await asyncio.gather(*execute_tasks, return_exceptions=True):
             if isinstance(item, BaseException):
-                self._logger.exception(f"Tool call execution error: ", exc_info=item)
+                self._logger.opt(exception=item).error(f"Tool call execution error: ")
                 continue
             executed_event, replace_event = item
             yield executed_event
