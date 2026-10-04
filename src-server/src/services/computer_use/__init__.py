@@ -16,6 +16,8 @@ from cua_driver import (
     ToolResult, ActionResult, InputDeliveryMode,
 )
 
+from src.platforms.window_manager import restore_without_activate
+
 from .types import (
     DragCoordinates, KeyName, Modifier, WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
     ActionTarget, ClickButton,
@@ -67,6 +69,7 @@ class ComputerUseSession:
                                window_id: int,
                                options: WindowStateOptions,
                                ) -> WindowStateResult:
+        restore_without_activate(window_id)
         result = await self._driver.get_window_state(
             options.to_driver_options(session=self.id, pid=pid, window_id=window_id))
         match options.type:

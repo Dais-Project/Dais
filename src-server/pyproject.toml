@@ -24,6 +24,7 @@ dependencies = [
     "PyJWT==2.11.0",
     "pydantic==2.12.5",
     "pydantic-settings==2.13.0",
+    "pywin32>=312; sys_platform == 'win32'",
     "RapidFuzz==3.14.3",
     "sqlalchemy[asyncio]==2.0.46",
     "trafilatura==2.1.0",
