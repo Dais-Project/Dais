@@ -6,6 +6,7 @@ from cua_driver import (
     ActionTarget as DriverActionTarget,
     ClickButton as DriverClickButton,
     ClickPosition as DriverClickPosition,
+    InputDeliveryMode as DriverInputDeliveryMode,
     ScrollDirection as DriverScrollDirection,
     SnapshotImage,
     GetWindowStateInput,
@@ -42,7 +43,7 @@ class ActionResultModel(BaseModel):
 class ScreenshotOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["screenshot"]
+    kind: Literal["screenshot"]
     max_image_dimension: Annotated[int | None,
                                    Field(gt=0, description="Maximum width or height of the returned screenshot in pixels")] = None
 
@@ -66,7 +67,7 @@ class ScreenshotOptions(BaseModel):
 class AccessibilityTreeOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["accessibility_tree"]
+    kind: Literal["accessibility_tree"]
     query: Annotated[str | None, Field(description="Filter the accessibility tree with a query.")] = None
     max_depth: Annotated[int | None, Field(gt=0)] = None
     max_elements: Annotated[int | None, Field(gt=0)] = None
@@ -90,7 +91,7 @@ class AccessibilityTreeOptions(BaseModel):
 
 type WindowStateOptions = Annotated[
     ScreenshotOptions | AccessibilityTreeOptions,
-    Field(discriminator="type"),
+    Field(discriminator="kind"),
 ]
 
 class WindowStateResultBase(BaseModel):
@@ -130,7 +131,7 @@ type WindowStateResult = Annotated[
 # --- --- --- --- --- ---
 
 class WindowTarget(BaseModel):
-    type: Literal["window"]
+    kind: Literal["window"]
     pid: int
     window_id: int
 
@@ -138,18 +139,18 @@ class WindowTarget(BaseModel):
         return cast(DriverActionTarget, DriverActionTarget.WINDOW(self.pid, self.window_id))
 
 class DesktopTarget(BaseModel):
-    type: Literal["desktop"]
+    kind: Literal["desktop"]
     display_id: Literal["primary"] = "primary"
 
     def to_driver(self) -> DriverActionTarget:
         return cast(DriverActionTarget, DriverActionTarget.DESKTOP(self.display_id))
 
-type ActionTarget = Annotated[WindowTarget | DesktopTarget, Field(discriminator="type")]
+type ActionTarget = Annotated[WindowTarget | DesktopTarget, Field(discriminator="kind")]
 
 # --- --- --- --- --- ---
 
 class Coordinates(BaseModel):
-    type: Literal["coordinates"]
+    kind: Literal["coordinates"]
     x: float
     y: float
 
@@ -157,14 +158,14 @@ class Coordinates(BaseModel):
         return cast(DriverClickPosition, DriverClickPosition.COORDINATES(self.x, self.y))
 
 class ElementPosition(BaseModel):
-    type: Literal["element"]
+    kind: Literal["element"]
     element_token: str
 
     def to_driver(self) -> DriverClickPosition:
         return cast(DriverClickPosition, DriverClickPosition.ELEMENT(self.element_token))
 
 class CapturedCoordinates(BaseModel):
-    type: Literal["captured_coordinates"]
+    kind: Literal["captured_coordinates"]
     x: float
     y: float
     capture_id: str
@@ -176,7 +177,7 @@ class CapturedCoordinates(BaseModel):
 
 type ClickPosition = Annotated[
     Coordinates | ElementPosition | CapturedCoordinates,
-    Field(discriminator="type"),
+    Field(discriminator="kind"),
 ]
 
 # --- --- --- --- --- ---
@@ -230,6 +231,14 @@ class ClickButton(StrEnum):
 
     def to_driver(self) -> DriverClickButton:
         return DriverClickButton[self.name]
+
+
+class InputDeliveryMode(StrEnum):
+    BACKGROUND = "background"
+    FOREGROUND = "foreground"
+
+    def to_driver(self) -> DriverInputDeliveryMode:
+        return DriverInputDeliveryMode[self.name]
 
 
 class ScrollDirection(StrEnum):

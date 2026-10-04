@@ -6,7 +6,7 @@ from loguru import logger
 
 from src.services.computer_use.types import (
     ClickButton, ClickPosition,
-    DragCoordinates,
+    DragCoordinates, InputDeliveryMode,
     KeyName, Modifier,
     ScrollDirection,
     WindowStateOptions,
@@ -55,16 +55,16 @@ class ComputerUseToolset(BuiltinToolset):
         match result.type:
             case "screenshot":
                 blocks = []
-                blocks += [
+                blocks.extend(
                     ImageBlock(source=Base64Source(mime_type=image.mime_type, data=image.data_base64))
                     for image in result.images
-                ]
-                blocks += [
-                    TextBlock(text=f"""
+                )
+                blocks.append(TextBlock(text=f"""
 Screenshot width: {result.screenshot_width}
 Screenshot height: {result.screenshot_height}
-""".strip())
-                ]
+Window width: {result.window_bounds.width}
+Window height: {result.window_bounds.height}
+""".strip()))
                 return blocks
             case "accessibility_tree":
                 return result.model_dump(exclude={"type"})
@@ -74,6 +74,7 @@ Screenshot height: {result.screenshot_height}
                     target: WindowTarget,
                     position: ClickPosition,
                     button: ClickButton = ClickButton.LEFT,
+                    delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                     ) -> ActionResultModel:
         """
         Click a position or accessibility element in the target window.
@@ -81,13 +82,14 @@ Screenshot height: {result.screenshot_height}
         Use an element target when available;
         use coordinates for targets identified visually from the window screenshot.
         """
-        result = await self._ctx.computer_use_session.click(target, position.to_driver(), button)
+        result = await self._ctx.computer_use_session.click(target, position, button, delivery_mode)
         return ActionResultModel.model_validate(result)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
     async def type_text(self,
                         text: str,
                         target: WindowTarget,
+                        delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                         ) -> ActionResultModel:
         """
         Enter text and punctuation into the focused control in the target window rather than using `press_key` for text input.
@@ -95,7 +97,7 @@ Screenshot height: {result.screenshot_height}
         NOTE:
             Before calling this tool, the intended input widget must be focused.
         """
-        result = await self._ctx.computer_use_session.type_text(text, target)
+        result = await self._ctx.computer_use_session.type_text(text, target, delivery_mode)
         return ActionResultModel.model_validate(result)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
@@ -105,8 +107,9 @@ Screenshot height: {result.screenshot_height}
                      y: float,
                      direction: ScrollDirection,
                      amount: Annotated[int, Field(gt=0, description="The number of lines to scroll.")] = 1,
+                     delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                      ) -> ActionResultModel:
-        result = await self._ctx.computer_use_session.scroll(target, x, y, direction, amount)
+        result = await self._ctx.computer_use_session.scroll(target, x, y, direction, amount, delivery_mode)
         return ActionResultModel.model_validate(result)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
@@ -114,8 +117,9 @@ Screenshot height: {result.screenshot_height}
                         target: WindowTarget,
                         key: KeyName,
                         modifiers: list[Modifier] | None = None,
+                        delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                         ) -> ActionResultModel:
-        result = await self._ctx.computer_use_session.press_key(target, key, modifiers)
+        result = await self._ctx.computer_use_session.press_key(target, key, modifiers, delivery_mode)
         validated = ActionResultModel.model_validate(result)
         logger.debug(validated)
         return validated
@@ -127,6 +131,7 @@ Screenshot height: {result.screenshot_height}
                    end: DragCoordinates,
                    button: ClickButton = ClickButton.LEFT,
                    modifiers: list[Modifier] | None = None,
+                   delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                    ) -> ActionResultModel:
         """
         Drag from start to end in the target window.
@@ -140,5 +145,5 @@ Screenshot height: {result.screenshot_height}
             end,
             button,
             modifiers,
-        )
+            delivery_mode)
         return ActionResultModel.model_validate(result)

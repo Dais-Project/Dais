@@ -1,4 +1,5 @@
 import asyncio
+import json
 import platform
 import uuid
 from typing import Literal
@@ -8,19 +9,23 @@ from cua_driver import (
     StartSessionInput, EndSessionInput,
     ListAppsInput, ListAppsOutput,
     ListWindowsInput, ListWindowsOutput,
-    ClickInput, ClickPosition,
+    ClickInput,
     TypeTextInput,
     ScrollInput, ScrollBy,
     PressKeyInput,
     DragInput,
-    ToolResult, ActionResult, InputDeliveryMode,
+    ToolResult, ActionResult,
 )
 
 from src.platforms.window_manager import restore_without_activate
 
 from .types import (
-    DragCoordinates, KeyName, Modifier, WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
-    ActionTarget, ClickButton,
+    WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
+    ClickButton, ClickPosition,
+    KeyName, Modifier,
+    DragCoordinates,
+    ActionTarget,
+    InputDeliveryMode,
     ScrollDirection,
 )
 
@@ -72,7 +77,7 @@ class ComputerUseSession:
         restore_without_activate(window_id)
         result = await self._driver.get_window_state(
             options.to_driver_options(session=self.id, pid=pid, window_id=window_id))
-        match options.type:
+        match options.kind:
             case "screenshot":
                 return ScreenshotResult.from_driver(result)
             case "accessibility_tree":
@@ -81,25 +86,36 @@ class ComputerUseSession:
     async def click(self,
                     target: ActionTarget,
                     position: ClickPosition,
-                    button: ClickButton = ClickButton.LEFT) -> ActionResult:
+                    button: ClickButton = ClickButton.LEFT,
+                    delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND) -> ActionResult:
         return await self._driver.click(ClickInput(
             session=self.id,
             target=target.to_driver(),
-            position=position,
+            position=position.to_driver(),
             button=button.to_driver(),
-            delivery_mode=InputDeliveryMode.BACKGROUND,
+            delivery_mode=delivery_mode.to_driver(),
             count=1,
         ))
-    
+
     async def type_text(self,
                         text: str,
-                        target: ActionTarget) -> ActionResult:
-        result = await self._driver.type_text(TypeTextInput(
-            session=self.id,
-            text=text,
-            target=target.to_driver(),
-            scope=None,
-        ))
+                        target: ActionTarget,
+                        delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND
+                        ) -> ActionResult:
+        if delivery_mode == InputDeliveryMode.BACKGROUND:
+            result = await self._driver.type_text(TypeTextInput(
+                session=self.id,
+                text=text,
+                target=target.to_driver(),
+                scope=None,
+            ))
+        else:
+            result = await self._driver.call_tool("type_text", json.dumps({
+                "session": self.id,
+                "text": text,
+                "target": target.model_dump(),
+                "delivery_mode": delivery_mode,
+            }))
         return _unwrap_tool_result(result)
 
     async def scroll(self,
@@ -107,35 +123,58 @@ class ComputerUseSession:
                      x: float,
                      y: float,
                      direction: ScrollDirection,
-                     amount: int = 1) -> ActionResult:
-        result = await self._driver.scroll(ScrollInput(
-            session=self.id,
-            x=x,
-            y=y,
-            direction=direction.to_driver(),
-            target=target.to_driver(),
-            by=ScrollBy.LINE,
-            amount=amount,
-            scope=None,
-        ))
+                     amount: int = 1,
+                     delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND) -> ActionResult:
+        if delivery_mode == InputDeliveryMode.BACKGROUND:
+            result = await self._driver.scroll(ScrollInput(
+                session=self.id,
+                x=x,
+                y=y,
+                direction=direction.to_driver(),
+                target=target.to_driver(),
+                by=ScrollBy.LINE,
+                amount=amount,
+                scope=None,
+            ))
+        else:
+            result = await self._driver.call_tool("scroll", json.dumps({
+                "session": self.id,
+                "x": x,
+                "y": y,
+                "direction": direction,
+                "target": target.model_dump(),
+                "by": "line",
+                "amount": amount,
+                "delivery_mode": delivery_mode,
+            }))
         return _unwrap_tool_result(result)
 
     async def press_key(self,
                         target: ActionTarget,
                         key: KeyName,
-                        modifiers: list[Modifier] | None = None) -> ActionResult:
+                        modifiers: list[Modifier] | None = None,
+                        delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND) -> ActionResult:
         if modifiers is not None:
             normalized_modifiers = [_normalize_modifier(modifier) for modifier in modifiers]
         else: 
             normalized_modifiers = None
 
-        result = await self._driver.press_key(PressKeyInput(
-            session=self.id,
-            target=target.to_driver(),
-            key=key,
-            modifiers=normalized_modifiers,
-            scope=None,
-        ))
+        if delivery_mode == InputDeliveryMode.BACKGROUND:
+            result = await self._driver.press_key(PressKeyInput(
+                session=self.id,
+                target=target.to_driver(),
+                key=key,
+                modifiers=normalized_modifiers,
+                scope=None,
+            ))
+        else:
+            result = await self._driver.call_tool("press_key", json.dumps({
+                "session": self.id,
+                "target": target.model_dump(),
+                "key": key,
+                "modifiers": normalized_modifiers,
+                "delivery_mode": delivery_mode,
+            }))
         return _unwrap_tool_result(result)
 
     async def drag(self,
@@ -143,25 +182,39 @@ class ComputerUseSession:
                    start: DragCoordinates,
                    end: DragCoordinates,
                    button: ClickButton = ClickButton.LEFT,
-                   modifiers: list[Modifier] | None = None) -> ActionResult:
+                   modifiers: list[Modifier] | None = None,
+                   delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND) -> ActionResult:
         if modifiers is not None:
             normalized_modifiers = [_normalize_modifier(modifier) for modifier in modifiers]
         else: 
             normalized_modifiers = None
 
-        result = await self._driver.drag(DragInput(
-            session=self.id,
-            from_x=start.x,
-            from_y=start.y,
-            to_x=end.x,
-            to_y=end.y,
-            target=target.to_driver(),
-            button=button.to_driver(),
-            modifier=normalized_modifiers,
-            scope=None,
-            duration_ms=None,
-            steps=None,
-        ))
+        if delivery_mode == InputDeliveryMode.BACKGROUND:
+            result = await self._driver.drag(DragInput(
+                session=self.id,
+                from_x=start.x,
+                from_y=start.y,
+                to_x=end.x,
+                to_y=end.y,
+                target=target.to_driver(),
+                button=button.to_driver(),
+                modifier=normalized_modifiers,
+                scope=None,
+                duration_ms=None,
+                steps=None,
+            ))
+        else:
+            result = await self._driver.call_tool("drag", json.dumps({
+                "session": self.id,
+                "from_x": start.x,
+                "from_y": start.y,
+                "to_x": end.x,
+                "to_y": end.y,
+                "target": target.model_dump(),
+                "button": button,
+                "modifier": normalized_modifiers,
+                "delivery_mode": delivery_mode,
+            }))
         return _unwrap_tool_result(result)
 
     async def stop(self):
