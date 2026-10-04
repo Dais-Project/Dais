@@ -34,3 +34,5 @@ openapi.json
 migrations.json
 .nx/cache
 .nx/workspace-data
+.nx/polygraph
+.nx/self-healing
