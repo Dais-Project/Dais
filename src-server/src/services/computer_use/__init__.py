@@ -1,7 +1,7 @@
 import asyncio
 import platform
-from typing import Literal
 import uuid
+from typing import Literal
 
 from cua_driver import (
     CuaDriver,
