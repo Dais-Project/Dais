@@ -31,7 +31,7 @@ async def create_task_resource_access_url(
         )
     )
     return task_resource_schemas.TaskResourceAccessUrl(
-        url=f"/api/task-resources/access/{token}"
+        url=f"/api/task/resources/access/{token}"
     )
 
 

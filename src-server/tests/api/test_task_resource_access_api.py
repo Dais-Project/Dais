@@ -32,7 +32,7 @@ def access_service() -> TaskResourceAccessService:
 def api_app(access_service: TaskResourceAccessService):
     app = FastAPI()
     app.add_middleware(AuthenticationMiddleware)
-    app.include_router(task_resource_router, prefix="/api/task-resources")
+    app.include_router(task_resource_router, prefix="/api/task/resources")
     app.add_exception_handler(ApiError, handle_api_error)
     app.add_exception_handler(ServiceError, handle_service_error)
 
@@ -66,17 +66,17 @@ def desktop_auth_token():
         ("POST", "/api/auth/browser-login", SpecialRouteType.PUBLIC),
         (
             "GET",
-            "/api/task-resources/access/token",
+            "/api/task/resources/access/token",
             SpecialRouteType.PUBLIC,
         ),
         (
             "GET",
-            "/api/task-resources/access/token/extra",
+            "/api/task/resources/access/token/extra",
             SpecialRouteType.AUTH_REQUIRED,
         ),
         (
             "POST",
-            "/api/task-resources/access/token",
+            "/api/task/resources/access/token",
             SpecialRouteType.AUTH_REQUIRED,
         ),
         (
@@ -120,7 +120,7 @@ async def test_access_url_requires_authentication(mocker):
     middleware = AuthenticationMiddleware(mocker.Mock())
     request = SimpleNamespace(
         method="POST",
-        url=SimpleNamespace(path="/api/task-resources/access-url"),
+        url=SimpleNamespace(path="/api/task/resources/access-url"),
         headers={},
         cookies={},
         state=SimpleNamespace(db_session=mocker.Mock()),
@@ -137,13 +137,46 @@ async def test_authenticated_request_creates_access_url(
     client: httpx2.AsyncClient,
 ):
     response = await client.post(
-        "/api/task-resources/access-url",
+        "/api/task/resources/access-url",
         headers={DESKTOP_AUTH_HEADER: "desktop-token"},
         json={"task_type": "schedule", "task_id": 1, "resource_id": 2},
     )
 
     assert response.status_code == 200
-    assert response.json()["url"].startswith("/api/task-resources/access/")
+    assert response.json()["url"].startswith("/api/task/resources/access/")
+
+
+@pytest.mark.api
+@pytest.mark.asyncio
+@pytest.mark.parametrize("task_type", ["task", "schedule"])
+async def test_created_access_url_loads_resource_without_authentication(
+    client: httpx2.AsyncClient,
+    mocker,
+    tmp_path: Path,
+    task_type: str,
+):
+    resource_path = tmp_path / "image.png"
+    resource_path.write_bytes(b"image content")
+    resource_service = mocker.Mock()
+    resource_service.load_task_resource = mocker.AsyncMock(return_value=resource_path)
+    service_factory = mocker.patch(
+        "src.api.routes.tasks.resource.TaskResourceService.from_db_session",
+        return_value=resource_service,
+    )
+    response = await client.post(
+        "/api/task/resources/access-url",
+        headers={DESKTOP_AUTH_HEADER: "desktop-token"},
+        json={"task_type": task_type, "task_id": 1, "resource_id": 2},
+    )
+
+    assert response.status_code == 200
+
+    resource_response = await client.get(response.json()["url"])
+
+    assert resource_response.status_code == 200
+    assert resource_response.content == b"image content"
+    assert service_factory.call_args.args[1] == task_runtime_schemas.TaskType(task_type)
+    resource_service.load_task_resource.assert_awaited_once_with(1, 2)
 
 
 @pytest.mark.api
@@ -171,7 +204,7 @@ async def test_signed_resource_supports_range_without_authentication(
     )
 
     response = await client.get(
-        f"/api/task-resources/access/{token}",
+        f"/api/task/resources/access/{token}",
         headers={"Range": "bytes=2-5"},
     )
 
@@ -185,7 +218,7 @@ async def test_signed_resource_supports_range_without_authentication(
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_invalid_signed_resource_returns_401(client: httpx2.AsyncClient):
-    response = await client.get("/api/task-resources/access/invalid.token")
+    response = await client.get("/api/task/resources/access/invalid.token")
 
     assert response.status_code == 401
     assert response.json()["error_code"] == "TASK_RESOURCE_ACCESS_INVALID"

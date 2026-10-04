@@ -52,7 +52,7 @@ SPECIAL_ROUTES = (
     SpecialRoute("GET", "/api/health/", SpecialRouteType.PUBLIC),
     SpecialRoute("POST", "/api/auth/browser-login", SpecialRouteType.PUBLIC),
     SpecialRoute("GET",
-                 re.compile(r"/api/task-resources/access/[^/]+"),
+                 re.compile(r"/api/task/resources/access/[^/]+"),
                  SpecialRouteType.PUBLIC),
     SpecialRoute("POST", "/api/auth/login-code", SpecialRouteType.DESKTOP_ONLY),
 )
