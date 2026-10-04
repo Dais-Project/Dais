@@ -241,3 +241,7 @@ class AgentTask:
     async def stop(self):
         self._is_running = False
         await self._llm_request_manager.cancel()
+
+    async def cleanup(self):
+        await self._ctx.cleanup()
+        await self.stop()        

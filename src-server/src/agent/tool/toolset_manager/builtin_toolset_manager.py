@@ -52,3 +52,6 @@ class BuiltinToolsetManager(ToolsetManager):
         manager = cls(ctx)
         await manager.initialize()
         return manager
+
+    async def cleanup(self):
+        await self._ctx.cleanup()

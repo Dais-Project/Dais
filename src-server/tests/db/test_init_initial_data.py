@@ -93,17 +93,30 @@ class TestInitInitialData:
             assert model.context_size == 128_000
             assert model.provider_id == provider.id
 
-            assert len(toolsets) == 6
+            assert len(toolsets) == 7
             assert len(tools) > 0
 
             assert {agent.name for agent in agents} == {
                 "Daily Assistant",
                 "Terminal Interpreter",
                 "Software Engineer",
+                "Computer Use",
             }
             assert all(agent.description for agent in agents)
             assert all(agent.model_id == model.id for agent in agents)
             assert len(software_engineer.usable_tools) == len(tools)
+
+            computer_use = next(agent for agent in agents if agent.name == "Computer Use")
+            assert computer_use.icon_name == "monitor"
+            assert computer_use.instruction
+            computer_tools = {tool.internal_key for tool in tools if tool.internal_key.startswith("ComputerUse__")}
+            assert len(computer_tools) == 8
+            assert {tool.internal_key for tool in computer_use.usable_tools} == computer_tools | {
+                "UserInteraction__ask_user",
+                "UserInteraction__show_plan",
+                "ExecutionControl__update_todos",
+                "ExecutionControl__finish_task",
+            }
 
             assert len(workspaces) == 1
             assert workspace.name == "User Directory"
@@ -136,8 +149,21 @@ class TestInitInitialData:
 
             assert provider_count == 1
             assert model_count == 1
-            assert toolset_count == 6
+            assert toolset_count == 7
             assert tool_count > 0
-            assert agent_count == 3
+            assert agent_count == 4
             assert workspace_count == 1
             assert skill_count == 2
+
+    @pytest.mark.asyncio
+    async def test_agent_init_preserves_existing_agents(self, monkeypatch: pytest.MonkeyPatch, test_session_factory):
+        monkeypatch.setattr(db_module, "AsyncSessionLocal", test_session_factory)
+        async with test_session_factory() as session:
+            session.add(agent_models.Agent(name="Custom", instruction="Custom instruction", usable_tools=[]))
+            await session.commit()
+
+        await db_module.init_initial_data()
+
+        async with test_session_factory() as session:
+            agents = (await session.scalars(select(agent_models.Agent))).all()
+            assert [agent.name for agent in agents] == ["Custom"]

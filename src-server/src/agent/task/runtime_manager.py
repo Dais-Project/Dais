@@ -71,7 +71,6 @@ class AgentTaskRuntimeLease:
 class AgentTaskRuntimeManager:
     def __init__(self):
         self._reserved: set[AgentTaskRuntimeKey] = set()
-        self._lock = asyncio.Lock()
 
     @staticmethod
     async def load_task_runtime_context(db_session: AsyncSession, ref: AgentTaskRuntimeRef) -> task_runtime_schemas.TaskRuntimeContext:
@@ -86,10 +85,9 @@ class AgentTaskRuntimeManager:
     async def acquire(self, ref: AgentTaskRuntimeRef) -> AgentTaskRuntimeLease:
         key = AgentTaskRuntimeKey(ref.type, ref.id)
 
-        async with self._lock:
-            if key in self._reserved:
-                raise AgentTaskRuntimeConflictError(ref.type, ref.id)
-            self._reserved.add(key)
+        if key in self._reserved:
+            raise AgentTaskRuntimeConflictError(ref.type, ref.id)
+        self._reserved.add(key)
 
         try:
             async with db_context() as db_session:
@@ -102,8 +100,7 @@ class AgentTaskRuntimeManager:
             raise
 
     async def release(self, key: AgentTaskRuntimeKey):
-        async with self._lock:
-            self._reserved.discard(key)
+        self._reserved.discard(key)
 
     @asynccontextmanager
     async def reserve(self, ref: AgentTaskRuntimeRef) -> AsyncGenerator[AgentTask]:
@@ -111,7 +108,11 @@ class AgentTaskRuntimeManager:
         try:
             yield lease.task
         finally:
-            await asyncio.shield(lease.release())
+            await asyncio.shield(
+                asyncio.gather(
+                    lease.release(),
+                    lease.task.cleanup(),
+                    return_exceptions=True))
 
 __instance: AgentTaskRuntimeManager | None = None
 

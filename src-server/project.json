@@ -51,15 +51,7 @@
       "command": "uv run pyright"
     },
     "export-openapi": {
-      "command": "uv run python -m scripts.export_openapi",
-      "cache": true,
-      "inputs": [
-        "{projectRoot}/src/api/**/*.py",
-        "{projectRoot}/src/schemas/**/*.py",
-        "{projectRoot}/src/settings.py",
-        "{projectRoot}/scripts/export_openapi.py"
-      ],
-      "outputs": ["{workspaceRoot}/openapi.json"]
+      "command": "uv run python -m scripts.export_openapi"
     },
     "export-tool-schema": {
       "command": "uv run python -m scripts.export_tool_specs"
