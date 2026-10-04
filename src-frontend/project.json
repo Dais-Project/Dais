@@ -50,7 +50,11 @@
       ]
     },
     "test": {
-      "command": "pnpm vitest"
+      "command": "pnpm vitest",
+      "dependsOn": [
+        "install",
+        "generate-api"
+      ]
     },
     "type-check": {
       "command": "pnpm tsc --noEmit"
