@@ -6,6 +6,7 @@ _ext = ".exe" if platform.system() == "Windows" else ""
 BINARY_DIR = PROJECT_ROOT / "bin"
 
 RIPGREP_PATH = BINARY_DIR / "ripgrep" / f"rg{_ext}"
+MONTY_PATH = BINARY_DIR / "monty" / f"monty{_ext}"
 
 NODE_PATH = BINARY_DIR / "node" / f"node{_ext}"
 if platform.system() == "Windows":

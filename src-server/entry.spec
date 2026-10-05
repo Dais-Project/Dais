@@ -1,10 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 import platform
+import sysconfig
+from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 
 project_root = SPECPATH
+scripts_dir = Path(sysconfig.get_path("scripts"))
 
 # alembic resources
 alembic_ini_path = os.path.join(project_root, "alembic.ini")
@@ -12,11 +15,13 @@ alembic_dir = os.path.join(project_root, "src", "db", "alembic")
 alembic_env_path = os.path.join(alembic_dir, "env.py")
 alembic_migrations_dir = os.path.join(alembic_dir, "versions")
 
-# ripgrep resources
+# ripgrep & monty resources
 if platform.system() == "Windows":
     ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg.exe")
+    monty_bin_path = scripts_dir / "monty.exe"
 else:
     ripgrep_bin_path = os.path.join(project_root, "bin", "ripgrep", "rg")
+    monty_bin_path = scripts_dir / "monty"
 
 # node resources
 node_dir = os.path.join(project_root, "bin", "node")
@@ -37,6 +42,7 @@ a = Analysis(
         (alembic_migrations_dir, "src/db/alembic/versions"),
 
         (ripgrep_bin_path, "bin/ripgrep"),
+        (monty_bin_path, "bin/monty"),
         (node_dir, "bin/node"),
         (uv_dir, "bin/uv"),
 
