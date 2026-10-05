@@ -426,14 +426,14 @@ wheels = [
 
 [[package]]
 name = "cua-driver"
-version = "0.33.1"
+version = "0.33.4"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/94/cdde973a55d86f33248da8c5f79d8711b67c890ee3615d7ce285581c0665/cua_driver-0.33.1-py3-none-macosx_13_0_universal2.whl", hash = "sha256:cda4b3927721ce9e0743044876641dda5f0f5ae7c0b42ddb7d6c98e37310a223", size = 43976018, upload-time = "2026-10-03T21:45:34.584Z" },
-    { url = "https://files.pythonhosted.org/packages/78/75/1d4cd70ae3073af4f2210335253ab087b388c37778dc1aafafb2c69a5364/cua_driver-0.33.1-py3-none-manylinux_2_31_aarch64.whl", hash = "sha256:7d18cef302f637b514ba29e47b4cfc5f76e2c2612681ffb2a0458e2ea45d856c", size = 32752815, upload-time = "2026-10-03T21:45:37.099Z" },
-    { url = "https://files.pythonhosted.org/packages/2c/56/c8fa71615bd539bc774681bb7621f12856d15ba36114d2d81ea90bbaa1f1/cua_driver-0.33.1-py3-none-manylinux_2_31_x86_64.whl", hash = "sha256:812b5542bab35c739f377fa4e20b49e2492aa5bda0c5906de66ff08781c0fea6", size = 32453346, upload-time = "2026-10-03T21:45:39.448Z" },
-    { url = "https://files.pythonhosted.org/packages/4c/63/a732c953190b8d763882c2ab2d85c658a73ca12d7aa6b3076d5b03ed527e/cua_driver-0.33.1-py3-none-win_amd64.whl", hash = "sha256:88f72842edcf601ef0c41b5a7b6a9413835ae817e752dc4cc9bea7718f3dd485", size = 28573698, upload-time = "2026-10-03T21:45:41.773Z" },
-    { url = "https://files.pythonhosted.org/packages/e2/2d/759c0b6fa2f974ae67525eb3dc49ba5a087da00f3568ff206c50561702d9/cua_driver-0.33.1-py3-none-win_arm64.whl", hash = "sha256:f96954a7e0dd9e861f12c50fac8fe010fa6fdd47182a61a85a998c65fd327161", size = 26712365, upload-time = "2026-10-03T21:45:44.506Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/21/6c766f1f5ed9bfc173b9179e0bd152d97b1a486a90f28730e0ec50fec74d/cua_driver-0.33.4-py3-none-macosx_13_0_universal2.whl", hash = "sha256:d9a467d069fd00f69555617aeef65017ecf336730ddbf8018141e77e5ab939aa", size = 44015425, upload-time = "2026-10-05T06:07:17.665Z" },
+    { url = "https://files.pythonhosted.org/packages/26/98/72c854b1ae6a0f19073d4ecf129813cd9668327a5c949688a2e6f1e95353/cua_driver-0.33.4-py3-none-manylinux_2_31_aarch64.whl", hash = "sha256:1d56e911f60a419fa61361d007019c85ecf05ce7086aca36933bcfeee3c6b3f0", size = 32884567, upload-time = "2026-10-05T06:07:20.69Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/60/88d74c60c336c9fc9e3627e9cc82e2d6579d10e2109d138e0d2868798e88/cua_driver-0.33.4-py3-none-manylinux_2_31_x86_64.whl", hash = "sha256:f5b779698f83c3c0f1b30ef612421486a3f88c2e6aaf345c5ce78b150a728e08", size = 32527889, upload-time = "2026-10-05T06:07:23.494Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/9f/ba5056d80f6e064899d5b460bd9417d2a6a88d9f2b7b51214e259e3e66f5/cua_driver-0.33.4-py3-none-win_amd64.whl", hash = "sha256:4cf585aac6993cd757cf1024177a04bb391e6a26e8a4c06cb4f05b01a46eb136", size = 28610803, upload-time = "2026-10-05T06:07:26.319Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/1d/744b68cabde78c36f4e5ccc4c29b88700dde8a560a0a2f383a90d8915b80/cua_driver-0.33.4-py3-none-win_arm64.whl", hash = "sha256:34aee64995ec1933558d1a926f2f57f7328a40ba76ff438851e12d386432934c", size = 26713729, upload-time = "2026-10-05T06:07:29.317Z" },
 ]
 
 [[package]]
@@ -529,7 +529,7 @@ requires-dist = [
     { name = "anyxml", specifier = "==0.1.0" },
     { name = "apscheduler", specifier = "==3.11.2" },
     { name = "binaryornot", specifier = "==0.6.0" },
-    { name = "cua-driver", specifier = "==0.33.1" },
+    { name = "cua-driver", specifier = "==0.33.4" },
     { name = "dais-scantree", specifier = "==0.2.2" },
     { name = "dais-sdk", specifier = "==0.11.5" },
     { name = "dais-shell", specifier = "==0.3.2" },
