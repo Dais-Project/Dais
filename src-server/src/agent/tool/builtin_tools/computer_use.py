@@ -5,7 +5,7 @@ from pydantic import Field
 from loguru import logger
 
 from src.services.computer_use.types import (
-    ClickButton, ClickPosition,
+    ActionTarget, ClickButton, ClickPosition,
     DragCoordinates, InputDeliveryMode,
     KeyName, Modifier,
     ScrollDirection,
@@ -16,6 +16,11 @@ from src.services.computer_use.types import (
 
 from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset
 
+
+def normalize_delivery_mode(target: ActionTarget, delivery_mode: InputDeliveryMode) -> InputDeliveryMode:
+    if target.kind == "desktop":
+        return InputDeliveryMode.FOREGROUND
+    return delivery_mode
 
 class ComputerUseToolset(BuiltinToolset):
     @property
@@ -29,9 +34,23 @@ class ComputerUseToolset(BuiltinToolset):
         return """
 Toolset for general GUI application interactions.
 
+**Target and coordinate rules**:
+
+The operation target can be a window or a desktop.
+
+- For window targets, coordinates are window-local screenshot pixels relative to the top-left corner of the screenshot returned by `get_window_state`,
+  where the (0, 0) is the screenshot's top-left corner.
+- For desktop targets, coordinates are screen pixels relative to the top-left corner of the display screenshot returned by `get_desktop_state`,
+  where (0, 0) is the display's top-left corner.
+- Note: Desktop targets always use foreground interaction.
+
+Input delivery rules:
+- For window targets, use background mode by default.
+  Switch to foreground when the target application does not reliably support background interaction.
+- For desktop targets, the requested `delivery_mode` does not affect execution;
+  the tool always uses foreground delivery.
+
 Usage guidelines:
-- Use background mode (`delivery_mode="background"`) by default when interacting with applications.
-  Switch to foreground mode (`delivery_mode="foreground"`) only after an error indicates that the application does not reliably support background interaction.
 - If you remain stuck on the same operation for over 5 times of tool calls make no meaningful progress, stop attempting it rather than retrying indefinitely.
   Inform the user what you were trying to do, what is blocking progress, and that you have stopped.
 """.strip()
@@ -102,32 +121,34 @@ Window height: {result.window_bounds.height}
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def click(self,
-                    target: WindowTarget,
+                    target: ActionTarget,
                     position: ClickPosition,
                     button: ClickButton = ClickButton.LEFT,
                     delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                     ) -> ActionResultModel:
         """
-        Click a position or accessibility element in the target window.
+        Click a position or accessibility element in the target.
 
         Use an element target when available;
         use coordinates for targets identified visually from the window screenshot.
         """
+        delivery_mode = normalize_delivery_mode(target, delivery_mode)
         result = await self._ctx.computer_use_session.click(target, position, button, delivery_mode)
         return ActionResultModel.model_validate(result)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
     async def type_text(self,
                         text: str,
-                        target: WindowTarget,
+                        target: ActionTarget,
                         delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                         ) -> ActionResultModel:
         """
-        Enter text and punctuation into the focused control in the target window rather than using `press_key` for text input.
+        Enter text and punctuation into the focused control.
 
         NOTE:
             Before calling this tool, the intended input widget must be focused.
         """
+        delivery_mode = normalize_delivery_mode(target, delivery_mode)
         result = await self._ctx.computer_use_session.type_text(text, target, delivery_mode)
         return ActionResultModel.model_validate(result)
 
@@ -140,6 +161,7 @@ Window height: {result.window_bounds.height}
                      amount: Annotated[int, Field(gt=0, description="The number of lines to scroll.")] = 1,
                      delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                      ) -> ActionResultModel:
+        delivery_mode = normalize_delivery_mode(target, delivery_mode)
         result = await self._ctx.computer_use_session.scroll(target, x, y, direction, amount, delivery_mode)
         return ActionResultModel.model_validate(result)
 
@@ -150,6 +172,7 @@ Window height: {result.window_bounds.height}
                         modifiers: list[Modifier] | None = None,
                         delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                         ) -> ActionResultModel:
+        delivery_mode = normalize_delivery_mode(target, delivery_mode)
         result = await self._ctx.computer_use_session.press_key(target, key, modifiers, delivery_mode)
         validated = ActionResultModel.model_validate(result)
         logger.debug(validated)
@@ -170,6 +193,7 @@ Window height: {result.window_bounds.height}
         Both positions use window-local screenshot pixel coordinates in the same coordinate space as the window screenshot returned by `get_window_state`,
         with (0, 0) at its top-left corner, not screen-absolute coordinates.
         """
+        delivery_mode = normalize_delivery_mode(target, delivery_mode)
         result = await self._ctx.computer_use_session.drag(
             target,
             start,

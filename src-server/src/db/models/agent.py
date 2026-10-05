@@ -118,6 +118,7 @@ async def init(db_session: AsyncSession):
             [
                 (ComputerUseToolset, ComputerUseToolset.list_apps),
                 (ComputerUseToolset, ComputerUseToolset.list_windows),
+                (ComputerUseToolset, ComputerUseToolset.get_desktop_state),
                 (ComputerUseToolset, ComputerUseToolset.get_window_state),
                 (ComputerUseToolset, ComputerUseToolset.click),
                 (ComputerUseToolset, ComputerUseToolset.type_text),
