@@ -23,6 +23,19 @@ class ComputerUseToolset(BuiltinToolset):
     def name(self) -> str:
         return "ComputerUse"
 
+    @property
+    @override
+    def description(self) -> str | None:
+        return """
+Toolset for general GUI application interactions.
+
+Usage guidelines:
+- Use background mode (`delivery_mode="background"`) by default when interacting with applications.
+  Switch to foreground mode (`delivery_mode="foreground"`) only after an error indicates that the application does not reliably support background interaction.
+- If you remain stuck on the same operation for over 5 times of tool calls make no meaningful progress, stop attempting it rather than retrying indefinitely.
+  Inform the user what you were trying to do, what is blocking progress, and that you have stopped.
+""".strip()
+
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def list_apps(self) -> list[str]:
         """
