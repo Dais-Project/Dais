@@ -5,7 +5,7 @@ from cua_driver import (
     ActionEffect, ActionRoute, ActionDelivery, ActionEvidence, ActionEscalation,
     ActionTarget as DriverActionTarget,
     ClickButton as DriverClickButton,
-    ClickPosition as DriverClickPosition,
+    ClickPosition as DriverClickPosition, ImageContent,
     InputDeliveryMode as DriverInputDeliveryMode,
     ScrollDirection as DriverScrollDirection,
     SnapshotImage,
@@ -37,6 +37,14 @@ class ActionResultModel(BaseModel):
     escalation: Serialized[ActionEscalation] | None
     error: ActionErrorModel | None
     summary: str | None
+
+# --- --- --- --- --- ---
+
+class DesktopStateResult(BaseModel):
+    images: list[Serialized[ImageContent]]
+    screen_width: int
+    screen_height: int
+    scale_factor: float
 
 # --- --- --- --- --- ---
 

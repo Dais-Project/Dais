@@ -6,6 +6,7 @@ from typing import Literal
 
 from cua_driver import (
     CuaDriver,
+    GetDesktopStateInput,
     StartSessionInput, EndSessionInput,
     ListAppsInput, ListAppsOutput,
     ListWindowsInput, ListWindowsOutput,
@@ -20,7 +21,7 @@ from cua_driver import (
 from src.platforms.window_manager import configure_dpi_awareness, restore_without_activate
 
 from .types import (
-    WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
+    DesktopStateResult, WindowStateOptions, ScreenshotResult, AccessibilityTreeResult, WindowStateResult,
     ClickButton, ClickPosition,
     KeyName, Modifier,
     DragCoordinates,
@@ -68,6 +69,22 @@ class ComputerUseSession:
     async def list_windows(self, pid: int | None) -> ListWindowsOutput:
         return await self._driver.list_windows(
             ListWindowsInput(pid=pid, on_screen_only=False))
+
+    async def get_desktop_state(self):
+        result = await self._driver.get_desktop_state(GetDesktopStateInput(
+            session=self.id,
+            max_image_dimension=None,
+            screenshot_out_file=None,
+        ))
+        if result.is_error:
+            raise Exception(result.error_code, result.text)
+        assert result.structured_json is not None
+        structured = json.loads(result.structured_json)
+        return DesktopStateResult(
+            images=result.images,
+            screen_width=structured["screen_width"],
+            screen_height=structured["screen_height"],
+            scale_factor=structured["scale_factor"])
 
     async def get_window_state(self,
                                pid: int,

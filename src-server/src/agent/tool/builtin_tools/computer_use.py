@@ -53,6 +53,24 @@ Usage guidelines:
         return [str(window) for window in result.windows]
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
+    async def get_desktop_state(self) -> list[ContentBlock]:
+        """
+        Get the screenshot for the primary display.
+        """
+        result = await self._ctx.computer_use_session.get_desktop_state()
+        blocks = []
+        blocks.extend(
+            ImageBlock(source=Base64Source(mime_type=image.mime_type, data=image.data_base64))
+            for image in result.images
+        )
+        blocks.append(TextBlock(text=f"""
+Screen width: {result.screen_width}
+Screen height: {result.screen_height}
+Scale factor: {result.scale_factor}
+""".strip()))
+        return blocks
+
+    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def get_window_state(self,
                                pid: int,
                                window_id: int,
