@@ -1,8 +1,9 @@
-from typing import Annotated, override
+from typing import Annotated, Callable, Sequence, override
 
 from dais_sdk.types import Base64Source, ContentBlock, ImageBlock, TextBlock
 from pydantic import Field
 from loguru import logger
+from rapidfuzz import fuzz
 
 from src.services.computer_use.types import (
     ActionTarget, ClickButton, ClickPosition,
@@ -21,6 +22,23 @@ def normalize_delivery_mode(target: ActionTarget, delivery_mode: InputDeliveryMo
     if target.kind == "desktop":
         return InputDeliveryMode.FOREGROUND
     return delivery_mode
+
+def fuzzy_score(query: str, *values: str | None) -> float:
+    query = query.casefold()
+    scores = []
+
+    for value in values:
+        if value is None: continue
+
+        value = value.casefold()
+
+        if query == value: score = 100
+        elif query in value: score = 95
+        else: score = fuzz.WRatio(query, value)
+
+        scores.append(score)
+
+    return max(scores, default=0)
 
 class ComputerUseToolset(BuiltinToolset):
     @property
@@ -56,20 +74,42 @@ Usage guidelines:
 """.strip()
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def list_apps(self) -> list[str]:
+    async def list_apps(self,
+                        query: Annotated[str | None, "Optional query to filter apps"] = None) -> list[str]:
         """
         List apps, both currently running and installed-but-not-running.
         """
+        THRESHOLD = 60
+        TOP_K = 10
+
         result = await self._ctx.computer_use_session.list_apps()
-        return [str(app) for app in result.apps]
+        if query is None or query.strip() == "":
+            return [str(app) for app in result.apps]
+
+        filtered = [(app, score) for app in result.apps
+                    if (score := fuzzy_score(query, app.name, app.bundle_id, app.launch_path)) and score >= THRESHOLD]
+        filtered.sort(key=lambda x: x[1], reverse=True)
+        return [str(app) for app, _ in filtered[:TOP_K]]
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def list_windows(self, pid: int | None) -> list[str]:
+    async def list_windows(self,
+                           pid: int | None,
+                           query: Annotated[str | None, "Optional query to filter windows"] = None
+                           ) -> list[str]:
         """
         List all windows for the specified app process, or for all apps if pid is None.
         """
+        THRESHOLD = 60
+        TOP_K = 6
+
         result = await self._ctx.computer_use_session.list_windows(pid)
-        return [str(window) for window in result.windows]
+        if query is None or query.strip() == "":
+            return [str(window) for window in result.windows]
+        
+        filtered = [(window, score) for window in result.windows
+                    if (score := fuzzy_score(query, window.app_name, window.title)) and score >= THRESHOLD]
+        filtered.sort(key=lambda x: x[1], reverse=True)
+        return [str(window) for window, _ in filtered[:TOP_K]]
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
     async def get_desktop_state(self) -> list[ContentBlock]:
