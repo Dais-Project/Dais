@@ -104,6 +104,7 @@ class ComputerUseSession:
                     target: ActionTarget,
                     position: ClickPosition,
                     button: ClickButton = ClickButton.LEFT,
+                    double_click: bool = False,
                     delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND) -> ActionResult:
         return await self._driver.click(ClickInput(
             session=self.id,
@@ -111,7 +112,9 @@ class ComputerUseSession:
             position=position.to_driver(),
             button=button.to_driver(),
             delivery_mode=delivery_mode.to_driver(),
-            count=1,
+            # Note: count=2 is pixel path only under macOS
+            # until cua_driver==0.33.1
+            count=2 if double_click else 1,
         ))
 
     async def type_text(self,

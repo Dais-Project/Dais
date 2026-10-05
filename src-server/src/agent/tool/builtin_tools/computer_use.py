@@ -164,6 +164,7 @@ Window height: {result.window_bounds.height}
                     target: ActionTarget,
                     position: ClickPosition,
                     button: ClickButton = ClickButton.LEFT,
+                    double_click: bool = False,
                     delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
                     ) -> ActionResultModel:
         """
@@ -173,7 +174,7 @@ Window height: {result.window_bounds.height}
         use coordinates for targets identified visually from the window screenshot.
         """
         delivery_mode = normalize_delivery_mode(target, delivery_mode)
-        result = await self._ctx.computer_use_session.click(target, position, button, delivery_mode)
+        result = await self._ctx.computer_use_session.click(target, position, button, double_click, delivery_mode)
         return ActionResultModel.model_validate(result)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
