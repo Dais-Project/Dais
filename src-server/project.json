@@ -44,7 +44,12 @@
         ],
         "parallel": false
       },
-      "inputs": ["{projectRoot}/**/*.py", "{projectRoot}/pyproject.toml"],
+      "inputs": [
+        "{projectRoot}/**/*.py",
+        "{projectRoot}/pyproject.toml",
+        "{projectRoot}/uv.lock",
+        "{projectRoot}/entry.spec"
+      ],
       "outputs": ["{projectRoot}/dist", "{workspaceRoot}/src-tauri/server*"]
     },
     "type-check": {
