@@ -10,7 +10,7 @@ from . import IS_DEV
 from .api import app
 from .auth import set_desktop_auth_token
 from .db import migrate_db
-from .settings import use_app_setting_manager
+from .settings import init_app_setting_manager, use_app_setting_manager
 from .logger import get_log_level, setup_logging
 from .utils import ParentWatchdog
 
@@ -84,7 +84,7 @@ async def main():
         prevent_port_occupancy(args.port)
 
     await migrate_db()
-    await use_app_setting_manager().initialize()
+    await init_app_setting_manager()
 
     log_level = get_log_level(IS_DEV)
     remote_port = resolve_remote_access_port()
