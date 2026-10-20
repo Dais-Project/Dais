@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from dais_sdk.mcp_client import LocalServerParams
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.routes.toolset import create_toolset
 from src.api.routes.toolset import delete_toolset
@@ -77,7 +78,8 @@ class TestToolsetRouteOrchestration:
         toolset_service.get_all_mcp.assert_awaited_once_with("mcp")
 
     @pytest.mark.asyncio
-    async def test_create_toolset_combines_persistence_and_runtime(self, mocker):
+    @pytest.mark.parametrize("commit_fails", [False, True])
+    async def test_create_toolset_commits_before_runtime_append(self, mocker, commit_fails):
         body = toolset_schemas.ToolsetCreate(
             name="Local MCP",
             type=toolset_models.ToolsetType.MCP_LOCAL,
@@ -92,14 +94,38 @@ class TestToolsetRouteOrchestration:
         mcp_toolset_service.connect = mocker.AsyncMock(return_value=runtime)
         mcp_toolset_service.get_tools.return_value = tools
         mcp_toolset_service.append = mocker.AsyncMock()
+        db_session = mocker.Mock(spec=AsyncSession)
+        db_session.commit = mocker.AsyncMock()
+        calls = mocker.Mock()
+        calls.attach_mock(toolset_service.create, "create")
+        calls.attach_mock(db_session.commit, "commit")
+        calls.attach_mock(mcp_toolset_service.append, "append")
 
-        result = await create_toolset(
-            toolset_service,
-            mcp_toolset_service,
-            body,
-        )
+        if commit_fails:
+            db_session.commit.side_effect = RuntimeError("Commit failed")
+            with pytest.raises(RuntimeError, match="Commit failed"):
+                await create_toolset(
+                    toolset_service,
+                    mcp_toolset_service,
+                    body,
+                    db_session,
+                )
+            mcp_toolset_service.append.assert_not_awaited()
+        else:
+            result = await create_toolset(
+                toolset_service,
+                mcp_toolset_service,
+                body,
+                db_session,
+            )
+            assert result is created
+            mcp_toolset_service.append.assert_awaited_once_with(runtime, created)
 
-        assert result is created
+        expected_calls = [mocker.call.create(body, tools), mocker.call.commit()]
+        if not commit_fails:
+            expected_calls.append(mocker.call.append(runtime, created))
+        assert calls.mock_calls == expected_calls
+        db_session.commit.assert_awaited_once_with()
         mcp_toolset_service.connect.assert_awaited_once_with(
             body.name,
             body.type,
@@ -107,7 +133,6 @@ class TestToolsetRouteOrchestration:
         )
         mcp_toolset_service.get_tools.assert_called_once_with(runtime)
         toolset_service.create.assert_awaited_once_with(body, tools)
-        mcp_toolset_service.append.assert_awaited_once_with(runtime, created)
 
     @pytest.mark.asyncio
     async def test_update_builtin_toolset_skips_runtime_replacement(self, mocker):

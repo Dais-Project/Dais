@@ -8,6 +8,7 @@ from fastapi import status
 from src.db import toolset_models
 from src.schemas import toolset as toolset_schemas
 
+from ..dependencies import DbSessionDep
 from ..dependencies import McpToolsetServiceDep
 from ..dependencies import ToolsetServiceDep
 from ..exceptions import ApiError
@@ -67,7 +68,8 @@ async def get_toolset(service: ToolsetServiceDep, toolset_id: int):
     status_code=status.HTTP_201_CREATED,
     response_model=toolset_schemas.ToolsetRead,
 )
-async def create_toolset(toolset_service: ToolsetServiceDep,
+async def create_toolset(db_session: DbSessionDep,
+                         toolset_service: ToolsetServiceDep,
                          mcp_toolset_service: McpToolsetServiceDep,
                          body: toolset_schemas.ToolsetCreate):
     if body.type == toolset_models.ToolsetType.BUILT_IN:
@@ -84,6 +86,7 @@ async def create_toolset(toolset_service: ToolsetServiceDep,
         )
         tools = mcp_toolset_service.get_tools(toolset)
         created = await toolset_service.create(body, tools)
+        await db_session.commit()
         await mcp_toolset_service.append(toolset, created)
         return created
     except McpConnectionError as error:
