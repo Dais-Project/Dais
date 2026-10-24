@@ -185,12 +185,15 @@ Do not use file search as a substitute for reading the index first.
 
 ### 8.6. Maintenance
 
-**Adding or updating**: After writing or modifying any entry, immediately update the corresponding category `NOTES.md` and, if the category is new, the root `NOTES.md`.
+**Adding or updating**:
+- After writing or modifying any entry, immediately update the corresponding category `NOTES.md` and, if the category is new, the root `NOTES.md`.
+- Organize notes by subject for future retrieval
+    Reuse an existing category only when the note genuinely belongs to its scope. Create a new category for a distinct, recurring subject when no existing category is a good fit.
+    If the category structure becomes difficult to navigate, reorganize it when appropriate, keeping all indexes consistent.
 
 **Archiving vs. deleting**: When an entry is encountered that may no longer be current:
 - If the information may still hold historical or reference value → move to the corresponding `archives/[category]/` directory
 - If the information is entirely obsolete and has no foreseeable future use → delete the entry
-In both cases, update the affected index files accordingly.
 
 ## Appendix A: Available Skills
 
