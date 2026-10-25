@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from playwright.async_api import Page
 
+from .form_manager import FormManager
 from .keyboard_manager import KeyboardManager
 from .mouse_manager import MouseManager
 from .navigator import Navigator
@@ -25,6 +26,7 @@ class BrowserUseSession:
         self._mouse_manager = MouseManager(self._ensure_tab)
         self._keyboard_manager = KeyboardManager(self._ensure_tab)
         self._navigator = Navigator(self._ensure_tab)
+        self._form_manager = FormManager(self._ensure_tab)
         self._on_stopped = on_stopped
         self._stopped = False
 
@@ -50,6 +52,10 @@ class BrowserUseSession:
     @property
     def navigator(self) -> Navigator:
         return self._navigator
+
+    @property
+    def form(self) -> FormManager:
+        return self._form_manager
 
     def _ensure_tab(self) -> Page:
         tab = self.tabs.current_tab
