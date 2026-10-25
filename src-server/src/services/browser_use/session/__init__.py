@@ -4,8 +4,10 @@ from collections.abc import Callable
 
 from playwright.async_api import Page
 
+from .keyboard_manager import KeyboardManager
+from .mouse_manager import MouseManager
+from .navigator import Navigator
 from .tab_manager import TabManager
-from .types import ClickButton, ClickModifiers
 from ..browser_context import BrowserContextManager
 
 
@@ -20,6 +22,9 @@ class BrowserUseSession:
         self._id = str(uuid.uuid4())
         self._context_manager = context_manager
         self._tabs_manager = tab_manager
+        self._mouse_manager = MouseManager(self._ensure_tab)
+        self._keyboard_manager = KeyboardManager(self._ensure_tab)
+        self._navigator = Navigator(self._ensure_tab)
         self._on_stopped = on_stopped
         self._stopped = False
 
@@ -34,14 +39,23 @@ class BrowserUseSession:
     def tabs(self) -> TabManager:
         return self._tabs_manager
 
+    @property
+    def mouse(self) -> MouseManager:
+        return self._mouse_manager
+
+    @property
+    def keyboard(self) -> KeyboardManager:
+        return self._keyboard_manager
+
+    @property
+    def navigator(self) -> Navigator:
+        return self._navigator
+
     def _ensure_tab(self) -> Page:
         tab = self.tabs.current_tab
         if tab is None:
             raise ValueError("No current tab, please create a tab first.")
         return tab
-
-    async def navigate(self, url: str):
-        await self._ensure_tab().goto(url)
 
     async def snapshot(self,
                        ref: str | None = None,
@@ -54,32 +68,6 @@ class BrowserUseSession:
             depth=depth,
             boxes=boxes,
         )
-
-    async def click(self,
-                    ref: str,
-                    double_click: bool = False,
-                    button: ClickButton = "left",
-                    modifiers: list[ClickModifiers] = []):
-        locator = self._ensure_tab().get_by_ref(ref)
-        await locator.click(click_count=1 if not double_click else 2,
-                      button=button,
-                      modifiers=modifiers)
-
-    async def type(self, ref: str, text: str, submit: bool=False):
-        locator = self._ensure_tab().get_by_ref(ref)
-        await locator.type(text=text)
-        if submit:
-            await locator.press("Enter")
-
-    async def scroll(self,
-                     ref: str | None = None,
-                     delta_y: float = 0,
-                     delta_x: float = 0):
-        tab = self._ensure_tab()
-        if ref is not None:
-            locator = tab.get_by_ref(ref)
-            await locator.hover()
-        await tab.mouse.wheel(delta_x, delta_y)
 
     async def stop(self) -> None:
         self._stopped = True
