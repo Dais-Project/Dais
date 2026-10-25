@@ -19,6 +19,7 @@ from src.schemas import (
 )
 from src.schemas.tasks import runtime as task_runtime_schemas
 from src.services.agent import AgentService
+from src.services.browser_use import use_browser
 from src.services.computer_use import use_computer
 from src.services.llm_model import LlmModelService
 from src.services.provider import ProviderService
@@ -88,6 +89,7 @@ class AgentContext:
         messages = task.messages
 
         computer_use_session = await use_computer().create_session()
+        browser_use_session = use_browser().create_session()
         try:
             builtin_toolset_manager = await BuiltinToolsetManager.create(
                 BuiltinToolsetContext(
@@ -95,9 +97,11 @@ class AgentContext:
                     workspace.id,
                     workspace.directory,
                     computer_use_session,
+                    browser_use_session,
                 ))
         except BaseException:
-            await computer_use_session.stop()
+            await asyncio.gather(computer_use_session.stop(),
+                                 browser_use_session.stop())
             raise
 
         mcp_toolset_manager = use_mcp_toolset_manager()

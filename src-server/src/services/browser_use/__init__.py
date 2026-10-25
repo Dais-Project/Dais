@@ -17,17 +17,16 @@ class BrowserUse:
     async def create(cls):
         return cls(await async_playwright().start())
 
-    async def create_session(self) -> BrowserUseSession:
+    def create_session(self) -> BrowserUseSession:
         if self._stopped:
             raise RuntimeError("BrowserUse has stopped")
-        session = await BrowserUseSession.create(self._context_manager,
-                                                 lambda: self._sessions.discard(session))
+        session = BrowserUseSession(self._context_manager, lambda: self._sessions.discard(session))
         self._sessions.add(session)
         return session
 
     async def stop(self) -> None:
         self._stopped = True
-        for session in self._sessions:
+        for session in list(self._sessions):
             await session.stop()
         await self._context_manager.stop()
         await self._playwright.stop()

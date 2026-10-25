@@ -42,12 +42,6 @@ class TabManager:
         self._pages.append(page)
         page.on("popup", self.register)
 
-    @classmethod
-    async def create_with_initial_tab(cls, context_manager: BrowserContextManager) -> Self:
-        instance = cls(context_manager)
-        instance.manage(NewTab(type="new"))
-        return instance
-
     @property
     def current_tab(self) -> Page | None:
         return self._current_page

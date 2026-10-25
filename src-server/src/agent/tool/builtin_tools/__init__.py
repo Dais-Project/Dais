@@ -1,5 +1,6 @@
 from enum import Enum
 from dais_sdk.types import ToolSchema
+from .browser_use import BrowserUseToolset
 from .computer_use import ComputerUseToolset
 from .execution_control import ExecutionControlToolset
 from .file_system import FileSystemToolset
@@ -11,6 +12,7 @@ from ..toolset_wrapper import BuiltinToolset, BuiltinToolsetContext
 
 
 BUILT_IN_TOOLSETS: list[type[BuiltinToolset]] = [
+    BrowserUseToolset,
     ComputerUseToolset,
     ExecutionControlToolset,
     FileSystemToolset,

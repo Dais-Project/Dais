@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.toolset import ToolsetService
 from src.repositories.toolset import ToolsetRepository
+from src.services.browser_use import BrowserUseSession
 from src.services.computer_use import ComputerUseSession, use_computer
 
 from ..types import ToolMetadata
@@ -32,6 +33,7 @@ class BuiltinToolsetContext:
 
     _cwd: str | Path
     _computer_use_session: ComputerUseSession | None
+    _browser_use_session: BrowserUseSession | None = None
 
     @property
     def cwd(self) -> Path:
@@ -44,9 +46,20 @@ class BuiltinToolsetContext:
                 "Computer use session is unavailable in a metadata-only context")
         return self._computer_use_session
 
+    @property
+    def browser_use_session(self) -> BrowserUseSession:
+        if self._browser_use_session is None:
+            raise RuntimeError(
+                "Browser use session is unavailable in a metadata-only context")
+        return self._browser_use_session
+
     async def cleanup(self):
-        if self.computer_use_session is not None:
-            await self.computer_use_session.stop()
+        try:
+            if self._computer_use_session is not None:
+                await self._computer_use_session.stop()
+        finally:
+            if self._browser_use_session is not None:
+                await self._browser_use_session.stop()
 
     @classmethod
     def default(cls) -> Self:

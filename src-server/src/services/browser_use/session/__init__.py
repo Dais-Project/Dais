@@ -30,13 +30,6 @@ class BrowserUseSession:
         self._on_stopped = on_stopped
         self._stopped = False
 
-    @classmethod
-    async def create(cls,
-                     context_manager: BrowserContextManager,
-                     on_stopped: Callable[[], None]) -> Self:
-        tab_manager = await TabManager.create_with_initial_tab(context_manager)
-        return cls(context_manager, tab_manager, on_stopped)
-
     @property
     def tabs(self) -> TabManager:
         return self._tabs_manager

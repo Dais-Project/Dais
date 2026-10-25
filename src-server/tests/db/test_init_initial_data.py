@@ -93,24 +93,29 @@ class TestInitInitialData:
             assert model.context_size == 128_000
             assert model.provider_id == provider.id
 
-            assert len(toolsets) == 7
+            assert len(toolsets) == 8
+            browser_use = next(toolset for toolset in toolsets if toolset.internal_key == "BrowserUseToolset")
+            assert browser_use.name == "Browser Use"
+            assert browser_use.type == toolset_models.ToolsetType.BUILT_IN
+            assert browser_use.is_enabled
+            assert not any(tool.toolset_id == browser_use.id for tool in tools)
             assert len(tools) > 0
 
             assert {agent.name for agent in agents} == {
                 "Daily Assistant",
                 "Terminal Interpreter",
                 "Software Engineer",
-                "Computer Use",
+                "Computer Operator",
             }
             assert all(agent.description for agent in agents)
             assert all(agent.model_id == model.id for agent in agents)
             assert len(software_engineer.usable_tools) == len(tools)
 
-            computer_use = next(agent for agent in agents if agent.name == "Computer Use")
+            computer_use = next(agent for agent in agents if agent.name == "Computer Operator")
             assert computer_use.icon_name == "monitor"
             assert computer_use.instruction
             computer_tools = {tool.internal_key for tool in tools if tool.internal_key.startswith("ComputerUse__")}
-            assert len(computer_tools) == 8
+            assert len(computer_tools) == 9
             assert {tool.internal_key for tool in computer_use.usable_tools} == computer_tools | {
                 "UserInteraction__ask_user",
                 "UserInteraction__show_plan",
@@ -149,7 +154,7 @@ class TestInitInitialData:
 
             assert provider_count == 1
             assert model_count == 1
-            assert toolset_count == 7
+            assert toolset_count == 8
             assert tool_count > 0
             assert agent_count == 4
             assert workspace_count == 1
