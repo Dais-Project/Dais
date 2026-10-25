@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import singledispatchmethod
-from typing import Annotated, Literal, overload
+from typing import Annotated, Literal, Self, overload
 
 from pydantic import Discriminator
 from playwright.async_api import Page
@@ -41,6 +41,16 @@ class TabManager:
         if page in self._pages: return
         self._pages.append(page)
         page.on("popup", self.register)
+
+    @classmethod
+    async def create_with_initial_tab(cls, context_manager: BrowserContextManager) -> Self:
+        instance = cls(context_manager)
+        instance.manage(NewTab(type="new"))
+        return instance
+
+    @property
+    def current_tab(self) -> Page | None:
+        return self._current_page
 
     @overload
     async def manage(self, action: NewTab) -> Page: ...
