@@ -27,7 +27,7 @@ class BrowserUseSession:
     async def create(cls,
                      context_manager: BrowserContextManager,
                      on_stopped: Callable[[], None]) -> Self:
-        tab_manager = TabManager.create_with_initial_tab(context_manager)
+        tab_manager = await TabManager.create_with_initial_tab(context_manager)
         return cls(context_manager, tab_manager, on_stopped)
 
     @property
@@ -41,7 +41,7 @@ class BrowserUseSession:
         return tab
 
     async def navigate(self, url: str):
-        self._ensure_tab().goto(url)
+        await self._ensure_tab().goto(url)
 
     async def snapshot(self,
                        ref: str | None = None,
@@ -61,15 +61,25 @@ class BrowserUseSession:
                     button: ClickButton = "left",
                     modifiers: list[ClickModifiers] = []):
         locator = self._ensure_tab().get_by_ref(ref)
-        locator.click(click_count=1 if not double_click else 2,
+        await locator.click(click_count=1 if not double_click else 2,
                       button=button,
                       modifiers=modifiers)
 
     async def type(self, ref: str, text: str, submit: bool=False):
         locator = self._ensure_tab().get_by_ref(ref)
-        locator.type(text=text)
+        await locator.type(text=text)
         if submit:
             await locator.press("Enter")
+
+    async def scroll(self,
+                     ref: str | None = None,
+                     delta_y: float = 0,
+                     delta_x: float = 0):
+        tab = self._ensure_tab()
+        if ref is not None:
+            locator = tab.get_by_ref(ref)
+            await locator.hover()
+        await tab.mouse.wheel(delta_x, delta_y)
 
     async def stop(self) -> None:
         self._stopped = True
