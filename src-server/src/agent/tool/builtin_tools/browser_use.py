@@ -32,7 +32,7 @@ Create a tab with `manage_tabs` before navigating or interacting with a page.
 Use `snapshot` to inspect the current page and obtain element refs before interacting.
 Refresh the snapshot after navigation or page changes rather than guessing refs.
 Tab indexes are zero-based and may change after closing a tab.
-All page operations target the current tab in this session.
+All page operations target the current tab.
 """.strip()
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
@@ -40,7 +40,7 @@ All page operations target the current tab in this session.
         """
         Omitting index when closing closes the current tab.
         New tabs become current; navigate separately to open a URL.
-        Returns all session tabs with their zero-based indexes and current selection.
+        Returns all tabs with their zero-based indexes and current selection.
         """
         tabs = self._ctx.browser_use_session.tabs
         await tabs.manage(action)
