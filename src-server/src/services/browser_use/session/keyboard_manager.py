@@ -11,17 +11,26 @@ from playwright.async_api import Page
 class Fill:
     type: Literal["fill"]
     ref: str
-    text: str
-    submit: bool = False
+    text: Annotated[str, "Text to fill into the input, replacing its existing content."]
+    submit: Annotated[bool, "Press Enter after filling the input."] = False
 
 @dataclass
 class PressShortcut:
-    """
-    Key or keyboard shortcut to press. Supported key names include Enter, Tab, Escape, Backspace, Delete, Insert, Space, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Home, End, PageUp, PageDown, F1–F12, KeyA–KeyZ, Digit0–Digit9, Backquote, Minus, Equal, Backslash, BracketLeft, BracketRight, Semicolon, Quote, Comma, Period, Slash. A single character such as a, A, 1, or # is also accepted (case-sensitive). Combine modifiers Shift, Control, Alt, Meta, or ControlOrMeta using +, e.g. ControlOrMeta+A, Control+Shift+T, Shift+Tab, Alt+ArrowLeft. ControlOrMeta maps to Control on Windows/Linux and Meta on macOS. Use a text input tool for longer text.
-    """
     type: Literal["press_shortcut"]
-    shortcut: str
-    ref: str | None = None
+    shortcut: Annotated[str,
+        """
+        Key or keyboard shortcut to press. Supported key names include Enter, Tab,
+        Escape, Backspace, Delete, Insert, Space, ArrowUp, ArrowDown, ArrowLeft,
+        ArrowRight, Home, End, PageUp, PageDown, F1–F12, KeyA–KeyZ, Digit0–Digit9,
+        Backquote, Minus, Equal, Backslash, BracketLeft, BracketRight, Semicolon,
+        Quote, Comma, Period, Slash. A single character such as a, A, 1, or # is
+        also accepted (case-sensitive). Combine modifiers Shift, Control, Alt,
+        Meta, or ControlOrMeta using +, e.g. ControlOrMeta+A, Control+Shift+T,
+        Shift+Tab, Alt+ArrowLeft. ControlOrMeta maps to Control on Windows/Linux
+        and Meta on macOS.
+        """]
+    ref: Annotated[str | None,
+        "The element to target; omit to use the currently focused element."] = None
 
 type KeyboardAction = Annotated[
     Fill | PressShortcut,

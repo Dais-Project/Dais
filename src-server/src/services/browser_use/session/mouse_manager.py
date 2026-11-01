@@ -20,9 +20,10 @@ class Click:
 @dataclass
 class Scroll:
     type: Literal["scroll"]
-    ref: str | None = None
-    delta_y: float = 0
-    delta_x: float = 0
+    ref: Annotated[str | None,
+        "Hover this element before scrolling; omit to use the current pointer position."] = None
+    delta_y: Annotated[float, "Vertical scroll distance in pixels; positive values scroll down."] = 0
+    delta_x: Annotated[float, "Horizontal scroll distance in pixels; positive values scroll right."] = 0
 
 @dataclass
 class Hover:
