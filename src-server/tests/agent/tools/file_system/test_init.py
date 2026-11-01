@@ -31,7 +31,7 @@ class TestFileSystemToolInit:
         marker = home / "__dais_test_marker__.txt"
         marker.write_text("tilde-ok", encoding="utf-8")
         try:
-            tool = FileSystemToolset(BuiltinToolsetContext(1, 1, "~"))
+            tool = FileSystemToolset(BuiltinToolsetContext(1, 1, "~", None, None))
             result = await tool.read_file("__dais_test_marker__.txt")
             assert isinstance(result, str)
             assert "tilde-ok" in result

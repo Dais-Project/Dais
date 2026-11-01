@@ -69,7 +69,7 @@ class BuiltinToolsetContext:
         definitions, such as tool metadata synchronization. Runtime-only properties are
         intentionally unavailable on this instance.
         """
-        return cls(1, 1, Path.cwd(), None)
+        return cls(1, 1, Path.cwd(), None, None)
 
 class BuiltinToolset(PythonToolset):
     def __init__(self,

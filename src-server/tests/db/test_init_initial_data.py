@@ -124,7 +124,14 @@ class TestInitInitialData:
             assert computer_use.icon_name == "monitor"
             assert computer_use.instruction
             computer_tools = {tool.internal_key for tool in tools if tool.internal_key.startswith("ComputerUse__")}
-            assert len(computer_tools) == 9
+            assert computer_tools == {
+                "ComputerUse__list_apps",
+                "ComputerUse__list_windows",
+                "ComputerUse__get_desktop_state",
+                "ComputerUse__get_window_state",
+                "ComputerUse__mouse",
+                "ComputerUse__keyboard",
+            }
             assert {tool.internal_key for tool in computer_use.usable_tools} == computer_tools | {
                 "UserInteraction__ask_user",
                 "UserInteraction__show_plan",
