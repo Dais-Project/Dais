@@ -37,14 +37,14 @@ class KeyboardManager:
         raise TypeError(f"Unsupported action: {type(action)}")
 
     @manage.register
-    async def _(self, action: Fill) -> None:
+    async def _(self, action: Fill):
         locator = self._get_current_tab().get_by_ref(action.ref)
         await locator.fill(value=action.text)
         if action.submit:
             await locator.press("Enter")
 
     @manage.register
-    async def _(self, action: PressShortcut) -> None:
+    async def _(self, action: PressShortcut):
         tab = self._get_current_tab()
         if action.ref is not None:
             locator = tab.get_by_ref(action.ref)

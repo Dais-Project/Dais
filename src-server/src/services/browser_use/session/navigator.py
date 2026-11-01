@@ -38,17 +38,17 @@ class Navigator:
         raise TypeError(f"Unsupported action: {type(action)}")
 
     @manage.register
-    async def _(self, action: Navigate) -> None:
+    async def _(self, action: Navigate):
         await self._get_current_tab().goto(action.url)
 
     @manage.register
-    async def _(self, _: GoForward) -> None:
+    async def _(self, _: GoForward):
         await self._get_current_tab().go_forward()
 
     @manage.register
-    async def _(self, _: GoBack) -> None:
+    async def _(self, _: GoBack):
         await self._get_current_tab().go_back()
 
     @manage.register
-    async def _(self, _: Reload) -> None:
+    async def _(self, _: Reload):
         await self._get_current_tab().reload()

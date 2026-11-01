@@ -1,4 +1,4 @@
-from typing import Annotated, Callable, Sequence, override
+from typing import Annotated, override
 
 from dais_sdk.types import Base64Source, ContentBlock, ImageBlock, TextBlock
 from pydantic import Field

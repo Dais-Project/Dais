@@ -24,7 +24,7 @@ class SelectTab:
 @dataclass
 class CloseTab:
     type: Literal["close"]
-    index: int | None = None
+    index: Annotated[int | None, "Omit to close current tabwwwwwww'd'd'w'A'w'r'd'w"] = None
 
 type TabAction = Annotated[
     NewTab | ListTabs | SelectTab | CloseTab,
@@ -58,11 +58,14 @@ class TabManager:
     @overload
     async def manage(self, action: CloseTab) -> Page | None: ...
 
-    @singledispatchmethod
     async def manage(self, action: TabAction) -> Page | list[Page] | None:
+        return await self._dispatch(action)
+
+    @singledispatchmethod
+    async def _dispatch(self, action: TabAction) -> Page | list[Page] | None:
         raise TypeError(f"Unsupported action: {type(action)}")
 
-    @manage.register
+    @_dispatch.register
     async def _(self, _: NewTab) -> Page:
         context = await self._context_manager.get_context()
         page = await context.new_page()
@@ -72,16 +75,16 @@ class TabManager:
 
         return page
 
-    @manage.register
+    @_dispatch.register
     async def _(self, _: ListTabs) -> list[Page]:
         return list(self._pages)
 
-    @manage.register
+    @_dispatch.register
     async def _(self, action: SelectTab) -> Page:
         self._current_page = self._pages[action.index]
         return self._current_page
 
-    @manage.register
+    @_dispatch.register
     async def _(self, action: CloseTab) -> Page | None:
         if action.index is None:
             if self._current_page is None:

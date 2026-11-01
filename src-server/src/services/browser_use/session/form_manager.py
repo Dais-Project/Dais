@@ -39,16 +39,16 @@ class FormManager:
         raise TypeError(f"Unsupported action: {type(action)}")
 
     @manage.register
-    async def _(self, action: SelectOption) -> None:
+    async def _(self, action: SelectOption):
         locator = self._get_current_tab().get_by_ref(action.ref)
         await locator.select_option(value=action.values)
 
     @manage.register
-    async def _(self, action: Check) -> None:
+    async def _(self, action: Check):
         locator = self._get_current_tab().get_by_ref(action.ref)
         await locator.set_checked(action.checked)
 
     @manage.register
-    async def _(self, action: Upload) -> None:
+    async def _(self, action: Upload):
         locator = self._get_current_tab().get_by_ref(action.ref)
         await locator.set_input_files(action.files)

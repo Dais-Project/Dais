@@ -43,14 +43,14 @@ class MouseManager:
         raise TypeError(f"Unsupported action: {type(action)}")
 
     @manage.register
-    async def _(self, action: Click) -> None:
+    async def _(self, action: Click):
         locator = self._get_current_tab().get_by_ref(action.ref)
         await locator.click(click_count=1 if not action.double_click else 2,
                             button=action.button,
                             modifiers=action.modifiers)
 
     @manage.register
-    async def _(self, action: Scroll) -> None:
+    async def _(self, action: Scroll):
         tab = self._get_current_tab()
         if action.ref is not None:
             locator = tab.get_by_ref(action.ref)
@@ -58,6 +58,6 @@ class MouseManager:
         await tab.mouse.wheel(action.delta_x, action.delta_y)
 
     @manage.register
-    async def _(self, action: Hover) -> None:
+    async def _(self, action: Hover):
         locator = self._get_current_tab().get_by_ref(action.ref)
         await locator.hover()
