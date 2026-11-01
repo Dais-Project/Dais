@@ -98,7 +98,15 @@ class TestInitInitialData:
             assert browser_use.name == "Browser Use"
             assert browser_use.type == toolset_models.ToolsetType.BUILT_IN
             assert browser_use.is_enabled
-            assert not any(tool.toolset_id == browser_use.id for tool in tools)
+            browser_tools = {tool.internal_key for tool in tools if tool.toolset_id == browser_use.id}
+            assert browser_tools == {
+                "BrowserUse__manage_tabs",
+                "BrowserUse__navigate",
+                "BrowserUse__snapshot",
+                "BrowserUse__mouse",
+                "BrowserUse__keyboard",
+                "BrowserUse__form",
+            }
             assert len(tools) > 0
 
             assert {agent.name for agent in agents} == {
@@ -106,6 +114,7 @@ class TestInitInitialData:
                 "Terminal Interpreter",
                 "Software Engineer",
                 "Computer Operator",
+                "Browser Operator",
             }
             assert all(agent.description for agent in agents)
             assert all(agent.model_id == model.id for agent in agents)
@@ -117,6 +126,16 @@ class TestInitInitialData:
             computer_tools = {tool.internal_key for tool in tools if tool.internal_key.startswith("ComputerUse__")}
             assert len(computer_tools) == 9
             assert {tool.internal_key for tool in computer_use.usable_tools} == computer_tools | {
+                "UserInteraction__ask_user",
+                "UserInteraction__show_plan",
+                "ExecutionControl__update_todos",
+                "ExecutionControl__finish_task",
+            }
+
+            browser_operator = next(agent for agent in agents if agent.name == "Browser Operator")
+            assert browser_operator.icon_name == "globe"
+            assert browser_operator.instruction
+            assert {tool.internal_key for tool in browser_operator.usable_tools} == browser_tools | {
                 "UserInteraction__ask_user",
                 "UserInteraction__show_plan",
                 "ExecutionControl__update_todos",
@@ -156,7 +175,7 @@ class TestInitInitialData:
             assert model_count == 1
             assert toolset_count == 8
             assert tool_count > 0
-            assert agent_count == 4
+            assert agent_count == 5
             assert workspace_count == 1
             assert skill_count == 2
 

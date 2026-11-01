@@ -29,6 +29,7 @@ async def init(db_session: AsyncSession):
     from .toolset import Tool, Toolset, ToolsetType
     from ...agent.tool import BuiltinToolsetContext
     from ...agent.tool.builtin_tools import (
+        BrowserUseToolset,
         ComputerUseToolset,
         FileSystemToolset,
         ExecutionControlToolset,
@@ -37,6 +38,8 @@ async def init(db_session: AsyncSession):
         WebInteractionToolset,
     )
     from ...agent.prompts.builtin_agents import (
+        BROWSER_USE_AGENT_DESCRIPTION,
+        BROWSER_USE_AGENT_INSTRUCTION,
         DAILY_ASSISTANT_AGENT_DESCRIPTION,
         DAILY_ASSISTANT_AGENT_INSTRUCTION,
         COMPUTER_USE_AGENT_DESCRIPTION,
@@ -51,6 +54,7 @@ async def init(db_session: AsyncSession):
     builtin_toolsets: dict[type[BuiltinToolset], BuiltinToolset] = {
         toolset_t: toolset_t(builtin_toolset_ctx)
         for toolset_t in [
+            BrowserUseToolset,
             ComputerUseToolset,
             FileSystemToolset,
             ExecutionControlToolset,
@@ -125,6 +129,23 @@ async def init(db_session: AsyncSession):
                 (ComputerUseToolset, ComputerUseToolset.scroll),
                 (ComputerUseToolset, ComputerUseToolset.press_key),
                 (ComputerUseToolset, ComputerUseToolset.drag),
+                (UserInteractionToolset, UserInteractionToolset.ask_user),
+                (UserInteractionToolset, UserInteractionToolset.show_plan),
+                (ExecutionControlToolset, ExecutionControlToolset.update_todos),
+                (ExecutionControlToolset, ExecutionControlToolset.finish_task),
+            ],
+        ),
+        (
+            "Browser Operator", "globe",
+            BROWSER_USE_AGENT_DESCRIPTION,
+            BROWSER_USE_AGENT_INSTRUCTION,
+            [
+                (BrowserUseToolset, BrowserUseToolset.manage_tabs),
+                (BrowserUseToolset, BrowserUseToolset.navigate),
+                (BrowserUseToolset, BrowserUseToolset.snapshot),
+                (BrowserUseToolset, BrowserUseToolset.mouse),
+                (BrowserUseToolset, BrowserUseToolset.keyboard),
+                (BrowserUseToolset, BrowserUseToolset.form),
                 (UserInteractionToolset, UserInteractionToolset.ask_user),
                 (UserInteractionToolset, UserInteractionToolset.show_plan),
                 (ExecutionControlToolset, ExecutionControlToolset.update_todos),
