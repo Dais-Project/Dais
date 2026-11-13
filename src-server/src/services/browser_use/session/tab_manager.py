@@ -69,10 +69,8 @@ class TabManager:
     async def _(self, _: NewTab) -> Page:
         context = await self._context_manager.get_context()
         page = await context.new_page()
-
         self.register(page)
         self._current_page = page
-
         return page
 
     @_dispatch.register

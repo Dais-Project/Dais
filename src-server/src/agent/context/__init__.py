@@ -146,9 +146,9 @@ class AgentContext:
         if len(toolsets) == 0: return NO_AVAILABLE_TOOLSETS
         root = ET.Element("toolsets")
         for toolset in toolsets:
-            toolset_elem = ET.Element("toolset", attrib={"name": toolset.name})
-            if toolset.description is not None:
-                toolset_elem.text = AnyXml.RawText(toolset.description)
+            if toolset.description is None: continue
+            toolset_elem = ET.SubElement(root, "toolset", attrib={"name": toolset.name})
+            toolset_elem.text = AnyXml.RawText(toolset.description)
         return AnyXml.tostring(root)
 
     ResolvedInstructions = namedtuple("ResolvedInstructions", ["base", "workspace", "agent"])

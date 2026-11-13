@@ -40,13 +40,21 @@ class BrowserContextManager:
                 self._context = await self._playwright.chromium.launch_persistent_context(
                     user_data_dir=await self.get_profile_dir(browser_channel),
                     channel=browser_channel,
+                    chromium_sandbox=True,
                     headless=False,
                     no_viewport=True,
                 )
+                self._context.on("close",
+                                 lambda ctx: self._on_context_closed(ctx))
             return self._context
 
     async def stop(self) -> None:
         async with self._lock:
-            if self._context is not None:
-                await self._context.close()
-                self._context = None
+            context = self._context
+            if context is not None:
+                await context.close()
+                self._on_context_closed(context)
+
+    def _on_context_closed(self, context: BrowserContext):
+        if self._context is context:
+            self._context = None
