@@ -53,6 +53,7 @@
         "{projectRoot}/**/*.py",
         "{projectRoot}/pyproject.toml",
         "{projectRoot}/uv.lock",
+        "{projectRoot}/prebuilt-down.toml",
         "{projectRoot}/entry.spec"
       ],
       "outputs": ["{projectRoot}/dist", "{workspaceRoot}/src-tauri/server*"]
