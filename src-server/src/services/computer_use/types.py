@@ -37,6 +37,7 @@ class ActionResultModel(BaseModel):
     escalation: Serialized[ActionEscalation] | None
     error: ActionErrorModel | None
     summary: str | None
+    hint: str | None
 
 # --- --- --- --- --- ---
 

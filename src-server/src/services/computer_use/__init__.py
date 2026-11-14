@@ -1,4 +1,4 @@
-from cua_driver import CuaDriver, EndSessionInput, StartSessionInput
+from cua_driver import CuaDriver, EndSessionInput, SdkClientKind, StartSessionInput
 
 from src.platforms.window_manager import configure_dpi_awareness
 
@@ -6,7 +6,8 @@ from .session import ComputerUseSession
 
 class ComputerUse:
     def __init__(self):
-        self._driver = CuaDriver.create(None)
+        # Preserve the in-process runtime used by create() before 0.35.3.
+        self._driver = CuaDriver.create_with_client_kind(None, SdkClientKind.PYTHON)
 
     async def create_session(self) -> ComputerUseSession:
         session = ComputerUseSession(self._driver)
@@ -14,6 +15,7 @@ class ComputerUse:
             session=session.id,
             capture_scope=None,
             cursor_theme=None,
+            cursor_motion=None,
         ))
         return session
 
