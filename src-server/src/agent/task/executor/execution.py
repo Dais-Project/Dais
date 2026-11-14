@@ -124,5 +124,8 @@ class AgentTaskExecution:
             await asyncio.shield(self._on_finish_handler(result))
 
     async def _on_finish_handler(self, result: TaskStopResult):
-        for callback in self._on_finish_callbacks:
-            await callback(result)
+        try:
+            for callback in self._on_finish_callbacks:
+                await callback(result)
+        finally:
+            await self._task.cleanup()

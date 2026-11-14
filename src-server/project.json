@@ -20,6 +20,11 @@
       "continuous": true,
       "dependsOn": ["install", "install-prebuilts", "watch-schema"]
     },
+    "prepare-dev-sidecar": {
+      "command": "uv run python -m scripts.prepare_dev_sidecar",
+      "dependsOn": ["install"],
+      "cache": false
+    },
     "watch-schema": {
       "command": "uv run python -m scripts.watches schema",
       "continuous": true,
@@ -44,7 +49,12 @@
         ],
         "parallel": false
       },
-      "inputs": ["{projectRoot}/**/*.py", "{projectRoot}/pyproject.toml"],
+      "inputs": [
+        "{projectRoot}/**/*.py",
+        "{projectRoot}/pyproject.toml",
+        "{projectRoot}/uv.lock",
+        "{projectRoot}/entry.spec"
+      ],
       "outputs": ["{projectRoot}/dist", "{workspaceRoot}/src-tauri/server*"]
     },
     "type-check": {

@@ -46,6 +46,7 @@ a = Analysis(
             *collect_data_files("justext"), # justext is used in trafilatura
     ],
     hiddenimports=[
+        "playwright.async_api",
         "aiosqlite",
         "sqlalchemy.dialects.sqlite.aiosqlite",
     ],

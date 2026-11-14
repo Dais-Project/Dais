@@ -47,6 +47,7 @@ class Toolset(Base):
 async def init(db_session: AsyncSession):
     from ...agent.tool import (
         BuiltinToolset,
+        BrowserUseToolset,
         ComputerUseToolset,
         ExecutionControlToolset,
         FileSystemToolset,
@@ -57,6 +58,7 @@ async def init(db_session: AsyncSession):
     )
 
     toolsets_to_init: list[tuple[str, type[BuiltinToolset]]] = [
+        ("Browser Use", BrowserUseToolset),
         ("Computer Use", ComputerUseToolset),
         ("File System", FileSystemToolset),
         ("Execution Control", ExecutionControlToolset),

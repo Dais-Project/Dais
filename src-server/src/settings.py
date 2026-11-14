@@ -96,14 +96,8 @@ class AppSettings(JsonSettings):
                     self.flash_model = None
 
 class AppSettingManager:
-    def __init__(self):
-        self._settings: AppSettings | None = None
-
-    async def initialize(self) -> AppSettings:
-        settings = AppSettings()
-        await settings.validate_self()
+    def __init__(self, settings: AppSettings):
         self._settings = settings
-        return self._settings
 
     @property
     def settings(self) -> AppSettings:
@@ -122,8 +116,14 @@ class AppSettingManager:
 
 __instance: AppSettingManager | None = None
 
+async def init_app_setting_manager():
+    global __instance
+    settings = AppSettings()
+    await settings.validate_self()
+    __instance = AppSettingManager(settings)
+
 def use_app_setting_manager() -> AppSettingManager:
     global __instance
     if __instance is None:
-        __instance = AppSettingManager()
+        raise ValueError("AppSettingManager not initialized")
     return __instance

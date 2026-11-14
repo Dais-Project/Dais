@@ -93,25 +93,56 @@ class TestInitInitialData:
             assert model.context_size == 128_000
             assert model.provider_id == provider.id
 
-            assert len(toolsets) == 7
+            assert len(toolsets) == 8
+            browser_use = next(toolset for toolset in toolsets if toolset.internal_key == "BrowserUseToolset")
+            assert browser_use.name == "Browser Use"
+            assert browser_use.type == toolset_models.ToolsetType.BUILT_IN
+            assert browser_use.is_enabled
+            browser_tools = {tool.internal_key for tool in tools if tool.toolset_id == browser_use.id}
+            assert browser_tools == {
+                "BrowserUse__manage_tabs",
+                "BrowserUse__navigate",
+                "BrowserUse__snapshot",
+                "BrowserUse__mouse",
+                "BrowserUse__keyboard",
+                "BrowserUse__form",
+            }
             assert len(tools) > 0
 
             assert {agent.name for agent in agents} == {
                 "Daily Assistant",
                 "Terminal Interpreter",
                 "Software Engineer",
-                "Computer Use",
+                "Computer Operator",
+                "Browser Operator",
             }
             assert all(agent.description for agent in agents)
             assert all(agent.model_id == model.id for agent in agents)
             assert len(software_engineer.usable_tools) == len(tools)
 
-            computer_use = next(agent for agent in agents if agent.name == "Computer Use")
+            computer_use = next(agent for agent in agents if agent.name == "Computer Operator")
             assert computer_use.icon_name == "monitor"
             assert computer_use.instruction
             computer_tools = {tool.internal_key for tool in tools if tool.internal_key.startswith("ComputerUse__")}
-            assert len(computer_tools) == 8
+            assert computer_tools == {
+                "ComputerUse__list_apps",
+                "ComputerUse__list_windows",
+                "ComputerUse__get_desktop_state",
+                "ComputerUse__get_window_state",
+                "ComputerUse__mouse",
+                "ComputerUse__keyboard",
+            }
             assert {tool.internal_key for tool in computer_use.usable_tools} == computer_tools | {
+                "UserInteraction__ask_user",
+                "UserInteraction__show_plan",
+                "ExecutionControl__update_todos",
+                "ExecutionControl__finish_task",
+            }
+
+            browser_operator = next(agent for agent in agents if agent.name == "Browser Operator")
+            assert browser_operator.icon_name == "globe"
+            assert browser_operator.instruction
+            assert {tool.internal_key for tool in browser_operator.usable_tools} == browser_tools | {
                 "UserInteraction__ask_user",
                 "UserInteraction__show_plan",
                 "ExecutionControl__update_todos",
@@ -149,9 +180,9 @@ class TestInitInitialData:
 
             assert provider_count == 1
             assert model_count == 1
-            assert toolset_count == 7
+            assert toolset_count == 8
             assert tool_count > 0
-            assert agent_count == 4
+            assert agent_count == 5
             assert workspace_count == 1
             assert skill_count == 2
 

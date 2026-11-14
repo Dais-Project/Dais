@@ -1,27 +1,14 @@
-from typing import Annotated, Callable, Sequence, override
+from typing import Annotated, override
 
 from dais_sdk.types import Base64Source, ContentBlock, ImageBlock, TextBlock
-from pydantic import Field
-from loguru import logger
 from rapidfuzz import fuzz
 
-from src.services.computer_use.types import (
-    ActionTarget, ClickButton, ClickPosition,
-    DragCoordinates, InputDeliveryMode,
-    KeyName, Modifier,
-    ScrollDirection,
-    WindowStateOptions,
-    WindowTarget,
-    ActionResultModel,
-)
+from src.services.computer_use.session.keyboard_manager import KeyboardAction
+from src.services.computer_use.session.mouse_manager import MouseAction
+from src.services.computer_use.types import ActionResultModel, WindowStateOptions
 
 from ..toolset_wrapper import builtin_tool, BuiltinToolDefaults, BuiltinToolset
 
-
-def normalize_delivery_mode(target: ActionTarget, delivery_mode: InputDeliveryMode) -> InputDeliveryMode:
-    if target.kind == "desktop":
-        return InputDeliveryMode.FOREGROUND
-    return delivery_mode
 
 def fuzzy_score(query: str, *values: str | None) -> float:
     query = query.casefold()
@@ -160,86 +147,26 @@ Window height: {result.window_bounds.height}
                 return result.model_dump(exclude={"type"})
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def click(self,
-                    target: ActionTarget,
-                    position: ClickPosition,
-                    button: ClickButton = ClickButton.LEFT,
-                    double_click: bool = False,
-                    delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
-                    ) -> ActionResultModel:
+    async def mouse(self, action: MouseAction) -> ActionResultModel:
         """
-        Click a position or accessibility element in the target.
+        Click a position or accessibility element, scroll, or drag from start to end in the target.
 
         Use an element target when available;
         use coordinates for targets identified visually from the window screenshot.
+
+        Drag positions use window-local screenshot pixel coordinates in the same coordinate space as the window screenshot returned by `get_window_state`,
+        with (0, 0) at its top-left corner, not screen-absolute coordinates.
         """
-        delivery_mode = normalize_delivery_mode(target, delivery_mode)
-        result = await self._ctx.computer_use_session.click(target, position, button, double_click, delivery_mode)
+        result = await self._ctx.computer_use_session.mouse.manage(action)
         return ActionResultModel.model_validate(result)
 
     @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=False))
-    async def type_text(self,
-                        text: str,
-                        target: ActionTarget,
-                        delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
-                        ) -> ActionResultModel:
+    async def keyboard(self, action: KeyboardAction) -> ActionResultModel:
         """
-        Enter text and punctuation into the focused control.
+        Enter text and punctuation into the focused control, or press a key.
 
         NOTE:
-            Before calling this tool, the intended input widget must be focused.
+            Before entering text, the intended input widget must be focused.
         """
-        delivery_mode = normalize_delivery_mode(target, delivery_mode)
-        result = await self._ctx.computer_use_session.type_text(text, target, delivery_mode)
-        return ActionResultModel.model_validate(result)
-
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def scroll(self,
-                     target: WindowTarget,
-                     x: float,
-                     y: float,
-                     direction: ScrollDirection,
-                     amount: Annotated[int, Field(gt=0, description="The number of lines to scroll.")] = 1,
-                     delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
-                     ) -> ActionResultModel:
-        delivery_mode = normalize_delivery_mode(target, delivery_mode)
-        result = await self._ctx.computer_use_session.scroll(target, x, y, direction, amount, delivery_mode)
-        return ActionResultModel.model_validate(result)
-
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def press_key(self,
-                        target: WindowTarget,
-                        key: KeyName,
-                        modifiers: list[Modifier] | None = None,
-                        delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
-                        ) -> ActionResultModel:
-        delivery_mode = normalize_delivery_mode(target, delivery_mode)
-        result = await self._ctx.computer_use_session.press_key(target, key, modifiers, delivery_mode)
-        validated = ActionResultModel.model_validate(result)
-        logger.debug(validated)
-        return validated
-
-    @builtin_tool(validate=True, defaults=BuiltinToolDefaults(auto_approve=True))
-    async def drag(self,
-                   target: WindowTarget,
-                   start: DragCoordinates,
-                   end: DragCoordinates,
-                   button: ClickButton = ClickButton.LEFT,
-                   modifiers: list[Modifier] | None = None,
-                   delivery_mode: InputDeliveryMode = InputDeliveryMode.BACKGROUND,
-                   ) -> ActionResultModel:
-        """
-        Drag from start to end in the target window.
-
-        Both positions use window-local screenshot pixel coordinates in the same coordinate space as the window screenshot returned by `get_window_state`,
-        with (0, 0) at its top-left corner, not screen-absolute coordinates.
-        """
-        delivery_mode = normalize_delivery_mode(target, delivery_mode)
-        result = await self._ctx.computer_use_session.drag(
-            target,
-            start,
-            end,
-            button,
-            modifiers,
-            delivery_mode)
+        result = await self._ctx.computer_use_session.keyboard.manage(action)
         return ActionResultModel.model_validate(result)

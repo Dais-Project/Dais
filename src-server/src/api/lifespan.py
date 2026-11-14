@@ -15,6 +15,7 @@ from src.db import engine as database_engine, db_context
 from src.services.markdown_cache import MarkdownCacheService
 from src.services.tasks import RunRecordService, TaskService
 from src.services.workspace import WorkspaceService
+from src.services.browser_use import init_browser_use
 from src.services.computer_use import use_computer
 from src.settings import AppSettings, use_app_setting_manager
 
@@ -52,14 +53,12 @@ class LifespanManager:
         self.sse_dispatcher = SseDispatcher()
         self.agent_task_executor = AgentTaskExecutor(self.sse_dispatcher.send)
         self.schedule_runner = init_schedule_runner(self.agent_task_executor, self.sse_dispatcher.send)
-        self.app_setting_manager = use_app_setting_manager()
         self.mcp_toolset_manager = use_mcp_toolset_manager()
         self.background_task_manager = BackgroundTaskManager()
 
     @asynccontextmanager
-    async def __call__(self, app: FastAPI) -> AsyncGenerator[AppState]:
+    async def __call__(self, _app: FastAPI) -> AsyncGenerator[AppState]:
         await self._init_resources()
-
         try:
             yield AppState(
                 agent_task_executor=self.agent_task_executor,
@@ -70,7 +69,11 @@ class LifespanManager:
             await CleanupManager.cleanup()
 
     async def _init_resources(self):
-        settings = self.app_setting_manager.settings
+        browser_use = await init_browser_use()
+        CleanupManager.add_cleanup(browser_use.stop)
+
+        app_setting_manager = use_app_setting_manager()
+        settings = app_setting_manager.settings
         self.background_task_manager.add_task(self._cleanup_outdated_task_records(settings))
         self.background_task_manager.add_task(self._clear_unused_cache())
         self.background_task_manager.add_task(self._init_toolsets())
@@ -87,7 +90,7 @@ class LifespanManager:
         CleanupManager.add_cleanup(self.schedule_runner.shutdown)
         CleanupManager.add_cleanup(self.background_task_manager.shutdown)
         CleanupManager.add_cleanup(self.mcp_toolset_manager.disconnect_mcp_servers)
-        CleanupManager.add_cleanup(self.app_setting_manager.persist)
+        CleanupManager.add_cleanup(app_setting_manager.persist)
         CleanupManager.add_cleanup(self.sse_dispatcher.close)
         CleanupManager.add_cleanup(database_engine.dispose)
         CleanupManager.add_cleanup(use_computer().shutdown)
