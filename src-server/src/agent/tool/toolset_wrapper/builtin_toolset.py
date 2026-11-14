@@ -54,12 +54,8 @@ class BuiltinToolsetContext:
         return self._browser_use_session
 
     async def cleanup(self):
-        try:
-            if self._computer_use_session is not None:
-                await self._computer_use_session.stop()
-        finally:
-            if self._browser_use_session is not None:
-                await self._browser_use_session.stop()
+        if self._computer_use_session is not None:
+            await self._computer_use_session.stop()
 
     @classmethod
     def default(cls) -> Self:

@@ -1,9 +1,8 @@
-import asyncio
 import platform
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from dataclasses import asdict
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from anyxml import AnyXml
 from dais_sdk.tool import Toolset
@@ -45,13 +44,15 @@ from ..tool import use_mcp_toolset_manager, BuiltinToolsetManager, BuiltinToolse
 from ..tool.types import is_tool_metadata
 from ..types import ContextUsage
 
+if TYPE_CHECKING:
+    from ..task.runtime_manager import AgentTaskRuntimeKey
+
 
 class AgentContext:
     _logger = logger.bind(name="AgentContext")
 
     def __init__(self,
-                 task_id: int,
-                 task_type: task_runtime_schemas.TaskType,
+                 task_key: AgentTaskRuntimeKey,
                  *,
                  messages: list[Message],
                  resource: AgentContextResource,
@@ -59,8 +60,8 @@ class AgentContext:
                  persistence: AgentContextPersistence,
                  builtin_toolset_manager: BuiltinToolsetManager,
                  mcp_toolset_manager: McpToolsetManager):
-        self.task_id = task_id
-        self.task_type = task_type
+        self.task_id = task_key.id
+        self.task_type = task_key.type
         self._resource = resource
         self._messages = messages
 
@@ -72,6 +73,7 @@ class AgentContext:
 
     @classmethod
     async def create(cls, task: task_runtime_schemas.TaskRuntimeContext) -> Self:
+        task_key = AgentTaskRuntimeKey(task.type, task.id)
         assert task.agent_id is not None
 
         async with db_context() as db_session:
@@ -89,7 +91,7 @@ class AgentContext:
         messages = task.messages
 
         computer_use_session = await use_computer().create_session()
-        browser_use_session = use_browser().create_session()
+        browser_use_session = use_browser().create_session(task_key)
         try:
             builtin_toolset_manager = await BuiltinToolsetManager.create(
                 BuiltinToolsetContext(
@@ -100,15 +102,13 @@ class AgentContext:
                     browser_use_session,
                 ))
         except BaseException:
-            await asyncio.gather(computer_use_session.stop(),
-                                 browser_use_session.stop())
+            await computer_use_session.stop()
             raise
 
         mcp_toolset_manager = use_mcp_toolset_manager()
 
         persistence = create_agent_context_persistence(task)
-        return cls(task.id,
-                   task.type,
+        return cls(task_key,
                    messages=messages,
                    resource=AgentContextResource(
                        workspace=workspace_schemas.WorkspaceRead.model_validate(workspace),

@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Awaitable, Callable
 from typing import Literal
 
 from playwright.async_api import Playwright, BrowserContext
@@ -11,10 +12,13 @@ type BrowserName = Literal["msedge", "chrome"]
 class BrowserContextManager:
     _logger = logger.bind(name="BrowserContextManager")
 
-    def __init__(self, playwright: Playwright):
+    def __init__(self,
+                 playwright: Playwright,
+                 on_closed: Callable[[], Awaitable[None]]):
         self._lock = asyncio.Lock()
         self._playwright = playwright
         self._context: BrowserContext | None = None
+        self._on_closed = on_closed
 
     @staticmethod
     async def get_profile_dir(browser_name: str):
@@ -44,8 +48,7 @@ class BrowserContextManager:
                     headless=False,
                     no_viewport=True,
                 )
-                self._context.on("close",
-                                 lambda ctx: self._on_context_closed(ctx))
+                self._context.on("close", self._on_context_closed)
             return self._context
 
     async def stop(self) -> None:
@@ -53,8 +56,9 @@ class BrowserContextManager:
             context = self._context
             if context is not None:
                 await context.close()
-                self._on_context_closed(context)
+                await self._on_context_closed(context)
 
-    def _on_context_closed(self, context: BrowserContext):
+    async def _on_context_closed(self, context: BrowserContext):
         if self._context is context:
             self._context = None
+            await self._on_closed()

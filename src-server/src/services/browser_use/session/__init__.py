@@ -69,6 +69,7 @@ class BrowserUseSession:
         )
 
     async def stop(self) -> None:
+        if self._stopped: return
         self._stopped = True
-        self._tabs_manager.stop()
         self._on_stopped()
+        await self._tabs_manager.stop()

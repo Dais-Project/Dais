@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from functools import singledispatchmethod
 from typing import Annotated, Literal, Self, overload
@@ -104,9 +105,12 @@ class TabManager:
 
         return self._current_page
 
-    def stop(self) -> None:
-        for page in self._pages:
+    async def stop(self) -> None:
+        pages = list(self._pages)
+        for page in pages:
             page.remove_listener("popup", self.register)
 
         self._pages.clear()
         self._current_page = None
+        await asyncio.gather(
+            *(page.close() for page in pages if not page.is_closed()))
